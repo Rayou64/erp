@@ -159,6 +159,65 @@ async function main() {
   }
   console.log(`   ✅ ${ok} créés, ⚠️  ${skip} déjà présents, ❌ ${err} erreurs`);
 
+  // ── 3b. Material catalog ───────────────────────────────────────────────
+  console.log('\n🧱 Migration du catalogue de matériaux...');
+  const localMaterialCatalog = await get(LOCAL, '/api/material-catalog', localToken);
+  const remoteMaterialCatalog = await get(RAILWAY, '/api/material-catalog', railToken);
+  console.log(`   ${localMaterialCatalog.length} article(s) trouvé(s) en local`);
+
+  const remoteCatalogKeySet = new Set(
+    remoteMaterialCatalog.map(item => {
+      const folder = String(item.projectFolder || '').trim().toLowerCase();
+      const name = String(item.materialName || '').trim().toLowerCase();
+      const unit = String(item.unite || '').trim().toLowerCase();
+      return `${folder}::${name}::${unit}`;
+    })
+  );
+
+  let catalogMatOk = 0;
+  let catalogMatSkip = 0;
+  let catalogMatErr = 0;
+
+  for (const item of localMaterialCatalog) {
+    const folder = String(item.projectFolder || '').trim();
+    const name = String(item.materialName || '').trim();
+    const unit = String(item.unite || '').trim();
+    const dedupeKey = `${folder.toLowerCase()}::${name.toLowerCase()}::${unit.toLowerCase()}`;
+
+    if (!name) {
+      catalogMatSkip++;
+      continue;
+    }
+
+    if (remoteCatalogKeySet.has(dedupeKey)) {
+      catalogMatSkip++;
+      continue;
+    }
+
+    const res = await post(RAILWAY, '/api/material-catalog', {
+      projectFolder: folder,
+      materialName: name,
+      unite: unit,
+      quantiteParBatiment: Number(item.quantiteParBatiment || 0),
+      prixUnitaire: Number(item.prixUnitaire || 0),
+      notes: String(item.notes || ''),
+    }, railToken);
+
+    if (res.status === 201) {
+      catalogMatOk++;
+      remoteCatalogKeySet.add(dedupeKey);
+    } else {
+      catalogMatErr++;
+      console.log(`   ❌ Catalogue matériau ${name}: ${res.status} ${JSON.stringify(res.body)}`);
+    }
+
+    if ((catalogMatOk + catalogMatSkip + catalogMatErr) % 20 === 0) {
+      await sleep(100);
+    }
+  }
+
+  console.log(`   ✅ ${catalogMatOk} créés, ⚠️  ${catalogMatSkip} déjà présents/ignorés, ❌ ${catalogMatErr} erreurs`);
+
   // ── 4. Project progress ─────────────────────────────────────────────────
   console.log('\n📊 Migration des suivis de progression...');
   const progress = await get(LOCAL, '/api/project-progress', localToken);
@@ -217,7 +276,9 @@ async function main() {
   const finalProjects = await get(RAILWAY, '/api/projects', railToken);
   const finalFolders = await get(RAILWAY, '/api/project-folders', railToken);
   const finalCatalog = await get(RAILWAY, '/api/project-catalog', railToken);
+  const finalMaterialCatalog = await get(RAILWAY, '/api/material-catalog', railToken);
   console.log(`   Catalogue: ${finalCatalog.length} entrée(s)`);
+  console.log(`   Matériaux: ${finalMaterialCatalog.length} entrée(s)`);
   console.log(`   Zones:     ${finalFolders.length} entrée(s)`);
   console.log(`   Sites:     ${finalProjects.length} site(s)`);
   console.log(`\n🌐 URL: ${RAILWAY}/erp.html`);

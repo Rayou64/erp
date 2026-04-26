@@ -212,6 +212,11 @@ async function getTableColumns(tableName) {
   return new Set(rows.map(row => row.name));
 }
 
+async function getNextTableId(tableName) {
+  const row = await get(`SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM ${tableName}`);
+  return Number(row?.nextId || row?.nextid || 1);
+}
+
 app.get('/healthz', (_req, res) => {
   if (isShuttingDown) {
     return res.status(503).json({ status: 'shutting-down' });
@@ -2487,10 +2492,12 @@ async function mirrorSiteChiefActionToAdmin({
   const stageLabel = String(stage || '').trim() || 'APPROVISIONNEMENT';
   const titleLabel = String(title || '').trim() || 'Action chef chantier';
   const noteLabel = String(note || '').trim() || 'Action synchronisee pour suivi admin';
+  const nextProgressId = await getNextTableId('project_progress_updates');
 
   await run(
-    'INSERT INTO project_progress_updates (projectId, stage, title, note, materialUsedQty, materialUsageDetails, progressPercent, createdBy, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO project_progress_updates (id, projectId, stage, title, note, materialUsedQty, materialUsageDetails, progressPercent, createdBy, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
+      nextProgressId,
       numericProjectId,
       stageLabel,
       titleLabel,
@@ -2931,12 +2938,14 @@ app.post('/api/project-catalog', async (req, res) => {
     return res.status(409).json({ error: 'Ce projet existe deja' });
   }
 
+  const nextCatalogId = await getNextTableId('project_catalog');
+
   const result = await run(
-    'INSERT INTO project_catalog (nomProjet, typeProjet, description, createdAt) VALUES (?, ?, ?, ?)',
-    [projectName, String(typeProjet || '').trim(), String(description || '').trim(), new Date().toISOString()]
+    'INSERT INTO project_catalog (id, nomProjet, typeProjet, description, createdAt) VALUES (?, ?, ?, ?, ?)',
+    [nextCatalogId, projectName, String(typeProjet || '').trim(), String(description || '').trim(), new Date().toISOString()]
   );
 
-  const created = await get('SELECT * FROM project_catalog WHERE id = ?', [result.lastID]);
+  const created = await get('SELECT * FROM project_catalog WHERE id = ?', [nextCatalogId || result.lastID]);
   res.status(201).json(created);
 });
 
@@ -2974,9 +2983,10 @@ app.post('/api/project-folders', async (req, res) => {
 
   let result;
   try {
+    const nextFolderId = await getNextTableId('project_folders');
     result = await run(
-      'INSERT INTO project_folders (projectId, nomProjet, prefecture, nomSite, description, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
-      [Number.isInteger(projectIdValue) && projectIdValue > 0 ? projectIdValue : null, projectName, prefectureName, '', String(description || '').trim(), new Date().toISOString()]
+      'INSERT INTO project_folders (id, projectId, nomProjet, prefecture, nomSite, description, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [nextFolderId, Number.isInteger(projectIdValue) && projectIdValue > 0 ? projectIdValue : null, projectName, prefectureName, '', String(description || '').trim(), new Date().toISOString()]
     );
   } catch (error) {
     const message = String(error?.message || '').toLowerCase();
@@ -3094,9 +3104,12 @@ app.post('/api/projects', async (req, res) => {
     return res.status(409).json({ error: 'Ce site existe deja dans cette prefecture' });
   }
 
+  const nextProjectId = await getNextTableId('projects');
+
   const result = await run(
-    'INSERT INTO projects (nomProjet, prefecture, nomSite, typeMaison, numeroMaison, description, etapeConstruction, statutConstruction, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO projects (id, nomProjet, prefecture, nomSite, typeMaison, numeroMaison, description, etapeConstruction, statutConstruction, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
+      nextProjectId,
       projectName,
       prefectureName,
       siteName,
@@ -3109,7 +3122,7 @@ app.post('/api/projects', async (req, res) => {
     ]
   );
 
-  const project = await get('SELECT * FROM projects WHERE id = ?', [result.lastID]);
+  const project = await get('SELECT * FROM projects WHERE id = ?', [nextProjectId || result.lastID]);
   res.status(201).json(project);
 });
 
@@ -3188,11 +3201,13 @@ app.post('/api/projects/bulk', async (req, res) => {
 
   const createdAt = new Date().toISOString();
   const createdIds = [];
+  let nextProjectId = await getNextTableId('projects');
 
   for (const siteName of generatedNames) {
     const result = await run(
-      'INSERT INTO projects (nomProjet, prefecture, nomSite, typeMaison, numeroMaison, description, etapeConstruction, statutConstruction, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO projects (id, nomProjet, prefecture, nomSite, typeMaison, numeroMaison, description, etapeConstruction, statutConstruction, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
+        nextProjectId,
         projectName,
         prefectureName,
         siteName,
@@ -3204,7 +3219,8 @@ app.post('/api/projects/bulk', async (req, res) => {
         createdAt,
       ]
     );
-    createdIds.push(result.lastID);
+    createdIds.push(nextProjectId || result.lastID);
+    nextProjectId += 1;
   }
 
   const placeholders = createdIds.map(() => '?').join(',');
@@ -6122,8 +6138,9 @@ app.post('/api/project-progress', async (req, res) => {
   }
 
   const result = await run(
-    'INSERT INTO project_progress_updates (projectId, stage, title, note, materialUsedQty, materialUsageDetails, progressPercent, createdBy, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO project_progress_updates (id, projectId, stage, title, note, materialUsedQty, materialUsageDetails, progressPercent, createdBy, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
+      await getNextTableId('project_progress_updates'),
       progressProjectId,
       stageLabel,
       String(title || '').trim(),
@@ -6415,11 +6432,13 @@ app.post('/api/material-catalog', async (req, res) => {
   }
 
   const now = new Date().toISOString();
+  const nextCatalogMaterialId = await getNextTableId('building_material_catalog');
   const result = await run(
     `INSERT INTO building_material_catalog
-      (projectFolder, materialName, unite, quantiteParBatiment, prixUnitaire, notes, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, projectFolder, materialName, unite, quantiteParBatiment, prixUnitaire, notes, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
+      nextCatalogMaterialId,
       String(projectFolder || '').trim(),
       name,
       String(unite || '').trim(),
@@ -6431,7 +6450,7 @@ app.post('/api/material-catalog', async (req, res) => {
     ]
   );
 
-  const row = await get('SELECT * FROM building_material_catalog WHERE id = ?', [result.lastID]);
+  const row = await get('SELECT * FROM building_material_catalog WHERE id = ?', [nextCatalogMaterialId || result.lastID]);
   res.status(201).json(row);
 });
 
