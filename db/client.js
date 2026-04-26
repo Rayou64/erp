@@ -115,9 +115,30 @@ function createPostgresClient(databaseUrl) {
     throw new Error('DATABASE_URL est obligatoire avec DATABASE_DRIVER=postgres');
   }
 
+  let effectiveDatabaseUrl = databaseUrl;
+  try {
+    const parsedUrl = new URL(databaseUrl);
+    const disableSsl = process.env.PGSSL_DISABLE === '1';
+    const sslMode = (parsedUrl.searchParams.get('sslmode') || '').toLowerCase();
+
+    if (disableSsl) {
+      parsedUrl.searchParams.delete('sslmode');
+      parsedUrl.searchParams.delete('sslrootcert');
+      parsedUrl.searchParams.delete('sslcert');
+      parsedUrl.searchParams.delete('sslkey');
+    } else if (sslMode && !parsedUrl.searchParams.has('uselibpqcompat')) {
+      // Keep TLS while avoiding strict verify-full behavior with managed DB self-signed chains.
+      parsedUrl.searchParams.set('uselibpqcompat', 'true');
+    }
+
+    effectiveDatabaseUrl = parsedUrl.toString();
+  } catch (_error) {
+    effectiveDatabaseUrl = databaseUrl;
+  }
+
   const { Pool } = require('pg');
   const pool = new Pool({
-    connectionString: databaseUrl,
+    connectionString: effectiveDatabaseUrl,
     ssl: process.env.PGSSL_DISABLE === '1' ? false : { rejectUnauthorized: false },
     max: Number(process.env.PG_POOL_MAX || 20),
     idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS || 30_000),
