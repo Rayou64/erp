@@ -7,13 +7,18 @@ node_modules/
 *.db
 *.sqlite
 *.sqlite3
+*.db-wal
+*.db-shm
 
 # Large/local artifacts
 backups/
 logs/
 archives/
+ngrok.ngrok_*/
+*.exe
 
 # OS/editor
 .DS_Store
 Thumbs.db
 .vscode/
+.vs/
