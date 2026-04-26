@@ -1,5 +1,5 @@
-name: __APP_NAME__
-region: __REGION__
+﻿name: ryanerp
+region: fra
 services:
   - name: erp-web
     environment_slug: node-js
@@ -7,8 +7,8 @@ services:
     instance_size_slug: basic-xs
     source_dir: /
     github:
-      repo: __GITHUB_REPO__
-      branch: __GITHUB_BRANCH__
+      repo: Rayou64/erp
+      branch: main
       deploy_on_push: true
     build_command: npm ci --omit=dev
     run_command: npm start
@@ -49,7 +49,7 @@ services:
         value: "25"
         type: GENERAL
       - key: JWT_SECRET
-        value: __JWT_SECRET__
+        value: 7c39a4ec9a024c24aa57f220b4e5aac978a612c492b54a009b3ccde2c5c07682
         type: SECRET
       - key: AUTO_BACKUP_ENABLED
         value: "0"
