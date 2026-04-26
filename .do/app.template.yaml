@@ -31,7 +31,7 @@ services:
         value: ${erp-db.DATABASE_URL}
         type: SECRET
       - key: PGSSL_DISABLE
-        value: "1"
+        value: "0"
         type: GENERAL
       - key: JSON_BODY_LIMIT
         value: 1mb
