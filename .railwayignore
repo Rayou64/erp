@@ -1,0 +1,8 @@
+archives/**
+logs/**
+ngrok.ngrok_1g87z0zv29zzc/**
+*.log
+data.db
+backups/**
+node_modules/**
+.git/**

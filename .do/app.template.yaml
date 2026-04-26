@@ -1,0 +1,63 @@
+name: __APP_NAME__
+region: __REGION__
+services:
+  - name: erp-web
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xs
+    source_dir: /
+    github:
+      repo: __GITHUB_REPO__
+      branch: __GITHUB_BRANCH__
+      deploy_on_push: true
+    build_command: npm ci --omit=dev
+    run_command: npm start
+    http_port: 4000
+    health_check:
+      http_path: /healthz
+      initial_delay_seconds: 15
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 6
+    envs:
+      - key: NODE_ENV
+        value: production
+        type: GENERAL
+      - key: DATABASE_DRIVER
+        value: postgres
+        type: GENERAL
+      - key: DATABASE_URL
+        value: ${erp-db.DATABASE_URL}
+        type: SECRET
+      - key: PGSSL_DISABLE
+        value: "0"
+        type: GENERAL
+      - key: JSON_BODY_LIMIT
+        value: 1mb
+        type: GENERAL
+      - key: API_RATE_WINDOW_MS
+        value: "60000"
+        type: GENERAL
+      - key: API_RATE_MAX
+        value: "600"
+        type: GENERAL
+      - key: AUTH_RATE_WINDOW_MS
+        value: "900000"
+        type: GENERAL
+      - key: AUTH_RATE_MAX
+        value: "25"
+        type: GENERAL
+      - key: JWT_SECRET
+        value: __JWT_SECRET__
+        type: SECRET
+      - key: AUTO_BACKUP_ENABLED
+        value: "0"
+        type: GENERAL
+databases:
+  - name: erp-db
+    engine: PG
+    production: false
+    version: "16"
+    size: db-s-1vcpu-1gb
+    num_nodes: 1

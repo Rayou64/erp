@@ -1,0 +1,42 @@
+{
+  "name": "erp",
+  "version": "1.0.0",
+  "description": "RyanERP - Application de gestion avec authentification et base de données SQLite",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "backup:now": "node scripts/backup-local.js",
+    "backup:verify": "node scripts/backup-local.js --verify-latest",
+    "backup:auto": "chokidar \"app.js\" \"public/**/*\" \"scripts/**/*\" \"db/**/*\" \"README.md\" \"package.json\" -i \"node_modules/**\" -i \"archives/**\" -i \"backups/**\" --debounce 1500 -c \"npm run backup:now\"",
+    "cloud:readiness": "node scripts/cloud-readiness-check.js",
+    "db:migrate:pg": "node scripts/migrate-sqlite-to-postgres.js",
+    "db:migrate:pg:truncate": "set MIGRATION_TRUNCATE_TARGET=1 && node scripts/migrate-sqlite-to-postgres.js",
+    "deploy:do": "powershell -ExecutionPolicy Bypass -File scripts/deploy-digitalocean.ps1",
+    "deploy:railway": "railway up -d -s terrific-love -e production",
+    "deploy:auto": "chokidar \"app.js\" \"public/**/*\" \"package.json\" \"railway.json\" -i \"node_modules/**\" -i \"archives/**\" --debounce 4000 --initial -c \"npm run deploy:railway\""
+  },
+  "keywords": [
+    "erp",
+    "construction",
+    "logistique",
+    "sqlite",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "chokidar-cli": "^3.0.0"
+  },
+  "dependencies": {
+    "@fontsource/great-vibes": "^5.2.8",
+    "bcryptjs": "^2.4.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "pdfkit": "^0.18.0",
+    "pg": "^8.16.3",
+    "sqlite3": "^5.1.6"
+  }
+}

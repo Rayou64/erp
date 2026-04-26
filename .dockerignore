@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.vs
+ngrok.ngrok_1g87z0zv29zzc
+*.pdf
+tmp-*.pdf

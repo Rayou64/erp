@@ -1,0 +1,251 @@
+:root {
+  --bg: #eef2ff;
+  --surface: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --border: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, rgba(59, 130, 246, 0.12), transparent 40%), var(--bg);
+  color: var(--text);
+}
+
+.page {
+  width: min(1200px, calc(100% - 32px));
+  margin: 32px auto;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 2.5vw, 2.8rem);
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.card,
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+  padding: 28px;
+}
+
+.auth-card {
+  width: min(420px, 100%);
+  margin: 100px auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+label {
+  display: block;
+  margin-top: 18px;
+  font-weight: 600;
+}
+
+input,
+textarea,
+select,
+button {
+  width: 100%;
+  padding: 12px 14px;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  font: inherit;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+button {
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background: var(--primary-dark);
+}
+
+.secondary-button {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  width: auto;
+  padding: 12px 18px;
+}
+
+button.secondary-button:hover {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 0;
+}
+
+.list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  margin-bottom: 12px;
+  background: #f8fafc;
+}
+
+.small {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.pill {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--primary);
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+.button-small {
+  width: auto;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+}
+
+.button-small.danger {
+  background: var(--danger);
+}
+.hidden {
+  display: none;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 24px;
+}
+
+.tab-button {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 10px 16px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.tab-button.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary-dark);
+}
+
+.tab-content {
+  margin-top: 16px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+table th,
+table td {
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+}
+
+table th {
+  background: #f8fafc;
+}
+
+table tbody tr:nth-child(even) {
+  background: #fbfbfd;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+.notification {
+  margin-top: 20px;
+  min-height: 40px;
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.notification.success {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--success);
+}
+
+.notification.danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.error {
+  margin-top: 16px;
+  color: var(--danger);
+  font-weight: 600;
+}

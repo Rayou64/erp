@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion - RyanERP</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="card auth-card">
+      <h1>Connexion</h1>
+      <p class="hint">Utilise <strong>admin</strong> / <strong>admin123</strong></p>
+      <form id="login-form">
+        <label>Nom d’utilisateur</label>
+        <input type="text" id="username" required autocomplete="username" />
+        <label>Mot de passe</label>
+        <input type="password" id="password" required autocomplete="current-password" />
+        <button type="submit">Se connecter</button>
+      </form>
+      <div id="login-error" class="error"></div>
+    </div>
+  </div>
+
+  <script>
+    if (localStorage.getItem('erp_token')) {
+      window.location.href = 'erp.html';
+    }
+
+    const form = document.querySelector('#login-form');
+    const errorBox = document.querySelector('#login-error');
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      errorBox.textContent = '';
+
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.querySelector('#username').value,
+          password: document.querySelector('#password').value,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        errorBox.textContent = data.error || 'Erreur de connexion';
+        return;
+      }
+
+      const data = await response.json();
+      localStorage.setItem('erp_token', data.token);
+      window.location.href = 'erp.html';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tableau de Bord Admin - Construction & Logistique</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div>
+        <h1>Tableau de Bord Administrateur</h1>
+        <p class="subtitle">Vue d'ensemble des projets et comptabilité</p>
+      </div>
+      <div>
+        <button id="back-to-app" class="secondary-button">Retour à l'app</button>
+        <button id="logout-button" class="secondary-button">Déconnexion</button>
+      </div>
+    </div>
+
+    <div class="tabs module-buttons">
+      <button class="tab-button active" data-module="dashboard">Dashboard</button>
+      <button class="tab-button" data-module="construction">Construction</button>
+      <button class="tab-button" data-module="comptabilite">Comptabilité</button>
+    </div>
+
+    <section id="dashboard-module" class="module">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3 id="total-projects">0</h3>
+          <p>Projets actifs</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="total-etablissements">0</h3>
+          <p>Etablissements</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="total-requests">0</h3>
+          <p>Demandes</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="total-orders">0</h3>
+          <p>Bons de commande</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="total-expenses">0 €</h3>
+          <p>Dépenses totales</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="total-revenue">0 €</h3>
+          <p>Revenus totaux</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="profit">0 €</h3>
+          <p>Profit</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="finance-total-orders">0 €</h3>
+          <p>Total commandes</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="finance-count-expenses">0</h3>
+          <p>Lignes de dépense</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <section class="card full-width">
+          <h2>Graphiques financiers</h2>
+          <div class="grid">
+            <section class="card">
+              <h3>Chiffre d'affaires vs Dépenses</h3>
+              <div class="chart-wrapper"><canvas id="revenue-expense-chart"></canvas></div>
+            </section>
+            <section class="card">
+              <h3>Profit vs Dépenses</h3>
+              <div class="chart-wrapper"><canvas id="profit-expense-chart"></canvas></div>
+            </section>
+            <section class="card full-width">
+              <h3>Coûts</h3>
+              <div class="chart-wrapper"><canvas id="cost-chart"></canvas></div>
+            </section>
+          </div>
+        </section>        </div>      <div class="grid">
+        <section class="card">
+          <h2>Assignations de projet</h2>
+          <ul id="assignments-list" class="list"></ul>
+        </section>
+        <section class="card">
+          <h2>Bons de commande</h2>
+          <ul id="purchase-orders-list" class="list"></ul>
+        </section>
+      </div>
+    </section>
+
+    <section id="construction-module" class="module hidden">
+      <div class="grid">
+        <section class="card">
+          <h2>Liste des projets</h2>
+          <ul id="projects-list" class="list"></ul>
+        </section>
+
+        <section class="card">
+          <h2>Demandes d'approvisionnement</h2>
+          <form id="new-request-form">
+            <label>Projet</label>
+            <select id="new-request-project" required></select>
+            <label>Nom du matériel demandé</label>
+            <input type="text" id="new-request-item" required />
+            <label>Demandé par</label>
+            <input type="text" id="new-request-requester" required />
+            <label>Quantité demandée</label>
+            <input type="number" id="new-request-quantity" step="0.01" required />
+            <label>Description</label>
+            <input type="text" id="new-request-description" />
+            <button type="submit">Créer la demande</button>
+          </form>
+          <section class="card">
+            <h2>Créer une assignation</h2>
+            <form id="assignment-form">
+              <label>Projet</label>
+              <select id="assignment-project" required></select>
+              <label>Utilisateur</label>
+              <select id="assignment-user" required></select>
+              <label>Rôle</label>
+              <select id="assignment-role" required>
+                <option value="">Choisir un rôle</option>
+                <option value="chef_projet">Chef de projet</option>
+                <option value="ingenieur">Ingénieur</option>
+                <option value="gestionnaire">Gestionnaire</option>
+              </select>
+              <button type="submit">Créer l'assignation</button>
+            </form>
+          </section>
+          <ul id="stock-requests-list" class="list"></ul>
+        </section>
+      </div>
+
+      <section class="card full-width">
+        <h2>Inventaire</h2>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Projet</th>
+                <th>Matériel</th>
+                <th>Demandé</th>
+                <th>Restant</th>
+                <th>Demandé par</th>
+                <th>Statut</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section id="comptabilite-module" class="module hidden">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3 id="comp-total-expenses">0 €</h3>
+          <p>Total dépenses</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="comp-total-revenue">0 €</h3>
+          <p>Total revenus</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="comp-profit">0 €</h3>
+          <p>Profit</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="comp-count-expenses">0</h3>
+          <p>Dépenses</p>
+        </div>
+        <div class="stat-card">
+          <h3 id="comp-count-revenues">0</h3>
+          <p>Revenus</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <section class="card">
+          <h2>Ajouter un revenu</h2>
+          <form id="revenue-form">
+            <label>Projet (optionnel)</label>
+            <select id="revenue-project">
+              <option value="">Sélectionner un projet</option>
+            </select>
+            <label>Description</label>
+            <input type="text" id="revenue-description" required />
+            <label>Montant (€)</label>
+            <input type="number" id="revenue-amount" step="0.01" required />
+            <button type="submit">Ajouter un revenu</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Ajouter une dépense</h2>
+          <form id="expense-form">
+            <label>Projet (optionnel)</label>
+            <select id="expense-project">
+              <option value="">Sélectionner un projet</option>
+            </select>
+            <label>Catégorie</label>
+            <input type="text" id="expense-category" required />
+            <label>Article</label>
+            <input type="text" id="expense-item" required />
+            <label>Quantité</label>
+            <input type="number" id="expense-quantity" step="0.01" required />
+            <label>Prix unitaire (€)</label>
+            <input type="number" id="expense-unit-price" step="0.01" required />
+            <label>Description</label>
+            <input type="text" id="expense-description" required />
+            <button type="submit">Ajouter une dépense</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Liste des revenus</h2>
+          <div id="revenue-list" class="list"></div>
+        </section>
+      </div>
+
+      <section class="card full-width">
+        <h2>Liste des dépenses</h2>
+        <div id="expense-list" class="list"></div>
+      </section>
+
+      <section class="card full-width">
+        <h2>État financier automatique</h2>
+        <ul class="list">
+          <li><strong>Coût moyen :</strong> <span id="average-cost">0 €</span></li>
+          <li><strong>Coût marginal :</strong> <span id="marginal-cost">0 €</span></li>
+          <li><strong>Coût variable :</strong> <span id="variable-cost">0 €</span></li>
+          <li><strong>Coût fixe :</strong> <span id="fixed-cost">0 €</span></li>
+        </ul>
+      </section>
+    </section>
+
+    <div id="notification" class="notification"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const token = localStorage.getItem('erp_token');
+    if (!token) {
+      window.location.href = 'index.html';
+    }
+
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    };
+
+    const assignmentForm = document.querySelector('#assignment-form');
+    const assignmentProject = document.querySelector('#assignment-project');
+    const assignmentUser = document.querySelector('#assignment-user');
+    const assignmentRole = document.querySelector('#assignment-role');
+    const assignmentsList = document.querySelector('#assignments-list');
+    const projectsList = document.querySelector('#projects-list');
+    const purchaseOrdersList = document.querySelector('#purchase-orders-list');
+    const expenseForm = document.querySelector('#expense-form');
+    const financeTotalExpenses = document.querySelector('#finance-total-expenses');
+    const financeTotalOrders = document.querySelector('#finance-total-orders');
+    const financeCountExpenses = document.querySelector('#finance-count-expenses');
+    const logoutButton = document.querySelector('#logout-button');
+    const backToAppButton = document.querySelector('#back-to-app');
+    const notification = document.querySelector('#notification');
+    const moduleButtons = document.querySelectorAll('.module-buttons .tab-button');
+    const modules = document.querySelectorAll('.module');
+
+    let revenueExpenseChart;
+    let profitExpenseChart;
+    let costChart;
+
+    function showMessage(message, type = 'success') {
+      notification.textContent = message;
+      notification.className = `notification ${type}`;
+      setTimeout(() => {
+        notification.textContent = '';
+        notification.className = 'notification';
+      }, 3500);
+    }
+
+    async function fetchJson(url, options = {}) {
+      const res = await fetch(url, { headers, ...options });
+      if (res.status === 401) {
+        localStorage.removeItem('erp_token');
+        window.location.href = 'index.html';
+      }
+      return res.json();
+    }
+
+    function showModule(moduleName) {
+      moduleButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.module === moduleName));
+      modules.forEach(module => module.classList.toggle('hidden', module.id !== `${moduleName}-module`));
+    }
+
+    async function refreshDashboard() {
+      const [dashboard, purchaseOrders, expenses] = await Promise.all([
+        fetchJson('/api/admin/dashboard'),
+        fetchJson('/api/purchase-orders'),
+        fetchJson('/api/expenses'),
+      ]);
+
+      document.querySelector('#total-projects').textContent = dashboard.totalProjects;
+      document.querySelector('#total-etablissements').textContent = dashboard.totalEtablissements || 0;
+      document.querySelector('#total-requests').textContent = dashboard.totalRequests;
+      document.querySelector('#total-orders').textContent = dashboard.totalOrders;
+      document.querySelector('#total-expenses').textContent = `${dashboard.totalExpenses.toFixed(2)} €`;
+      document.querySelector('#total-revenue').textContent = `${dashboard.totalRevenue.toFixed(2)} €`;
+      document.querySelector('#profit').textContent = `${dashboard.profit.toFixed(2)} €`;
+
+      projectsList.innerHTML = dashboard.projects.length
+        ? dashboard.projects.map(p => `<li><strong>${p.nomProjet}</strong> — ${p.nomSite}<br><span class="small">Créé le ${new Date(p.createdAt).toLocaleDateString('fr-FR')}</span></li>`).join('')
+        : '<li>Aucun projet</li>';
+
+      assignmentsList.innerHTML = dashboard.assignments.length
+        ? dashboard.assignments.map(a => `<li><strong>${a.username}</strong> — ${a.nomProjet}<br><span class="small">Rôle: ${a.role} • Assigné le ${new Date(a.assignedAt).toLocaleDateString('fr-FR')}</span></li>`).join('')
+        : '<li>Aucune assignation</li>';
+
+      purchaseOrdersList.innerHTML = purchaseOrders.length
+        ? purchaseOrders.map(po => `<li><div><strong>${po.fournisseur || 'Sans fournisseur'}</strong> — ${po.itemName || po.materialRequest?.itemName || 'Matériel inconnu'}<br><span class="small">Projet: ${po.materialRequest?.projet?.nomProjet || 'Inconnu'} • Montant: ${po.montantTotal ?? '0'} € • Statut: ${po.statutValidation}</span></div></li>`).join('')
+        : '<li>Aucun bon de commande</li>';
+
+      financeCountExpenses.textContent = expenses.length;
+      const totalExpenseAmount = expenses.reduce((sum, expense) => sum + Number(expense.montantTotal || 0), 0);
+      financeTotalExpenses.textContent = `${totalExpenseAmount.toFixed(2)} €`;
+      const totalOrderAmount = purchaseOrders.reduce((sum, order) => sum + Number(order.montantTotal || 0), 0);
+      financeTotalOrders.textContent = `${totalOrderAmount.toFixed(2)} €`;
+
+      const expensesListEl = document.querySelector('#expenses-list');
+      expensesListEl.innerHTML = expenses.length
+        ? expenses.map(e => `<li><div><strong>${e.description}</strong> — ${Number(e.montantTotal || 0).toFixed(2)} €<br><span class="small">${e.categorie} • ${e.quantite} × ${e.prixUnitaire} € • ${e.projetNom || 'Projet non spécifié'}</span></div><span class="pill">${e.statut}</span></li>`).join('')
+        : '<li>Aucune dépense</li>';
+
+      createOrUpdateChart(revenueExpenseChart, 'revenue-expense-chart', 'Revenus vs Dépenses', ['Revenus', 'Dépenses'], [dashboard.totalRevenue, dashboard.totalExpenses]);
+      createOrUpdateChart(profitExpenseChart, 'profit-expense-chart', 'Profit vs Dépenses', ['Profit', 'Dépenses'], [dashboard.profit, dashboard.totalExpenses]);
+      createOrUpdateChart(costChart, 'cost-chart', 'Coûts', ['Coût moyen', 'Coût marginal', 'Coût variable', 'Coût fixe'], [dashboard.averageCost, dashboard.marginalCost, dashboard.variableCost, dashboard.fixedCost]);
+    }
+
+    async function refreshConstruction() {
+      const [projects, requests, assignments] = await Promise.all([
+        fetchJson('/api/projects'),
+        fetchJson('/api/material-requests'),
+        fetchJson('/api/project-assignments'),
+      ]);
+
+      document.querySelector('#projects-list').innerHTML = projects.length
+        ? projects.map(p => {
+            const lead = assignments.find(a => a.projectId === p.id && a.role === 'chef_projet');
+            const manager = assignments.find(a => a.projectId === p.id && a.role === 'ingenieur');
+            return `<li><strong>${p.nomProjet}</strong> — ${p.nomSite}<br><span class="small">Chef chantier: ${lead?.username || 'Non défini'}</span><br><span class="small">Responsable: ${manager?.username || 'Non défini'}</span></li>`;
+          }).join('')
+        : '<li>Aucun projet</li>';
+
+      document.querySelector('#stock-requests-list').innerHTML = requests.length
+        ? requests.map(r => `<li><div><strong>${r.itemName}</strong> — ${r.projet?.nomProjet || 'Projet inconnu'}<br><span class="small">Quantité demandée: ${r.quantiteDemandee} • Restant: ${r.quantiteRestante}</span><br><span class="small">Demandé par: ${r.demandeur}</span></div><span class="pill">${r.statut}</span></li>`).join('')
+        : '<li>Aucune demande</li>';
+
+      document.querySelector('#inventory-table-body').innerHTML = requests.length
+        ? requests.map(r => `<tr><td>${r.projet?.nomProjet || 'Projet'}</td><td>${r.itemName}</td><td>${r.quantiteDemandee}</td><td>${r.quantiteRestante}</td><td>${r.demandeur}</td><td>${r.statut}</td><td><button class="button-small" onclick="updateRemaining(${r.id})">Mettre à jour</button></td></tr>`).join('')
+        : '<tr><td colspan="7">Aucune donnée d’inventaire</td></tr>';
+
+      const projectSelect = document.querySelector('#new-request-project');
+      projectSelect.innerHTML = projects.length
+        ? projects.map(p => `<option value="${p.id}">${p.nomProjet} (${p.nomSite})</option>`).join('')
+        : '<option value="" disabled>Ajoute un projet d’abord</option>';
+    }
+
+    async function refreshComptabilite() {
+      const [dashboard, expenses, revenues] = await Promise.all([
+        fetchJson('/api/admin/dashboard'),
+        fetchJson('/api/expenses'),
+        fetchJson('/api/revenues'),
+      ]);
+
+      document.querySelector('#comp-total-expenses').textContent = `${dashboard.totalExpenses.toFixed(2)} €`;
+      document.querySelector('#comp-total-revenue').textContent = `${dashboard.totalRevenue.toFixed(2)} €`;
+      document.querySelector('#comp-profit').textContent = `${dashboard.profit.toFixed(2)} €`;
+      document.querySelector('#comp-count-expenses').textContent = dashboard.countExpenses;
+      document.querySelector('#comp-count-revenues').textContent = dashboard.countRevenues;
+      document.querySelector('#average-cost').textContent = `${dashboard.averageCost.toFixed(2)} €`;
+      document.querySelector('#marginal-cost').textContent = `${dashboard.marginalCost.toFixed(2)} €`;
+      document.querySelector('#variable-cost').textContent = `${dashboard.variableCost.toFixed(2)} €`;
+      document.querySelector('#fixed-cost').textContent = `${dashboard.fixedCost.toFixed(2)} €`;
+
+      document.querySelector('#expense-list').innerHTML = expenses.length
+        ? expenses.map(e => `<div class="list-item"><div><strong>${e.description}</strong><br><span class="small">${e.categorie} • ${e.quantite} × ${e.prixUnitaire} € • ${e.projetNom || 'Projet non spécifié'}</span></div><span class="pill">${e.statut}</span></div>`).join('')
+        : '<div class="list-item">Aucune dépense</div>';
+
+      document.querySelector('#revenue-list').innerHTML = revenues.length
+        ? revenues.map(r => `<div class="list-item"><div><strong>${r.description}</strong> — ${r.amount.toFixed(2)} €<br><span class="small">Projet: ${r.projectName || 'Aucun'} • ${new Date(r.dateRevenue).toLocaleDateString('fr-FR')}</span></div></div>`).join('')
+        : '<div class="list-item">Aucun revenu</div>';
+
+      const revenueSelect = document.querySelector('#revenue-project');
+      revenueSelect.innerHTML = '<option value="">Sélectionner un projet</option>' +
+        (await fetchJson('/api/projects')).map(p => `<option value="${p.id}">${p.nomProjet} (${p.nomSite})</option>`).join('');
+    }
+
+    function createOrUpdateChart(chartRef, canvasId, label, labels, data) {
+      const ctx = document.querySelector(`#${canvasId}`).getContext('2d');
+      if (chartRef) {
+        chartRef.destroy();
+      }
+      return new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label,
+            data,
+            backgroundColor: ['#3b82f6', '#f97316', '#22c55e', '#eab308'],
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    window.updateRemaining = async id => {
+      const newValue = prompt('Nouvelle quantité restante');
+      if (newValue === null) return;
+      const quantiteRestante = Number(newValue);
+      if (Number.isNaN(quantiteRestante)) {
+        showMessage('Quantité invalide', 'danger');
+        return;
+      }
+      await fetchJson(`/api/material-requests/${id}/remaining`, {
+        method: 'PATCH',
+        body: JSON.stringify({ quantiteRestante }),
+      });
+      showMessage('Quantité restante mise à jour');
+      refreshConstruction();
+    };
+
+    document.querySelector('#new-request-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      await fetchJson('/api/material-requests', {
+        method: 'POST',
+        body: JSON.stringify({
+          projetId: document.querySelector('#new-request-project').value,
+          demandeur: document.querySelector('#new-request-requester').value,
+          itemName: document.querySelector('#new-request-item').value,
+          quantiteDemandee: document.querySelector('#new-request-quantity').value,
+          description: document.querySelector('#new-request-description').value,
+        }),
+      });
+      event.target.reset();
+      showMessage('Demande d’approvisionnement créée');
+      refreshConstruction();
+    });
+
+    document.querySelector('#revenue-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      await fetchJson('/api/revenues', {
+        method: 'POST',
+        body: JSON.stringify({
+          projetId: document.querySelector('#revenue-project').value || null,
+          description: document.querySelector('#revenue-description').value,
+          amount: document.querySelector('#revenue-amount').value,
+        }),
+      });
+      event.target.reset();
+      showMessage('Revenu enregistré');
+      refreshComptabilite();
+    });
+
+    moduleButtons.forEach(button => {
+      button.addEventListener('click', async () => {
+        showModule(button.dataset.module);
+        if (button.dataset.module === 'dashboard') await refreshDashboard();
+        if (button.dataset.module === 'construction') await refreshConstruction();
+        if (button.dataset.module === 'comptabilite') await refreshComptabilite();
+      });
+    });
+
+    assignmentForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      await fetchJson('/api/project-assignments', {
+        method: 'POST',
+        body: JSON.stringify({
+          projetId: assignmentProject.value,
+          userId: assignmentUser.value,
+          role: assignmentRole.value,
+        }),
+      });
+      event.target.reset();
+      showMessage('Assignation créée');
+      refreshDashboard();
+    });
+
+    expenseForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      await fetchJson('/api/expenses', {
+        method: 'POST',
+        body: JSON.stringify({
+          category: document.querySelector('#expense-category').value,
+          item: document.querySelector('#expense-item').value,
+          quantity: parseFloat(document.querySelector('#expense-quantity').value),
+          unitPrice: parseFloat(document.querySelector('#expense-unit-price').value),
+          projectId: document.querySelector('#expense-project').value || null,
+          description: document.querySelector('#expense-description').value,
+        }),
+      });
+      event.target.reset();
+      showMessage('Dépense enregistrée');
+      refreshDashboard();
+    });
+
+    logoutButton.addEventListener('click', () => {
+      localStorage.removeItem('erp_token');
+      window.location.href = 'index.html';
+    });
+
+    backToAppButton.addEventListener('click', () => {
+      window.location.href = 'app.html';
+    });
+
+    showModule('dashboard');
+    refreshDashboard();
+    loadProjects();
+    loadUsers();
+  </script>
+</body>
+</html>

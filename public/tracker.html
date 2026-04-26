@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RyanERP Tracker Mobile</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(160deg, #0f172a 0%, #1e293b 45%, #334155 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 14px;
+    }
+    .card {
+      max-width: 720px;
+      margin: 0 auto;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 28px rgba(2, 6, 23, 0.35);
+    }
+    h1 { margin: 0 0 4px 0; font-size: 20px; }
+    p { margin: 0 0 10px 0; color: #cbd5e1; }
+    .field { margin-bottom: 10px; }
+    label { display: block; font-size: 12px; margin-bottom: 4px; color: #cbd5e1; }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      background: #0b1220;
+      color: #e2e8f0;
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      min-width: 120px;
+    }
+    button.secondary { background: #334155; }
+    button.danger { background: #b91c1c; }
+    .status {
+      margin-top: 10px;
+      font-size: 13px;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(15, 118, 110, 0.2);
+      border: 1px solid rgba(20, 184, 166, 0.45);
+    }
+    .meta {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.45;
+    }
+    code { color: #fcd34d; word-break: break-all; }
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Tracking Smartphone</h1>
+    <p>Envoi automatique des positions GPS vers RyanERP</p>
+
+    <div class="field">
+      <label for="token">Token appareil</label>
+      <input id="token" type="text" placeholder="trk_xxx" />
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label for="vehicleId">ID véhicule (optionnel)</label>
+        <input id="vehicleId" type="number" min="1" placeholder="Ex: 12" />
+      </div>
+      <div class="field">
+        <label for="status">Statut</label>
+        <select id="status">
+          <option value="moving">En déplacement</option>
+          <option value="online">En ligne</option>
+          <option value="idle">A l'arrêt</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="offline">Hors ligne</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label for="movingInterval">Intervalle en mouvement (sec)</label>
+        <input id="movingInterval" type="number" min="5" value="20" />
+      </div>
+      <div class="field">
+        <label for="idleInterval">Intervalle à l'arrêt (sec)</label>
+        <input id="idleInterval" type="number" min="20" value="120" />
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="startBtn" type="button">Démarrer</button>
+      <button id="stopBtn" type="button" class="danger">Stop</button>
+      <button id="sendOnceBtn" type="button" class="secondary">Envoyer 1 fois</button>
+    </div>
+
+    <div id="statusBox" class="status">Prêt.</div>
+    <div class="meta" id="metaBox"></div>
+  </div>
+
+  <script>
+    const tokenInput = document.getElementById('token');
+    const vehicleIdInput = document.getElementById('vehicleId');
+    const statusInput = document.getElementById('status');
+    const movingIntervalInput = document.getElementById('movingInterval');
+    const idleIntervalInput = document.getElementById('idleInterval');
+    const statusBox = document.getElementById('statusBox');
+    const metaBox = document.getElementById('metaBox');
+
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const sendOnceBtn = document.getElementById('sendOnceBtn');
+
+    let watchId = null;
+    let sendTimer = null;
+    let lastPosition = null;
+    let lastSentAt = 0;
+    let wakeLock = null;
+
+    function setStatus(message, isError) {
+      statusBox.textContent = message;
+      statusBox.style.background = isError ? 'rgba(127, 29, 29, 0.25)' : 'rgba(15, 118, 110, 0.2)';
+      statusBox.style.borderColor = isError ? 'rgba(248, 113, 113, 0.55)' : 'rgba(20, 184, 166, 0.45)';
+    }
+
+    function updateMeta() {
+      const position = lastPosition;
+      if (!position) {
+        metaBox.innerHTML = 'Aucune position reçue pour le moment.';
+        return;
+      }
+
+      const lat = Number(position.coords.latitude || 0).toFixed(6);
+      const lng = Number(position.coords.longitude || 0).toFixed(6);
+      const speedMs = Number(position.coords.speed || 0);
+      const speedKph = speedMs > 0 ? (speedMs * 3.6).toFixed(1) : '0.0';
+      const acc = Number(position.coords.accuracy || 0).toFixed(1);
+      const heading = Number(position.coords.heading || 0).toFixed(1);
+
+      metaBox.innerHTML = `Dernière position: <code>${lat}, ${lng}</code><br/>Vitesse: <code>${speedKph} km/h</code> • Précision: <code>${acc} m</code> • Cap: <code>${heading}°</code>`;
+    }
+
+    function getIntervalsMs() {
+      const movingSec = Math.max(Number(movingIntervalInput.value || 20), 5);
+      const idleSec = Math.max(Number(idleIntervalInput.value || 120), 20);
+      return {
+        moving: movingSec * 1000,
+        idle: idleSec * 1000,
+      };
+    }
+
+    function getCurrentFrequency(position) {
+      const speedMs = Number(position?.coords?.speed || 0);
+      const speedKph = speedMs > 0 ? speedMs * 3.6 : 0;
+      const intervals = getIntervalsMs();
+      return speedKph >= 5 ? intervals.moving : intervals.idle;
+    }
+
+    async function sendPosition(position, force) {
+      const token = tokenInput.value.trim();
+      if (!token) {
+        setStatus('Token appareil requis.', true);
+        return;
+      }
+
+      if (!position) {
+        setStatus('Position GPS indisponible.', true);
+        return;
+      }
+
+      const now = Date.now();
+      if (!force) {
+        const minDelay = getCurrentFrequency(position);
+        if (now - lastSentAt < minDelay) {
+          return;
+        }
+      }
+
+      const payload = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        speedKph: Math.max((Number(position.coords.speed || 0) * 3.6), 0),
+        heading: Math.max(Number(position.coords.heading || 0), 0),
+        accuracyMeters: Math.max(Number(position.coords.accuracy || 0), 0),
+        status: statusInput.value || 'online',
+        source: 'mobile_app',
+        note: 'Tracker smartphone',
+        recordedAt: new Date(position.timestamp || Date.now()).toISOString(),
+      };
+
+      const rawVehicleId = Number(vehicleIdInput.value || 0);
+      if (rawVehicleId > 0) {
+        payload.vehicleIdHint = rawVehicleId;
+      }
+
+      const response = await fetch('/api/gps/ingest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-device-token': token,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `Erreur ${response.status}`);
+      }
+
+      const data = await response.json();
+      lastSentAt = now;
+      setStatus(`Position envoyée • véhicule ${data.vehicleId} • ${new Date().toLocaleTimeString('fr-FR')}`, false);
+    }
+
+    async function sendLastPositionOnce(force) {
+      try {
+        await sendPosition(lastPosition, force);
+      } catch (error) {
+        setStatus(`Echec envoi: ${error.message}`, true);
+      }
+    }
+
+    async function acquireWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (_error) {
+        // Optional feature; ignore on unsupported devices.
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release().catch(() => {});
+        wakeLock = null;
+      }
+    }
+
+    function stopTracking() {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+      if (sendTimer) {
+        clearInterval(sendTimer);
+        sendTimer = null;
+      }
+      releaseWakeLock();
+      setStatus('Tracking arrêté.', false);
+    }
+
+    async function startTracking() {
+      const token = tokenInput.value.trim();
+      if (!token) {
+        setStatus('Token appareil requis avant démarrage.', true);
+        return;
+      }
+
+      if (!navigator.geolocation) {
+        setStatus('La géolocalisation n\'est pas supportée par ce smartphone.', true);
+        return;
+      }
+
+      stopTracking();
+      await acquireWakeLock();
+
+      watchId = navigator.geolocation.watchPosition(
+        position => {
+          lastPosition = position;
+          updateMeta();
+          sendLastPositionOnce(false);
+        },
+        error => {
+          setStatus(`Erreur GPS: ${error.message}`, true);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 10000,
+          timeout: 20000,
+        }
+      );
+
+      sendTimer = setInterval(() => {
+        sendLastPositionOnce(false);
+      }, 5000);
+
+      setStatus('Tracking lancé. Les positions seront envoyées automatiquement.', false);
+    }
+
+    startBtn.addEventListener('click', startTracking);
+    stopBtn.addEventListener('click', stopTracking);
+    sendOnceBtn.addEventListener('click', () => sendLastPositionOnce(true));
+
+    const params = new URLSearchParams(window.location.search);
+    const initialToken = params.get('token');
+    const initialVehicleId = params.get('vehicleId');
+    if (initialToken) tokenInput.value = initialToken;
+    if (initialVehicleId) vehicleIdInput.value = initialVehicleId;
+
+    updateMeta();
+  </script>
+</body>
+</html>

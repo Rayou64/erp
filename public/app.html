@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ERP Construction & Logistique</title>
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    // Redirect legacy app entrypoint to the maintained ERP interface.
+    window.location.replace('erp.html');
+  </script>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div>
+        <h1>Construction & Logistique</h1>
+        <p class="subtitle">Application métier avec authentification et base SQLite</p>
+      </div>
+      <div>
+        <button id="admin-button" class="secondary-button">Tableau de bord Admin</button>
+        <button id="logout-button" class="secondary-button">Déconnexion</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>1. Projets</h2>
+        <form id="project-form">
+          <label>Nom du projet</label>
+          <input type="text" id="project-name" required />
+          <label>Nom du site</label>
+          <input type="text" id="project-site" required />
+          <button type="submit">Créer le projet</button>
+        </form>
+        <ul id="project-list" class="list"></ul>
+      </section>
+
+      <section class="card">
+        <h2>Module Construction</h2>
+        <div class="tabs">
+          <button class="tab-button active" data-tab="assignments">Attribution de projet</button>
+          <button class="tab-button" data-tab="requests">Demande d'approvisionnement</button>
+          <button class="tab-button" data-tab="inventory">Inventaire</button>
+        </div>
+
+        <div id="assignments-tab" class="tab-content">
+          <form id="assignment-form">
+            <label>Projet</label>
+            <select id="assignment-project" required></select>
+            <label>Utilisateur</label>
+            <select id="assignment-user" required></select>
+            <label>Rôle</label>
+            <select id="assignment-role" required>
+              <option value="">Choisir un rôle</option>
+              <option value="chef_projet">Chef de projet</option>
+              <option value="ingenieur">Ingénieur</option>
+              <option value="technicien">Technicien</option>
+              <option value="ouvrier">Ouvrier</option>
+            </select>
+            <button type="submit">Assigner</button>
+          </form>
+          <ul id="assignments-list" class="list"></ul>
+        </div>
+
+        <div id="requests-tab" class="tab-content hidden">
+          <form id="request-form">
+            <label>Projet</label>
+            <select id="request-project" required></select>
+            <label>Demandeur</label>
+            <input type="text" id="requester" required />
+            <label>Quantité demandée</label>
+            <input type="number" id="request-quantity" step="0.01" required />
+            <label>Description</label>
+            <textarea id="request-description"></textarea>
+            <button type="submit">Créer la demande</button>
+          </form>
+          <ul id="request-list" class="list"></ul>
+        </div>
+
+        <div id="inventory-tab" class="tab-content hidden">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Projet</th>
+                  <th>Demandeur</th>
+                  <th>Demandé</th>
+                  <th>Restant</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-list"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>3. Bons de commande</h2>
+        <form id="po-form">
+          <label>Demande</label>
+          <select id="po-request" required></select>
+          <label>Créé par</label>
+          <input type="text" id="po-created-by" required />
+          <label>Fournisseur</label>
+          <input type="text" id="po-supplier" />
+          <label>Montant total</label>
+          <input type="number" id="po-total" step="0.01" />
+          <button type="submit">Créer le bon</button>
+        </form>
+        <ul id="po-list" class="list"></ul>
+      </section>
+    </div>
+
+    <div id="notification" class="notification"></div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('erp_token');
+    if (!token) {
+      window.location.href = 'index.html';
+    }
+
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    };
+
+    const projectForm = document.querySelector('#project-form');
+    const requestForm = document.querySelector('#request-form');
+    const poForm = document.querySelector('#po-form');
+    const assignmentForm = document.querySelector('#assignment-form');
+    const projectList = document.querySelector('#project-list');
+    const requestList = document.querySelector('#request-list');
+    const poList = document.querySelector('#po-list');
+    const inventoryList = document.querySelector('#inventory-list');
+    const projectSelect = document.querySelector('#request-project');
+    const requestSelect = document.querySelector('#po-request');
+    const assignmentProject = document.querySelector('#assignment-project');
+    const assignmentUser = document.querySelector('#assignment-user');
+    const assignmentRole = document.querySelector('#assignment-role');
+    const requestProject = document.querySelector('#request-project');
+    const logoutButton = document.querySelector('#logout-button');
+    assignmentUser.innerHTML = '<option value="1">admin</option>';
+    const adminButton = document.querySelector('#admin-button');
+    const notification = document.querySelector('#notification');
+    const tabButtons = document.querySelectorAll('.tab-button');
+
+    function showMessage(message, type = 'success') {
+      notification.textContent = message;
+      notification.className = `notification ${type}`;
+      setTimeout(() => {
+        notification.textContent = '';
+        notification.className = 'notification';
+      }, 3500);
+    }
+
+    async function fetchJson(url, options = {}) {
+      const res = await fetch(url, { headers, ...options });
+      if (res.status === 401) {
+        localStorage.removeItem('erp_token');
+        window.location.href = 'index.html';
+      }
+      return res.json();
+    }
+
+    function showTab(tabName) {
+      tabButtons.forEach(button => {
+        button.classList.toggle('active', button.dataset.tab === tabName);
+      });
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('hidden', content.id !== `${tabName}-tab`);
+      });
+    }
+
+    async function refresh() {
+      const [projects, requests, pos, assignments] = await Promise.all([
+        fetchJson('/api/projects'),
+        fetchJson('/api/material-requests'),
+        fetchJson('/api/purchase-orders'),
+        fetchJson('/api/project-assignments'),
+      ]);
+
+      projectList.innerHTML = projects.length
+        ? projects.map(p => `<li><div><strong>${p.nomProjet}</strong> <span class="small">(${p.nomSite})</span><br><span class="small">ID: ${p.id}</span></div><button class="button-small danger" onclick="deleteProject(${p.id})">Supprimer</button></li>`).join('')
+        : '<li>Aucun projet</li>';
+
+      const optionsHtml = projects.length
+        ? projects.map(p => `<option value="${p.id}">${p.nomProjet} (${p.nomSite})</option>`).join('')
+        : '<option value="" disabled>Ajoute un projet d’abord</option>';
+
+      projectSelect.innerHTML = optionsHtml;
+      assignmentProject.innerHTML = optionsHtml;
+      requestProject.innerHTML = optionsHtml;
+
+      requestList.innerHTML = requests.length
+        ? requests.map(r => `<li><div><strong>${r.demandeur}</strong> — ${r.projet?.nomProjet || 'Projet'}<br><span class="small">${r.description || 'Sans description'}</span></div><div><span class="pill">${r.statut}</span><br><span class="small">Restant: ${r.quantiteRestante} / ${r.quantiteDemandee}</span></div></li>`).join('')
+        : '<li>Aucune demande</li>';
+
+      inventoryList.innerHTML = requests.length
+        ? requests.map(r => `
+            <tr>
+              <td>${r.projet?.nomProjet || 'Projet'}</td>
+              <td>${r.demandeur}</td>
+              <td>${r.quantiteDemandee}</td>
+              <td>${r.quantiteRestante}</td>
+              <td>${r.statut}</td>
+              <td><button class="button-small" onclick="updateRemaining(${r.id})">Mettre à jour</button></td>
+            </tr>
+          `).join('')
+        : '<tr><td colspan="6">Aucune demande</td></tr>';
+
+      requestSelect.innerHTML = requests.length
+        ? requests.map(r => `<option value="${r.id}">#${r.id} — ${r.projet?.nomProjet || 'Projet'}</option>`).join('')
+        : '<option value="" disabled>Ajoute une demande d’abord</option>';
+
+      poList.innerHTML = pos.length
+        ? pos.map(po => `<li><div><strong>${po.fournisseur || 'Sans fournisseur'}</strong> — ${po.materialRequest?.projet?.nomProjet || 'Projet'}<br><span class="small">Montant: ${po.montantTotal ?? '0'} €</span></div><span class="pill">${po.statutValidation}</span></li>`).join('')
+        : '<li>Aucun bon de commande</li>';
+
+      assignmentsList.innerHTML = assignments.length
+        ? assignments.map(a => `<li><div><strong>${a.username}</strong> — ${a.nomProjet}<br><span class="small">Rôle: ${a.role}</span></div></li>`).join('')
+        : '<li>Aucune assignation</li>';
+    }
+
+    window.deleteProject = async projectId => {
+      await fetchJson(`/api/projects/${projectId}`, { method: 'DELETE' });
+      showMessage('Projet supprimé');
+      refresh();
+    };
+
+    window.updateRemaining = async requestId => {
+      const value = prompt('Quantité restante actuelle');
+      if (value === null) return;
+      const quantiteRestante = parseFloat(value);
+      if (Number.isNaN(quantiteRestante)) {
+        showMessage('Quantité invalide', 'danger');
+        return;
+      }
+      await fetchJson(`/api/material-requests/${requestId}/remaining`, {
+        method: 'PATCH',
+        body: JSON.stringify({ quantiteRestante }),
+      });
+      showMessage('Quantité restante mise à jour');
+      refresh();
+    };
+
+    projectForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      await fetchJson('/api/projects', {
+        method: 'POST',
+        body: JSON.stringify({
+          nomProjet: document.querySelector('#project-name').value,
+          nomSite: document.querySelector('#project-site').value,
+        }),
+      });
+      projectForm.reset();
+      showMessage('Projet créé');
+      refresh();
+    });
+
+    assignmentForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      await fetchJson('/api/project-assignments', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: assignmentProject.value,
+          userId: assignmentUser.value,
+          role: assignmentRole.value,
+        }),
+      });
+      assignmentForm.reset();
+      showMessage('Assignation créée');
+      refresh();
+    });
+
+    requestForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      await fetchJson('/api/material-requests', {
+        method: 'POST',
+        body: JSON.stringify({
+          projetId: requestProject.value,
+          demandeur: document.querySelector('#requester').value,
+          quantiteDemandee: document.querySelector('#request-quantity').value,
+          description: document.querySelector('#request-description').value,
+        }),
+      });
+      requestForm.reset();
+      showMessage('Demande créée');
+      refresh();
+    });
+
+    poForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      await fetchJson('/api/purchase-orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          materialRequestId: requestSelect.value,
+          creePar: document.querySelector('#po-created-by').value,
+          fournisseur: document.querySelector('#po-supplier').value,
+          montantTotal: document.querySelector('#po-total').value,
+        }),
+      });
+      poForm.reset();
+      showMessage('Bon de commande créé');
+      refresh();
+    });
+
+    logoutButton.addEventListener('click', () => {
+      localStorage.removeItem('erp_token');
+      window.location.href = 'index.html';
+    });
+
+    adminButton.addEventListener('click', () => {
+      window.location.href = 'admin.html';
+    });
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => showTab(button.dataset.tab));
+    });
+
+    showTab('assignments');
+    refresh();
+  </script>
+</body>
+</html>
