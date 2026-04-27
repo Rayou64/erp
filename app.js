@@ -1759,7 +1759,7 @@ async function initDb() {
 
   await run(`CREATE TABLE IF NOT EXISTS purchase_orders (
     id INTEGER PRIMARY KEY,
-    materialRequestId INTEGER NOT NULL,
+    materialRequestId INTEGER,
     fournisseur TEXT NOT NULL,
     quantiteCommandee REAL NOT NULL,
     prixUnitaire REAL NOT NULL,
@@ -1773,7 +1773,7 @@ async function initDb() {
   await run(`CREATE TABLE IF NOT EXISTS purchase_order_items (
     id INTEGER PRIMARY KEY,
     purchaseOrderId INTEGER NOT NULL,
-    materialRequestId INTEGER NOT NULL,
+    materialRequestId INTEGER,
     article TEXT NOT NULL,
     details TEXT,
     quantite REAL NOT NULL,
@@ -2098,11 +2098,11 @@ async function initDb() {
     }
     // Rendre materialRequestId nullable (les bons de commande autonomes n'ont pas de demande liee)
     try {
-      await run('ALTER TABLE purchase_orders ALTER COLUMN "materialRequestId" DROP NOT NULL');
+      await run('ALTER TABLE purchase_orders ALTER COLUMN materialRequestId DROP NOT NULL');
     } catch (e) {}
     // Rendre materialRequestId nullable dans purchase_order_items aussi
     try {
-      await run('ALTER TABLE purchase_order_items ALTER COLUMN "materialRequestId" DROP NOT NULL');
+      await run('ALTER TABLE purchase_order_items ALTER COLUMN materialRequestId DROP NOT NULL');
     } catch (e) {}
   }
 
