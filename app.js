@@ -4216,7 +4216,9 @@ app.get('/api/stock-management/orders', async (req, res) => {
       poi.materialRequestId,
       mr.etapeApprovisionnement AS itemEtape,
       p.nomProjet,
-      p.numeroMaison
+      p.numeroMaison,
+      p.prefecture,
+      p.typeMaison
     FROM purchase_orders po
     LEFT JOIN purchase_order_items poi ON poi.purchaseOrderId = po.id
     LEFT JOIN material_requests mr ON mr.id = poi.materialRequestId
@@ -4240,6 +4242,8 @@ app.get('/api/stock-management/orders', async (req, res) => {
         nomProjetManuel: row.nomProjetManuel || null,
         nomSiteManuel: row.nomSiteManuel || null,
         numeroMaison: row.numeroMaison || null,
+        zoneName: null,
+        isZoneOrder: /^zone\s+/i.test(String(row.nomSiteManuel || '').trim()),
         etapeApprovisionnement: row.poEtape || null,
         projects: new Set(),
         items: [],
@@ -4249,6 +4253,12 @@ app.get('/api/stock-management/orders', async (req, res) => {
     const order = byOrder.get(orderId);
     if (row.nomProjet) {
       order.projects.add(row.nomProjet);
+    }
+    if (String(row.typeMaison || '').trim().toUpperCase() === 'ZONE_STOCK') {
+      order.isZoneOrder = true;
+      if (!order.zoneName) {
+        order.zoneName = String(row.prefecture || '').trim() || null;
+      }
     }
     if (row.article) {
       order.items.push({
@@ -4262,6 +4272,8 @@ app.get('/api/stock-management/orders', async (req, res) => {
 
   let result = Array.from(byOrder.values()).map(order => ({
     ...order,
+    nomProjet: String(order.nomProjetManuel || '').trim() || Array.from(order.projects)[0] || null,
+    zoneName: order.zoneName || String(order.nomSiteManuel || '').trim().replace(/^zone\s*/i, '').trim() || null,
     projects: Array.from(order.projects),
   }));
 
