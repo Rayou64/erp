@@ -1559,22 +1559,22 @@ async function initDb() {
   )`);
 
   try {
-    await run('ALTER TABLE project_folders ADD COLUMN description TEXT DEFAULT ''');
+    await run("ALTER TABLE project_folders ADD COLUMN description TEXT DEFAULT ''");
   } catch (e) {}
   try {
     await run('ALTER TABLE project_folders ADD COLUMN projectId INTEGER');
   } catch (e) {}
   try {
-    await run('ALTER TABLE project_folders ADD COLUMN prefecture TEXT NOT NULL DEFAULT 'Non renseigne'');
+    await run("ALTER TABLE project_folders ADD COLUMN prefecture TEXT NOT NULL DEFAULT 'Non renseigne'");
   } catch (e) {}
   try {
-    await run('ALTER TABLE projects ADD COLUMN prefecture TEXT NOT NULL DEFAULT 'Non renseigne'');
+    await run("ALTER TABLE projects ADD COLUMN prefecture TEXT NOT NULL DEFAULT 'Non renseigne'");
   } catch (e) {}
   try {
-    await run('ALTER TABLE project_catalog ADD COLUMN typeProjet TEXT NOT NULL DEFAULT ''');
+    await run("ALTER TABLE project_catalog ADD COLUMN typeProjet TEXT NOT NULL DEFAULT ''");
   } catch (e) {}
   try {
-    await run('ALTER TABLE project_catalog ADD COLUMN description TEXT DEFAULT ''');
+    await run("ALTER TABLE project_catalog ADD COLUMN description TEXT DEFAULT ''");
   } catch (e) {}
   try {
     await run('DROP INDEX IF EXISTS idx_project_folders_name_site');
@@ -1595,7 +1595,7 @@ async function initDb() {
   )`);
 
   try {
-    await run('ALTER TABLE material_requests ADD COLUMN itemName TEXT NOT NULL DEFAULT ''');
+    await run("ALTER TABLE material_requests ADD COLUMN itemName TEXT NOT NULL DEFAULT ''");
   } catch (e) {}
   try {
     await run('ALTER TABLE material_requests ADD COLUMN quantiteDemandee REAL NOT NULL DEFAULT 0');
@@ -1604,7 +1604,7 @@ async function initDb() {
     await run('ALTER TABLE material_requests ADD COLUMN quantiteRestante REAL NOT NULL DEFAULT 0');
   } catch (e) {}
   try {
-    await run('ALTER TABLE material_requests ADD COLUMN etapeApprovisionnement TEXT NOT NULL DEFAULT ''');
+    await run("ALTER TABLE material_requests ADD COLUMN etapeApprovisionnement TEXT NOT NULL DEFAULT ''");
   } catch (e) {}
   try {
     await run('ALTER TABLE material_requests ADD COLUMN groupId TEXT');
@@ -1613,13 +1613,13 @@ async function initDb() {
     await run('ALTER TABLE material_requests ADD COLUMN warehouseId TEXT');
   } catch (e) {}
   try {
-    await run('ALTER TABLE projects ADD COLUMN description TEXT DEFAULT ''');
+    await run("ALTER TABLE projects ADD COLUMN description TEXT DEFAULT ''");
   } catch (e) {}
   try {
-    await run('ALTER TABLE projects ADD COLUMN typeMaison TEXT NOT NULL DEFAULT ''');
+    await run("ALTER TABLE projects ADD COLUMN typeMaison TEXT NOT NULL DEFAULT ''");
   } catch (e) {}
   try {
-    await run('ALTER TABLE projects ADD COLUMN numeroMaison TEXT NOT NULL DEFAULT ''');
+    await run("ALTER TABLE projects ADD COLUMN numeroMaison TEXT NOT NULL DEFAULT ''");
   } catch (e) {}
   try {
     await run('ALTER TABLE purchase_orders ADD COLUMN creePar TEXT');
@@ -1643,22 +1643,22 @@ async function initDb() {
     await run('ALTER TABLE purchase_orders ADD COLUMN dateReception TEXT');
   } catch (e) {}
   try {
-    await run('ALTER TABLE purchase_orders ADD COLUMN statut TEXT NOT NULL DEFAULT 'EN_COURS'');
+    await run("ALTER TABLE purchase_orders ADD COLUMN statut TEXT NOT NULL DEFAULT 'EN_COURS'");
   } catch (e) {}
   try {
     await run('ALTER TABLE purchase_orders ADD COLUMN etapeApprovisionnement TEXT');
   } catch (e) {}
   try {
-    await run('UPDATE purchase_orders SET creePar = COALESCE(creePar, 'admin')');
+    await run("UPDATE purchase_orders SET creePar = COALESCE(creePar, 'admin')");
   } catch (e) {}
   try {
     await run('UPDATE purchase_orders SET montantTotal = COALESCE(montantTotal, quantiteCommandee * prixUnitaire, 0)');
   } catch (e) {}
   try {
-    await run('UPDATE purchase_orders SET statutValidation = COALESCE(statutValidation, statut, 'EN_COURS')');
+    await run("UPDATE purchase_orders SET statutValidation = COALESCE(statutValidation, statut, 'EN_COURS')");
   } catch (e) {}
   try {
-    await run('UPDATE purchase_orders SET statut = COALESCE(statut, statutValidation, 'EN_COURS')');
+    await run("UPDATE purchase_orders SET statut = COALESCE(statut, statutValidation, 'EN_COURS')");
   } catch (e) {}
   try {
     await run('UPDATE purchase_orders SET quantiteCommandee = COALESCE(quantiteCommandee, 1)');
@@ -1706,13 +1706,13 @@ async function initDb() {
     await run('UPDATE expenses SET montantTotal = COALESCE(montantTotal, totalPrice, COALESCE(quantite, quantity, 0) * COALESCE(prixUnitaire, unitPrice, 0))');
   } catch (e) {}
   try {
-    await run('UPDATE expenses SET categorie = COALESCE(categorie, category, 'autres')');
+    await run("UPDATE expenses SET categorie = COALESCE(categorie, category, 'autres')");
   } catch (e) {}
   try {
-    await run('UPDATE expenses SET statut = COALESCE(statut, 'EN_ATTENTE')');
+    await run("UPDATE expenses SET statut = COALESCE(statut, 'EN_ATTENTE')");
   } catch (e) {}
   try {
-    await run('UPDATE expenses SET createdBy = COALESCE(createdBy, 'admin')');
+    await run("UPDATE expenses SET createdBy = COALESCE(createdBy, 'admin')");
   } catch (e) {}
   try {
     await run('ALTER TABLE project_assignments ADD COLUMN assigneeName TEXT');
@@ -2034,15 +2034,15 @@ async function initDb() {
 
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN vehicleId INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
   try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN deviceName TEXT NOT NULL DEFAULT 'smartphone'"); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN tokenHash TEXT NOT NULL DEFAULT '''); } catch (error) {}
+  try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN tokenHash TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN isActive INTEGER NOT NULL DEFAULT 1'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN lastSeenAt TEXT'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN lastLatitude REAL'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN lastLongitude REAL'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN lastSpeedKph REAL NOT NULL DEFAULT 0'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN createdBy TEXT NOT NULL DEFAULT "system"'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN createdAt TEXT NOT NULL DEFAULT '''); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN updatedAt TEXT NOT NULL DEFAULT '''); } catch (error) {}
+  try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_transport_costs (
     id INTEGER PRIMARY KEY,
@@ -2106,15 +2106,15 @@ async function initDb() {
     } catch (e) {}
   }
 
-  try { await run('ALTER TABLE generated_documents ADD COLUMN sectionCode TEXT NOT NULL DEFAULT '''); } catch (e) {}
-  try { await run('ALTER TABLE generated_documents ADD COLUMN sectionLabel TEXT NOT NULL DEFAULT '''); } catch (e) {}
-  try { await run('ALTER TABLE generated_documents ADD COLUMN entityType TEXT NOT NULL DEFAULT '''); } catch (e) {}
+  try { await run("ALTER TABLE generated_documents ADD COLUMN sectionCode TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE generated_documents ADD COLUMN sectionLabel TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE generated_documents ADD COLUMN entityType TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run('ALTER TABLE generated_documents ADD COLUMN entityId INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
-  try { await run('ALTER TABLE generated_documents ADD COLUMN title TEXT NOT NULL DEFAULT '''); } catch (e) {}
-  try { await run('ALTER TABLE generated_documents ADD COLUMN fileName TEXT NOT NULL DEFAULT '''); } catch (e) {}
-  try { await run('ALTER TABLE generated_documents ADD COLUMN relativePath TEXT NOT NULL DEFAULT '''); } catch (e) {}
-  try { await run('ALTER TABLE generated_documents ADD COLUMN createdAt TEXT NOT NULL DEFAULT '''); } catch (e) {}
-  try { await run('ALTER TABLE generated_documents ADD COLUMN updatedAt TEXT NOT NULL DEFAULT '''); } catch (e) {}
+  try { await run("ALTER TABLE generated_documents ADD COLUMN title TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE generated_documents ADD COLUMN fileName TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE generated_documents ADD COLUMN relativePath TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE generated_documents ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE generated_documents ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
 
   await run(`CREATE TABLE IF NOT EXISTS project_assignments (
     id INTEGER PRIMARY KEY,
@@ -2142,7 +2142,7 @@ async function initDb() {
     FOREIGN KEY(projectId) REFERENCES projects(id) ON DELETE CASCADE
   )`);
 
-  try { await run('ALTER TABLE project_progress_updates ADD COLUMN title TEXT NOT NULL DEFAULT '''); } catch (e) {}
+  try { await run("ALTER TABLE project_progress_updates ADD COLUMN title TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run('ALTER TABLE project_progress_updates ADD COLUMN materialUsedQty REAL NOT NULL DEFAULT 0'); } catch (e) {}
   try { await run('ALTER TABLE project_progress_updates ADD COLUMN materialUsageDetails TEXT NOT NULL DEFAULT "[]"'); } catch (e) {}
   try { await run('ALTER TABLE project_progress_updates ADD COLUMN progressPercent REAL'); } catch (e) {}
@@ -3932,7 +3932,7 @@ app.patch('/api/purchase-orders/:id/validation', async (req, res) => {
 
   const receptionDate = statut === 'LIVREE' ? new Date().toISOString() : null;
   const result = await run(
-    'UPDATE purchase_orders SET statut = ?, statutValidation = ?, dateReception = CASE WHEN ? = 'LIVREE' THEN COALESCE(dateReception, ?) ELSE dateReception END WHERE id = ?',
+    "UPDATE purchase_orders SET statut = ?, statutValidation = ?, dateReception = CASE WHEN ? = 'LIVREE' THEN COALESCE(dateReception, ?) ELSE dateReception END WHERE id = ?",
     [statut, statut, statut, receptionDate, id]
   );
   if (result.changes === 0) {
@@ -4378,7 +4378,7 @@ app.get('/api/stock-issue-authorizations', async (req, res) => {
     params.push(warehouseId);
   }
   if (status) {
-    whereParts.push('UPPER(COALESCE(sia.status, 'EN_ATTENTE')) = ?');
+    whereParts.push("UPPER(COALESCE(sia.status, 'EN_ATTENTE')) = ?");
     params.push(status);
   }
 
