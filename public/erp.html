@@ -1586,8 +1586,9 @@
                   <select id="stock-issue-warehouse" required></select>
                 </div>
                 <div class="form-group">
-                  <label>Dossier projet *</label>
-                  <select id="stock-issue-project-folder" required></select>
+                  <label>Zone</label>
+                  <div id="stock-issue-zone-display" style="padding:8px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;color:#0f172a;font-weight:600;min-height:38px;display:flex;align-items:center;">—</div>
+                  <input type="hidden" id="stock-issue-project-folder" value="">
                 </div>
                 <div class="form-group">
                   <label>Site destinataire *</label>
@@ -8939,56 +8940,37 @@
 
     function populateStockProjectSelect() {
       selectedStockWarehouseId = populateWarehouseSelect('stock-issue-warehouse', selectedStockWarehouseId);
-      const projectFolderSelect = document.getElementById('stock-issue-project-folder');
-      const projectSelect = document.getElementById('stock-issue-project');
-      if (!projectFolderSelect || !projectSelect) return;
-
-      const warehouseRows = getRowsByWarehouse(stockAvailableCache, selectedStockWarehouseId);
-
-      const folders = [];
-      const folderMap = new Map();
-
-      warehouseRows.forEach(row => {
-        const zoneLabel = String(row?.zoneName || row?.prefecture || row?.nomSite || '').trim() || 'Non renseigne';
-        const key = `${normalizeText(row?.nomProjet)}__${normalizeText(zoneLabel)}`;
-        if (!folderMap.has(key)) {
-          folderMap.set(key, {
-            key,
-            nomProjet: row.nomProjet || 'Projet',
-            prefecture: zoneLabel,
-          });
-          folders.push(folderMap.get(key));
-        }
-      });
-
-      const previousFolderKey = projectFolderSelect.value;
-      projectFolderSelect.innerHTML = '<option value="">Sélectionner un dossier projet</option>' +
-        folders.map(folder => `<option value="${folder.key}">${escapeHtml(getProjectFolderLabel(folder))}</option>`).join('');
-
-      if (previousFolderKey && folders.some(folder => folder.key === previousFolderKey)) {
-        projectFolderSelect.value = previousFolderKey;
-      } else if (folders.length) {
-        projectFolderSelect.value = folders[0].key;
-      }
-
-      populateStockHouseSelect(projectFolderSelect.value, projectSelect.value);
-    }
-
-    function populateStockHouseSelect(folderKey, selectedProjectId = '') {
+      const zoneDisplay = document.getElementById('stock-issue-zone-display');
+      const projectFolderInput = document.getElementById('stock-issue-project-folder');
       const projectSelect = document.getElementById('stock-issue-project');
       if (!projectSelect) return;
 
-      if (!folderKey) {
-        projectSelect.innerHTML = '<option value="">Sélectionner d\'abord un dossier projet</option>';
+      const warehouse = DEMO_WAREHOUSES.find(w => w.id === selectedStockWarehouseId);
+      const zoneName = String(warehouse?.name || '').trim();
+
+      if (zoneDisplay) zoneDisplay.textContent = zoneName || '—';
+      if (projectFolderInput) projectFolderInput.value = zoneName;
+
+      populateStockHouseSelect(zoneName, projectSelect.value);
+    }
+
+    function populateStockHouseSelect(zoneName, selectedProjectId = '') {
+      const projectSelect = document.getElementById('stock-issue-project');
+      if (!projectSelect) return;
+
+      if (!zoneName) {
+        projectSelect.innerHTML = '<option value="">Sélectionner d\'abord un entrepôt</option>';
         return;
       }
 
+      const zoneNorm = normalizeText(zoneName);
       const houses = [];
       const seen = new Set();
       (projectsCache || []).forEach(row => {
-        const key = `${normalizeText(row?.nomProjet)}__${normalizeText(getProjectZoneDisplayName(row))}`;
         const projetId = Number(row.id || 0);
-        if (key === folderKey && projetId && !seen.has(projetId)) {
+        const isZoneStock = String(row?.typeMaison || '').trim().toUpperCase() === 'ZONE_STOCK';
+        const rowZone = normalizeText(getProjectZoneDisplayName(row));
+        if (!isZoneStock && rowZone === zoneNorm && projetId && !seen.has(projetId)) {
           seen.add(projetId);
           houses.push({
             projetId,
@@ -8999,7 +8981,7 @@
       });
 
       if (!houses.length) {
-        projectSelect.innerHTML = '<option value="">Aucun site disponible</option>';
+        projectSelect.innerHTML = '<option value="">Aucun site disponible dans cette zone</option>';
         return;
       }
 
@@ -9011,16 +8993,18 @@
     }
 
     function getStockIssueCandidateRows() {
-      const projectFolderSelect = document.getElementById('stock-issue-project-folder');
       const projectSelect = document.getElementById('stock-issue-project');
-      const selectedFolderKey = String(projectFolderSelect?.value || '').trim();
       const selectedProjectId = Number(projectSelect?.value || 0);
-      if (!selectedFolderKey) return [];
 
       const warehouseRows = getRowsByWarehouse(stockAvailableCache, selectedStockWarehouseId);
+      const warehouse = DEMO_WAREHOUSES.find(w => w.id === selectedStockWarehouseId);
+      const zoneNorm = normalizeText(String(warehouse?.name || '').trim());
+
+      if (!zoneNorm) return [];
+
       const zoneRows = warehouseRows.filter(row => {
-        const key = `${normalizeText(row?.nomProjet)}__${normalizeText(row?.zoneName || row?.prefecture || row?.nomSite)}`;
-        return key === selectedFolderKey && String(row?.sourceType || '').toUpperCase() === 'ZONE_STOCK' && Number(row.quantiteRestante || 0) > 0;
+        const rowZone = normalizeText(String(row?.zoneName || row?.prefecture || row?.nomSite || '').trim());
+        return rowZone === zoneNorm && String(row?.sourceType || '').toUpperCase() === 'ZONE_STOCK' && Number(row.quantiteRestante || 0) > 0;
       });
       if (zoneRows.length) {
         return zoneRows;
@@ -13347,19 +13331,11 @@
       updateDatabaseUploadTitle();
     });
 
-    document.getElementById('stock-issue-project-folder').addEventListener('change', e => {
-      populateStockHouseSelect(e.target.value);
-      populateStockStageSelect();
-      renderStockIssueLines();
-    });
-
     document.getElementById('stock-issue-warehouse').addEventListener('change', e => {
       selectedStockWarehouseId = e.target.value;
-      const folderSelect = document.getElementById('stock-issue-project-folder');
       showStockWarehouseDetails();
       renderStockOrdersList();
       populateStockProjectSelect();
-      populateStockHouseSelect(folderSelect ? folderSelect.value : '');
       populateStockStageSelect();
       renderStockIssueLines();
       renderStockIssuesList();
