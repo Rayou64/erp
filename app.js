@@ -344,7 +344,9 @@ function resolveSafariLogoPath() {
 
 function resolveSignatureFontPath() {
   const candidates = [
+    path.join(__dirname, 'public', 'fonts', 'GreatVibes-Regular.ttf'),
     path.join(__dirname, 'public', 'fonts', 'PinyonScript-Regular.ttf'),
+    path.join(__dirname, 'fonts', 'GreatVibes-Regular.ttf'),
     path.join(__dirname, 'fonts', 'PinyonScript-Regular.ttf'),
     'C:\\Windows\\Fonts\\PinyonScript-Regular.ttf',
     'C:\\Windows\\Fonts\\BRUSHSCI.TTF',
