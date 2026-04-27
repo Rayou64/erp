@@ -1483,10 +1483,12 @@ async function ensureMaterialRequestsForOrder(orderId, options = {}) {
       }];
 
   const createdRequestIds = [];
+  let nextMrId = await getNextTableId('material_requests');
   for (const item of sourceItems) {
     const inserted = await run(
-      'INSERT INTO material_requests (projetId, demandeur, etapeApprovisionnement, itemName, description, quantiteDemandee, quantiteRestante, dateDemande, statut, warehouseId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO material_requests (id, projetId, demandeur, etapeApprovisionnement, itemName, description, quantiteDemandee, quantiteRestante, dateDemande, statut, warehouseId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
+        nextMrId++,
         projectId,
         requester,
         'BON_COMMANDE',
@@ -2094,6 +2096,14 @@ async function initDb() {
     } catch (e) {
       // Deja configure en identity, ou adaptation impossible sur ce schema.
     }
+    // Rendre materialRequestId nullable (les bons de commande autonomes n'ont pas de demande liee)
+    try {
+      await run('ALTER TABLE purchase_orders ALTER COLUMN "materialRequestId" DROP NOT NULL');
+    } catch (e) {}
+    // Rendre materialRequestId nullable dans purchase_order_items aussi
+    try {
+      await run('ALTER TABLE purchase_order_items ALTER COLUMN "materialRequestId" DROP NOT NULL');
+    } catch (e) {}
   }
 
   try { await run('ALTER TABLE generated_documents ADD COLUMN sectionCode TEXT NOT NULL DEFAULT ""'); } catch (e) {}
@@ -2857,11 +2867,13 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
   }
   const nowIso = requestDate.toISOString();
   const createdRequests = [];
+  let nextMrIdAutoStage = await getNextTableId('material_requests');
 
   for (const entry of sourceLines) {
     const inserted = await run(
-      'INSERT INTO material_requests (projetId, demandeur, etapeApprovisionnement, itemName, description, quantiteDemandee, quantiteRestante, dateDemande, statut, groupId, warehouseId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO material_requests (id, projetId, demandeur, etapeApprovisionnement, itemName, description, quantiteDemandee, quantiteRestante, dateDemande, statut, groupId, warehouseId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
+        nextMrIdAutoStage++,
         projectId,
         requester,
         stageRaw,
@@ -3427,9 +3439,11 @@ app.post('/api/material-requests', async (req, res) => {
     }
   }
 
+  const nextMrIdPost = await getNextTableId('material_requests');
   const result = await run(
-    'INSERT INTO material_requests (projetId, demandeur, etapeApprovisionnement, itemName, description, quantiteDemandee, quantiteRestante, dateDemande, statut, groupId, warehouseId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO material_requests (id, projetId, demandeur, etapeApprovisionnement, itemName, description, quantiteDemandee, quantiteRestante, dateDemande, statut, groupId, warehouseId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
+      nextMrIdPost,
       projetId,
       demandeur,
       String(etapeApprovisionnement || '').trim(),
@@ -3444,7 +3458,7 @@ app.post('/api/material-requests', async (req, res) => {
     ]
   );
 
-  const request = await get('SELECT * FROM material_requests WHERE id = ?', [result.lastID]);
+  const request = await get('SELECT * FROM material_requests WHERE id = ?', [result.lastID || nextMrIdPost]);
 
   if (String(req.user?.role || '').trim() === 'chef_chantier_site') {
     const siteLabel = String(projet?.numeroMaison || '').trim() || '-';
@@ -4807,6 +4821,7 @@ app.patch('/api/stock-issue-authorizations/:id/decision', async (req, res) => {
   }];
 
   if (decision === 'VALIDEE') {
+    let nextStockIssueId = await getNextTableId('stock_issues');
     for (const item of effectiveItems) {
       const remaining = Number(item.quantiteRestante || 0);
       const outQty = Number(item.quantiteSortie || 0);
@@ -4819,8 +4834,9 @@ app.patch('/api/stock-issue-authorizations/:id/decision', async (req, res) => {
       await run('UPDATE material_requests SET quantiteRestante = ?, statut = ? WHERE id = ?', [newRemaining, newStatus, Number(item.materialRequestId)]);
 
       await run(
-        'INSERT INTO stock_issues (materialRequestId, projetId, quantiteSortie, issueType, note, issuedBy, issuedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO stock_issues (id, materialRequestId, projetId, quantiteSortie, issueType, note, issuedBy, issuedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [
+          nextStockIssueId++,
           Number(item.materialRequestId),
           item.projetId || authRow.projetId || null,
           outQty,
@@ -4900,9 +4916,10 @@ app.post('/api/stock-management/issues', async (req, res) => {
   await run('UPDATE material_requests SET quantiteRestante = ?, statut = ? WHERE id = ?', [newRemaining, newStatus, requestId]);
 
   const now = new Date().toISOString();
+  const nextSiIdDirect = await getNextTableId('stock_issues');
   await run(
-    'INSERT INTO stock_issues (materialRequestId, projetId, quantiteSortie, issueType, note, issuedBy, issuedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [requestId, requestRow.projetId || null, outQty, 'SITE_TRANSFER', String(note || '').trim(), req.user ? req.user.username : 'admin', now]
+    'INSERT INTO stock_issues (id, materialRequestId, projetId, quantiteSortie, issueType, note, issuedBy, issuedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [nextSiIdDirect, requestId, requestRow.projetId || null, outQty, 'SITE_TRANSFER', String(note || '').trim(), req.user ? req.user.username : 'admin', now]
   );
 
   const updated = await get(`
@@ -5443,14 +5460,15 @@ app.post('/api/revenues', async (req, res) => {
     return res.status(400).json({ error: 'Projet et montant valides sont obligatoires' });
   }
 
+  const nextRevenueId = await getNextTableId('revenues');
   const result = await run(
-    'INSERT INTO revenues (projetId, description, amount, dateRevenue, createdBy) VALUES (?, ?, ?, ?, ?)',
-    [numericProjectId, String(description).trim(), numericAmount, dateRevenue ? new Date(dateRevenue).toISOString() : new Date().toISOString(), req.user.username]
+    'INSERT INTO revenues (id, projetId, description, amount, dateRevenue, createdBy) VALUES (?, ?, ?, ?, ?, ?)',
+    [nextRevenueId, numericProjectId, String(description).trim(), numericAmount, dateRevenue ? new Date(dateRevenue).toISOString() : new Date().toISOString(), req.user.username]
   );
 
-  await archiveRevenueInvoicePdf(result.lastID);
+  await archiveRevenueInvoicePdf(result.lastID || nextRevenueId);
 
-  const revenue = await get('SELECT * FROM revenues WHERE id = ?', [result.lastID]);
+  const revenue = await get('SELECT * FROM revenues WHERE id = ?', [result.lastID || nextRevenueId]);
   res.status(201).json(revenue);
 });
 
@@ -6154,6 +6172,7 @@ app.post('/api/project-progress', async (req, res) => {
   );
 
   if (normalizedUsageLines.length > 0) {
+    let nextSiIdProgress = await getNextTableId('stock_issues');
     for (const usageLine of normalizedUsageLines) {
       let remainingToIssue = usageLine.quantite;
       const availableRows = availableRowsByMaterial.get(usageLine.itemName.toLowerCase()) || [];
@@ -6165,8 +6184,9 @@ app.post('/api/project-progress', async (req, res) => {
 
         const outQty = Math.min(currentRemaining, remainingToIssue);
         await run(
-          'INSERT INTO stock_issues (materialRequestId, projetId, quantiteSortie, issueType, note, issuedBy, issuedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          'INSERT INTO stock_issues (id, materialRequestId, projetId, quantiteSortie, issueType, note, issuedBy, issuedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
           [
+            nextSiIdProgress++,
             Number(row.id),
             progressProjectId,
             outQty,
@@ -6182,6 +6202,7 @@ app.post('/api/project-progress', async (req, res) => {
     }
   } else if (normalizedMaterialUsedQty > 0) {
     let remainingToIssue = normalizedMaterialUsedQty;
+    let nextSiIdLegacy = await getNextTableId('stock_issues');
     for (const row of availableRowsByMaterial.get('__legacy__') || []) {
       if (remainingToIssue <= 0) break;
       const currentRemaining = Number(row.siteRemaining || 0);
@@ -6189,8 +6210,9 @@ app.post('/api/project-progress', async (req, res) => {
 
       const outQty = Math.min(currentRemaining, remainingToIssue);
       await run(
-        'INSERT INTO stock_issues (materialRequestId, projetId, quantiteSortie, issueType, note, issuedBy, issuedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO stock_issues (id, materialRequestId, projetId, quantiteSortie, issueType, note, issuedBy, issuedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [
+          nextSiIdLegacy++,
           Number(row.id),
           progressProjectId,
           outQty,
