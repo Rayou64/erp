@@ -1594,9 +1594,10 @@
                   <label>Site destinataire *</label>
                   <select id="stock-issue-project" required></select>
                 </div>
-                <div class="form-group">
-                  <label>Étape *</label>
-                  <select id="stock-issue-stage" required></select>
+                <div class="form-group" id="stock-issue-stage-group">
+                  <label id="stock-issue-stage-label">Étape destinataire</label>
+                  <input type="text" id="stock-issue-stage" list="stock-issue-stage-datalist" placeholder="Ex: FONDATIONS, DALLAGE…" autocomplete="off" style="width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
+                  <datalist id="stock-issue-stage-datalist"></datalist>
                 </div>
                 <div class="form-group">
                   <label>Matériaux liés à l'étape</label>
@@ -9023,8 +9024,20 @@
       });
     }
 
+    function isZoneStockIssue() {
+      const candidateRows = getStockIssueCandidateRows();
+      return candidateRows.length > 0 && candidateRows.every(row => String(row?.sourceType || '').toUpperCase() === 'ZONE_STOCK');
+    }
+
     function getDebourseMatchedStockIssueRows() {
       const candidateRows = getStockIssueCandidateRows();
+
+      // Pour les BC zone, on retourne directement tous les matériaux disponibles
+      // (l'étape est saisie librement par l'utilisateur au moment de la livraison)
+      if (isZoneStockIssue()) {
+        return candidateRows.map(row => ({ ...row, etapeApprovisionnement: '' }));
+      }
+
       const catalogEntries = getStockIssueCatalogEntries();
       if (!catalogEntries.length) return [];
 
@@ -9054,9 +9067,33 @@
     }
 
     function populateStockStageSelect(selectedStageValue = '') {
-      const stageSelect = document.getElementById('stock-issue-stage');
-      if (!stageSelect) return;
+      const stageInput = document.getElementById('stock-issue-stage');
+      const datalist = document.getElementById('stock-issue-stage-datalist');
+      const label = document.getElementById('stock-issue-stage-label');
+      if (!stageInput || !datalist) return;
 
+      if (isZoneStockIssue()) {
+        // Mode zone: étape libre, suggérée depuis les DM du projet destinataire
+        if (label) label.textContent = 'Étape destinataire (optionnelle)';
+        const projectSelect = document.getElementById('stock-issue-project');
+        const selectedProjectId = Number(projectSelect?.value || 0);
+        const stages = [];
+        const seen = new Set();
+        (Array.isArray(materialRequestsCache) ? materialRequestsCache : []).forEach(req => {
+          if (Number(req?.projetId || 0) !== selectedProjectId && Number(req?.projectId || 0) !== selectedProjectId) return;
+          const stageLabel = String(req?.etapeApprovisionnement || '').trim();
+          const stageKey = normalizeStageKey(stageLabel);
+          if (!stageKey || seen.has(stageKey)) return;
+          seen.add(stageKey);
+          stages.push(stageLabel);
+        });
+        datalist.innerHTML = stages.map(s => `<option value="${escapeHtml(s)}">`).join('');
+        if (selectedStageValue) stageInput.value = selectedStageValue;
+        return;
+      }
+
+      // Mode standard: étapes depuis le catalogue
+      if (label) label.textContent = 'Étape *';
       const rows = getDebourseMatchedStockIssueRows();
       const stages = [];
       const seen = new Set();
@@ -9066,29 +9103,42 @@
         const stageKey = normalizeStageKey(stageLabel);
         if (!stageKey || seen.has(stageKey)) return;
         seen.add(stageKey);
-        stages.push({ key: stageKey, label: stageLabel });
+        stages.push(stageLabel);
       });
 
-      stageSelect.innerHTML = '<option value="">Sélectionner une étape</option>' + stages.map(stage => (
-        `<option value="${escapeHtml(stage.key)}">${escapeHtml(stage.label)}</option>`
-      )).join('');
+      datalist.innerHTML = stages.map(s => `<option value="${escapeHtml(s)}">`).join('');
 
-      const hasSelectedStage = selectedStageValue && stages.some(stage => stage.key === selectedStageValue);
+      const hasSelectedStage = selectedStageValue && stages.some(s => normalizeStageKey(s) === normalizeStageKey(selectedStageValue));
       if (hasSelectedStage) {
-        stageSelect.value = selectedStageValue;
+        stageInput.value = selectedStageValue;
       } else if (stages.length) {
-        stageSelect.value = stages[0].key;
+        stageInput.value = stages[0];
       }
     }
 
     function renderStockIssueLines() {
       const linesContainer = document.getElementById('stock-issue-lines');
       const hint = document.getElementById('stock-issue-lines-hint');
-      const stageSelect = document.getElementById('stock-issue-stage');
-      if (!linesContainer || !hint || !stageSelect) return;
+      const stageInput = document.getElementById('stock-issue-stage');
+      if (!linesContainer || !hint || !stageInput) return;
 
-      const stageKey = String(stageSelect.value || '').trim();
-      const rows = getDebourseMatchedStockIssueRows().filter(row => normalizeStageKey(row.etapeApprovisionnement || '') === stageKey);
+      const zoneMode = isZoneStockIssue();
+      const stageKey = String(stageInput.value || '').trim();
+
+      // Pour zone: afficher tous les matériaux sans filtrer par étape
+      // Pour standard: filtrer par étape choisie
+      let rows;
+      if (zoneMode) {
+        rows = getDebourseMatchedStockIssueRows();
+      } else {
+        if (!stageKey) {
+          linesContainer.innerHTML = '';
+          hint.textContent = 'Sélectionne une étape pour afficher les matériaux disponibles.';
+          return;
+        }
+        rows = getDebourseMatchedStockIssueRows().filter(row => normalizeStageKey(row.etapeApprovisionnement || '') === normalizeStageKey(stageKey));
+      }
+
       const groupedRowsMap = new Map();
 
       rows.forEach(row => {
@@ -9113,15 +9163,13 @@
 
       const groupedRows = Array.from(groupedRowsMap.values());
 
-      if (!stageKey) {
-        linesContainer.innerHTML = '';
-        hint.textContent = 'Sélectionne une étape pour afficher les matériaux disponibles.';
-        return;
-      }
-
       if (!groupedRows.length) {
-        linesContainer.innerHTML = '<div class="empty-state"><p>Aucun matériau disponible pour cette étape.</p></div>';
-        hint.textContent = 'Aucun matériau disponible pour l’étape sélectionnée.';
+        linesContainer.innerHTML = zoneMode
+          ? '<div class="empty-state"><p>Aucun matériau en stock de zone pour cet entrepôt.</p></div>'
+          : '<div class="empty-state"><p>Aucun matériau disponible pour cette étape.</p></div>';
+        hint.textContent = zoneMode
+          ? 'Aucun matériau en stock de zone disponible.'
+          : "Aucun matériau disponible pour l'étape sélectionnée.";
         return;
       }
 
@@ -9135,7 +9183,7 @@
           <input type="number" class="stock-issue-line-qty" min="0" step="0.01" max="${Number(row.totalRemaining || 0)}" placeholder="Qté à sortir" />
         </div>
       `).join('');
-      hint.textContent = `${groupedRows.length} matériau(x) disponibles pour cette étape.`;
+      hint.textContent = `${groupedRows.length} matériau(x) disponibles${zoneMode ? ' (stock de zone)' : ' pour cette étape'}.`;
 
       updateStockIssueRemainingPreview();
 
@@ -13342,6 +13390,10 @@
       renderStockIssueLines();
     });
 
+    document.getElementById('stock-issue-stage').addEventListener('input', () => {
+      renderStockIssueLines();
+    });
+
     document.querySelectorAll('.stock-warehouse-card').forEach(card => {
       card.addEventListener('click', () => {
         const warehouseId = card.dataset.warehouseId;
@@ -13367,7 +13419,7 @@
         const targetProjectId = Number(document.getElementById('stock-issue-project')?.value || 0);
         const lineNodes = Array.from(document.querySelectorAll('#stock-issue-lines .stock-issue-line'));
 
-        if (!stageKey) {
+        if (!stageKey && !isZoneStockIssue()) {
           showMessage('Sélectionne une étape valide', 'error');
           return;
         }
@@ -13434,8 +13486,7 @@
           return;
         }
 
-        const stageSelect = document.getElementById('stock-issue-stage');
-        const stageLabel = stageSelect?.options?.[stageSelect.selectedIndex]?.text || '';
+        const stageLabel = stageKey;
 
         await fetchJson('/api/stock-issue-authorizations', {
           method: 'POST',
