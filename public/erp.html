@@ -8762,7 +8762,13 @@
                 hasStockArrival: baseQty > 0,
               };
             }
-          ).map(row => ({ ...row, statut: 'SUR_SITE' }));
+          ).map(row => {
+            // Marquer ÉPUISÉ si totalRestant est 0 et il y a une demande
+            const statut = row.totalRestant <= 0 && row.totalDemande > 0
+              ? 'EPUISE'
+              : 'SUR_SITE';
+            return { ...row, statut };
+          });
         }
 
         if (list) {
