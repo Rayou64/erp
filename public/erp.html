@@ -4009,14 +4009,11 @@
         || (!String(order?.etapeApprovisionnement || '').trim() && Boolean(order?.zoneName));
 
       if (isZoneOrder) {
-        const projectLabel = String(order?.nomProjet || order?.nomProjetManuel || 'Projet').trim() || 'Projet';
+        const projectLabel = String(order?.nomProjetManuel || order?.nomProjet || 'Projet').trim() || 'Projet';
         const zoneLabel = String(order?.zoneName || '').trim()
           || siteRaw.replace(/^zone\s*/i, '').trim()
           || 'Zone';
-        const orderNumber = Number(order?.id || 0);
-        return orderNumber > 0
-          ? `${projectLabel}-${zoneLabel}-${orderNumber}`
-          : `${projectLabel}-${zoneLabel}`;
+        return `${projectLabel}-${zoneLabel}`;
       }
 
       const stage = String(order?.etapeApprovisionnement || order?.items?.[0]?.etapeApprovisionnement || '').trim() || 'Étape';

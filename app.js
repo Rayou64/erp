@@ -433,10 +433,16 @@ async function enrichPurchaseOrders(orders) {
     const projectNames = Array.from(new Set(items.map(item => item.projetNom).filter(Boolean)));
     const houseNumbers = Array.from(new Set(items.map(item => String(item.numeroMaison || '').trim()).filter(Boolean)));
     const stages = Array.from(new Set(items.map(item => String(item.etapeApprovisionnement || '').trim()).filter(Boolean)));
+    const manualSiteRaw = String(order.nomSiteManuel || '').trim();
+    const zoneFromManualSite = manualSiteRaw.replace(/^zone\s*/i, '').trim();
+    const zoneFromItems = items.reduce((acc, item) => acc || (String(item.typeMaison || '').toUpperCase() === 'ZONE_STOCK' ? String(item.prefecture || '').trim() : ''), '');
+    const isZoneOrder = items.some(item => String(item.typeMaison || '').toUpperCase() === 'ZONE_STOCK') || /^zone\s+/i.test(manualSiteRaw);
 
-    const resolvedNomProjet = projectNames.length
+    const resolvedNomProjet = (isZoneOrder && String(order.nomProjetManuel || '').trim())
+      ? String(order.nomProjetManuel || '').trim()
+      : (projectNames.length
       ? projectNames.join(', ')
-      : (order.nomProjetManuel || order.nomProjet || '-');
+      : (order.nomProjetManuel || order.nomProjet || '-'));
     const resolvedSite = houseNumbers.length
       ? houseNumbers.join(', ')
       : (order.nomSiteManuel || '-');
@@ -456,8 +462,8 @@ async function enrichPurchaseOrders(orders) {
           || ''
       ).trim(),
       projetId: order.projetId || null,
-      isZoneOrder: items.some(item => String(item.typeMaison || '').toUpperCase() === 'ZONE_STOCK'),
-      zoneName: items.reduce((acc, item) => acc || (String(item.typeMaison || '').toUpperCase() === 'ZONE_STOCK' ? (item.prefecture || '') : ''), '') || null,
+      isZoneOrder,
+      zoneName: zoneFromItems || zoneFromManualSite || null,
     };
   });
 }
@@ -4186,6 +4192,7 @@ app.get('/api/stock-management/orders', async (req, res) => {
   const selectMontantTotal = purchaseOrderColumns.has('montantTotal') ? 'po.montantTotal' : '0 AS montantTotal';
   const selectWarehouseId = purchaseOrderColumns.has('warehouseId') ? 'po.warehouseId' : 'NULL AS warehouseId';
   const selectSiteId = purchaseOrderColumns.has('siteId') ? 'po.siteId' : 'NULL AS siteId';
+  const selectNomProjetManuel = purchaseOrderColumns.has('nomProjetManuel') ? 'po.nomProjetManuel' : 'NULL AS nomProjetManuel';
   const selectNomSiteManuel = purchaseOrderColumns.has('nomSiteManuel') ? 'po.nomSiteManuel' : 'NULL AS nomSiteManuel';
   const selectPoEtape = purchaseOrderColumns.has('etapeApprovisionnement')
     ? 'po.etapeApprovisionnement AS poEtape'
@@ -4201,6 +4208,7 @@ app.get('/api/stock-management/orders', async (req, res) => {
       ${selectMontantTotal},
       ${selectWarehouseId},
       ${selectSiteId},
+      ${selectNomProjetManuel},
       ${selectNomSiteManuel},
       ${selectPoEtape},
       poi.article,
@@ -4229,6 +4237,7 @@ app.get('/api/stock-management/orders', async (req, res) => {
         montantTotal: Number(row.montantTotal || 0),
         warehouseId: row.warehouseId || null,
         siteId: row.siteId || null,
+        nomProjetManuel: row.nomProjetManuel || null,
         nomSiteManuel: row.nomSiteManuel || null,
         numeroMaison: row.numeroMaison || null,
         etapeApprovisionnement: row.poEtape || null,
