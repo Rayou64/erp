@@ -9136,7 +9136,12 @@
           hint.textContent = 'Sélectionne une étape pour afficher les matériaux disponibles.';
           return;
         }
-        rows = getDebourseMatchedStockIssueRows().filter(row => normalizeStageKey(row.etapeApprovisionnement || '') === normalizeStageKey(stageKey));
+        const typedStageKey = normalizeStageKey(stageKey);
+        rows = getDebourseMatchedStockIssueRows().filter(row => {
+          const rowStageKey = normalizeStageKey(row.etapeApprovisionnement || '');
+          if (!rowStageKey || !typedStageKey) return false;
+          return rowStageKey === typedStageKey || rowStageKey.includes(typedStageKey) || typedStageKey.includes(rowStageKey);
+        });
       }
 
       const groupedRowsMap = new Map();
