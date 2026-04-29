@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ryan ERP</string>
+    <string name="title_activity_main">Ryan ERP</string>
+    <string name="package_name">com.ryan.erp</string>
+    <string name="custom_url_scheme">com.ryan.erp</string>
+</resources>

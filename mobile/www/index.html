@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ryan ERP Mobile</title>
+  <style>
+    :root {
+      --bg-1: #f4f7fb;
+      --bg-2: #dfe8f5;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --primary: #0b5fff;
+      --primary-2: #0041c4;
+      --border: #d6deea;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      background: radial-gradient(1200px 600px at 10% -10%, #ffffff 0%, var(--bg-1) 35%, var(--bg-2) 100%);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+    .card {
+      width: min(520px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.10);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+    p { margin: 0; color: var(--muted); }
+    .profiles {
+      margin-top: 18px;
+      display: grid;
+      gap: 12px;
+    }
+    .profile-btn {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #f8fbff;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .14s ease, box-shadow .14s ease;
+    }
+    .profile-btn:active { transform: translateY(1px); }
+    .profile-btn strong { display: block; font-size: 16px; }
+    .profile-btn span { color: var(--muted); font-size: 13px; }
+    .actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .button-primary {
+      background: linear-gradient(180deg, var(--primary), var(--primary-2));
+      color: #fff;
+    }
+    .button-light {
+      background: #eef3fb;
+      color: #1e293b;
+      border: 1px solid var(--border);
+    }
+    .hint {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Ryan ERP Mobile</h1>
+    <p>Choisissez un profil pour ouvrir l'application.</p>
+
+    <section class="profiles">
+      <button class="profile-btn" id="profile-zone" type="button">
+        <strong>Profil 1 - Gestionnaire stock zone</strong>
+        <span>Operations zone, stock, autorisations</span>
+      </button>
+      <button class="profile-btn" id="profile-site" type="button">
+        <strong>Profil 2 - Chef chantier site</strong>
+        <span>Operations site et suivi chantier</span>
+      </button>
+    </section>
+
+    <section class="actions">
+      <button class="button button-primary" id="continue-last" type="button">Continuer avec le dernier profil</button>
+      <button class="button button-light" id="open-default" type="button">Ouvrir sans profil</button>
+    </section>
+
+    <p class="hint">Le profil sert de raccourci d'ouverture. La connexion reste securisee via vos identifiants ERP.</p>
+  </main>
+
+  <script>
+    (function () {
+      const ERP_URL = 'https://ryanerp-hn5zd.ondigitalocean.app/erp.html';
+      const STORAGE_KEY = 'ryanerp_mobile_profile';
+
+      function openErp(profileCode) {
+        if (profileCode) {
+          localStorage.setItem(STORAGE_KEY, profileCode);
+        }
+        const finalProfile = profileCode || localStorage.getItem(STORAGE_KEY) || '';
+        const url = finalProfile
+          ? ERP_URL + '?mobileProfile=' + encodeURIComponent(finalProfile)
+          : ERP_URL;
+        window.location.replace(url);
+      }
+
+      document.getElementById('profile-zone').addEventListener('click', function () {
+        openErp('gestionnaire_stock_zone');
+      });
+
+      document.getElementById('profile-site').addEventListener('click', function () {
+        openErp('chef_chantier_site');
+      });
+
+      document.getElementById('continue-last').addEventListener('click', function () {
+        openErp(localStorage.getItem(STORAGE_KEY) || '');
+      });
+
+      document.getElementById('open-default').addEventListener('click', function () {
+        openErp('');
+      });
+    })();
+  </script>
+</body>
+</html>
