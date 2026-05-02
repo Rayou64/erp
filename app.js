@@ -2482,6 +2482,8 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/vehicles$/ },
     { method: 'GET', pattern: /^\/vehicles\/\d+\/locations$/ },
     { method: 'GET', pattern: /^\/vehicles\/\d+$/ },
+    { method: 'GET', pattern: /^\/auto-vehicle-locations$/ },
+    { method: 'GET', pattern: /^\/auto-transport-costs$/ },
   ];
 
   const rules = role === 'gestionnaire_stock'
