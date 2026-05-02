@@ -3462,6 +3462,7 @@
     const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog']);
     const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'stock-management', 'database', 'trash']);
     const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'expenses', 'revenues', 'reports', 'maps']);
+      const ACHAT_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash']);
     const AUTO_MAP_REFRESH_MS = 10000;
     const AUTO_DASHBOARD_REFRESH_MS = 30000;
 
@@ -3497,6 +3498,10 @@
       return currentUserRole === 'dirigeant';
     }
 
+    function isAchat() {
+      return currentUserRole === 'achat';
+    }
+
     function isPurchaseReadOnlyRole() {
       return isOpsReviewer() || isProcurementReviewer() || isExecutive();
     }
@@ -3518,7 +3523,7 @@
     }
 
     function canManageTrashModule() {
-      return isAdmin();
+      return isAdmin() || isAchat();
     }
 
     function canTrashRecentMaterialRequests() {
@@ -3770,7 +3775,7 @@
     }
 
     function isRestrictedRole() {
-      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive();
+      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive() || isAchat();
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
@@ -4577,6 +4582,7 @@
       if (isZoneStockManager()) return ZONE_STOCK_MANAGER_ALLOWED_MODULES;
       if (isGestStock()) return GEST_STOCK_ALLOWED_MODULES;
       if (isCommis()) return COMMIS_ALLOWED_MODULES;
+      if (isAchat()) return ACHAT_ALLOWED_MODULES;
       return null;
     }
 

@@ -33,6 +33,8 @@ const GEST_STOCK_USERNAME = process.env.GEST_STOCK_USERNAME || 'gestionnaire_sto
 const GEST_STOCK_PASSWORD = process.env.GEST_STOCK_PASSWORD || 'geststock123';
 const EXECUTIVE_USERNAME = process.env.EXECUTIVE_USERNAME || 'dirigeant';
 const EXECUTIVE_PASSWORD = process.env.EXECUTIVE_PASSWORD || 'dirigeant123';
+const ACHAT_USERNAME = process.env.ACHAT_USERNAME || 'achat';
+const ACHAT_PASSWORD = process.env.ACHAT_PASSWORD || 'achat123';
 const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS || 60_000);
 const API_RATE_MAX = Number(process.env.API_RATE_MAX || 600);
 const AUTH_RATE_WINDOW_MS = Number(process.env.AUTH_RATE_WINDOW_MS || 15 * 60_000);
@@ -2268,6 +2270,24 @@ async function initDb() {
 
   // Garantir un compte commis_stock toujours opérationnel (local + Railway)
   const commis = await get('SELECT id FROM users WHERE username = ?', [COMMIS_STOCK_USERNAME]);
+
+  // Garantir le compte achat toujours opérationnel (local + Railway)
+  const achatUser = await get('SELECT id FROM users WHERE username = ?', [ACHAT_USERNAME]);
+  const achatHashedPassword = await bcrypt.hash(ACHAT_PASSWORD, 10);
+  if (!achatUser) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, ACHAT_USERNAME, achatHashedPassword, 'achat', new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${ACHAT_USERNAME} cree avec role achat`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [achatHashedPassword, 'achat', ACHAT_USERNAME]
+    );
+    console.log(`Utilisateur ${ACHAT_USERNAME} mis a jour avec role achat`);
+  }
   const commisHashedPassword = await bcrypt.hash(COMMIS_STOCK_PASSWORD, 10);
   if (!commis) {
     const nextUserId = await getNextUserId();
@@ -2405,7 +2425,7 @@ function authenticateToken(req, res, next) {
 
 function authorizeRoleAccess(req, res, next) {
   const role = req.user && req.user.role;
-  if (role !== 'commis' && role !== 'gestionnaire_stock' && role !== 'chef_chantier_site' && role !== 'dirigeant') {
+  if (role !== 'commis' && role !== 'gestionnaire_stock' && role !== 'chef_chantier_site' && role !== 'dirigeant' && role !== 'achat') {
     return next();
   }
 
@@ -2486,13 +2506,47 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/auto-transport-costs$/ },
   ];
 
+  const achatRules = [
+    { method: 'GET',    pattern: /^\/auth\/me$/ },
+    { method: 'GET',    pattern: /^\/projects$/ },
+    { method: 'GET',    pattern: /^\/material-catalog$/ },
+    { method: 'GET',    pattern: /^\/material-requests$/ },
+    // Bons de commande – accès complet
+    { method: 'GET',    pattern: /^\/purchase-orders$/ },
+    { method: 'POST',   pattern: /^\/purchase-orders$/ },
+    { method: 'PATCH',  pattern: /^\/purchase-orders\/\d+\/validation$/ },
+    { method: 'PATCH',  pattern: /^\/purchase-orders\/\d+$/ },
+    { method: 'DELETE', pattern: /^\/purchase-orders\/\d+$/ },
+    { method: 'GET',    pattern: /^\/purchase-orders\/\d+\/pdf$/ },
+    { method: 'GET',    pattern: /^\/purchase-orders\/\d+\/authorization-documents$/ },
+    // Inventaire (toutes zones)
+    { method: 'GET',    pattern: /^\/stock-management\/available$/ },
+    { method: 'GET',    pattern: /^\/stock-management\/issues$/ },
+    { method: 'GET',    pattern: /^\/stock-management\/orders$/ },
+    // Autorisations de sortie – créer, valider/rejeter, PDF
+    { method: 'GET',    pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'POST',   pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'PATCH',  pattern: /^\/stock-issue-authorizations\/\d+\/decision$/ },
+    { method: 'GET',    pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
+    // Base de données – accès complet + téléchargements
+    { method: 'GET',    pattern: /^\/database-documents$/ },
+    { method: 'GET',    pattern: /^\/database-documents\/\d+\/download$/ },
+    { method: 'POST',   pattern: /^\/database-documents\/upload$/ },
+    { method: 'DELETE', pattern: /^\/database-documents\/\d+$/ },
+    // Corbeille – suppression d'éléments
+    { method: 'DELETE', pattern: /^\/material-requests\/\d+$/ },
+    { method: 'GET',    pattern: /^\/transfer-authorizations$/ },
+  ];
+
   const rules = role === 'gestionnaire_stock'
     ? gestStockRules
     : role === 'chef_chantier_site'
       ? siteChiefRules
       : role === 'dirigeant'
         ? executiveRules
-      : commisRules;
+      : role === 'achat'
+        ? achatRules
+        : commisRules;
   const isAllowed = rules.some(rule => rule.method === method && rule.pattern.test(pathName));
   if (isAllowed) {
     return next();
