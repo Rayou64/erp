@@ -2475,7 +2475,7 @@
               <h4 style="margin-bottom: 8px; font-size: 13px; color: #475569;">Propositions depuis les demandes</h4>
               <ul id="po-suggestions-list" class="list" style="margin-bottom: 12px;"></ul>
               <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="po-search" placeholder="Rechercher un bon (projet, fournisseur, statut)" />
+                <input type="text" id="po-search" placeholder="Rechercher un bon (site, fournisseur, statut)" />
               </div>
               <ul id="po-list" class="list"></ul>
               <div id="po-details" class="card" style="margin-top: 12px; background-color: #f8fafc;"></div>
@@ -2764,7 +2764,7 @@
               <ul id="maps-history-list" class="list"></ul>
             </div>
 
-            <div class="card form-card">
+            <div class="card form-card" id="maps-update-panel">
               <h3 style="margin-bottom: 15px;">Mise à jour rapide de position</h3>
               <form id="maps-location-form">
                 <div class="form-group">
@@ -3461,7 +3461,7 @@
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'database', 'trash']);
     const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog']);
     const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'stock-management', 'database', 'trash']);
-    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'expenses', 'revenues', 'reports']);
+    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'expenses', 'revenues', 'reports', 'maps']);
     const AUTO_MAP_REFRESH_MS = 10000;
     const AUTO_DASHBOARD_REFRESH_MS = 30000;
 
@@ -4468,6 +4468,9 @@
       syncMapsLocationInputsWithSelection();
       setMapsModuleMapMode(mapsModuleMapMode);
       refreshMapsTrackerStatus();
+      // Masquer le panneau de mise à jour pour le dirigeant
+      const updatePanel = document.getElementById('maps-update-panel');
+      if (updatePanel) updatePanel.style.display = isExecutive() ? 'none' : '';
     }
 
     async function loadMapsModule() {
@@ -9495,9 +9498,14 @@
           if (executiveContainer) {
             executiveContainer.style.display = 'none';
           }
-          // Widget résumé opérationnel pour tous les autres profils
-          const execData = buildExecutiveDashboardData(projects, orders, projectCatalog, expenses, revenues);
-          renderExecSummaryWidget(execData);
+          // Widget résumé opérationnel (pas pour admin)
+          if (!isAdmin()) {
+            const execData = buildExecutiveDashboardData(projects, orders, projectCatalog, expenses, revenues);
+            renderExecSummaryWidget(execData);
+          } else {
+            const sw = document.getElementById('exec-summary-widget');
+            if (sw) sw.style.display = 'none';
+          }
         }
       } catch (err) {
         console.error('Erreur dashboard:', err);
@@ -10189,6 +10197,7 @@
           materialCatalogCache = catalogEntries;
         }
         const suggestionsList = document.getElementById('po-suggestions-list');
+        const poFormCard = document.querySelector('#purchase-orders .form-card');
         if (isExecutive()) {
           if (suggestionsList) {
             suggestionsList.innerHTML = '';
@@ -10196,12 +10205,15 @@
             const suggestionsTitle = suggestionsList.previousElementSibling;
             if (suggestionsTitle) suggestionsTitle.style.display = 'none';
           }
+          // Masquer le formulaire de création pour le dirigeant
+          if (poFormCard) poFormCard.style.display = 'none';
         } else {
           if (suggestionsList) {
             suggestionsList.style.display = '';
             const suggestionsTitle = suggestionsList.previousElementSibling;
             if (suggestionsTitle) suggestionsTitle.style.display = '';
           }
+          if (poFormCard) poFormCard.style.display = '';
           renderPoSuggestions(materialRequestsCache, recentOrders);
         }
         const listTitle = document.getElementById('po-list-title');
@@ -10210,10 +10222,11 @@
         const filteredOrders = searchValue
           ? recentOrders.filter(o => {
               const totalAmount = Number(o.montantTotal || 0).toFixed(2);
-              const haystack = normalizeText(`${o.nomProjet || ''} ${o.fournisseur || ''} ${o.statut || ''} ${o.itemName || ''} ${totalAmount}`);
+              const siteLabel = String(o.nomSiteManuel || o.nomProjetManuel || o.nomProjet || o.siteId || '').trim();
+              const haystack = normalizeText(`${o.nomProjet || ''} ${siteLabel} ${o.fournisseur || ''} ${o.statut || ''} ${o.itemName || ''} ${totalAmount}`);
               return haystack.includes(searchValue);
             })
-          : (isExecutive() ? recentOrders : recentOrders.slice(0, 12));
+          : (isExecutive() ? recentOrders.slice(0, 15) : recentOrders.slice(0, 12));
 
         const list = document.getElementById('po-list');
 
@@ -10241,7 +10254,7 @@
               <li class="list-item">
                 <div class="list-item-content project-item-clickable ${Number(selectedPurchaseOrderId) === Number(o.id) ? 'project-item-selected' : ''}" onclick="viewPurchaseOrder(${o.id})">
                   <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(o))}</div>
-                  <div class="list-item-meta">${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(displayedStatus)}</div>
+                  <div class="list-item-meta">${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(displayedStatus)}${isExecutive() && o.creePar ? ` • <em>Par ${escapeHtml(o.creePar)}</em>` : ''}</div>
                 </div>
                 <div class="action-buttons">
                   <details class="actions-menu">
