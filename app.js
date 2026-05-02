@@ -31,6 +31,8 @@ const COMMIS_STOCK_USERNAME = process.env.COMMIS_STOCK_USERNAME || 'commis_stock
 const COMMIS_STOCK_PASSWORD = process.env.COMMIS_STOCK_PASSWORD || 'stock123';
 const GEST_STOCK_USERNAME = process.env.GEST_STOCK_USERNAME || 'gestionnaire_stock';
 const GEST_STOCK_PASSWORD = process.env.GEST_STOCK_PASSWORD || 'geststock123';
+const EXECUTIVE_USERNAME = process.env.EXECUTIVE_USERNAME || 'dirigeant';
+const EXECUTIVE_PASSWORD = process.env.EXECUTIVE_PASSWORD || 'dirigeant123';
 const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS || 60_000);
 const API_RATE_MAX = Number(process.env.API_RATE_MAX || 600);
 const AUTH_RATE_WINDOW_MS = Number(process.env.AUTH_RATE_WINDOW_MS || 15 * 60_000);
@@ -2247,6 +2249,23 @@ async function initDb() {
     console.log('Utilisateur admin créé avec mot de passe admin123');
   }
 
+  const executive = await get('SELECT id FROM users WHERE username = ?', [EXECUTIVE_USERNAME]);
+  const executiveHashedPassword = await bcrypt.hash(EXECUTIVE_PASSWORD, 10);
+  if (!executive) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, EXECUTIVE_USERNAME, executiveHashedPassword, 'dirigeant', new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${EXECUTIVE_USERNAME} cree avec role dirigeant`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [executiveHashedPassword, 'dirigeant', EXECUTIVE_USERNAME]
+    );
+    console.log(`Utilisateur ${EXECUTIVE_USERNAME} mis a jour avec role dirigeant`);
+  }
+
   // Garantir un compte commis_stock toujours opérationnel (local + Railway)
   const commis = await get('SELECT id FROM users WHERE username = ?', [COMMIS_STOCK_USERNAME]);
   const commisHashedPassword = await bcrypt.hash(COMMIS_STOCK_PASSWORD, 10);
@@ -2386,7 +2405,7 @@ function authenticateToken(req, res, next) {
 
 function authorizeRoleAccess(req, res, next) {
   const role = req.user && req.user.role;
-  if (role !== 'commis' && role !== 'gestionnaire_stock' && role !== 'chef_chantier_site') {
+  if (role !== 'commis' && role !== 'gestionnaire_stock' && role !== 'chef_chantier_site' && role !== 'dirigeant') {
     return next();
   }
 
@@ -2444,10 +2463,30 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET',  pattern: /^\/database-documents\/\d+\/download$/ },
   ];
 
+  const executiveRules = [
+    { method: 'GET', pattern: /^\/auth\/me$/ },
+    { method: 'GET', pattern: /^\/projects$/ },
+    { method: 'GET', pattern: /^\/project-assignments$/ },
+    { method: 'GET', pattern: /^\/project-progress$/ },
+    { method: 'GET', pattern: /^\/project-folders$/ },
+    { method: 'GET', pattern: /^\/project-catalog$/ },
+    { method: 'GET', pattern: /^\/material-catalog$/ },
+    { method: 'GET', pattern: /^\/material-requests$/ },
+    { method: 'GET', pattern: /^\/purchase-orders$/ },
+    { method: 'GET', pattern: /^\/stock-management\/available$/ },
+    { method: 'GET', pattern: /^\/stock-management\/issues$/ },
+    { method: 'GET', pattern: /^\/stock-management\/orders$/ },
+    { method: 'GET', pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'GET', pattern: /^\/expenses$/ },
+    { method: 'GET', pattern: /^\/revenues$/ },
+  ];
+
   const rules = role === 'gestionnaire_stock'
     ? gestStockRules
     : role === 'chef_chantier_site'
       ? siteChiefRules
+      : role === 'dirigeant'
+        ? executiveRules
       : commisRules;
   const isAllowed = rules.some(rule => rule.method === method && rule.pattern.test(pathName));
   if (isAllowed) {
