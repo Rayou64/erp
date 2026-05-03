@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RyanERP</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Pinyon+Script&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap" />
   <style>
     * {
       margin: 0;
@@ -13,27 +13,10 @@
       box-sizing: border-box;
     }
 
-    :root {
-      --primary: #6366f1;
-      --primary-dark: #4f46e5;
-      --primary-deeper: #3730a3;
-      --accent: #14b8a6;
-      --sidebar: #0f172a;
-      --sidebar-deep: #1e1b4b;
-      --surface: #ffffff;
-      --surface-alt: #f1f5f9;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --shadow-sm: 0 2px 8px rgba(99,102,241,0.06);
-      --shadow-md: 0 8px 24px rgba(99,102,241,0.12);
-      --shadow-lg: 0 16px 40px rgba(99,102,241,0.18);
-    }
-
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--surface-alt);
-      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
     }
 
     .erp-container {
@@ -43,7 +26,7 @@
 
     .sidebar {
       width: 280px;
-      background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+      background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%);
       color: white;
       overflow-y: auto;
       box-shadow: 4px 0 12px rgba(0,0,0,0.3);
@@ -51,8 +34,8 @@
 
     .sidebar-header {
       padding: 25px 20px;
-      background: linear-gradient(135deg, #6366f1 0%, #14b8a6 100%);
-      border-bottom: 3px solid #4f46e5;
+      background: linear-gradient(135deg, #ff8c00 0%, #e67e22 100%);
+      border-bottom: 3px solid #d35400;
       display: flex;
       align-items: center;
       gap: 12px;
@@ -65,20 +48,19 @@
     }
 
     .sidebar-logo {
-      width: 145px;
-      height: 46px;
-      background: rgba(255, 255, 255, 0.18);
-      border-radius: 10px;
+      width: 140px;
+      height: 45px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 15px;
+      font-weight: bold;
+      font-size: 16px;
       color: white;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      letter-spacing: 0.5px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      letter-spacing: 1px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .sidebar-menu {
@@ -90,12 +72,12 @@
     }
 
     .menu-section-title {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      color: #94a3b8;
+      color: #ff8c00;
       padding: 15px 15px 8px 15px;
-      letter-spacing: 1.2px;
+      letter-spacing: 1px;
       margin-top: 10px;
     }
 
@@ -112,16 +94,16 @@
     }
 
     .menu-item:hover {
-      background-color: rgba(99, 102, 241, 0.12);
-      color: #a5b4fc;
-      border-left-color: #6366f1;
+      background-color: rgba(255, 140, 0, 0.1);
+      color: #ff8c00;
+      border-left-color: #ff8c00;
       padding-left: 18px;
     }
 
     .menu-item.active {
-      background: rgba(99, 102, 241, 0.18);
-      color: #c7d2fe;
-      border-left-color: #6366f1;
+      background: linear-gradient(90deg, rgba(255, 140, 0, 0.2) 0%, transparent 100%);
+      color: #ff8c00;
+      border-left-color: #ff8c00;
       font-weight: 600;
       padding-left: 18px;
     }
@@ -134,24 +116,24 @@
     }
 
     .topbar {
-      background: linear-gradient(90deg, #ffffff 0%, #f8faff 100%);
+      background: linear-gradient(90deg, #ffffff 0%, #f8f9fa 100%);
       padding: 18px 30px;
-      border-bottom: 2px solid #6366f1;
+      border-bottom: 2px solid #ff8c00;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 4px 20px rgba(99,102,241,0.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
 
     .topbar-left h2 {
       font-size: 24px;
       font-weight: 700;
-      color: #0f172a;
+      color: #1a1a2e;
     }
 
     .topbar-left p {
       font-size: 13px;
-      color: #6366f1;
+      color: #ff8c00;
       margin-top: 4px;
       font-weight: 500;
     }
@@ -172,37 +154,37 @@
     .button {
       padding: 10px 20px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 13px;
       font-weight: 600;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .button-primary {
-      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      background: linear-gradient(135deg, #ff8c00 0%, #e67e22 100%);
       color: white;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+      box-shadow: 0 4px 8px rgba(255, 140, 0, 0.3);
     }
 
     .button-primary:hover {
-      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+      background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+      box-shadow: 0 6px 12px rgba(255, 140, 0, 0.4);
       transform: translateY(-2px);
     }
 
     .button-secondary {
-      background-color: #f8fafc;
-      color: #475569;
-      border: 1px solid #e2e8f0;
+      background-color: #f0f0f0;
+      color: #1a1a2e;
+      border: 1px solid #e0e0e0;
     }
 
     .button-secondary:hover {
-      background-color: #6366f1;
+      background-color: #ff8c00;
       color: white;
-      border-color: #6366f1;
+      border-color: #ff8c00;
     }
 
     .button-danger {
@@ -243,10 +225,10 @@
       font-weight: 300;
       line-height: 1;
       color: #ffffff;
-      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+      background: linear-gradient(135deg, #ff8c00 0%, #e67e22 100%);
+      box-shadow: 0 6px 20px rgba(255, 140, 0, 0.35);
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -255,7 +237,7 @@
 
     .add-symbol-button:hover {
       transform: translateY(-3px) scale(1.08);
-      box-shadow: 0 10px 28px rgba(99, 102, 241, 0.5);
+      box-shadow: 0 10px 28px rgba(255, 140, 0, 0.45);
     }
 
     .content-area {
@@ -290,11 +272,11 @@
       font-size: 28px;
       font-weight: 700;
       margin-bottom: 5px;
-      color: #0f172a;
+      color: #1a1a2e;
     }
 
     .page-header p {
-      color: #6366f1;
+      color: #ff8c00;
       font-size: 14px;
       font-weight: 500;
     }
@@ -303,217 +285,21 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 20px;
-      margin-bottom: 28px;
+      margin-bottom: 40px;
     }
-
-    /* ──────────────────────────────────────────────────────
-       EXEC SUMMARY WIDGET  (résumé sous le dashboard classique)
-    ────────────────────────────────────────────────────── */
-    .exec-summary-widget {
-      background: linear-gradient(135deg, #071322 0%, #0d1f38 60%, #0f2a45 100%);
-      border: 1px solid rgba(75, 163, 255, 0.22);
-      border-radius: 14px;
-      padding: 22px 26px 18px;
-      margin-bottom: 36px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(7,19,34,0.35), 0 0 0 1px rgba(75,163,255,0.1) inset;
-    }
-    .exec-summary-widget::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #4ba3ff, #6ec756, #f4a327, #8d5fd3);
-      border-radius: 14px 14px 0 0;
-    }
-    .esw-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      gap: 12px;
-    }
-    .esw-title {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #a4b7d6;
-    }
-    .esw-live-badge {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11px;
-      color: #6ec756;
-      font-weight: 600;
-    }
-    .esw-live-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: #6ec756;
-      animation: eswPulse 2s infinite;
-    }
-    @keyframes eswPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(1.4); }
-    }
-    .esw-body {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 20px;
-      align-items: center;
-    }
-    @media (max-width: 768px) {
-      .esw-body { grid-template-columns: 1fr; }
-    }
-    .esw-counters {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .esw-counter {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 62px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 10px;
-      padding: 10px 12px 8px;
-      transition: background 0.2s;
-    }
-    .esw-counter:hover { background: rgba(255,255,255,0.08); }
-    .esw-counter-val {
-      font-size: 22px;
-      font-weight: 800;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-    .esw-counter-lbl {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      white-space: nowrap;
-      opacity: 0.7;
-    }
-    .esw-counter--total  .esw-counter-val { color: #4ba3ff; }
-    .esw-counter--done   .esw-counter-val { color: #6ec756; }
-    .esw-counter--active .esw-counter-val { color: #4ba3ff; }
-    .esw-counter--delay  .esw-counter-val { color: #ff6b6b; }
-    .esw-counter--wait   .esw-counter-val { color: #a4b7d6; }
-    .esw-middle {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .esw-progress-top {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #a4b7d6;
-      margin-bottom: 5px;
-      font-weight: 600;
-    }
-    .esw-progress-pct {
-      color: #e5efff;
-      font-size: 13px;
-      font-weight: 700;
-    }
-    .esw-track {
-      height: 8px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .esw-fill {
-      height: 100%;
-      border-radius: 99px;
-      background: linear-gradient(90deg, #4ba3ff, #6ec756);
-      transition: width 0.6s ease;
-      min-width: 3px;
-    }
-    .esw-zones {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .esw-zone-pill {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      border-radius: 99px;
-      font-size: 11px;
-      font-weight: 600;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.05);
-      color: #e5efff;
-      white-space: nowrap;
-    }
-    .esw-zone-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .esw-right {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 130px;
-    }
-    .esw-budget-block {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 10px;
-      padding: 10px 14px;
-    }
-    .esw-budget-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #a4b7d6;
-      margin-bottom: 4px;
-      font-weight: 600;
-    }
-    .esw-budget-val {
-      font-size: 16px;
-      font-weight: 800;
-      color: #e5efff;
-    }
-    .esw-budget-sub {
-      font-size: 10px;
-      color: #a4b7d6;
-      margin-top: 2px;
-    }
-    .esw-risk-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .esw-risk-row--critique { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
-    .esw-risk-row--moyen    { background: rgba(244,163,39,0.15);  color: #f4a327; border: 1px solid rgba(244,163,39,0.3); }
-    .esw-risk-row--faible   { background: rgba(110,199,86,0.15);  color: #6ec756; border: 1px solid rgba(110,199,86,0.3); }
-    .esw-risk-icon { font-size: 14px; }
 
     .card {
       background: white;
-      border-radius: 14px;
-      padding: 22px;
-      box-shadow: 0 2px 12px rgba(15,23,42,0.07);
-      border: 1px solid #e8ecf2;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid #e8e8e8;
+      transition: all 0.3s;
     }
 
     .card:hover {
-      box-shadow: 0 12px 28px rgba(99, 102, 241, 0.14);
-      border-color: #a5b4fc;
+      box-shadow: 0 8px 16px rgba(255, 140, 0, 0.12);
+      border-color: #ff8c00;
       transform: translateY(-3px);
     }
 
@@ -529,14 +315,13 @@
       left: 0;
       right: 0;
       height: 4px;
-      background: linear-gradient(90deg, #6366f1, #14b8a6);
-      border-radius: 14px 14px 0 0;
+      background: linear-gradient(90deg, #ff8c00, #e67e22);
     }
 
     .stat-card h3 {
       font-size: 28px;
       font-weight: 700;
-      color: #6366f1;
+      color: #ff8c00;
       margin-bottom: 8px;
       margin-top: 5px;
     }
@@ -582,8 +367,8 @@
     .form-group select:focus,
     .form-group textarea:focus {
       outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+      border-color: #ff8c00;
+      box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.1);
       background-color: white;
     }
 
@@ -641,7 +426,7 @@
     }
 
     .table thead {
-      background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+      background: linear-gradient(90deg, #ff8c00 0%, #e67e22 100%);
       color: white;
       border: none;
     }
@@ -663,7 +448,7 @@
     }
 
     .table tbody tr:hover {
-      background-color: rgba(99, 102, 241, 0.03);
+      background-color: rgba(255, 140, 0, 0.02);
     }
 
     .table tbody tr:nth-child(even) {
@@ -676,21 +461,21 @@
 
     .list-item {
       background-color: white;
-      border: 1px solid #e8ecf2;
-      border-radius: 10px;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
       padding: 15px;
       margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s;
       border-left: 4px solid transparent;
     }
 
     .list-item:hover {
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.12);
-      border-color: #e2e8f0;
-      border-left-color: #6366f1;
+      box-shadow: 0 4px 8px rgba(255, 140, 0, 0.12);
+      border-color: #e8e8e8;
+      border-left-color: #ff8c00;
     }
 
     .list-item-content {
@@ -727,7 +512,7 @@
     .badge {
       display: inline-block;
       padding: 4px 10px;
-      border-radius: 6px;
+      border-radius: 4px;
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
@@ -758,31 +543,223 @@
       position: fixed;
       bottom: 20px;
       right: 20px;
-      padding: 16px 20px;
+      padding: 14px 18px;
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: white;
-      border-radius: 6px;
-      box-shadow: 0 8px 16px rgba(16, 185, 129, 0.4);
-      z-index: 1000;
-      max-width: 400px;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+      z-index: 10000;
+      max-width: 420px;
+      min-width: 260px;
       animation: slideIn 0.3s ease-out;
       font-weight: 500;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .notification-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .notification-text {
+      flex: 1;
+    }
+
+    .notification-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.75);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 0;
+      flex-shrink: 0;
+      width: auto;
+      margin-top: -1px;
+      transition: color 0.2s;
+    }
+
+    .notification-close:hover {
+      color: white;
     }
 
     .notification.error {
       background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      box-shadow: 0 8px 16px rgba(239, 68, 68, 0.4);
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+    }
+
+    .notification.warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+    }
+
+    .notification.info {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
     }
 
     @keyframes slideIn {
       from {
-        transform: translateX(400px);
+        transform: translateX(440px);
         opacity: 0;
       }
       to {
         transform: translateX(0);
         opacity: 1;
       }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(440px);
+        opacity: 0;
+      }
+    }
+
+    .notification.hiding {
+      animation: slideOut 0.25s ease-in forwards;
+    }
+
+    /* ── Spinner on loading buttons ── */
+    .button.loading {
+      pointer-events: none;
+      opacity: 0.75;
+      position: relative;
+    }
+
+    .button.loading::after {
+      content: '';
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: btn-spin 0.65s linear infinite;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .button-secondary.loading::after {
+      border-color: rgba(0,0,0,0.15);
+      border-top-color: #1a1a2e;
+    }
+
+    @keyframes btn-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Table row micro-transition ── */
+    .table tbody tr {
+      transition: background-color 0.15s ease;
+    }
+
+    /* ── Smooth scroll ── */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* ── Custom confirm dialog ── */
+    #ux-confirm-dialog {
+      border: none;
+      border-radius: 12px;
+      padding: 0;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      max-width: 420px;
+      width: calc(100% - 40px);
+      animation: dialogFadeIn 0.2s ease;
+    }
+
+    #ux-confirm-dialog::backdrop {
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(2px);
+    }
+
+    @keyframes dialogFadeIn {
+      from { opacity: 0; transform: scale(0.95) translateY(-8px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0);    }
+    }
+
+    .ux-confirm-inner {
+      padding: 28px 24px 20px;
+    }
+
+    .ux-confirm-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      display: block;
+      text-align: center;
+    }
+
+    .ux-confirm-msg {
+      font-size: 15px;
+      color: #1a1a2e;
+      text-align: center;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .ux-confirm-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    /* ── Hamburger toggle button (mobile) ── */
+    .hamburger-btn {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      color: white;
+      font-size: 22px;
+      line-height: 1;
+      transition: background 0.2s;
+      width: auto;
+      margin: 0;
+    }
+
+    .hamburger-btn:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    /* ── Mobile sidebar overlay ── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 199;
+    }
+
+    .sidebar-overlay.open {
+      display: block;
+    }
+
+    /* ── Breadcrumb in topbar ── */
+    .breadcrumb {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .breadcrumb-sep {
+      font-size: 10px;
+      opacity: 0.6;
     }
 
     .action-buttons {
@@ -813,9 +790,9 @@
     }
 
     .actions-menu summary:hover {
-      border-color: #6366f1;
-      color: #6366f1;
-      background-color: rgba(99, 102, 241, 0.06);
+      border-color: #ff8c00;
+      color: #ff8c00;
+      background-color: rgba(255, 140, 0, 0.05);
     }
 
     .actions-menu summary::-webkit-details-marker {
@@ -867,8 +844,8 @@
     }
 
     .actions-dropdown button:hover {
-      background: rgba(99, 102, 241, 0.08);
-      color: #6366f1;
+      background: rgba(255, 140, 0, 0.1);
+      color: #ff8c00;
     }
 
     .modal-overlay {
@@ -890,10 +867,10 @@
       width: 100%;
       max-width: 480px;
       background: white;
-      border-radius: 16px;
-      border: 2px solid #6366f1;
-      box-shadow: 0 24px 60px rgba(99,102,241,0.2);
-      padding: 28px;
+      border-radius: 10px;
+      border: 2px solid #ff8c00;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      padding: 25px;
       animation: scaleIn 0.3s ease-out;
     }
 
@@ -941,64 +918,79 @@
 
     @media (max-width: 900px) {
       .erp-container {
-        flex-direction: column;
-        height: auto;
-        min-height: 100vh;
+        flex-direction: row;
+        height: 100vh;
+      }
+
+      .hamburger-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .sidebar {
-        width: 100%;
-        box-shadow: none;
-        border-bottom: 1px solid #334155;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px;
+        z-index: 200;
+        transform: translateX(-280px);
+        transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+        border-bottom: none;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
       }
 
       .sidebar-header {
-        padding: 12px 14px;
+        padding: 16px 14px;
       }
 
       .sidebar-menu {
-        display: flex;
-        gap: 10px;
-        overflow-x: auto;
-        padding: 10px 12px 12px;
+        display: block;
+        overflow-y: auto;
+        padding: 8px 8px 16px;
       }
 
       .menu-section {
-        margin-bottom: 0;
-        min-width: 190px;
-        border: 1px solid #334155;
-        border-radius: 8px;
-        padding: 6px;
-        background: rgba(15, 23, 42, 0.2);
+        margin-bottom: 16px;
+        min-width: unset;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        background: none;
       }
 
       .menu-section-title {
-        padding: 6px 8px;
+        padding: 10px 15px 6px;
       }
 
       .menu-item {
-        border-left: none;
-        border-radius: 6px;
+        border-left: 4px solid transparent;
+        border-radius: 4px;
       }
 
       .menu-item:hover,
       .menu-item.active {
-        border-left-color: transparent;
+        border-left-color: #ff8c00;
       }
 
       .topbar {
-        padding: 12px;
-        flex-wrap: wrap;
+        padding: 14px 16px;
+        flex-wrap: nowrap;
         gap: 10px;
       }
 
       .topbar-left h2 {
-        font-size: 18px;
+        font-size: 17px;
       }
 
       .topbar-right {
-        width: 100%;
-        justify-content: space-between;
+        width: auto;
+        justify-content: flex-end;
       }
 
       .content-area {
@@ -1066,12 +1058,12 @@
     }
 
     .tab-button.active {
-      color: #6366f1;
-      border-bottom-color: #6366f1;
+      color: #3b82f6;
+      border-bottom-color: #3b82f6;
     }
 
     .tab-button:hover {
-      color: #4f46e5;
+      color: #475569;
     }
 
     .tab-content {
@@ -1090,12 +1082,18 @@
 
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
+      padding: 44px 24px;
       color: #64748b;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1.5px dashed #e2e8f0;
+      margin: 8px 0;
     }
 
     .empty-state p {
-      margin-bottom: 20px;
+      font-weight: 500;
+      color: #475569;
+      margin-bottom: 6px;
     }
 
     .map-canvas-wrapper {
@@ -1136,423 +1134,15 @@
       height: 100%;
       border: 0;
     }
-
-    .executive-dashboard {
-      --exec-bg: #071322;
-      --exec-surface: #0f1f34;
-      --exec-surface-soft: #132843;
-      --exec-border: rgba(127, 164, 211, 0.2);
-      --exec-text: #e5efff;
-      --exec-muted: #a4b7d6;
-      --exec-blue: #4ba3ff;
-      --exec-green: #6ec756;
-      --exec-orange: #f4a327;
-      --exec-purple: #8d5fd3;
-      --exec-red: #ff6b6b;
-      color: var(--exec-text);
-      background:
-        radial-gradient(circle at 10% 0%, rgba(69, 131, 205, 0.2), transparent 35%),
-        radial-gradient(circle at 90% 0%, rgba(74, 122, 208, 0.16), transparent 36%),
-        linear-gradient(180deg, #071322 0%, #0a1728 100%);
-      border: 1px solid var(--exec-border);
-      border-radius: 14px;
-      padding: 16px;
-      display: grid;
-      gap: 12px;
-      box-shadow: 0 20px 44px rgba(2, 8, 23, 0.35);
-    }
-
-    .executive-dashboard.fullscreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100vw;
-      height: 100vh;
-      margin: 0;
-      border: none;
-      border-radius: 0;
-      padding: 20px;
-      box-shadow: none;
-      z-index: 99999;
-    }
-
-    .executive-dashboard.fullscreen .sidebar,
-    .executive-dashboard.fullscreen .topbar {
-      display: none;
-    }
-
-    .exec-fullscreen-toggle {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: rgba(75, 163, 255, 0.2);
-      border: 1px solid rgba(75, 163, 255, 0.5);
-      color: #4ba3ff;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: all 0.2s ease;
-      z-index: 100000;
-    }
-
-    .exec-fullscreen-toggle:hover {
-      background: rgba(75, 163, 255, 0.3);
-      border-color: rgba(75, 163, 255, 0.8);
-    }
-
-    .exec-header {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: start;
-      border-bottom: 1px solid rgba(148, 180, 226, 0.2);
-      padding-bottom: 10px;
-    }
-
-    .exec-subtitle {
-      font-size: 11px;
-      letter-spacing: 0.7px;
-      text-transform: uppercase;
-      color: #89a0c6;
-      margin-bottom: 2px;
-      font-weight: 700;
-    }
-
-    .exec-title {
-      font-size: 26px;
-      font-weight: 800;
-      line-height: 1.15;
-    }
-
-    .exec-top-metrics {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(90px, 1fr));
-      gap: 8px;
-      align-items: stretch;
-      min-width: 420px;
-    }
-
-    .exec-mini {
-      background: rgba(19, 40, 67, 0.66);
-      border: 1px solid rgba(148, 180, 226, 0.2);
-      border-radius: 10px;
-      padding: 9px;
-      text-align: center;
-    }
-
-    .exec-mini strong {
-      display: block;
-      font-size: 19px;
-      line-height: 1.1;
-      margin-bottom: 3px;
-      color: #f4f8ff;
-    }
-
-    .exec-mini span {
-      font-size: 11px;
-      color: var(--exec-muted);
-    }
-
-    .exec-kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(170px, 1fr));
-      gap: 10px;
-    }
-
-    .exec-card {
-      background: linear-gradient(160deg, rgba(16, 34, 58, 0.96) 0%, rgba(13, 28, 48, 0.96) 100%);
-      border: 1px solid rgba(148, 180, 226, 0.2);
-      border-radius: 12px;
-      padding: 12px;
-      min-height: 140px;
-    }
-
-    .exec-card h3 {
-      font-size: 12px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: #b8c9e6;
-      margin: 0 0 10px;
-      font-weight: 700;
-    }
-
-    .exec-progress-ring {
-      width: 116px;
-      height: 116px;
-      border-radius: 50%;
-      margin: 4px auto;
-      position: relative;
-      display: grid;
-      place-items: center;
-      font-weight: 700;
-      font-size: 30px;
-      background: conic-gradient(var(--exec-blue) 0deg, var(--exec-blue) var(--ring-deg, 0deg), rgba(151, 179, 220, 0.24) var(--ring-deg, 0deg));
-    }
-
-    .exec-progress-ring::before {
-      content: '';
-      position: absolute;
-      inset: 13px;
-      border-radius: 50%;
-      background: #0d1b2d;
-      box-shadow: inset 0 0 0 1px rgba(148, 180, 226, 0.2);
-    }
-
-    .exec-progress-ring span {
-      position: relative;
-      z-index: 1;
-    }
-
-    .exec-list {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      gap: 6px;
-      font-size: 13px;
-    }
-
-    .exec-list li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      color: #dbe7fb;
-    }
-
-    .exec-dot {
-      display: inline-block;
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
-      margin-right: 6px;
-      flex: 0 0 auto;
-    }
-
-    .exec-layout-main {
-      display: grid;
-      grid-template-columns: 1.1fr 1fr 1.5fr;
-      gap: 10px;
-    }
-
-    .exec-zone-bars {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(40px, 1fr));
-      gap: 12px;
-      align-items: end;
-      min-height: 165px;
-      margin-top: 4px;
-    }
-
-    .exec-zone-bar-item {
-      display: grid;
-      justify-items: center;
-      gap: 4px;
-      font-size: 11px;
-      color: #b8c9e6;
-    }
-
-    .exec-zone-bar-track {
-      width: 44px;
-      height: 118px;
-      border-radius: 8px;
-      background: rgba(145, 174, 220, 0.2);
-      border: 1px solid rgba(145, 174, 220, 0.22);
-      display: flex;
-      align-items: flex-end;
-      overflow: hidden;
-    }
-
-    .exec-zone-bar-fill {
-      width: 100%;
-      border-radius: 6px 6px 0 0;
-      background: var(--bar-color, var(--exec-blue));
-      min-height: 2%;
-      transition: height 0.35s ease;
-    }
-
-    .exec-donut-wrap {
-      display: grid;
-      grid-template-columns: 140px 1fr;
-      gap: 10px;
-      align-items: center;
-      min-height: 156px;
-    }
-
-    .exec-donut {
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      background: conic-gradient(
-        var(--exec-blue) 0 var(--z1, 0deg),
-        var(--exec-green) var(--z1, 0deg) var(--z2, 0deg),
-        var(--exec-orange) var(--z2, 0deg) var(--z3, 0deg),
-        var(--exec-purple) var(--z3, 0deg) 360deg
-      );
-      position: relative;
-      margin: 0 auto;
-    }
-
-    .exec-donut::before {
-      content: '';
-      position: absolute;
-      inset: 28px;
-      border-radius: 50%;
-      background: #0d1b2d;
-      border: 1px solid rgba(148, 180, 226, 0.25);
-    }
-
-    .exec-donut-center {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      z-index: 1;
-      font-weight: 700;
-      font-size: 27px;
-    }
-
-    .exec-donut-center small {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: #8ca5cb;
-      margin-top: -2px;
-    }
-
-    .exec-map {
-      border-radius: 12px;
-      border: 1px solid rgba(148, 180, 226, 0.24);
-      background:
-        radial-gradient(circle at 30% 10%, rgba(66, 122, 198, 0.16), transparent 40%),
-        radial-gradient(circle at 70% 80%, rgba(103, 154, 221, 0.12), transparent 45%),
-        linear-gradient(150deg, #101f33, #0c1a2b);
-      min-height: 206px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .exec-map::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(132, 161, 205, 0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(132, 161, 205, 0.08) 1px, transparent 1px);
-      background-size: 20px 20px;
-      opacity: 0.45;
-      pointer-events: none;
-    }
-
-    .exec-map-point {
-      position: absolute;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 0 2px rgba(9, 20, 33, 0.9), 0 0 10px rgba(121, 177, 255, 0.6);
-    }
-
-    .exec-summary-card {
-      overflow-x: auto;
-    }
-
-    .exec-summary-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      min-width: 740px;
-    }
-
-    .exec-summary-table th,
-    .exec-summary-table td {
-      border: 1px solid rgba(137, 164, 206, 0.25);
-      padding: 8px 8px;
-      text-align: center;
-    }
-
-    .exec-summary-table th {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.45px;
-      background: rgba(13, 27, 45, 0.9);
-      color: #c9daf8;
-      font-weight: 700;
-    }
-
-    .exec-summary-table td:first-child,
-    .exec-summary-table th:first-child {
-      text-align: left;
-      font-weight: 700;
-      color: #dce9ff;
-    }
-
-    .exec-progress-cell {
-      display: grid;
-      grid-template-columns: 42px 1fr;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .exec-progress-track {
-      height: 8px;
-      border-radius: 999px;
-      background: rgba(137, 164, 206, 0.28);
-      overflow: hidden;
-    }
-
-    .exec-progress-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: var(--bar-color, var(--exec-blue));
-      min-width: 3%;
-    }
-
-    @media (max-width: 1250px) {
-      .exec-top-metrics {
-        min-width: 0;
-        grid-template-columns: repeat(2, minmax(90px, 1fr));
-      }
-
-      .exec-kpi-grid {
-        grid-template-columns: repeat(2, minmax(170px, 1fr));
-      }
-
-      .exec-layout-main {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 820px) {
-      .exec-header {
-        grid-template-columns: 1fr;
-      }
-
-      .exec-title {
-        font-size: 22px;
-      }
-
-      .exec-kpi-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .exec-donut-wrap {
-        grid-template-columns: 1fr;
-      }
-    }
   </style>
 </head>
 <body>
+  <!-- Mobile sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
   <div class="erp-container">
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="app-sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">🏗️ RyanERP</div>
       </div>
@@ -1620,9 +1210,12 @@
     <div class="main-content">
       <!-- Topbar -->
       <div class="topbar">
-        <div class="topbar-left">
-          <h2 id="page-title">Tableau de bord</h2>
-          <p id="page-subtitle">Bienvenue sur votre ERP</p>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu" title="Menu">☰</button>
+          <div class="topbar-left">
+            <h2 id="page-title">Tableau de bord</h2>
+            <div class="breadcrumb" id="page-breadcrumb"></div>
+          </div>
         </div>
         <div class="topbar-right">
           <div class="user-info">
@@ -1668,153 +1261,6 @@
             <div class="card stat-card">
               <h3 id="stat-profit">0 FCFA</h3>
               <p>Profit</p>
-            </div>
-          </div>
-
-          <!-- ── Résumé opérationnel (visible pour tous sauf dirigeant) ── -->
-          <div id="exec-summary-widget" class="exec-summary-widget" style="display:none;">
-            <div class="esw-header">
-              <span class="esw-title">📊 Vue opérationnelle des chantiers</span>
-              <span class="esw-live-badge"><span class="esw-live-dot"></span>En direct</span>
-            </div>
-            <div class="esw-body">
-              <!-- Compteurs -->
-              <div class="esw-counters">
-                <div class="esw-counter esw-counter--total">
-                  <span class="esw-counter-val" id="esw-total">0</span>
-                  <span class="esw-counter-lbl">Total</span>
-                </div>
-                <div class="esw-counter esw-counter--done">
-                  <span class="esw-counter-val" id="esw-done">0</span>
-                  <span class="esw-counter-lbl">Terminés</span>
-                </div>
-                <div class="esw-counter esw-counter--active">
-                  <span class="esw-counter-val" id="esw-inprogress">0</span>
-                  <span class="esw-counter-lbl">En cours</span>
-                </div>
-                <div class="esw-counter esw-counter--delay">
-                  <span class="esw-counter-val" id="esw-delayed">0</span>
-                  <span class="esw-counter-lbl">En retard</span>
-                </div>
-                <div class="esw-counter esw-counter--wait">
-                  <span class="esw-counter-val" id="esw-tostart">0</span>
-                  <span class="esw-counter-lbl">À lancer</span>
-                </div>
-              </div>
-              <!-- Barre de progression + zones -->
-              <div class="esw-middle">
-                <div class="esw-progress-block">
-                  <div class="esw-progress-top">
-                    <span>Avancement global</span>
-                    <span class="esw-progress-pct" id="esw-avg-pct">0%</span>
-                  </div>
-                  <div class="esw-track"><div class="esw-fill" id="esw-fill" style="width:0%"></div></div>
-                </div>
-                <div class="esw-zones" id="esw-zones"></div>
-              </div>
-              <!-- Budget + risque -->
-              <div class="esw-right">
-                <div class="esw-budget-block">
-                  <div class="esw-budget-label">Budget travaux</div>
-                  <div class="esw-budget-val" id="esw-budget-val">—</div>
-                  <div class="esw-budget-sub">Dépensé : <span id="esw-spent-val">—</span></div>
-                </div>
-                <div class="esw-risk-row esw-risk-row--faible" id="esw-risk-row">
-                  <span class="esw-risk-icon">🟢</span>
-                  <span id="esw-risk-label">Risque faible</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div id="executive-dashboard" class="executive-dashboard" style="display:none;">
-            <button type="button" class="exec-fullscreen-toggle" id="exec-toggle-fullscreen" title="Mode plein écran">⛶ Plein écran</button>
-            <div class="exec-header">
-              <div>
-                <div class="exec-subtitle">Tableau de bord executif</div>
-                <div class="exec-title">Pilotage opérationnel des chantiers</div>
-              </div>
-              <div class="exec-top-metrics">
-                <div class="exec-mini">
-                  <strong id="exec-metric-sites-total">0</strong>
-                  <span>Total sites</span>
-                </div>
-                <div class="exec-mini">
-                  <strong id="exec-metric-started">0</strong>
-                  <span>Démarrés</span>
-                </div>
-                <div class="exec-mini">
-                  <strong id="exec-metric-delay">0</strong>
-                  <span>En retard</span>
-                </div>
-                <div class="exec-mini">
-                  <strong id="exec-metric-progress">0%</strong>
-                  <span>Avancement moy</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="exec-kpi-grid">
-              <div class="exec-card">
-                <h3>Progression globale</h3>
-                <div id="exec-progress-ring" class="exec-progress-ring" style="--ring-deg:0deg;"><span>0%</span></div>
-                <div style="text-align:center; margin-top:6px; color:#a5b7d4; font-size:12px;" id="exec-progress-caption">0 chantier terminé</div>
-              </div>
-
-              <div class="exec-card">
-                <h3>État des chantiers</h3>
-                <ul class="exec-list" id="exec-status-list"></ul>
-              </div>
-
-              <div class="exec-card">
-                <h3>Budget des travaux (FCFA)</h3>
-                <ul class="exec-list" id="exec-budget-list"></ul>
-              </div>
-
-              <div class="exec-card">
-                <h3>Niveau de risque</h3>
-                <ul class="exec-list" id="exec-risk-list"></ul>
-              </div>
-            </div>
-
-            <div class="exec-layout-main">
-              <div class="exec-card">
-                <h3>Avancement par zone</h3>
-                <div class="exec-zone-bars" id="exec-zone-bars"></div>
-              </div>
-
-              <div class="exec-card">
-                <h3>Distribution par zone</h3>
-                <div class="exec-donut-wrap">
-                  <div id="exec-zone-donut" class="exec-donut" style="--z1:0deg; --z2:0deg; --z3:0deg;">
-                    <div class="exec-donut-center"><span id="exec-donut-total">0</span><small>Sites</small></div>
-                  </div>
-                  <ul class="exec-list" id="exec-zone-legend"></ul>
-                </div>
-              </div>
-
-              <div class="exec-card">
-                <h3>Localisation des sites</h3>
-                <div class="exec-map" id="exec-map-points"></div>
-              </div>
-            </div>
-
-            <div class="exec-card exec-summary-card">
-              <h3>Performance par zone</h3>
-              <table class="exec-summary-table">
-                <thead>
-                  <tr>
-                    <th>Zone</th>
-                    <th>Chantiers</th>
-                    <th>Lancés</th>
-                    <th>Retard</th>
-                    <th>Avancement</th>
-                    <th>Étapes</th>
-                    <th>Statut</th>
-                  </tr>
-                </thead>
-                <tbody id="exec-zone-table-body"></tbody>
-              </table>
             </div>
           </div>
         </div>
@@ -2494,7 +1940,7 @@
               <h4 style="margin-bottom: 8px; font-size: 13px; color: #475569;">Propositions depuis les demandes</h4>
               <ul id="po-suggestions-list" class="list" style="margin-bottom: 12px;"></ul>
               <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="po-search" placeholder="Rechercher un bon (site, fournisseur, statut)" />
+                <input type="text" id="po-search" placeholder="Rechercher un bon (projet, fournisseur, statut)" />
               </div>
               <ul id="po-list" class="list"></ul>
               <div id="po-details" class="card" style="margin-top: 12px; background-color: #f8fafc;"></div>
@@ -2783,7 +2229,7 @@
               <ul id="maps-history-list" class="list"></ul>
             </div>
 
-            <div class="card form-card" id="maps-update-panel">
+            <div class="card form-card">
               <h3 style="margin-bottom: 15px;">Mise à jour rapide de position</h3>
               <form id="maps-location-form">
                 <div class="form-group">
@@ -3126,7 +2572,20 @@
     </div>
   </div>
 
+  <!-- Notification toast (rebuilt in JS) -->
   <div id="notification" class="notification" style="display: none;"></div>
+
+  <!-- Custom confirm dialog (replaces browser confirm()) -->
+  <dialog id="ux-confirm-dialog">
+    <div class="ux-confirm-inner">
+      <span class="ux-confirm-icon" id="ux-confirm-icon">⚠️</span>
+      <p class="ux-confirm-msg" id="ux-confirm-msg"></p>
+      <div class="ux-confirm-actions">
+        <button type="button" id="ux-confirm-cancel" class="button button-secondary button-small">Annuler</button>
+        <button type="button" id="ux-confirm-ok" class="button button-danger button-small">Confirmer</button>
+      </div>
+    </div>
+  </dialog>
 
   <div id="assignment-edit-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="assignment-edit-title">
     <div class="modal-card">
@@ -3447,8 +2906,6 @@
     let mapsTrackerLatestVehicleId = null;
     let autoMapLiveRefreshTimer = null;
     let autoMapLiveRefreshInFlight = false;
-    let autoDashboardRefreshTimer = null;
-    let autoDashboardRefreshInFlight = false;
     let suppliersCache = [];
     let materialCatalogCache = [];
     let materialCatalogVersion = 0;
@@ -3480,10 +2937,7 @@
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'database', 'trash']);
     const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog']);
     const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'stock-management', 'database', 'trash']);
-    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'expenses', 'revenues', 'reports', 'maps']);
-      const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash']);
     const AUTO_MAP_REFRESH_MS = 10000;
-    const AUTO_DASHBOARD_REFRESH_MS = 30000;
 
     function isCommis() {
       return currentUserRole === 'commis';
@@ -3513,20 +2967,12 @@
       return currentUserRole === 'controle_achat';
     }
 
-    function isExecutive() {
-      return currentUserRole === 'dirigeant';
-    }
-
-    function isAchat() {
-      return currentUserRole === 'achat';
-    }
-
     function isPurchaseReadOnlyRole() {
-      return isOpsReviewer() || isProcurementReviewer() || isExecutive();
+      return isOpsReviewer() || isProcurementReviewer();
     }
 
     function isProcurementStockReadOnly() {
-      return isProcurementReviewer() || isExecutive();
+      return isProcurementReviewer();
     }
 
     function isWarehouseScopedRole() {
@@ -3542,7 +2988,7 @@
     }
 
     function canManageTrashModule() {
-      return isAdmin() || isAchat();
+      return isAdmin();
     }
 
     function canTrashRecentMaterialRequests() {
@@ -3794,7 +3240,7 @@
     }
 
     function isRestrictedRole() {
-      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive() || isAchat();
+      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer();
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
@@ -4492,9 +3938,6 @@
       syncMapsLocationInputsWithSelection();
       setMapsModuleMapMode(mapsModuleMapMode);
       refreshMapsTrackerStatus();
-      // Masquer le panneau de mise à jour pour le dirigeant
-      const updatePanel = document.getElementById('maps-update-panel');
-      if (updatePanel) updatePanel.style.display = isExecutive() ? 'none' : '';
     }
 
     async function loadMapsModule() {
@@ -4594,53 +4037,13 @@
     }
 
     function getAllowedModules() {
-      if (isExecutive()) return EXECUTIVE_ALLOWED_MODULES;
       if (isProcurementReviewer()) return PROCUREMENT_REVIEWER_ALLOWED_MODULES;
       if (isOpsReviewer()) return OPS_REVIEWER_ALLOWED_MODULES;
       if (isSiteChief()) return SITE_CHIEF_ALLOWED_MODULES;
       if (isZoneStockManager()) return ZONE_STOCK_MANAGER_ALLOWED_MODULES;
       if (isGestStock()) return GEST_STOCK_ALLOWED_MODULES;
       if (isCommis()) return COMMIS_ALLOWED_MODULES;
-      if (isAchat()) return ACHAT_ALLOWED_MODULES;
       return null;
-    }
-
-    function applyExecutiveReadOnlyState() {
-      if (!isExecutive()) return;
-
-      [
-        '#project-create-new-folder-quick',
-        '#projects #parc-auto-maintenance-section .form-card',
-        '#journal-chantier .form-card',
-        '#expenses .form-card',
-        '#revenues .form-card',
-        '#journal-import-trigger',
-      ].forEach(selector => {
-        const element = document.querySelector(selector);
-        if (element) {
-          element.style.display = 'none';
-        }
-      });
-
-      const clearExpensesButton = document.querySelector('#expenses button[onclick="clearAllExpenses()"]');
-      if (clearExpensesButton) {
-        clearExpensesButton.style.display = 'none';
-      }
-
-      const poSuggestionsList = document.getElementById('po-suggestions-list');
-      if (poSuggestionsList) {
-        poSuggestionsList.style.display = 'none';
-        poSuggestionsList.innerHTML = '';
-        const poSuggestionsTitle = poSuggestionsList.previousElementSibling;
-        if (poSuggestionsTitle) {
-          poSuggestionsTitle.style.display = 'none';
-        }
-      }
-
-      const detailedExpensesCard = document.getElementById('expenses-detailed-by-project-table')?.closest('.card');
-      if (detailedExpensesCard) {
-        detailedExpensesCard.style.display = 'none';
-      }
     }
 
     function applyRoleAccess() {
@@ -4660,8 +4063,6 @@
           section.style.display = 'none';
         }
       });
-
-      applyExecutiveReadOnlyState();
 
       if (isPurchaseReadOnlyRole()) {
         const projectFormCard = document.getElementById('project-form')?.closest('.card');
@@ -4718,55 +4119,16 @@
         .replace(/'/g, '&#39;');
     }
 
-    function parseDateValue(value) {
-      if (value === null || value === undefined || value === '') return null;
-      if (value instanceof Date) {
-        return Number.isNaN(value.getTime()) ? null : value;
-      }
-
-      if (typeof value === 'number' && Number.isFinite(value)) {
-        const numericDate = new Date(value);
-        return Number.isNaN(numericDate.getTime()) ? null : numericDate;
-      }
-
-      const raw = String(value).trim();
-      if (!raw) return null;
-
-      const normalizedRaw = raw.replace(/\//g, '-').replace('T', ' ').trim();
-      const match = normalizedRaw.match(/^(\d{1,4})-(\d{1,2})-(\d{1,4})(?:\s+(\d{1,2})(?::(\d{1,2})(?::(\d{1,2}))?)?)?$/);
-      if (match) {
-        const first = Number(match[1]);
-        const second = Number(match[2]);
-        const third = Number(match[3]);
-        const hours = Number(match[4] || 0);
-        const minutes = Number(match[5] || 0);
-        const seconds = Number(match[6] || 0);
-        const year = String(match[1]).length === 4 ? first : third;
-        const day = String(match[1]).length === 4 ? third : first;
-        const parsedDate = new Date(year, second - 1, day, hours, minutes, seconds);
-        if (!Number.isNaN(parsedDate.getTime())) {
-          return parsedDate;
-        }
-      }
-
-      const nativeDate = new Date(raw);
-      if (!Number.isNaN(nativeDate.getTime())) {
-        return nativeDate;
-      }
-
-      return null;
-    }
-
     function formatDate(value) {
       if (!value) return 'Non disponible';
-      const date = parseDateValue(value);
+      const date = new Date(value);
       if (Number.isNaN(date.getTime())) return 'Non disponible';
       return date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
     function formatDateWithSameDayTime(value) {
       if (!value) return 'Non disponible';
-      const date = parseDateValue(value);
+      const date = new Date(value);
       if (Number.isNaN(date.getTime())) return 'Non disponible';
 
       const now = new Date();
@@ -4800,8 +4162,7 @@
     }
 
     function toRecentTimestamp(value) {
-      const parsedDate = parseDateValue(value);
-      const time = parsedDate ? parsedDate.getTime() : Number(value || 0);
+      const time = new Date(value || 0).getTime();
       return Number.isNaN(time) ? 0 : time;
     }
 
@@ -4850,7 +4211,7 @@
     function getLatestProgressForProject(projectId) {
       const matches = projectProgressCache
         .filter(item => Number(item?.projectId) === Number(projectId))
-        .sort((a, b) => toRecentTimestamp(b.createdAt || 0) - toRecentTimestamp(a.createdAt || 0));
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
       return matches[0] || null;
     }
 
@@ -6345,8 +5706,8 @@
             `;
           }).join('')
         : ((projectCatalogCache || []).length
-            ? '<div class="empty-state"><p>Aucun résultat pour la recherche</p></div>'
-            : '<div class="empty-state"><p>Aucun projet créé</p></div>');
+            ? emptyStateHtml('🔍', 'Aucun résultat pour la recherche')
+            : emptyStateHtml('🏗️', 'Aucun projet créé', 'Créez votre premier projet ci-dessus'));
     }
 
     async function selectProjectFolderAndOpen(folderKey) {
@@ -6798,7 +6159,7 @@
           const houseIds = zone.houses.map(h => Number(h.id));
           const zoneUpdates = projectProgressCache
             .filter(item => houseIds.includes(Number(item.projectId)))
-            .sort((a, b) => toRecentTimestamp(b.createdAt || 0) - toRecentTimestamp(a.createdAt || 0));
+            .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
           const latest = zoneUpdates[0] || null;
           const avgProgress = zoneUpdates.length
@@ -6844,7 +6205,7 @@
       const rows = selectedFolder.houses.map((house, index) => {
         const updates = projectProgressCache
           .filter(item => Number(item.projectId) === Number(house.id))
-          .sort((a, b) => toRecentTimestamp(b.createdAt || 0) - toRecentTimestamp(a.createdAt || 0));
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         const latest = updates[0] || null;
         return {
@@ -6932,7 +6293,7 @@
           stockIssuesCache = stockIssues;
         }
 
-        projectProgressCache = sortRecent(updates, item => item?.createdAt || item?.updatedAt || item?.id);
+        projectProgressCache = Array.isArray(updates) ? updates : [];
 
         const folderSelect = document.getElementById('progress-project-folder');
         if (folderSelect) {
@@ -7204,7 +6565,7 @@
             fetchJson('/api/stock-management/issues').catch(() => []),
           ]);
 
-          projectProgressCache = sortRecent(updates, item => item?.createdAt || item?.updatedAt || item?.id);
+          projectProgressCache = Array.isArray(updates) ? updates : [];
           if (Array.isArray(projects) && projects.length) {
             projectsCache = projects;
             projectDisplayNameById = computeProjectDisplayNameMap(projects);
@@ -7243,7 +6604,7 @@
     function getJournalExportRows() {
       const updates = getFilteredJournalUpdates()
         .slice()
-        .sort((a, b) => toRecentTimestamp(b.createdAt || 0) - toRecentTimestamp(a.createdAt || 0));
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
       return updates.map(item => {
         const effectiveMaterialDetails = getProgressMaterialUsageDetails(item);
@@ -7301,8 +6662,7 @@
         return;
       }
 
-      const confirmed = confirm('Vider toutes les entrées du journal de chantier ? Cette action est irréversible.');
-      if (!confirmed) return;
+      if (!await showConfirm('Vider toutes les entrées du journal de chantier ? Cette action est irréversible.')) return;
 
       try {
         const result = await fetchJson('/api/project-progress', { method: 'DELETE' });
@@ -7443,8 +6803,7 @@
         return;
       }
 
-      const shouldContinue = confirm(`Importer ${rows.length} ligne${rows.length > 1 ? 's' : ''} dans le journal de chantier ?`);
-      if (!shouldContinue) return;
+      if (!await showConfirm(`Importer ${rows.length} ligne${rows.length > 1 ? 's' : ''} dans le journal de chantier ?`)) return;
 
       let imported = 0;
       let skipped = 0;
@@ -8067,11 +7426,6 @@
       const suggestionsList = document.getElementById('po-suggestions-list');
       if (!suggestionsList) return;
 
-      if (isExecutive()) {
-        suggestionsList.innerHTML = '';
-        return;
-      }
-
       const linkedRequestIds = new Set();
       orders.forEach(order => {
         if (Array.isArray(order.items)) {
@@ -8110,7 +7464,6 @@
               <div class="list-item-title">${escapeHtml(title)}</div>
               <div class="list-item-meta">${escapeHtml(site)} • ${escapeHtml(demandeur)} • ${groupReqs.length} article${groupReqs.length > 1 ? 's' : ''}</div>
               <div class="list-item-meta" style="font-size:0.8em;color:#64748b;">${escapeHtml(articlesMeta)}</div>
-              <div class="list-item-meta" style="font-size:0.8em;color:#92400e;">Statut: EN_ATTENTE</div>
             </div>
             ${isOpsReviewer() ? '' : `<div class="action-buttons">
               <button type="button" class="button button-small button-primary" onclick="authorizeTransferGroup(${idsArg})">Autorisation de transfert</button>
@@ -8120,22 +7473,6 @@
           </li>
         `;
       }).join('');
-    }
-
-    function getExecutivePurchaseOrderStatus(order) {
-      const validationStatus = String(order?.statutValidation || '').trim().toUpperCase();
-      if (validationStatus === 'VALIDEE' || validationStatus === 'REJETEE') {
-        return validationStatus;
-      }
-
-      const hasLinkedRequest = Number(order?.materialRequestId || 0) > 0
-        || (Array.isArray(order?.items) && order.items.some(item => Number(item?.materialRequestId || 0) > 0));
-      if (hasLinkedRequest) {
-        return 'EN_ATTENTE';
-      }
-
-      const fallbackStatus = String(order?.statut || '').trim().toUpperCase();
-      return fallbackStatus || 'EN_ATTENTE';
     }
 
     function getLinkedPurchaseOrderRequestIds(orders = purchaseOrdersCache) {
@@ -8234,8 +7571,8 @@
             </li>
           `).join('')
         : (assignmentsCache.length
-            ? '<div class="empty-state"><p>Aucune assignation ne correspond à la recherche</p></div>'
-            : '<div class="empty-state"><p>Aucune assignation</p></div>');
+            ? emptyStateHtml('🔍', 'Aucune assignation ne correspond à la recherche')
+            : emptyStateHtml('👥', 'Aucune assignation', 'Assignez des membres à vos projets'));
     }
 
     function renderProjectDetails(project, projectAssignments = []) {
@@ -8941,12 +8278,88 @@
 
     function showMessage(message, type = 'success') {
       const notif = document.querySelector('#notification');
-      notif.textContent = message;
-      notif.className = `notification ${type === 'error' ? 'error' : ''}`;
-      notif.style.display = 'block';
-      setTimeout(() => {
-        notif.style.display = 'none';
-      }, 3500);
+      const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+      notif.className = `notification ${type}`;
+      notif.innerHTML = `
+        <span class="notification-icon">${icons[type] || icons.success}</span>
+        <span class="notification-text">${message}</span>
+        <button class="notification-close" onclick="this.parentElement.style.display='none'" aria-label="Fermer">×</button>
+      `;
+      notif.style.display = 'flex';
+      notif.classList.remove('hiding');
+      if (notif._hideTimer) clearTimeout(notif._hideTimer);
+      notif._hideTimer = setTimeout(() => {
+        notif.classList.add('hiding');
+        setTimeout(() => { notif.style.display = 'none'; notif.classList.remove('hiding'); }, 260);
+      }, 3800);
+    }
+
+    // ── Empty state helper ──────────────────────────────────────────────────
+    function emptyStateHtml(icon, message, subtext = '') {
+      return `<div class="empty-state">
+        <div style="font-size:36px;margin-bottom:10px;opacity:0.6;">${icon}</div>
+        <p style="font-weight:600;color:#475569;margin-bottom:${subtext ? '6px' : '0'};">${message}</p>
+        ${subtext ? `<p style="font-size:12px;color:#94a3b8;margin:0;">${subtext}</p>` : ''}
+      </div>`;
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+    // ── Button loading state helpers ────────────────────────────────────────
+    function setButtonLoading(btn, isLoading) {
+      if (!btn) return;
+      if (isLoading) {
+        btn.classList.add('loading');
+        btn.disabled = true;
+      } else {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+
+    // Global form-submit delegate: auto-set loading on any [type=submit] button
+    // that has not been manually managed (i.e., not already disabled at submit time).
+    document.addEventListener('submit', e => {
+      const form = e.target;
+      const btn = form.querySelector('[type=submit]') || form.querySelector('button:not([type=button]):not([type=reset])');
+      if (!btn || btn.classList.contains('loading')) return;
+      btn.classList.add('loading');
+      btn.disabled = true;
+      // Watch for the handler to re-enable the button, or fall back after 15s
+      const restore = () => { btn.classList.remove('loading'); };
+      const observer = new MutationObserver(() => {
+        if (!btn.disabled) { restore(); observer.disconnect(); }
+      });
+      observer.observe(btn, { attributes: true, attributeFilter: ['disabled'] });
+      setTimeout(() => { restore(); btn.disabled = false; observer.disconnect(); }, 15000);
+    }, true);
+    // ────────────────────────────────────────────────────────────────────────
+
+    // Custom confirm dialog — returns Promise<boolean>
+    function showConfirm(message, { icon = '⚠️', okLabel = 'Confirmer', okClass = 'button-danger' } = {}) {
+      return new Promise(resolve => {
+        const dialog = document.getElementById('ux-confirm-dialog');
+        const msgEl   = document.getElementById('ux-confirm-msg');
+        const iconEl  = document.getElementById('ux-confirm-icon');
+        const okBtn   = document.getElementById('ux-confirm-ok');
+        const cancelBtn = document.getElementById('ux-confirm-cancel');
+
+        msgEl.textContent  = message;
+        iconEl.textContent = icon;
+        okBtn.textContent  = okLabel;
+        okBtn.className    = `button button-small ${okClass}`;
+
+        const cleanup = (result) => {
+          dialog.close();
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+          resolve(result);
+        };
+        const onOk     = () => cleanup(true);
+        const onCancel = () => cleanup(false);
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        dialog.showModal();
+      });
     }
 
     async function fetchJson(url, options = {}) {
@@ -8978,7 +8391,20 @@
       document.querySelector(`[data-module="${moduleName}"]`)?.classList.add('active');
       currentModule = moduleName;
       syncAutoMapLiveRefresh();
-      syncAutoDashboardRefresh();
+
+      // Close mobile sidebar when a module is selected
+      document.getElementById('app-sidebar')?.classList.remove('open');
+      document.getElementById('sidebar-overlay')?.classList.remove('open');
+
+      const sectionMap = {
+        dashboard: 'Ventes & CRM',
+        projects: 'Construction', 'project-progress': 'Construction', 'journal-chantier': 'Construction', assignments: 'Construction',
+        materials: 'Approvisionnement', inventory: 'Approvisionnement', 'stock-management': 'Approvisionnement', 'sortie-autorisations': 'Approvisionnement',
+        'purchase-orders': 'Achats', 'material-catalog': 'Achats',
+        'parc-auto': 'Parc Auto', maps: 'Parc Auto',
+        expenses: 'Comptabilité', revenues: 'Comptabilité', reports: 'Comptabilité',
+        database: 'Admin', trash: 'Admin', users: 'Admin', settings: 'Admin',
+      };
 
       const titles = {
         dashboard: ['Tableau de bord', 'Vue d\'ensemble des activités'],
@@ -9004,45 +8430,29 @@
 
       const [title, subtitle] = titles[moduleName] || ['Module', 'Détails'];
       document.getElementById('page-title').textContent = title;
-      document.getElementById('page-subtitle').textContent = subtitle;
+
+      // Breadcrumb
+      const bc = document.getElementById('page-breadcrumb');
+      if (bc) {
+        const section = sectionMap[moduleName];
+        if (section && section !== title) {
+          bc.innerHTML = `<span>${section}</span><span class="breadcrumb-sep">›</span><span style="color:#ff8c00;">${title}</span>`;
+        } else {
+          bc.innerHTML = `<span style="color:#ff8c00;">${subtitle}</span>`;
+        }
+      }
     }
+
+    // Bind sidebar navigation once so each menu item activates its module.
+    document.querySelectorAll('.menu-item[data-module]').forEach(item => {
+      item.addEventListener('click', () => {
+        const moduleName = item.dataset.module;
+        if (moduleName) showModule(moduleName);
+      });
+    });
 
     function shouldAutoRefreshMaps() {
       return currentModule === 'maps' || currentModule === 'parc-auto';
-    }
-
-    function shouldAutoDashboardRefresh() {
-      return currentModule === 'dashboard' && isExecutive();
-    }
-
-    async function runAutoDashboardRefresh() {
-      if (!shouldAutoDashboardRefresh() || autoDashboardRefreshInFlight) {
-        return;
-      }
-
-      autoDashboardRefreshInFlight = true;
-      try {
-        await loadDashboard();
-      } finally {
-        autoDashboardRefreshInFlight = false;
-      }
-    }
-
-    function syncAutoDashboardRefresh() {
-      const shouldRun = shouldAutoDashboardRefresh();
-
-      if (shouldRun && !autoDashboardRefreshTimer) {
-        autoDashboardRefreshTimer = window.setInterval(() => {
-          runAutoDashboardRefresh();
-        }, AUTO_DASHBOARD_REFRESH_MS);
-        runAutoDashboardRefresh();
-        return;
-      }
-
-      if (!shouldRun && autoDashboardRefreshTimer) {
-        window.clearInterval(autoDashboardRefreshTimer);
-        autoDashboardRefreshTimer = null;
-      }
     }
 
     async function runAutoMapLiveRefresh() {
@@ -9072,394 +8482,6 @@
       if (!shouldRun && autoMapLiveRefreshTimer) {
         window.clearInterval(autoMapLiveRefreshTimer);
         autoMapLiveRefreshTimer = null;
-      }
-    }
-
-    function formatExecutiveAmount(value) {
-      const amount = Number(value) || 0;
-      const absolute = Math.abs(amount);
-      if (absolute >= 1_000_000_000) {
-        return `${(amount / 1_000_000_000).toFixed(2)} Md`;
-      }
-      if (absolute >= 1_000_000) {
-        return `${(amount / 1_000_000).toFixed(2)} M`;
-      }
-      if (absolute >= 1_000) {
-        return `${(amount / 1_000).toFixed(1)} k`;
-      }
-      return amount.toFixed(0);
-    }
-
-    function getPurchaseOrderStage(order) {
-      return String(
-        order?.etapeApprovisionnement
-        || order?.stage
-        || order?.etape
-        || order?.stageName
-        || ''
-      ).trim();
-    }
-
-    function getPurchaseOrderProjectId(order) {
-      const candidates = [order?.projetId, order?.projectId, order?.siteId, order?.site_id];
-      for (const candidate of candidates) {
-        const parsed = Number(candidate);
-        if (Number.isInteger(parsed) && parsed > 0) {
-          return parsed;
-        }
-      }
-      return null;
-    }
-
-    function resolveExecutiveZoneStatus(zoneSummary) {
-      const delayedRatio = zoneSummary.sitesCount ? zoneSummary.delayedCount / zoneSummary.sitesCount : 0;
-      if (delayedRatio >= 0.5) return 'Critique';
-      if (delayedRatio >= 0.25) return 'A surveiller';
-      if (zoneSummary.avgProgress >= 95) return 'Stable';
-      return 'En progression';
-    }
-
-    function buildExecutiveDashboardData(projects, orders, projectCatalog, expenses, revenues) {
-      const projectList = Array.isArray(projects) ? projects : [];
-      const orderList = Array.isArray(orders) ? orders : [];
-      const catalogList = Array.isArray(projectCatalog) ? projectCatalog : [];
-
-      const stagesByProject = new Map();
-      catalogList.forEach(entry => {
-        const projectKey = normalizeText(entry?.projectName || entry?.nomProjet || entry?.project || entry?.dossier || '');
-        if (!projectKey) return;
-        const stage = normalizeStageKey(getCatalogEntryStage(entry));
-        if (!stage) return;
-        if (!stagesByProject.has(projectKey)) {
-          stagesByProject.set(projectKey, new Set());
-        }
-        stagesByProject.get(projectKey).add(stage);
-      });
-
-      const ordersByProjectId = new Map();
-      orderList.forEach(order => {
-        const projectId = getPurchaseOrderProjectId(order);
-        if (!projectId) return;
-        if (!ordersByProjectId.has(projectId)) {
-          ordersByProjectId.set(projectId, []);
-        }
-        ordersByProjectId.get(projectId).push(order);
-      });
-
-      const siteMetrics = projectList.map(site => {
-        const projectName = String(site?.nomProjet || '').trim();
-        const siteOrders = ordersByProjectId.get(Number(site.id)) || [];
-        
-        // Option 1 STRICTE: Site démarré = dateCommande existante ET montantTotal > 0
-        const validOrders = siteOrders.filter(order => {
-          const hasDate = String(order?.dateCommande || '').trim().length > 0;
-          const hasAmount = Number(order?.montantTotal || 0) > 0;
-          return hasDate && hasAmount;
-        });
-        
-        const completedStageKeys = new Set(
-          validOrders
-            .map(order => normalizeStageKey(getPurchaseOrderStage(order)))
-            .filter(Boolean)
-        );
-
-        const expectedStages = stagesByProject.get(normalizeText(projectName)) || new Set();
-        const expectedCount = expectedStages.size;
-        const completedCount = expectedCount
-          ? Array.from(completedStageKeys).filter(stage => expectedStages.has(stage)).length
-          : completedStageKeys.size;
-
-        const started = validOrders.length > 0 && completedStageKeys.size > 0;
-        const rawProgress = expectedCount
-          ? (completedCount / expectedCount) * 100
-          : (started ? Math.max(25, completedCount * 25) : 0);
-        const progress = Math.max(0, Math.min(100, Math.round(rawProgress)));
-
-        const status = !started
-          ? 'EN_RETARD'
-          : (progress >= 100 ? 'TERMINE' : 'EN_COURS');
-
-        return {
-          id: Number(site.id),
-          zone: getProjectZoneDisplayName(site),
-          siteLabel: getProjectSiteLabel(site),
-          projectName,
-          status,
-          started,
-          progress,
-          completedCount,
-          expectedCount,
-        };
-      });
-
-      const totalSites = siteMetrics.length;
-      const startedCount = siteMetrics.filter(site => site.started).length;
-      const delayedCount = siteMetrics.filter(site => site.status === 'EN_RETARD').length;
-      const doneCount = siteMetrics.filter(site => site.status === 'TERMINE').length;
-      const inProgressCount = siteMetrics.filter(site => site.status === 'EN_COURS').length;
-      const averageProgress = totalSites
-        ? Math.round(siteMetrics.reduce((sum, item) => sum + item.progress, 0) / totalSites)
-        : 0;
-
-      const zoneSummaries = new Map();
-      siteMetrics.forEach(site => {
-        const key = String(site.zone || 'Non renseigne').trim() || 'Non renseigne';
-        if (!zoneSummaries.has(key)) {
-          zoneSummaries.set(key, {
-            zone: key,
-            sitesCount: 0,
-            startedCount: 0,
-            delayedCount: 0,
-            progressSum: 0,
-            completedStages: 0,
-            expectedStages: 0,
-          });
-        }
-
-        const summary = zoneSummaries.get(key);
-        summary.sitesCount += 1;
-        summary.startedCount += site.started ? 1 : 0;
-        summary.delayedCount += site.status === 'EN_RETARD' ? 1 : 0;
-        summary.progressSum += site.progress;
-        summary.completedStages += site.completedCount;
-        summary.expectedStages += site.expectedCount;
-      });
-
-      const zones = Array.from(zoneSummaries.values())
-        .map(zone => {
-          const avgProgress = zone.sitesCount ? Math.round(zone.progressSum / zone.sitesCount) : 0;
-          return {
-            ...zone,
-            avgProgress,
-            statusLabel: resolveExecutiveZoneStatus({ ...zone, avgProgress }),
-          };
-        })
-        .sort((a, b) => b.sitesCount - a.sitesCount || b.avgProgress - a.avgProgress);
-
-      const totalExpenses = (Array.isArray(expenses) ? expenses : [])
-        .reduce((sum, item) => sum + (Number(item?.montantTotal || item?.totalPrice) || 0), 0);
-      const totalRevenues = (Array.isArray(revenues) ? revenues : [])
-        .reduce((sum, item) => sum + (Number(item?.amount) || 0), 0);
-      const budgetTotal = totalRevenues > 0 ? totalRevenues : totalExpenses;
-      const budgetRemaining = budgetTotal - totalExpenses;
-
-      const highRisk = delayedCount;
-      const mediumRisk = siteMetrics.filter(site => site.status === 'EN_COURS' && site.progress < 50).length;
-      const lowRisk = Math.max(0, totalSites - highRisk - mediumRisk);
-
-      return {
-        totalSites,
-        startedCount,
-        delayedCount,
-        doneCount,
-        inProgressCount,
-        averageProgress,
-        zones,
-        budget: {
-          total: budgetTotal,
-          spent: totalExpenses,
-          remaining: budgetRemaining,
-        },
-        risk: {
-          high: highRisk,
-          medium: mediumRisk,
-          low: lowRisk,
-          total: highRisk + mediumRisk + lowRisk,
-        },
-        siteMetrics,
-      };
-    }
-
-    function toggleExecutiveDashboardFullscreen() {
-      const container = document.getElementById('executive-dashboard');
-      const mainContent = document.querySelector('.main-content');
-      const sidebar = document.querySelector('.sidebar');
-      const topbar = document.querySelector('.topbar');
-
-      if (!container) return;
-
-      const isFullscreen = container.classList.contains('fullscreen');
-
-      if (isFullscreen) {
-        container.classList.remove('fullscreen');
-        if (mainContent) mainContent.style.display = '';
-        if (sidebar) sidebar.style.display = '';
-        if (topbar) topbar.style.display = '';
-        document.body.style.overflow = '';
-      } else {
-        container.classList.add('fullscreen');
-        if (mainContent) mainContent.style.display = 'block';
-        if (sidebar) sidebar.style.display = 'none';
-        if (topbar) topbar.style.display = 'none';
-        document.body.style.overflow = 'hidden';
-      }
-    }
-
-    function renderExecSummaryWidget(data) {
-      const widget = document.getElementById('exec-summary-widget');
-      if (!widget) return;
-
-      // Compteurs
-      document.getElementById('esw-total').textContent = data.totalSites;
-      document.getElementById('esw-done').textContent = data.doneCount;
-      document.getElementById('esw-inprogress').textContent = data.inProgressCount;
-      document.getElementById('esw-delayed').textContent = data.delayedCount;
-      document.getElementById('esw-tostart').textContent = Math.max(0, data.totalSites - data.startedCount);
-
-      // Barre de progression
-      const pct = data.averageProgress || 0;
-      document.getElementById('esw-avg-pct').textContent = `${pct}%`;
-      document.getElementById('esw-fill').style.width = `${Math.min(100, pct)}%`;
-
-      // Zones pills (zone.zone = name, zone.sitesCount = count, zone.statusLabel)
-      const ZONE_COLORS = ['#4ba3ff','#6ec756','#f4a327','#8d5fd3','#ff6b6b','#26c6da'];
-      const zonesContainer = document.getElementById('esw-zones');
-      if (zonesContainer && Array.isArray(data.zones)) {
-        zonesContainer.innerHTML = data.zones.slice(0, 6).map((z, i) => {
-          const color = ZONE_COLORS[i % ZONE_COLORS.length];
-          return `<span class="esw-zone-pill"><span class="esw-zone-dot" style="background:${color}"></span>${escapeHtml(z.zone || '')} <strong style="margin-left:3px;opacity:0.85">${z.sitesCount || 0}</strong></span>`;
-        }).join('');
-      }
-
-      // Budget (budget.total, budget.spent)
-      document.getElementById('esw-budget-val').textContent = `${formatExecutiveAmount(data.budget?.total || 0)} FCFA`;
-      document.getElementById('esw-spent-val').textContent = `${formatExecutiveAmount(data.budget?.spent || 0)} FCFA`;
-
-      // Risque dominant (risk.high, risk.medium, data.zones statusLabel)
-      const riskRow = document.getElementById('esw-risk-row');
-      const riskLabel = document.getElementById('esw-risk-label');
-      if (riskRow && riskLabel) {
-        const critiqueCount = (data.zones || []).filter(z => z.statusLabel === 'Critique').length;
-        const moyenCount = (data.zones || []).filter(z => z.statusLabel === 'À surveiller').length;
-        if (critiqueCount > 0) {
-          riskRow.className = 'esw-risk-row esw-risk-row--critique';
-          riskRow.querySelector('.esw-risk-icon').textContent = '🔴';
-          riskLabel.textContent = `${critiqueCount} zone${critiqueCount > 1 ? 's' : ''} critique${critiqueCount > 1 ? 's' : ''}`;
-        } else if (moyenCount > 0) {
-          riskRow.className = 'esw-risk-row esw-risk-row--moyen';
-          riskRow.querySelector('.esw-risk-icon').textContent = '🟡';
-          riskLabel.textContent = `${moyenCount} zone${moyenCount > 1 ? 's' : ''} à surveiller`;
-        } else {
-          riskRow.className = 'esw-risk-row esw-risk-row--faible';
-          riskRow.querySelector('.esw-risk-icon').textContent = '🟢';
-          riskLabel.textContent = 'Risque faible';
-        }
-      }
-
-      widget.style.display = 'block';
-    }
-
-    function renderExecutiveDashboard(data) {
-      const executiveContainer = document.getElementById('executive-dashboard');
-      if (!executiveContainer) return;
-
-      document.getElementById('exec-metric-sites-total').textContent = String(data.totalSites);
-      document.getElementById('exec-metric-started').textContent = String(data.startedCount);
-      document.getElementById('exec-metric-delay').textContent = String(data.delayedCount);
-      document.getElementById('exec-metric-progress').textContent = `${data.averageProgress}%`;
-
-      const ring = document.getElementById('exec-progress-ring');
-      ring.style.setProperty('--ring-deg', `${Math.round((Math.max(0, Math.min(100, data.averageProgress)) / 100) * 360)}deg`);
-      ring.innerHTML = `<span>${data.averageProgress}%</span>`;
-
-      document.getElementById('exec-progress-caption').textContent = `${data.doneCount} chantier${data.doneCount !== 1 ? 's' : ''} terminé${data.doneCount !== 1 ? 's' : ''} / ${data.totalSites}`;
-
-      document.getElementById('exec-status-list').innerHTML = [
-        { label: 'Terminés', value: data.doneCount, color: '#6ec756' },
-        { label: 'En cours', value: data.inProgressCount, color: '#4ba3ff' },
-        { label: 'En retard', value: data.delayedCount, color: '#ff6b6b' },
-        { label: 'À lancer', value: Math.max(0, data.totalSites - data.startedCount), color: '#f4a327' },
-      ].map(item => `<li><span><span class="exec-dot" style="background:${item.color};"></span>${item.label}</span><strong>${item.value}</strong></li>`).join('');
-
-      document.getElementById('exec-budget-list').innerHTML = [
-        { label: 'Budget alloué', value: `${formatExecutiveAmount(data.budget.total)} FCFA`, color: '#6ec756' },
-        { label: 'Dépensé', value: `${formatExecutiveAmount(data.budget.spent)} FCFA`, color: '#f4a327' },
-        { label: 'Disponible', value: `${formatExecutiveAmount(data.budget.remaining)} FCFA`, color: '#4ba3ff' },
-      ].map(item => `<li><span><span class="exec-dot" style="background:${item.color};"></span>${item.label}</span><strong>${item.value}</strong></li>`).join('');
-
-      document.getElementById('exec-risk-list').innerHTML = [
-        { label: 'Critique', value: data.risk.high, color: '#ff6b6b' },
-        { label: 'Moyen', value: data.risk.medium, color: '#f4a327' },
-        { label: 'Faible', value: data.risk.low, color: '#6ec756' },
-        { label: 'Total actif', value: data.risk.total, color: '#4ba3ff' },
-      ].map(item => `<li><span><span class="exec-dot" style="background:${item.color};"></span>${item.label}</span><strong>${item.value}</strong></li>`).join('');
-
-      const zoneColors = ['#4ba3ff', '#6ec756', '#f4a327', '#8d5fd3'];
-      const topZones = data.zones.slice(0, 4);
-
-      const zoneBars = document.getElementById('exec-zone-bars');
-      zoneBars.innerHTML = topZones.length
-        ? topZones.map((zone, index) => `
-            <div class="exec-zone-bar-item">
-              <strong>${zone.avgProgress}%</strong>
-              <div class="exec-zone-bar-track">
-                <div class="exec-zone-bar-fill" style="height:${Math.max(2, zone.avgProgress)}%; --bar-color:${zoneColors[index % zoneColors.length]};"></div>
-              </div>
-              <span>${escapeHtml(zone.zone)}</span>
-            </div>
-          `).join('')
-        : '<p style="font-size:12px; color:#9db2d5;">Aucune zone disponible.</p>';
-
-      const donut = document.getElementById('exec-zone-donut');
-      const donutTotalSites = topZones.reduce((sum, zone) => sum + zone.sitesCount, 0);
-      let cumulative = 0;
-      const degrees = topZones.map(zone => {
-        cumulative += donutTotalSites ? (zone.sitesCount / donutTotalSites) * 360 : 0;
-        return `${Math.round(cumulative)}deg`;
-      });
-      donut.style.setProperty('--z1', degrees[0] || '0deg');
-      donut.style.setProperty('--z2', degrees[1] || degrees[0] || '0deg');
-      donut.style.setProperty('--z3', degrees[2] || degrees[1] || degrees[0] || '0deg');
-      document.getElementById('exec-donut-total').textContent = String(data.totalSites);
-
-      document.getElementById('exec-zone-legend').innerHTML = topZones.map((zone, index) =>
-        `<li><span><span class="exec-dot" style="background:${zoneColors[index % zoneColors.length]};"></span>${escapeHtml(zone.zone)}</span><strong>${zone.sitesCount}</strong></li>`
-      ).join('');
-
-      const mapContainer = document.getElementById('exec-map-points');
-      const points = data.siteMetrics.slice(0, 80).map((site, index) => {
-        const key = `${site.id}-${site.zone}-${index}`;
-        let hash = 0;
-        for (let i = 0; i < key.length; i += 1) {
-          hash = ((hash << 5) - hash) + key.charCodeAt(i);
-          hash |= 0;
-        }
-        const x = 8 + (Math.abs(hash) % 85);
-        const y = 10 + (Math.abs(Math.floor(hash / 97)) % 80);
-        const color = site.status === 'EN_RETARD'
-          ? '#ff6b6b'
-          : (site.progress >= 100 ? '#6ec756' : '#4ba3ff');
-        return `<span class="exec-map-point" style="left:${x}%; top:${y}%; background:${color};" title="${escapeHtml(site.siteLabel)} - ${site.progress}%"></span>`;
-      });
-      mapContainer.innerHTML = points.join('') || '<div style="padding:12px; color:#9db2d5; font-size:12px;">Aucune donnee geographique.</div>';
-
-      const zoneTableBody = document.getElementById('exec-zone-table-body');
-      zoneTableBody.innerHTML = data.zones.length
-        ? data.zones.map((zone, index) => {
-          const progressColor = zone.avgProgress >= 75 ? '#6ec756' : (zone.avgProgress >= 45 ? '#f4a327' : '#ff6b6b');
-          return `
-            <tr>
-              <td>${escapeHtml(zone.zone)}</td>
-              <td>${zone.sitesCount}</td>
-              <td>${zone.startedCount}</td>
-              <td>${zone.delayedCount}</td>
-              <td>
-                <div class="exec-progress-cell">
-                  <span>${zone.avgProgress}%</span>
-                  <div class="exec-progress-track"><div class="exec-progress-fill" style="width:${Math.max(3, zone.avgProgress)}%; --bar-color:${progressColor};"></div></div>
-                </div>
-              </td>
-              <td>${zone.completedStages}/${zone.expectedStages || '-'}</td>
-              <td>${zone.statusLabel}</td>
-            </tr>
-          `;
-        }).join('')
-        : '<tr><td colspan="7">Aucune donnee disponible</td></tr>';
-
-      const toggle = document.getElementById('exec-toggle-fullscreen');
-      if (toggle && !toggle.hasEventListener) {
-        toggle.addEventListener('click', toggleExecutiveDashboardFullscreen);
-        toggle.hasEventListener = true;
       }
     }
 
@@ -9502,36 +8524,6 @@
         document.getElementById('stat-expenses').textContent = `${totalExpenses.toFixed(2)} FCFA`;
         document.getElementById('stat-revenues').textContent = `${totalRevenues.toFixed(2)} FCFA`;
         document.getElementById('stat-profit').textContent = `${(totalRevenues - totalExpenses).toFixed(2)} FCFA`;
-
-        const classicGrid = document.querySelector('#dashboard .dashboard-grid');
-        const executiveContainer = document.getElementById('executive-dashboard');
-        const summaryWidget = document.getElementById('exec-summary-widget');
-        if (isExecutive()) {
-          if (classicGrid) {
-            classicGrid.style.display = 'none';
-          }
-          if (summaryWidget) summaryWidget.style.display = 'none';
-          if (executiveContainer) {
-            executiveContainer.style.display = 'grid';
-            const executiveData = buildExecutiveDashboardData(projects, orders, projectCatalog, expenses, revenues);
-            renderExecutiveDashboard(executiveData);
-          }
-        } else {
-          if (classicGrid) {
-            classicGrid.style.display = '';
-          }
-          if (executiveContainer) {
-            executiveContainer.style.display = 'none';
-          }
-          // Widget résumé opérationnel (pas pour admin)
-          if (!isAdmin()) {
-            const execData = buildExecutiveDashboardData(projects, orders, projectCatalog, expenses, revenues);
-            renderExecSummaryWidget(execData);
-          } else {
-            const sw = document.getElementById('exec-summary-widget');
-            if (sw) sw.style.display = 'none';
-          }
-        }
       } catch (err) {
         console.error('Erreur dashboard:', err);
       }
@@ -9628,7 +8620,7 @@
           fetchJson('/api/material-catalog').catch(() => materialCatalogCache),
         ]);
         if (Array.isArray(progressUpdates)) {
-          projectProgressCache = sortRecent(progressUpdates, item => item?.createdAt || item?.updatedAt || item?.id);
+          projectProgressCache = progressUpdates;
         }
         if (Array.isArray(projects)) {
           projectsCache = projects;
@@ -9760,8 +8752,8 @@
             `;
             }).join('')
           : (materials.length
-              ? '<div class="empty-state"><p>Aucune demande ne correspond à la recherche</p></div>'
-              : '<div class="empty-state"><p>Aucune demande de matériel</p></div>');
+? emptyStateHtml('🔍', 'Aucune demande ne correspond à la recherche')
+            : emptyStateHtml('📦', 'Aucune demande de matériel', 'Créez une première demande ci-dessus'));
 
         const selectedGroup = filteredGroups.find(groupReqs => groupReqs.some(m => Number(m.id) === Number(selectedMaterialRequestId))) || null;
         renderMaterialRequestDetails(selectedGroup ? selectedGroup[0] : null);
@@ -10221,37 +9213,17 @@
         if (Array.isArray(catalogEntries)) {
           materialCatalogCache = catalogEntries;
         }
-        const suggestionsList = document.getElementById('po-suggestions-list');
-        const poFormCard = document.querySelector('#purchase-orders .form-card');
-        if (isExecutive()) {
-          if (suggestionsList) {
-            suggestionsList.innerHTML = '';
-            suggestionsList.style.display = 'none';
-            const suggestionsTitle = suggestionsList.previousElementSibling;
-            if (suggestionsTitle) suggestionsTitle.style.display = 'none';
-          }
-          // Masquer le formulaire de création pour le dirigeant
-          if (poFormCard) poFormCard.style.display = 'none';
-        } else {
-          if (suggestionsList) {
-            suggestionsList.style.display = '';
-            const suggestionsTitle = suggestionsList.previousElementSibling;
-            if (suggestionsTitle) suggestionsTitle.style.display = '';
-          }
-          if (poFormCard) poFormCard.style.display = '';
-          renderPoSuggestions(materialRequestsCache, recentOrders);
-        }
+        renderPoSuggestions(materialRequestsCache, recentOrders);
         const listTitle = document.getElementById('po-list-title');
         const searchValue = normalizeText(purchaseOrderSearchTerm.trim());
         const isSearchActive = Boolean(searchValue);
         const filteredOrders = searchValue
           ? recentOrders.filter(o => {
               const totalAmount = Number(o.montantTotal || 0).toFixed(2);
-              const siteLabel = String(o.nomSiteManuel || o.nomProjetManuel || o.nomProjet || o.siteId || '').trim();
-              const haystack = normalizeText(`${o.nomProjet || ''} ${siteLabel} ${o.fournisseur || ''} ${o.statut || ''} ${o.itemName || ''} ${totalAmount}`);
+              const haystack = normalizeText(`${o.nomProjet || ''} ${o.fournisseur || ''} ${o.statut || ''} ${o.itemName || ''} ${totalAmount}`);
               return haystack.includes(searchValue);
             })
-          : (isExecutive() ? recentOrders.slice(0, 15) : recentOrders.slice(0, 12));
+          : recentOrders.slice(0, 12);
 
         const list = document.getElementById('po-list');
 
@@ -10268,38 +9240,30 @@
         }
 
         list.innerHTML = filteredOrders.length
-          ? filteredOrders.map(o => {
-              const displayedStatus = isExecutive() ? getExecutivePurchaseOrderStatus(o) : String(o.statut || '').trim().toUpperCase();
-              const badgeClass = displayedStatus === 'VALIDEE' || displayedStatus === 'LIVREE'
-                ? 'badge-green'
-                : displayedStatus === 'REJETEE'
-                  ? 'badge-red'
-                  : 'badge-yellow';
-              return `
+          ? filteredOrders.map(o => `
               <li class="list-item">
                 <div class="list-item-content project-item-clickable ${Number(selectedPurchaseOrderId) === Number(o.id) ? 'project-item-selected' : ''}" onclick="viewPurchaseOrder(${o.id})">
                   <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(o))}</div>
-                  <div class="list-item-meta">${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(displayedStatus)}${isExecutive() && o.creePar ? ` • <em>Par ${escapeHtml(o.creePar)}</em>` : ''}</div>
+                  <div class="list-item-meta">${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${o.statut}</div>
                 </div>
                 <div class="action-buttons">
                   <details class="actions-menu">
                     <summary aria-label="Actions bon de commande">&#8942;</summary>
                     <div class="actions-dropdown">
-                      ${isPurchaseReadOnlyRole() ? '' : `<button type="button" onclick="editPurchaseOrder(${o.id})">Modifier</button>`}
-                      ${isPurchaseReadOnlyRole() ? '' : `<button type="button" onclick="validatePurchaseOrder(${o.id})">Valider</button>`}
-                      ${isPurchaseReadOnlyRole() ? '' : `<button type="button" onclick="rejectPurchaseOrder(${o.id})">Rejeter</button>`}
+                      ${isOpsReviewer() ? '' : `<button type="button" onclick="editPurchaseOrder(${o.id})">Modifier</button>`}
+                      ${isOpsReviewer() ? '' : `<button type="button" onclick="validatePurchaseOrder(${o.id})">Valider</button>`}
+                      ${isOpsReviewer() ? '' : `<button type="button" onclick="rejectPurchaseOrder(${o.id})">Rejeter</button>`}
                       <button type="button" onclick="downloadPurchaseOrderPdf(${o.id})">Telecharger PDF</button>
-                      ${isPurchaseReadOnlyRole() ? '' : `<button type="button" onclick="deletePurchaseOrder(${o.id})">Mettre en corbeille</button>`}
+                      ${isOpsReviewer() ? '' : `<button type="button" onclick="deletePurchaseOrder(${o.id})">Mettre en corbeille</button>`}
                     </div>
                   </details>
                 </div>
-                <span class="badge ${badgeClass}">${escapeHtml(displayedStatus)}</span>
+                <span class="badge ${o.statut === 'VALIDEE' || o.statut === 'LIVREE' ? 'badge-green' : 'badge-yellow'}">${o.statut}</span>
               </li>
-            `;
-            }).join('')
+            `).join('')
           : (recentOrders.length
-              ? '<div class="empty-state"><p>Aucun bon ne correspond à la recherche</p></div>'
-              : '<div class="empty-state"><p>Aucun bon de commande</p></div>');
+? emptyStateHtml('🔍', 'Aucun bon ne correspond à la recherche')
+            : emptyStateHtml('🛒', 'Aucun bon de commande', 'Créez un bon de commande ci-dessus'));
 
         renderPurchaseOrderDetails(filteredOrders.find(o => Number(o.id) === Number(selectedPurchaseOrderId)) || null);
 
@@ -10735,7 +9699,7 @@
     };
 
     window.trashStockOrder = async (orderId, displayName) => {
-      if (!confirm(`Supprimer définitivement la commande "${displayName}" ? Cette action est irréversible.`)) return;
+      if (!await showConfirm(`Supprimer définitivement la commande "${displayName}" ? Cette action est irréversible.`)) return;
       try {
         await fetchJson(`/api/stock-management/orders/${orderId}`, { method: 'DELETE' });
         addTrashItem('stock-management', 'Gestion de stock', displayName,
@@ -10813,7 +9777,7 @@
           const etape = String(row.etapeApprovisionnement || row.requestEtape || 'Étape').trim();
           const siteNum = extractSiteNumberLabel(row.numeroMaison || '-');
           const title = `${etape}-${siteNum}`;
-          const canDecide = status === 'EN_ATTENTE' && !isSiteChief() && !isZoneStockManager() && !isExecutive();
+          const canDecide = status === 'EN_ATTENTE' && !isSiteChief() && !isZoneStockManager();
           const pdfDownloadUrl = `/api/stock-issue-authorizations/${Number(row.id)}/pdf`;
           const items = Array.isArray(row.items) ? row.items : [];
           const itemsLabel = items.length
@@ -11067,7 +10031,7 @@
               </div>`}
             </li>
           `).join('')
-        : '<div class="empty-state"><p>Aucune entrée catalogue</p></div>';
+                : emptyStateHtml('📁', 'Aucune entrée catalogue', 'Ajoutez des matériaux au catalogue');
 
       renderMcSummaryTable();
     }
@@ -11299,7 +10263,7 @@
     };
 
     window.deleteCatalogEntry = async id => {
-      if (!confirm('Supprimer cette entrée du catalogue ?')) return;
+      if (!await showConfirm('Supprimer cette entrée du catalogue ?')) return;
       try {
         await fetchJson(`/api/material-catalog/${id}`, { method: 'DELETE' });
         showMessage('Entrée supprimée');
@@ -11379,8 +10343,8 @@
           `;
           }).join('')
         : (autoVehiclesCache.length
-            ? '<div class="empty-state"><p>Aucun véhicule ne correspond à la recherche</p></div>'
-            : '<div class="empty-state"><p>Aucun véhicule enregistré</p></div>');
+            ? emptyStateHtml('🔍', 'Aucun véhicule ne correspond à la recherche')
+            : emptyStateHtml('🚗', 'Aucun véhicule enregistré', 'Ajoutez votre premier véhicule ci-dessus'));
     }
 
     function renderAutoTransportCostsList() {
@@ -11480,7 +10444,7 @@
     };
 
     window.deleteAutoVehicle = async id => {
-      if (!confirm('Supprimer ce véhicule ?')) return;
+      if (!await showConfirm('Supprimer ce véhicule ?')) return;
       try {
         const vehicle = autoVehiclesCache.find(v => Number(v.id) === Number(id));
         await fetchJson(`/api/auto-vehicles/${id}`, { method: 'DELETE' });
@@ -11493,7 +10457,7 @@
     };
 
     window.deleteAutoTransportCost = async id => {
-      if (!confirm('Supprimer ce coût de transport ? (la dépense liée sera aussi supprimée)')) return;
+      if (!await showConfirm('Supprimer ce coût de transport ? (la dépense liée sera aussi supprimée)')) return;
       try {
         const cost = autoTransportCostsCache.find(c => Number(c.id) === Number(id));
         await fetchJson(`/api/auto-transport-costs/${id}`, { method: 'DELETE' });
@@ -11623,7 +10587,7 @@
     };
 
     window.rejectRequestForPo = async id => {
-      if (!confirm('Refuser cette demande d\'approvisionnement ?')) return;
+      if (!await showConfirm('Refuser cette demande d\'approvisionnement ?')) return;
       try {
         await fetchJson(`/api/material-requests/${id}/statut`, {
           method: 'PATCH',
@@ -11729,7 +10693,7 @@
         showMessage('Demande introuvable', 'error');
         return;
       }
-      if (!confirm(`Refuser cette demande (${normalizedIds.length} article${normalizedIds.length > 1 ? 's' : ''}) ?`)) return;
+      if (!await showConfirm(`Refuser cette demande (${normalizedIds.length} article${normalizedIds.length > 1 ? 's' : ''}) ?`)) return;
       try {
         for (const id of normalizedIds) {
           await fetchJson(`/api/material-requests/${id}/statut`, {
@@ -11808,14 +10772,14 @@
                       <div class="list-item-meta">Matériaux • ${escapeHtml(row.projetNom || 'Autre')} • ${escapeHtml(row.fournisseur || '-')} • ${escapeHtml(row.statut || 'EN_ATTENTE')}</div>
                       <div class="list-item-meta" style="font-size:0.82em;color:#64748b;">${escapeHtml(articlesLabel || 'Aucun article')}</div>
                     </div>
-                    ${isExecutive() ? '' : `<div class="action-buttons">
+                    <div class="action-buttons">
                       <details class="actions-menu">
                         <summary aria-label="Actions dépense bon">&#8942;</summary>
                         <div class="actions-dropdown">
                           <button type="button" onclick="deleteExpenseGroup('${expenseIdsArg}', ${row.purchaseOrderId})">Mettre en corbeille</button>
                         </div>
                       </details>
-                    </div>`}
+                    </div>
                     <div style="font-weight: 600;">${Number(row.montantTotal || 0).toFixed(2)} FCFA</div>
                   </li>
                 `;
@@ -11828,35 +10792,28 @@
                     <div class="list-item-title">${e.description}</div>
                     <div class="list-item-meta">${e.categorie} • ${e.quantite} × ${e.prixUnitaire} FCFA • ${getExpenseProjectBucket(e).label}</div>
                   </div>
-                  ${isExecutive() ? '' : `<div class="action-buttons">
+                  <div class="action-buttons">
                     <details class="actions-menu">
                       <summary aria-label="Actions dépense">&#8942;</summary>
                       <div class="actions-dropdown">
                         <button type="button" onclick="deleteExpense(${e.id})">Mettre en corbeille</button>
                       </div>
                     </details>
-                  </div>`}
+                  </div>
                   <div style="font-weight: 600;">${(e.montantTotal || 0).toFixed(2)} FCFA</div>
                 </li>
               `;
             }).join('')
           : (expenseListRows.length
-              ? '<div class="empty-state"><p>Aucune dépense ne correspond à la recherche</p></div>'
-              : '<div class="empty-state"><p>Aucune dépense enregistrée</p></div>');
+? emptyStateHtml('🔍', 'Aucune dépense ne correspond à la recherche')
+            : emptyStateHtml('💰', 'Aucune dépense enregistrée', 'Ajoutez votre première dépense ci-dessus'));
 
         const select = document.getElementById('expense-project');
         select.innerHTML = '<option value="">Sélectionner (optionnel)</option>' +
           projects.map(p => `<option value="${p.id}">${escapeHtml(getProjectDisplayName(p))}</option>`).join('');
 
         renderExpensesByProject(financialExpenses);
-        if (isExecutive()) {
-          const detailedContainer = document.getElementById('expenses-detailed-by-project-table');
-          if (detailedContainer) {
-            detailedContainer.innerHTML = '';
-          }
-        } else {
-          renderExpensesDetailedByProject(financialExpenses);
-        }
+        renderExpensesDetailedByProject(financialExpenses);
       } catch (err) {
         showMessage('Erreur', 'error');
       }
@@ -11892,14 +10849,14 @@
                   <div class="list-item-title">${r.description}</div>
                   <div class="list-item-meta">${r.projetNom || 'Aucun projet'} • ${formatDate(r.dateRevenue)}</div>
                 </div>
-                ${isExecutive() ? '' : `<div class="action-buttons">
+                <div class="action-buttons">
                   <details class="actions-menu">
                     <summary aria-label="Actions revenu">&#8942;</summary>
                     <div class="actions-dropdown">
                       <button type="button" onclick="deleteRevenue(${r.id})">Mettre en corbeille</button>
                     </div>
                   </details>
-                </div>`}
+                </div>
                 <div style="font-weight: 600; color: #10b981;">${r.amount.toFixed(2)} FCFA</div>
               </li>
             `).join('')
@@ -12055,7 +11012,7 @@
         return;
       }
       if (!databaseTrashBySection[section]) return;
-      if (!confirm(`Vider la corbeille ${getDatabaseSectionLabel(section)} ?`)) return;
+      if (!await showConfirm(`Vider la corbeille ${getDatabaseSectionLabel(section)} ?`)) return;
 
       const idsToDelete = (databaseTrashBySection[section] || []).map(item => Number(item.id)).filter(id => Number.isInteger(id) && id > 0);
       await permanentlyDeleteDatabaseDocuments(idsToDelete);
@@ -12077,7 +11034,7 @@
         showMessage('Action non autorisée pour ce profil', 'error');
         return;
       }
-      if (!confirm('Vider toute la corbeille ?')) return;
+      if (!await showConfirm('Vider toute la corbeille ?')) return;
 
       const idsToDelete = Object.values(databaseTrashBySection)
         .flatMap(items => (items || []).map(item => Number(item.id)).filter(id => Number.isInteger(id) && id > 0));
@@ -12099,25 +11056,25 @@
       }
     };
 
-    window.clearTrashModule = moduleCode => {
+    window.clearTrashModule = async moduleCode => {
       if (!canManageTrashModule()) {
         showMessage('Action non autorisée pour ce profil', 'error');
         return;
       }
       if (!moduleCode) return;
-      if (!confirm('Vider la corbeille de ce module ?')) return;
+      if (!await showConfirm('Vider la corbeille de ce module ?')) return;
       trashItems = trashItems.filter(item => String(item.moduleCode) !== String(moduleCode));
       saveTrashItemsToStorage();
       renderTrashModule();
       showMessage('Corbeille du module vidée');
     };
 
-    window.clearAllTrashModules = () => {
+    window.clearAllTrashModules = async () => {
       if (!canManageTrashModule()) {
         showMessage('Action non autorisée pour ce profil', 'error');
         return;
       }
-      if (!confirm('Vider toute la corbeille globale ?')) return;
+      if (!await showConfirm('Vider toute la corbeille globale ?')) return;
       trashItems = [];
       saveTrashItemsToStorage();
       renderTrashModule();
@@ -12129,7 +11086,7 @@
         showMessage('Action non autorisée pour ce profil', 'error');
         return;
       }
-      if (!confirm('Mettre ce document dans la corbeille ?')) return;
+      if (!await showConfirm('Mettre ce document dans la corbeille ?')) return;
       try {
         const doc = databaseDocumentsCache.find(item => Number(item.id) === Number(id));
         if (!doc) {
@@ -12589,7 +11546,7 @@
     };
 
     window.clearAllExpenses = async () => {
-      if (!confirm('Vider toutes les dépenses récentes ? Cette action est irréversible.')) return;
+      if (!await showConfirm('Vider toutes les dépenses récentes ? Cette action est irréversible.')) return;
       try {
         await fetchJson('/api/expenses', { method: 'DELETE' });
         showMessage('Toutes les dépenses ont été supprimées');
@@ -12601,7 +11558,7 @@
     };
 
     window.deleteExpense = async (id) => {
-      if (!confirm('Supprimer cette dépense ?')) return;
+      if (!await showConfirm('Supprimer cette dépense ?')) return;
       try {
         await fetchJson(`/api/expenses/${id}`, { method: 'DELETE' });
         addTrashItem('expenses', 'Dépenses', `Dépense #${id}`, 'Suppression dépense');
@@ -12625,7 +11582,7 @@
       }
 
       const orderLabel = purchaseOrderId ? ` du bon #${purchaseOrderId}` : '';
-      if (!confirm(`Supprimer ${ids.length} ligne(s) de dépense${orderLabel} ?`)) return;
+      if (!await showConfirm(`Supprimer ${ids.length} ligne(s) de dépense${orderLabel} ?`)) return;
 
       try {
         for (const id of ids) {
@@ -12642,7 +11599,7 @@
     };
 
     window.deleteRevenue = async (id) => {
-      if (!confirm('Supprimer ce revenu ?')) return;
+      if (!await showConfirm('Supprimer ce revenu ?')) return;
       try {
         await fetchJson(`/api/revenues/${id}`, { method: 'DELETE' });
         addTrashItem('revenues', 'Revenus', `Revenu #${id}`, 'Suppression revenu');
@@ -12656,7 +11613,7 @@
     };
 
     window.deletePurchaseOrder = async (id) => {
-      if (!confirm('Supprimer ce bon de commande ?')) return;
+      if (!await showConfirm('Supprimer ce bon de commande ?')) return;
       try {
         const order = purchaseOrdersCache.find(o => Number(o.id) === Number(id));
         await fetchJson(`/api/purchase-orders/${id}`, { method: 'DELETE' });
@@ -12992,7 +11949,7 @@
     };
 
     window.deleteMaterialRequest = async (id) => {
-      if (!confirm('Supprimer cette demande de matériel ?')) return;
+      if (!await showConfirm('Supprimer cette demande de matériel ?')) return;
       try {
         const request = materialRequestsCache.find(item => Number(item.id) === Number(id));
         await fetchJson(`/api/material-requests/${id}`, { method: 'DELETE' });
@@ -13011,7 +11968,7 @@
         showMessage('Demande introuvable', 'error');
         return;
       }
-      if (!confirm(`Supprimer cette demande (${normalizedIds.length} article${normalizedIds.length > 1 ? 's' : ''}) ?`)) return;
+      if (!await showConfirm(`Supprimer cette demande (${normalizedIds.length} article${normalizedIds.length > 1 ? 's' : ''}) ?`)) return;
       try {
         for (const id of normalizedIds) {
           const request = materialRequestsCache.find(item => Number(item.id) === Number(id));
@@ -13048,7 +12005,7 @@
     };
 
     window.deleteProject = async (id) => {
-      if (!confirm('Supprimer ce projet ? Cette action est irreversible.')) return;
+      if (!await showConfirm('Supprimer ce projet ? Cette action est irreversible.')) return;
       try {
         const project = projectsCache.find(p => Number(p.id) === Number(id));
         await fetchJson(`/api/projects/${id}`, { method: 'DELETE' });
@@ -13070,7 +12027,7 @@
       const warning = totalSites > 0
         ? `Supprimer cette zone et ses ${totalSites} site${totalSites > 1 ? 's' : ''} ? Cette action est irreversible.`
         : 'Supprimer cette zone ? Cette action est irreversible.';
-      if (!confirm(warning)) return;
+      if (!await showConfirm(warning)) return;
 
       try {
         await fetchJson(`/api/project-folders/${id}`, { method: 'DELETE' });
@@ -13167,7 +12124,7 @@
     };
 
     window.deleteAssignment = async id => {
-      if (!confirm('Supprimer cette assignation ?')) return;
+      if (!await showConfirm('Supprimer cette assignation ?')) return;
       try {
         const assignment = assignmentsCache.find(a => Number(a.id) === Number(id));
         await fetchJson(`/api/project-assignments/${id}`, { method: 'DELETE' });
@@ -14040,8 +12997,8 @@
       addMcRow();
     });
 
-    document.getElementById('mc-clear-rows').addEventListener('click', () => {
-      if (!confirm('Vider toutes les lignes ?')) return;
+    document.getElementById('mc-clear-rows').addEventListener('click', async () => {
+      if (!await showConfirm('Vider toutes les lignes ?')) return;
       const tbody = document.getElementById('mc-rows-body');
       if (tbody) tbody.innerHTML = '';
       updateMcRowsTotal();
@@ -14295,7 +13252,7 @@
         showMessage('Revenu enregistré');
         loadRevenues();
         loadDashboard();
-        loadReports();-
+        loadReports();
         loadDatabaseDocuments();
       } catch (err) {
         showMessage('Erreur: ' + err.message, 'error');
@@ -14356,6 +13313,26 @@
       localStorage.removeItem('erp_token');
       window.location.href = 'index.html';
     });
+
+    // ── Mobile hamburger / sidebar toggle ──────────────────────────────────
+    const hamburgerBtn    = document.getElementById('hamburger-btn');
+    const appSidebar      = document.getElementById('app-sidebar');
+    const sidebarOverlay  = document.getElementById('sidebar-overlay');
+
+    if (hamburgerBtn && appSidebar) {
+      hamburgerBtn.addEventListener('click', () => {
+        const isOpen = appSidebar.classList.toggle('open');
+        sidebarOverlay?.classList.toggle('open', isOpen);
+      });
+    }
+
+    if (sidebarOverlay) {
+      sidebarOverlay.addEventListener('click', () => {
+        appSidebar?.classList.remove('open');
+        sidebarOverlay.classList.remove('open');
+      });
+    }
+    // ───────────────────────────────────────────────────────────────────────
 
     document.getElementById('project-search').addEventListener('input', e => {
       projectSearchTerm = e.target.value;
