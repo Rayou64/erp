@@ -1134,6 +1134,413 @@
       height: 100%;
       border: 0;
     }
+
+    .executive-dashboard {
+      --exec-bg: #071322;
+      --exec-surface: #0f1f34;
+      --exec-surface-soft: #132843;
+      --exec-border: rgba(127, 164, 211, 0.2);
+      --exec-text: #e5efff;
+      --exec-muted: #a4b7d6;
+      --exec-blue: #4ba3ff;
+      --exec-green: #6ec756;
+      --exec-orange: #f4a327;
+      --exec-purple: #8d5fd3;
+      --exec-red: #ff6b6b;
+      color: var(--exec-text);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(69, 131, 205, 0.2), transparent 35%),
+        radial-gradient(circle at 90% 0%, rgba(74, 122, 208, 0.16), transparent 36%),
+        linear-gradient(180deg, #071322 0%, #0a1728 100%);
+      border: 1px solid var(--exec-border);
+      border-radius: 14px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      box-shadow: 0 20px 44px rgba(2, 8, 23, 0.35);
+      position: relative;
+    }
+
+    .executive-dashboard.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      padding: 20px;
+      box-shadow: none;
+      z-index: 99999;
+    }
+
+    .exec-fullscreen-toggle {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(75, 163, 255, 0.2);
+      border: 1px solid rgba(75, 163, 255, 0.5);
+      color: #4ba3ff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+      z-index: 100000;
+    }
+
+    .exec-fullscreen-toggle:hover {
+      background: rgba(75, 163, 255, 0.3);
+      border-color: rgba(75, 163, 255, 0.8);
+    }
+
+    .exec-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+      border-bottom: 1px solid rgba(148, 180, 226, 0.2);
+      padding-bottom: 10px;
+    }
+
+    .exec-subtitle {
+      font-size: 11px;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      color: #89a0c6;
+      margin-bottom: 2px;
+      font-weight: 700;
+    }
+
+    .exec-title {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .exec-top-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(90px, 1fr));
+      gap: 8px;
+      align-items: stretch;
+      min-width: 420px;
+    }
+
+    .exec-mini {
+      background: rgba(19, 40, 67, 0.66);
+      border: 1px solid rgba(148, 180, 226, 0.2);
+      border-radius: 10px;
+      padding: 9px;
+      text-align: center;
+    }
+
+    .exec-mini strong {
+      display: block;
+      font-size: 19px;
+      line-height: 1.1;
+      margin-bottom: 3px;
+      color: #f4f8ff;
+    }
+
+    .exec-mini span {
+      font-size: 11px;
+      color: var(--exec-muted);
+    }
+
+    .exec-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
+      gap: 10px;
+    }
+
+    .exec-card {
+      background: linear-gradient(160deg, rgba(16, 34, 58, 0.96) 0%, rgba(13, 28, 48, 0.96) 100%);
+      border: 1px solid rgba(148, 180, 226, 0.2);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 140px;
+    }
+
+    .exec-card h3 {
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #b8c9e6;
+      margin: 0 0 10px;
+      font-weight: 700;
+    }
+
+    .exec-progress-ring {
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      margin: 4px auto;
+      position: relative;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 30px;
+      background: conic-gradient(var(--exec-blue) 0deg, var(--exec-blue) var(--ring-deg, 0deg), rgba(151, 179, 220, 0.24) var(--ring-deg, 0deg));
+    }
+
+    .exec-progress-ring::before {
+      content: '';
+      position: absolute;
+      inset: 13px;
+      border-radius: 50%;
+      background: #0d1b2d;
+      box-shadow: inset 0 0 0 1px rgba(148, 180, 226, 0.2);
+    }
+
+    .exec-progress-ring span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .exec-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .exec-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      color: #dbe7fb;
+    }
+
+    .exec-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      margin-right: 6px;
+      flex: 0 0 auto;
+    }
+
+    .exec-layout-main {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1.5fr;
+      gap: 10px;
+    }
+
+    .exec-zone-bars {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(40px, 1fr));
+      gap: 12px;
+      align-items: end;
+      min-height: 165px;
+      margin-top: 4px;
+    }
+
+    .exec-zone-bar-item {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #b8c9e6;
+    }
+
+    .exec-zone-bar-track {
+      width: 44px;
+      height: 118px;
+      border-radius: 8px;
+      background: rgba(145, 174, 220, 0.2);
+      border: 1px solid rgba(145, 174, 220, 0.22);
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+
+    .exec-zone-bar-fill {
+      width: 100%;
+      border-radius: 6px 6px 0 0;
+      background: var(--bar-color, var(--exec-blue));
+      min-height: 2%;
+      transition: height 0.35s ease;
+    }
+
+    .exec-donut-wrap {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 10px;
+      align-items: center;
+      min-height: 156px;
+    }
+
+    .exec-donut {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--exec-blue) 0 var(--z1, 0deg),
+        var(--exec-green) var(--z1, 0deg) var(--z2, 0deg),
+        var(--exec-orange) var(--z2, 0deg) var(--z3, 0deg),
+        var(--exec-purple) var(--z3, 0deg) 360deg
+      );
+      position: relative;
+      margin: 0 auto;
+    }
+
+    .exec-donut::before {
+      content: '';
+      position: absolute;
+      inset: 28px;
+      border-radius: 50%;
+      background: #0d1b2d;
+      border: 1px solid rgba(148, 180, 226, 0.25);
+    }
+
+    .exec-donut-center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      z-index: 1;
+      font-weight: 700;
+      font-size: 27px;
+    }
+
+    .exec-donut-center small {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #8ca5cb;
+      margin-top: -2px;
+    }
+
+    .exec-map {
+      border-radius: 12px;
+      border: 1px solid rgba(148, 180, 226, 0.24);
+      background:
+        radial-gradient(circle at 30% 10%, rgba(66, 122, 198, 0.16), transparent 40%),
+        radial-gradient(circle at 70% 80%, rgba(103, 154, 221, 0.12), transparent 45%),
+        linear-gradient(150deg, #101f33, #0c1a2b);
+      min-height: 206px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .exec-map::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(132, 161, 205, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(132, 161, 205, 0.08) 1px, transparent 1px);
+      background-size: 20px 20px;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .exec-map-point {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 2px rgba(9, 20, 33, 0.9), 0 0 10px rgba(121, 177, 255, 0.6);
+    }
+
+    .exec-summary-card {
+      overflow-x: auto;
+    }
+
+    .exec-summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      min-width: 740px;
+    }
+
+    .exec-summary-table th,
+    .exec-summary-table td {
+      border: 1px solid rgba(137, 164, 206, 0.25);
+      padding: 8px 8px;
+      text-align: center;
+    }
+
+    .exec-summary-table th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.45px;
+      background: rgba(13, 27, 45, 0.9);
+      color: #c9daf8;
+      font-weight: 700;
+    }
+
+    .exec-summary-table td:first-child,
+    .exec-summary-table th:first-child {
+      text-align: left;
+      font-weight: 700;
+      color: #dce9ff;
+    }
+
+    .exec-progress-cell {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .exec-progress-track {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(137, 164, 206, 0.28);
+      overflow: hidden;
+    }
+
+    .exec-progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--bar-color, var(--exec-blue));
+      min-width: 3%;
+    }
+
+    @media (max-width: 1250px) {
+      .exec-top-metrics {
+        min-width: 0;
+        grid-template-columns: repeat(2, minmax(90px, 1fr));
+      }
+
+      .exec-kpi-grid {
+        grid-template-columns: repeat(2, minmax(170px, 1fr));
+      }
+
+      .exec-layout-main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .exec-header {
+        grid-template-columns: 1fr;
+      }
+
+      .exec-title {
+        font-size: 22px;
+      }
+
+      .exec-kpi-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .exec-donut-wrap {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1261,6 +1668,97 @@
             <div class="card stat-card">
               <h3 id="stat-profit">0 FCFA</h3>
               <p>Profit</p>
+            </div>
+          </div>
+
+          <div id="executive-dashboard" class="executive-dashboard" style="display:none;">
+            <button type="button" class="exec-fullscreen-toggle" id="exec-toggle-fullscreen" title="Mode plein ecran">Plein ecran</button>
+            <div class="exec-header">
+              <div>
+                <div class="exec-subtitle">Tableau de bord executif</div>
+                <div class="exec-title">Pilotage operationnel des chantiers</div>
+              </div>
+              <div class="exec-top-metrics">
+                <div class="exec-mini">
+                  <strong id="exec-metric-sites-total">0</strong>
+                  <span>Total sites</span>
+                </div>
+                <div class="exec-mini">
+                  <strong id="exec-metric-started">0</strong>
+                  <span>Demarres</span>
+                </div>
+                <div class="exec-mini">
+                  <strong id="exec-metric-delay">0</strong>
+                  <span>En retard</span>
+                </div>
+                <div class="exec-mini">
+                  <strong id="exec-metric-progress">0%</strong>
+                  <span>Avancement moy</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="exec-kpi-grid">
+              <div class="exec-card">
+                <h3>Progression globale</h3>
+                <div id="exec-progress-ring" class="exec-progress-ring" style="--ring-deg:0deg;"><span>0%</span></div>
+                <div style="text-align:center; margin-top:6px; color:#a5b7d4; font-size:12px;" id="exec-progress-caption">0 chantier termine</div>
+              </div>
+
+              <div class="exec-card">
+                <h3>Etat des chantiers</h3>
+                <ul class="exec-list" id="exec-status-list"></ul>
+              </div>
+
+              <div class="exec-card">
+                <h3>Budget des travaux (FCFA)</h3>
+                <ul class="exec-list" id="exec-budget-list"></ul>
+              </div>
+
+              <div class="exec-card">
+                <h3>Niveau de risque</h3>
+                <ul class="exec-list" id="exec-risk-list"></ul>
+              </div>
+            </div>
+
+            <div class="exec-layout-main">
+              <div class="exec-card">
+                <h3>Avancement par zone</h3>
+                <div class="exec-zone-bars" id="exec-zone-bars"></div>
+              </div>
+
+              <div class="exec-card">
+                <h3>Distribution par zone</h3>
+                <div class="exec-donut-wrap">
+                  <div id="exec-zone-donut" class="exec-donut" style="--z1:0deg; --z2:0deg; --z3:0deg;">
+                    <div class="exec-donut-center"><span id="exec-donut-total">0</span><small>Sites</small></div>
+                  </div>
+                  <ul class="exec-list" id="exec-zone-legend"></ul>
+                </div>
+              </div>
+
+              <div class="exec-card">
+                <h3>Localisation des sites</h3>
+                <div class="exec-map" id="exec-map-points"></div>
+              </div>
+            </div>
+
+            <div class="exec-card exec-summary-card">
+              <h3>Performance par zone</h3>
+              <table class="exec-summary-table">
+                <thead>
+                  <tr>
+                    <th>Zone</th>
+                    <th>Chantiers</th>
+                    <th>Lances</th>
+                    <th>Retard</th>
+                    <th>Avancement</th>
+                    <th>Etapes</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody id="exec-zone-table-body"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -2945,6 +3443,10 @@
 
     function isAdmin() {
       return currentUserRole === 'admin';
+    }
+
+    function isExecutive() {
+      return currentUserRole === 'dirigeant';
     }
 
     function isGestStock() {
@@ -8485,6 +8987,328 @@
       }
     }
 
+    function formatExecutiveAmount(value) {
+      const amount = Number(value) || 0;
+      const absolute = Math.abs(amount);
+      if (absolute >= 1_000_000_000) {
+        return `${(amount / 1_000_000_000).toFixed(2)} Md`;
+      }
+      if (absolute >= 1_000_000) {
+        return `${(amount / 1_000_000).toFixed(2)} M`;
+      }
+      if (absolute >= 1_000) {
+        return `${(amount / 1_000).toFixed(1)} k`;
+      }
+      return amount.toFixed(0);
+    }
+
+    function getPurchaseOrderStage(order) {
+      return String(
+        order?.etapeApprovisionnement
+        || order?.stage
+        || order?.etape
+        || order?.stageName
+        || ''
+      ).trim();
+    }
+
+    function getPurchaseOrderProjectId(order) {
+      const candidates = [order?.projetId, order?.projectId, order?.siteId, order?.site_id];
+      for (const candidate of candidates) {
+        const parsed = Number(candidate);
+        if (Number.isInteger(parsed) && parsed > 0) {
+          return parsed;
+        }
+      }
+      return null;
+    }
+
+    function resolveExecutiveZoneStatus(zoneSummary) {
+      const delayedRatio = zoneSummary.sitesCount ? zoneSummary.delayedCount / zoneSummary.sitesCount : 0;
+      if (delayedRatio >= 0.5) return 'Critique';
+      if (delayedRatio >= 0.25) return 'A surveiller';
+      if (zoneSummary.avgProgress >= 95) return 'Stable';
+      return 'En progression';
+    }
+
+    function buildExecutiveDashboardData(projects, orders, projectCatalog, expenses, revenues) {
+      const projectList = Array.isArray(projects) ? projects : [];
+      const orderList = Array.isArray(orders) ? orders : [];
+      const catalogList = Array.isArray(projectCatalog) ? projectCatalog : [];
+
+      const stagesByProject = new Map();
+      catalogList.forEach(entry => {
+        const projectKey = normalizeText(entry?.projectName || entry?.nomProjet || entry?.project || entry?.dossier || '');
+        if (!projectKey) return;
+        const stage = normalizeStageKey(getCatalogEntryStage(entry));
+        if (!stage) return;
+        if (!stagesByProject.has(projectKey)) {
+          stagesByProject.set(projectKey, new Set());
+        }
+        stagesByProject.get(projectKey).add(stage);
+      });
+
+      const ordersByProjectId = new Map();
+      orderList.forEach(order => {
+        const projectId = getPurchaseOrderProjectId(order);
+        if (!projectId) return;
+        if (!ordersByProjectId.has(projectId)) {
+          ordersByProjectId.set(projectId, []);
+        }
+        ordersByProjectId.get(projectId).push(order);
+      });
+
+      const siteMetrics = projectList.map(site => {
+        const projectName = String(site?.nomProjet || '').trim();
+        const siteOrders = ordersByProjectId.get(Number(site.id)) || [];
+        const validOrders = siteOrders.filter(order => {
+          const hasDate = String(order?.dateCommande || '').trim().length > 0;
+          const hasAmount = Number(order?.montantTotal || 0) > 0;
+          return hasDate && hasAmount;
+        });
+
+        const completedStageKeys = new Set(
+          validOrders
+            .map(order => normalizeStageKey(getPurchaseOrderStage(order)))
+            .filter(Boolean)
+        );
+
+        const expectedStages = stagesByProject.get(normalizeText(projectName)) || new Set();
+        const expectedCount = expectedStages.size;
+        const completedCount = expectedCount
+          ? Array.from(completedStageKeys).filter(stage => expectedStages.has(stage)).length
+          : completedStageKeys.size;
+
+        const started = validOrders.length > 0 && completedStageKeys.size > 0;
+        const rawProgress = expectedCount
+          ? (completedCount / expectedCount) * 100
+          : (started ? Math.max(25, completedCount * 25) : 0);
+        const progress = Math.max(0, Math.min(100, Math.round(rawProgress)));
+
+        const status = !started
+          ? 'EN_RETARD'
+          : (progress >= 100 ? 'TERMINE' : 'EN_COURS');
+
+        return {
+          id: Number(site.id),
+          zone: getProjectZoneDisplayName(site),
+          siteLabel: getProjectSiteLabel(site),
+          projectName,
+          status,
+          started,
+          progress,
+          completedCount,
+          expectedCount,
+        };
+      });
+
+      const totalSites = siteMetrics.length;
+      const startedCount = siteMetrics.filter(site => site.started).length;
+      const delayedCount = siteMetrics.filter(site => site.status === 'EN_RETARD').length;
+      const doneCount = siteMetrics.filter(site => site.status === 'TERMINE').length;
+      const inProgressCount = siteMetrics.filter(site => site.status === 'EN_COURS').length;
+      const averageProgress = totalSites
+        ? Math.round(siteMetrics.reduce((sum, item) => sum + item.progress, 0) / totalSites)
+        : 0;
+
+      const zoneSummaries = new Map();
+      siteMetrics.forEach(site => {
+        const key = String(site.zone || 'Non renseigne').trim() || 'Non renseigne';
+        if (!zoneSummaries.has(key)) {
+          zoneSummaries.set(key, {
+            zone: key,
+            sitesCount: 0,
+            startedCount: 0,
+            delayedCount: 0,
+            progressSum: 0,
+            completedStages: 0,
+            expectedStages: 0,
+          });
+        }
+
+        const summary = zoneSummaries.get(key);
+        summary.sitesCount += 1;
+        summary.startedCount += site.started ? 1 : 0;
+        summary.delayedCount += site.status === 'EN_RETARD' ? 1 : 0;
+        summary.progressSum += site.progress;
+        summary.completedStages += site.completedCount;
+        summary.expectedStages += site.expectedCount;
+      });
+
+      const zones = Array.from(zoneSummaries.values())
+        .map(zone => {
+          const avgProgress = zone.sitesCount ? Math.round(zone.progressSum / zone.sitesCount) : 0;
+          return {
+            ...zone,
+            avgProgress,
+            statusLabel: resolveExecutiveZoneStatus({ ...zone, avgProgress }),
+          };
+        })
+        .sort((a, b) => b.sitesCount - a.sitesCount || b.avgProgress - a.avgProgress);
+
+      const totalExpenses = (Array.isArray(expenses) ? expenses : [])
+        .reduce((sum, item) => sum + (Number(item?.montantTotal || item?.totalPrice) || 0), 0);
+      const totalRevenues = (Array.isArray(revenues) ? revenues : [])
+        .reduce((sum, item) => sum + (Number(item?.amount) || 0), 0);
+      const budgetTotal = totalRevenues > 0 ? totalRevenues : totalExpenses;
+      const budgetRemaining = budgetTotal - totalExpenses;
+
+      const highRisk = delayedCount;
+      const mediumRisk = siteMetrics.filter(site => site.status === 'EN_COURS' && site.progress < 50).length;
+      const lowRisk = Math.max(0, totalSites - highRisk - mediumRisk);
+
+      return {
+        totalSites,
+        startedCount,
+        delayedCount,
+        doneCount,
+        inProgressCount,
+        averageProgress,
+        zones,
+        budget: {
+          total: budgetTotal,
+          spent: totalExpenses,
+          remaining: budgetRemaining,
+        },
+        risk: {
+          high: highRisk,
+          medium: mediumRisk,
+          low: lowRisk,
+          total: highRisk + mediumRisk + lowRisk,
+        },
+        siteMetrics,
+      };
+    }
+
+    function toggleExecutiveDashboardFullscreen() {
+      const container = document.getElementById('executive-dashboard');
+      if (!container) return;
+
+      const isFullscreen = container.classList.contains('fullscreen');
+
+      if (isFullscreen) {
+        container.classList.remove('fullscreen');
+        document.body.style.overflow = '';
+      } else {
+        container.classList.add('fullscreen');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function renderExecutiveDashboard(data) {
+      const executiveContainer = document.getElementById('executive-dashboard');
+      if (!executiveContainer) return;
+
+      document.getElementById('exec-metric-sites-total').textContent = String(data.totalSites);
+      document.getElementById('exec-metric-started').textContent = String(data.startedCount);
+      document.getElementById('exec-metric-delay').textContent = String(data.delayedCount);
+      document.getElementById('exec-metric-progress').textContent = `${data.averageProgress}%`;
+
+      const ring = document.getElementById('exec-progress-ring');
+      ring.style.setProperty('--ring-deg', `${Math.round((Math.max(0, Math.min(100, data.averageProgress)) / 100) * 360)}deg`);
+      ring.innerHTML = `<span>${data.averageProgress}%</span>`;
+
+      document.getElementById('exec-progress-caption').textContent = `${data.doneCount} chantier${data.doneCount !== 1 ? 's' : ''} termine${data.doneCount !== 1 ? 's' : ''} / ${data.totalSites}`;
+
+      document.getElementById('exec-status-list').innerHTML = [
+        { label: 'Termines', value: data.doneCount, color: '#6ec756' },
+        { label: 'En cours', value: data.inProgressCount, color: '#4ba3ff' },
+        { label: 'En retard', value: data.delayedCount, color: '#ff6b6b' },
+        { label: 'A lancer', value: Math.max(0, data.totalSites - data.startedCount), color: '#f4a327' },
+      ].map(item => `<li><span><span class="exec-dot" style="background:${item.color};"></span>${item.label}</span><strong>${item.value}</strong></li>`).join('');
+
+      document.getElementById('exec-budget-list').innerHTML = [
+        { label: 'Budget alloue', value: `${formatExecutiveAmount(data.budget.total)} FCFA`, color: '#6ec756' },
+        { label: 'Depense', value: `${formatExecutiveAmount(data.budget.spent)} FCFA`, color: '#f4a327' },
+        { label: 'Disponible', value: `${formatExecutiveAmount(data.budget.remaining)} FCFA`, color: '#4ba3ff' },
+      ].map(item => `<li><span><span class="exec-dot" style="background:${item.color};"></span>${item.label}</span><strong>${item.value}</strong></li>`).join('');
+
+      document.getElementById('exec-risk-list').innerHTML = [
+        { label: 'Critique', value: data.risk.high, color: '#ff6b6b' },
+        { label: 'Moyen', value: data.risk.medium, color: '#f4a327' },
+        { label: 'Faible', value: data.risk.low, color: '#6ec756' },
+        { label: 'Total actif', value: data.risk.total, color: '#4ba3ff' },
+      ].map(item => `<li><span><span class="exec-dot" style="background:${item.color};"></span>${item.label}</span><strong>${item.value}</strong></li>`).join('');
+
+      const zoneColors = ['#4ba3ff', '#6ec756', '#f4a327', '#8d5fd3'];
+      const topZones = data.zones.slice(0, 4);
+
+      const zoneBars = document.getElementById('exec-zone-bars');
+      zoneBars.innerHTML = topZones.length
+        ? topZones.map((zone, index) => `
+            <div class="exec-zone-bar-item">
+              <strong>${zone.avgProgress}%</strong>
+              <div class="exec-zone-bar-track">
+                <div class="exec-zone-bar-fill" style="height:${Math.max(2, zone.avgProgress)}%; --bar-color:${zoneColors[index % zoneColors.length]};"></div>
+              </div>
+              <span>${escapeHtml(zone.zone)}</span>
+            </div>
+          `).join('')
+        : '<p style="font-size:12px; color:#9db2d5;">Aucune zone disponible.</p>';
+
+      const donut = document.getElementById('exec-zone-donut');
+      const donutTotalSites = topZones.reduce((sum, zone) => sum + zone.sitesCount, 0);
+      let cumulative = 0;
+      const degrees = topZones.map(zone => {
+        cumulative += donutTotalSites ? (zone.sitesCount / donutTotalSites) * 360 : 0;
+        return `${Math.round(cumulative)}deg`;
+      });
+      donut.style.setProperty('--z1', degrees[0] || '0deg');
+      donut.style.setProperty('--z2', degrees[1] || degrees[0] || '0deg');
+      donut.style.setProperty('--z3', degrees[2] || degrees[1] || degrees[0] || '0deg');
+      document.getElementById('exec-donut-total').textContent = String(data.totalSites);
+
+      document.getElementById('exec-zone-legend').innerHTML = topZones.map((zone, index) =>
+        `<li><span><span class="exec-dot" style="background:${zoneColors[index % zoneColors.length]};"></span>${escapeHtml(zone.zone)}</span><strong>${zone.sitesCount}</strong></li>`
+      ).join('');
+
+      const mapContainer = document.getElementById('exec-map-points');
+      const points = data.siteMetrics.slice(0, 80).map((site, index) => {
+        const key = `${site.id}-${site.zone}-${index}`;
+        let hash = 0;
+        for (let i = 0; i < key.length; i += 1) {
+          hash = ((hash << 5) - hash) + key.charCodeAt(i);
+          hash |= 0;
+        }
+        const x = 8 + (Math.abs(hash) % 85);
+        const y = 10 + (Math.abs(Math.floor(hash / 97)) % 80);
+        const color = site.status === 'EN_RETARD'
+          ? '#ff6b6b'
+          : (site.progress >= 100 ? '#6ec756' : '#4ba3ff');
+        return `<span class="exec-map-point" style="left:${x}%; top:${y}%; background:${color};" title="${escapeHtml(site.siteLabel)} - ${site.progress}%"></span>`;
+      });
+      mapContainer.innerHTML = points.join('') || '<div style="padding:12px; color:#9db2d5; font-size:12px;">Aucune donnee geographique.</div>';
+
+      const zoneTableBody = document.getElementById('exec-zone-table-body');
+      zoneTableBody.innerHTML = data.zones.length
+        ? data.zones.map(zone => {
+          const progressColor = zone.avgProgress >= 75 ? '#6ec756' : (zone.avgProgress >= 45 ? '#f4a327' : '#ff6b6b');
+          return `
+            <tr>
+              <td>${escapeHtml(zone.zone)}</td>
+              <td>${zone.sitesCount}</td>
+              <td>${zone.startedCount}</td>
+              <td>${zone.delayedCount}</td>
+              <td>
+                <div class="exec-progress-cell">
+                  <span>${zone.avgProgress}%</span>
+                  <div class="exec-progress-track"><div class="exec-progress-fill" style="width:${Math.max(3, zone.avgProgress)}%; --bar-color:${progressColor};"></div></div>
+                </div>
+              </td>
+              <td>${zone.completedStages}/${zone.expectedStages || '-'}</td>
+              <td>${zone.statusLabel}</td>
+            </tr>
+          `;
+        }).join('')
+        : '<tr><td colspan="7">Aucune donnee disponible</td></tr>';
+
+      const toggle = document.getElementById('exec-toggle-fullscreen');
+      if (toggle && !toggle.hasEventListener) {
+        toggle.addEventListener('click', toggleExecutiveDashboardFullscreen);
+        toggle.hasEventListener = true;
+      }
+    }
+
     async function loadDashboard() {
       try {
         const projectCatalog = await fetchJson('/api/project-catalog').catch(() => []);
@@ -8524,6 +9348,27 @@
         document.getElementById('stat-expenses').textContent = `${totalExpenses.toFixed(2)} FCFA`;
         document.getElementById('stat-revenues').textContent = `${totalRevenues.toFixed(2)} FCFA`;
         document.getElementById('stat-profit').textContent = `${(totalRevenues - totalExpenses).toFixed(2)} FCFA`;
+
+        const classicGrid = document.querySelector('#dashboard .dashboard-grid');
+        const executiveContainer = document.getElementById('executive-dashboard');
+        if (isExecutive()) {
+          if (classicGrid) {
+            classicGrid.style.display = 'none';
+          }
+          if (executiveContainer) {
+            executiveContainer.style.display = 'grid';
+            const executiveData = buildExecutiveDashboardData(projects, orders, projectCatalog, expenses, revenues);
+            renderExecutiveDashboard(executiveData);
+          }
+        } else {
+          if (classicGrid) {
+            classicGrid.style.display = '';
+          }
+          if (executiveContainer) {
+            executiveContainer.style.display = 'none';
+            executiveContainer.classList.remove('fullscreen');
+          }
+        }
       } catch (err) {
         console.error('Erreur dashboard:', err);
       }
