@@ -31,10 +31,6 @@ const COMMIS_STOCK_USERNAME = process.env.COMMIS_STOCK_USERNAME || 'commis_stock
 const COMMIS_STOCK_PASSWORD = process.env.COMMIS_STOCK_PASSWORD || 'stock123';
 const GEST_STOCK_USERNAME = process.env.GEST_STOCK_USERNAME || 'gestionnaire_stock';
 const GEST_STOCK_PASSWORD = process.env.GEST_STOCK_PASSWORD || 'geststock123';
-const EXECUTIVE_USERNAME = process.env.EXECUTIVE_USERNAME || 'dirigeant';
-const EXECUTIVE_PASSWORD = process.env.EXECUTIVE_PASSWORD || 'dirigeant123';
-const ACHAT_USERNAME = process.env.ACHAT_USERNAME || 'achat';
-const ACHAT_PASSWORD = process.env.ACHAT_PASSWORD || 'achat123';
 const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS || 60_000);
 const API_RATE_MAX = Number(process.env.API_RATE_MAX || 600);
 const AUTH_RATE_WINDOW_MS = Number(process.env.AUTH_RATE_WINDOW_MS || 15 * 60_000);
@@ -240,6 +236,20 @@ app.get('/readyz', async (_req, res) => {
     res.status(503).json({ status: 'not-ready', error: 'database-unreachable' });
   }
 });
+
+// APK Download Route
+app.get('/download-apk', (req, res) => {
+  const filePath = path.join(__dirname, 'downloads', 'app-release.apk');
+  res.download(filePath, 'RyanERP.apk', (err) => {
+    if (err) {
+      console.error('APK download error:', err);
+      res.status(404).json({ error: 'APK not found' });
+    }
+  });
+});
+
+// Static downloads folder
+app.use('/downloads', express.static(path.join(__dirname, 'downloads')));
 
 async function insertExpenseRecord({
   materialId = null,
@@ -2251,43 +2261,8 @@ async function initDb() {
     console.log('Utilisateur admin créé avec mot de passe admin123');
   }
 
-  const executive = await get('SELECT id FROM users WHERE username = ?', [EXECUTIVE_USERNAME]);
-  const executiveHashedPassword = await bcrypt.hash(EXECUTIVE_PASSWORD, 10);
-  if (!executive) {
-    const nextUserId = await getNextUserId();
-    await run(
-      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
-      [nextUserId, EXECUTIVE_USERNAME, executiveHashedPassword, 'dirigeant', new Date().toISOString()]
-    );
-    console.log(`Utilisateur ${EXECUTIVE_USERNAME} cree avec role dirigeant`);
-  } else {
-    await run(
-      'UPDATE users SET password = ?, role = ? WHERE username = ?',
-      [executiveHashedPassword, 'dirigeant', EXECUTIVE_USERNAME]
-    );
-    console.log(`Utilisateur ${EXECUTIVE_USERNAME} mis a jour avec role dirigeant`);
-  }
-
   // Garantir un compte commis_stock toujours opérationnel (local + Railway)
   const commis = await get('SELECT id FROM users WHERE username = ?', [COMMIS_STOCK_USERNAME]);
-
-  // Garantir le compte achat toujours opérationnel (local + Railway)
-  const achatUser = await get('SELECT id FROM users WHERE username = ?', [ACHAT_USERNAME]);
-  const achatHashedPassword = await bcrypt.hash(ACHAT_PASSWORD, 10);
-  if (!achatUser) {
-    const nextUserId = await getNextUserId();
-    await run(
-      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
-      [nextUserId, ACHAT_USERNAME, achatHashedPassword, 'achat', new Date().toISOString()]
-    );
-    console.log(`Utilisateur ${ACHAT_USERNAME} cree avec role achat`);
-  } else {
-    await run(
-      'UPDATE users SET password = ?, role = ? WHERE username = ?',
-      [achatHashedPassword, 'achat', ACHAT_USERNAME]
-    );
-    console.log(`Utilisateur ${ACHAT_USERNAME} mis a jour avec role achat`);
-  }
   const commisHashedPassword = await bcrypt.hash(COMMIS_STOCK_PASSWORD, 10);
   if (!commis) {
     const nextUserId = await getNextUserId();
@@ -2425,7 +2400,7 @@ function authenticateToken(req, res, next) {
 
 function authorizeRoleAccess(req, res, next) {
   const role = req.user && req.user.role;
-  if (role !== 'commis' && role !== 'gestionnaire_stock' && role !== 'chef_chantier_site' && role !== 'dirigeant' && role !== 'achat') {
+  if (role !== 'commis' && role !== 'gestionnaire_stock' && role !== 'chef_chantier_site') {
     return next();
   }
 
@@ -2483,70 +2458,11 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET',  pattern: /^\/database-documents\/\d+\/download$/ },
   ];
 
-  const executiveRules = [
-    { method: 'GET', pattern: /^\/auth\/me$/ },
-    { method: 'GET', pattern: /^\/projects$/ },
-    { method: 'GET', pattern: /^\/project-assignments$/ },
-    { method: 'GET', pattern: /^\/project-progress$/ },
-    { method: 'GET', pattern: /^\/project-folders$/ },
-    { method: 'GET', pattern: /^\/project-catalog$/ },
-    { method: 'GET', pattern: /^\/material-catalog$/ },
-    { method: 'GET', pattern: /^\/material-requests$/ },
-    { method: 'GET', pattern: /^\/purchase-orders$/ },
-    { method: 'GET', pattern: /^\/stock-management\/available$/ },
-    { method: 'GET', pattern: /^\/stock-management\/issues$/ },
-    { method: 'GET', pattern: /^\/stock-management\/orders$/ },
-    { method: 'GET', pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'GET', pattern: /^\/expenses$/ },
-    { method: 'GET', pattern: /^\/revenues$/ },
-    { method: 'GET', pattern: /^\/vehicles$/ },
-    { method: 'GET', pattern: /^\/vehicles\/\d+\/locations$/ },
-    { method: 'GET', pattern: /^\/vehicles\/\d+$/ },
-    { method: 'GET', pattern: /^\/auto-vehicle-locations$/ },
-    { method: 'GET', pattern: /^\/auto-transport-costs$/ },
-  ];
-
-  const achatRules = [
-    { method: 'GET',    pattern: /^\/auth\/me$/ },
-    { method: 'GET',    pattern: /^\/projects$/ },
-    { method: 'GET',    pattern: /^\/material-catalog$/ },
-    { method: 'GET',    pattern: /^\/material-requests$/ },
-    // Bons de commande – accès complet
-    { method: 'GET',    pattern: /^\/purchase-orders$/ },
-    { method: 'POST',   pattern: /^\/purchase-orders$/ },
-    { method: 'PATCH',  pattern: /^\/purchase-orders\/\d+\/validation$/ },
-    { method: 'PATCH',  pattern: /^\/purchase-orders\/\d+$/ },
-    { method: 'DELETE', pattern: /^\/purchase-orders\/\d+$/ },
-    { method: 'GET',    pattern: /^\/purchase-orders\/\d+\/pdf$/ },
-    { method: 'GET',    pattern: /^\/purchase-orders\/\d+\/authorization-documents$/ },
-    // Inventaire (toutes zones)
-    { method: 'GET',    pattern: /^\/stock-management\/available$/ },
-    { method: 'GET',    pattern: /^\/stock-management\/issues$/ },
-    { method: 'GET',    pattern: /^\/stock-management\/orders$/ },
-    // Autorisations de sortie – créer, valider/rejeter, PDF
-    { method: 'GET',    pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'POST',   pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'PATCH',  pattern: /^\/stock-issue-authorizations\/\d+\/decision$/ },
-    { method: 'GET',    pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
-    // Base de données – accès complet + téléchargements
-    { method: 'GET',    pattern: /^\/database-documents$/ },
-    { method: 'GET',    pattern: /^\/database-documents\/\d+\/download$/ },
-    { method: 'POST',   pattern: /^\/database-documents\/upload$/ },
-    { method: 'DELETE', pattern: /^\/database-documents\/\d+$/ },
-    // Corbeille – suppression d'éléments
-    { method: 'DELETE', pattern: /^\/material-requests\/\d+$/ },
-    { method: 'GET',    pattern: /^\/transfer-authorizations$/ },
-  ];
-
   const rules = role === 'gestionnaire_stock'
     ? gestStockRules
     : role === 'chef_chantier_site'
       ? siteChiefRules
-      : role === 'dirigeant'
-        ? executiveRules
-      : role === 'achat'
-        ? achatRules
-        : commisRules;
+      : commisRules;
   const isAllowed = rules.some(rule => rule.method === method && rule.pattern.test(pathName));
   if (isAllowed) {
     return next();

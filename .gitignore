@@ -2,6 +2,7 @@ node_modules/
 .env
 .env.*
 !.env.cloud.example
+downloads/
 
 # Local runtime data
 *.db
