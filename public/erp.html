@@ -1038,6 +1038,192 @@
         max-height: 90vh;
         overflow-y: auto;
       }
+
+      .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .modal-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .page-header {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+    }
+
+    /* === TÉLÉPHONE (≤ 480px) === */
+    @media (max-width: 480px) {
+      .topbar {
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      .topbar-left h2 {
+        font-size: 15px;
+      }
+
+      .topbar-left p {
+        display: none;
+      }
+
+      .user-info {
+        display: none;
+      }
+
+      .content-area {
+        padding: 8px;
+      }
+
+      .page-header {
+        margin-bottom: 12px;
+      }
+
+      .page-header h1 {
+        font-size: 19px;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .card {
+        padding: 13px;
+      }
+
+      .stat-card h3 {
+        font-size: 12px;
+      }
+
+      .stat-card p {
+        font-size: 20px;
+      }
+
+      .table th,
+      .table td {
+        font-size: 11px;
+        padding: 6px 5px;
+        white-space: nowrap;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .tabs-container {
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .tab-button {
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+
+      /* Modals en feuille du bas sur téléphone */
+      .modal-overlay {
+        padding: 4px;
+        align-items: flex-end;
+      }
+
+      .modal-card {
+        border-radius: 16px 16px 0 0;
+        padding: 18px 14px 22px;
+        max-height: 94vh;
+        max-width: 100%;
+        width: 100%;
+      }
+
+      .modal-actions {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+
+      .modal-actions .button,
+      .modal-actions button {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+      }
+
+      .button {
+        padding: 10px 14px;
+        font-size: 12px;
+        min-height: 42px;
+        touch-action: manipulation;
+      }
+
+      /* Prevent iOS auto-zoom on inputs */
+      .form-group input,
+      .form-group select,
+      .form-group textarea,
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      input[type="password"],
+      input[type="date"],
+      select,
+      textarea {
+        font-size: 16px !important;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .po-item-row {
+        gap: 5px;
+      }
+
+      .page-breadcrumb {
+        font-size: 11px;
+      }
+
+      /* Notification icon compact */
+      .notification-icon {
+        padding: 6px;
+      }
+
+      /* Executive dashboard téléphone */
+      .exec-top-metrics {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px;
+      }
+
+      .exec-kpi-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .exec-title {
+        font-size: 18px !important;
+      }
+
+      .exec-donut-wrap {
+        grid-template-columns: 1fr !important;
+      }
+
+      .exec-layout-main {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+      }
+
+      .exec-header {
+        gap: 10px;
+      }
+
+      /* Améliore le touch sur les items de menu sidebar */
+      .menu-item {
+        padding: 13px 16px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+      }
     }
 
     .tabs-container {
