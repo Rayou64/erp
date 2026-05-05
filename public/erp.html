@@ -1065,6 +1065,14 @@
 
     /* === TÉLÉPHONE (≤ 480px) === */
     @media (max-width: 480px) {
+      :root {
+        --mobile-focus-ring: #1d4ed8;
+        --mobile-surface: #ffffff;
+        --mobile-surface-soft: #f8fbff;
+        --mobile-text: #0f172a;
+        --mobile-text-muted: #475569;
+      }
+
       .topbar {
         position: sticky;
         top: 0;
@@ -1091,6 +1099,7 @@
         font-size: 16px;
         font-weight: 800;
         letter-spacing: 0.1px;
+        color: var(--mobile-text);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1114,8 +1123,20 @@
         padding: 0 10px;
         font-size: 11px;
         font-weight: 700;
+        border: 1px solid #d6e1ff;
+        background: var(--mobile-surface);
+        color: #0f172a;
         text-transform: none;
         letter-spacing: 0;
+      }
+
+      #logout-button:focus-visible,
+      .hamburger-btn:focus-visible,
+      .mobile-home-btn:focus-visible,
+      .menu-item:focus-visible,
+      .button:focus-visible {
+        outline: 3px solid var(--mobile-focus-ring);
+        outline-offset: 2px;
       }
 
       .hamburger-btn,
@@ -1130,7 +1151,10 @@
       }
 
       .content-area {
-        padding: 8px;
+        padding: 10px 10px 14px;
+        background:
+          radial-gradient(140% 90% at 50% -10%, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0) 60%),
+          #f8fafc;
       }
 
       .page-header {
@@ -1149,6 +1173,9 @@
 
       .card {
         padding: 13px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        background: var(--mobile-surface);
       }
 
       .stat-card h3 {
@@ -1275,7 +1302,7 @@
       /* Améliore le touch sur les items de menu sidebar */
       .menu-item {
         padding: 13px 16px;
-        min-height: 44px;
+        min-height: 46px;
         display: flex;
         align-items: center;
       }
@@ -1310,8 +1337,15 @@
       }
 
       .mobile-home-header {
-        padding: 8px 2px 14px;
+        padding: 10px 4px 14px;
         margin: 0;
+        background: linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.62) 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        backdrop-filter: blur(4px);
+        padding-left: 12px;
+        padding-right: 12px;
+        margin-bottom: 10px;
       }
 
       .mobile-home-title {
@@ -1324,14 +1358,14 @@
       .mobile-home-subtitle {
         margin-top: 4px;
         font-size: 13px;
-        color: #475569;
+        color: var(--mobile-text-muted);
       }
 
       .mobile-module-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
-        padding: 4px 0 8px;
+        padding: 2px 0 8px;
       }
 
       .mobile-module-card {
@@ -1346,9 +1380,10 @@
         transition: transform 0.16s, box-shadow 0.16s, opacity 0.16s, filter 0.16s;
         text-align: center;
         -webkit-tap-highlight-color: transparent;
-        min-height: 102px;
+        min-height: 112px;
         box-shadow: 0 10px 22px rgba(15, 23, 42, 0.2);
         border: 1px solid rgba(255, 255, 255, 0.25);
+        animation: mobileCardIn 0.28s ease both;
       }
 
       .mobile-module-card:focus-visible {
@@ -1363,19 +1398,44 @@
       }
 
       .mobile-module-icon {
-        font-size: 30px;
+        font-size: 32px;
         line-height: 1;
         margin-bottom: 8px;
       }
 
       .mobile-module-label {
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 800;
         color: white;
         line-height: 1.2;
         text-shadow: 0 1px 3px rgba(0,0,0,0.25);
         word-break: break-word;
         hyphens: auto;
+      }
+
+      .mobile-module-card:nth-child(1) { animation-delay: 0ms; }
+      .mobile-module-card:nth-child(2) { animation-delay: 40ms; }
+      .mobile-module-card:nth-child(3) { animation-delay: 80ms; }
+      .mobile-module-card:nth-child(4) { animation-delay: 120ms; }
+      .mobile-module-card:nth-child(5) { animation-delay: 160ms; }
+      .mobile-module-card:nth-child(6) { animation-delay: 200ms; }
+
+      @keyframes mobileCardIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .mobile-module-card {
+          animation: none;
+          transition: none;
+        }
       }
     }
 
@@ -3668,6 +3728,19 @@
     // Bootstrap token from URL hash (Capacitor mobile redirect cross-origin)
     (function () {
       try {
+        const mobileUiRev = 'm250505';
+        const isLikelyMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+        if (isLikelyMobile) {
+          const params = new URLSearchParams(location.search);
+          if (!params.get('revui')) {
+            params.set('revui', mobileUiRev);
+            const query = params.toString();
+            const nextUrl = `${location.pathname}${query ? `?${query}` : ''}${location.hash || ''}`;
+            location.replace(nextUrl);
+            return;
+          }
+        }
+
         const queryToken = new URLSearchParams(location.search).get('mobileAuth');
         const hashMatch = location.hash.match(/[#&]auth=([^&]+)/);
         const rawToken = queryToken || (hashMatch ? hashMatch[1] : '');
