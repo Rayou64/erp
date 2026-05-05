@@ -20,7 +20,9 @@ app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
+
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/mobile', express.static(path.join(__dirname, 'mobile', 'www')));
 
 const APP_DATA_DIR = process.env.APP_DATA_DIR || (process.env.RAILWAY_ENVIRONMENT ? '/data' : __dirname);
 const DB_FILE = process.env.DB_FILE || path.join(APP_DATA_DIR, 'data.db');
