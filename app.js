@@ -1582,6 +1582,38 @@ async function ensureMaterialRequestsForOrder(orderId, options = {}) {
   return createdRequestIds;
 }
 
+// ── Notification helpers ──────────────────────────────────────────────────────
+
+async function getChefUsernameForProject(projetId) {
+  if (!projetId) return null;
+  const project = await get('SELECT numeroMaison FROM projects WHERE id = ?', [Number(projetId)]);
+  if (!project) return null;
+  const siteNumber = String(Number(String(project.numeroMaison || '').match(/\d+/)?.[0] || 0) || '');
+  if (!siteNumber || siteNumber === '0') return null;
+  const chefs = await all("SELECT username FROM users WHERE role = 'chef_chantier_site'");
+  for (const chef of chefs) {
+    const m = chef.username.match(/site[_-]?0*(\d+)/i);
+    if (m && String(Number(m[1])) === siteNumber) return chef.username;
+  }
+  return null;
+}
+
+async function createNotification(username, type, title, body, data = {}) {
+  if (!username || !title) return;
+  try {
+    const nextIdRow = await get('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM notifications');
+    const nextId = Number(nextIdRow?.nextId || nextIdRow?.nextid || 1);
+    await run(
+      'INSERT INTO notifications (id, username, type, title, body, data, isRead, createdAt) VALUES (?, ?, ?, ?, ?, ?, 0, ?)',
+      [nextId, String(username), String(type), String(title), String(body), JSON.stringify(data || {}), new Date().toISOString()]
+    );
+  } catch (err) {
+    console.error('[notifications] createNotification error:', err.message);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function initDb() {
   await run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
@@ -2095,6 +2127,18 @@ async function initDb() {
     updatedAt TEXT NOT NULL,
     FOREIGN KEY(vehicleId) REFERENCES auto_vehicles(id) ON DELETE CASCADE
   )`);
+
+  await run(`CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    data TEXT NOT NULL DEFAULT '{}',
+    isRead INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT NOT NULL
+  )`);
+  try { await run('CREATE INDEX IF NOT EXISTS idx_notifications_username_read ON notifications(username, isRead, createdAt DESC)'); } catch (e) {}
 
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN vehicleId INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
   try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN deviceName TEXT NOT NULL DEFAULT 'smartphone'"); } catch (error) {}
@@ -2745,6 +2789,34 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   res.json({ username: req.user.username, role: req.user.role, scope: null });
 });
+
+// ── Notifications API ─────────────────────────────────────────────────────────
+
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+  const username = req.user.username;
+  const rows = await all(
+    'SELECT * FROM notifications WHERE username = ? ORDER BY createdAt DESC LIMIT 50',
+    [username]
+  );
+  res.json(rows.map(r => ({ ...r, data: (() => { try { return JSON.parse(r.data); } catch (e) { return {}; } })() })));
+});
+
+app.post('/api/notifications/read', authenticateToken, async (req, res) => {
+  const username = req.user.username;
+  const { ids } = req.body || {};
+  if (Array.isArray(ids) && ids.length) {
+    const placeholders = ids.map(() => '?').join(',');
+    await run(
+      `UPDATE notifications SET isRead = 1 WHERE username = ? AND id IN (${placeholders})`,
+      [username, ...ids.map(Number)]
+    );
+  } else {
+    await run('UPDATE notifications SET isRead = 1 WHERE username = ?', [username]);
+  }
+  res.json({ ok: true });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 app.post('/api/gps/ingest', async (req, res) => {
   const {
@@ -3992,6 +4064,28 @@ app.post('/api/purchase-orders', async (req, res) => {
   });
 
   const order = await getPurchaseOrderById(purchaseOrderId);
+
+  // Notify chef_chantier_site that their material request became a BC
+  try {
+    const notifProjetId = resolvedProjetId || resolvedSiteId;
+    if (notifProjetId) {
+      const chefUsername = await getChefUsernameForProject(notifProjetId);
+      if (chefUsername) {
+        const stage = resolvedEtape ? ` — Étape: ${resolvedEtape}` : '';
+        const site = resolvedNomSite || resolvedNomProjet || `Site #${notifProjetId}`;
+        await createNotification(
+          chefUsername,
+          'bc_created',
+          '📦 Bon de commande créé',
+          `Votre demande d'approvisionnement pour ${site}${stage} a été transformée en Bon de Commande #${purchaseOrderId} (fournisseur: ${String(fournisseur).trim()}).`,
+          { purchaseOrderId, projetId: notifProjetId }
+        );
+      }
+    }
+  } catch (notifErr) {
+    console.error('[notifications] BC created trigger error:', notifErr.message);
+  }
+
   res.status(201).json(order);
 });
 
@@ -4436,10 +4530,30 @@ app.patch('/api/stock-management/orders/:id/arrive', async (req, res) => {
   }
 
   const order = await getPurchaseOrderById(orderId);
+
+  // Notify chef_chantier_site that the stock order for their site has arrived
+  try {
+    const notifProjetId = Number(orderRow.siteId || orderRow.projetId || 0) || null;
+    if (notifProjetId) {
+      const chefUsername = await getChefUsernameForProject(notifProjetId);
+      if (chefUsername) {
+        const site = orderRow.nomSiteManuel || orderRow.nomProjetManuel || `Site #${notifProjetId}`;
+        const stage = orderRow.etapeApprovisionnement ? ` (${orderRow.etapeApprovisionnement})` : '';
+        await createNotification(
+          chefUsername,
+          'stock_arrived',
+          '🚚 Commande arrivée en stock',
+          `La commande BC #${orderId} pour ${site}${stage} a été marquée comme arrivée en gestion de stock. Les matériaux sont disponibles.`,
+          { purchaseOrderId: orderId, projetId: notifProjetId }
+        );
+      }
+    }
+  } catch (notifErr) {
+    console.error('[notifications] stock arrived trigger error:', notifErr.message);
+  }
+
   res.json(order);
 });
-
-app.get('/api/stock-management/available', async (req, res) => {
   const rows = await all(`
     SELECT mr.id, mr.projetId, p.nomProjet, p.prefecture, p.nomSite, p.numeroMaison, p.typeMaison, mr.itemName, mr.quantiteDemandee, mr.quantiteRestante, mr.statut, mr.etapeApprovisionnement, mr.warehouseId
     FROM material_requests mr
@@ -4992,6 +5106,30 @@ app.patch('/api/stock-issue-authorizations/:id/decision', async (req, res) => {
   });
 
   const updated = await get('SELECT * FROM stock_issue_authorizations WHERE id = ?', [id]);
+
+  // Notify chef_chantier_site that their sortie authorization has been validated
+  if (decision === 'VALIDEE') {
+    try {
+      const notifProjetId = Number(authRow.projetId || 0) || null;
+      if (notifProjetId) {
+        const chefUsername = await getChefUsernameForProject(notifProjetId);
+        if (chefUsername) {
+          const site = authRow.nomSite ? `${authRow.nomProjet || ''} — Site ${authRow.numeroMaison || ''}`.trim() : `Projet #${notifProjetId}`;
+          const stage = authRow.etapeApprovisionnement ? ` (${authRow.etapeApprovisionnement})` : '';
+          await createNotification(
+            chefUsername,
+            'sortie_validee',
+            '✅ Autorisation de sortie validée',
+            `Votre demande de sortie de stock #${id} pour ${site}${stage} a été validée par ${decidedBy}. Vous pouvez retirer les matériaux à l'entrepôt.`,
+            { authorizationId: id, projetId: notifProjetId }
+          );
+        }
+      }
+    } catch (notifErr) {
+      console.error('[notifications] sortie validée trigger error:', notifErr.message);
+    }
+  }
+
   res.json({ ...updated, doc });
 });
 
