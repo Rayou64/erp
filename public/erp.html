@@ -3787,6 +3787,7 @@
     let selectedProjectCatalogId = null;
     let currentUserRole = null;
     let currentUserScope = null;
+    let currentUsername = null;
     let databaseGlobalSearchTerm = '';
     let databaseSection = 'achats';
     const databaseSectionSearchTerms = {
@@ -5706,7 +5707,7 @@
 
     function loadTrashItemsFromStorage() {
       try {
-        const raw = localStorage.getItem(TRASH_STORAGE_KEY);
+        const raw = localStorage.getItem(TRASH_STORAGE_KEY + '_' + (currentUsername || 'guest'));
         if (!raw) return;
         const parsed = JSON.parse(raw);
         trashItems = Array.isArray(parsed) ? parsed : [];
@@ -5716,7 +5717,7 @@
     }
 
     function saveTrashItemsToStorage() {
-      localStorage.setItem(TRASH_STORAGE_KEY, JSON.stringify(trashItems));
+      localStorage.setItem(TRASH_STORAGE_KEY + '_' + (currentUsername || 'guest'), JSON.stringify(trashItems));
     }
 
     function addTrashItem(moduleCode, moduleLabel, title, meta = '', options = {}) {
@@ -5840,7 +5841,7 @@
 
     function loadDatabaseTrashFromStorage() {
       try {
-        const raw = localStorage.getItem(DATABASE_TRASH_STORAGE_KEY);
+        const raw = localStorage.getItem(DATABASE_TRASH_STORAGE_KEY + '_' + (currentUsername || 'guest'));
         if (!raw) return;
         const parsed = JSON.parse(raw);
         if (!parsed || typeof parsed !== 'object') return;
@@ -5858,12 +5859,12 @@
     }
 
     function saveDatabaseTrashToStorage() {
-      localStorage.setItem(DATABASE_TRASH_STORAGE_KEY, JSON.stringify(databaseTrashBySection));
+      localStorage.setItem(DATABASE_TRASH_STORAGE_KEY + '_' + (currentUsername || 'guest'), JSON.stringify(databaseTrashBySection));
     }
 
     function loadDatabaseHiddenIdsFromStorage() {
       try {
-        const raw = localStorage.getItem(DATABASE_TRASH_HIDDEN_IDS_KEY);
+        const raw = localStorage.getItem(DATABASE_TRASH_HIDDEN_IDS_KEY + '_' + (currentUsername || 'guest'));
         if (!raw) return;
         const parsed = JSON.parse(raw);
         databaseHiddenDocumentIds = Array.isArray(parsed)
@@ -5875,7 +5876,7 @@
     }
 
     function saveDatabaseHiddenIdsToStorage() {
-      localStorage.setItem(DATABASE_TRASH_HIDDEN_IDS_KEY, JSON.stringify(databaseHiddenDocumentIds));
+      localStorage.setItem(DATABASE_TRASH_HIDDEN_IDS_KEY + '_' + (currentUsername || 'guest'), JSON.stringify(databaseHiddenDocumentIds));
     }
 
     function addDatabaseTrashItem(documentItem) {
@@ -12895,6 +12896,7 @@
         const user = await fetchJson('/api/auth/me');
         currentUserRole = user.role || null;
         currentUserScope = user.scope || null;
+        currentUsername = String(user.username || 'guest').toLowerCase().replace(/[^a-z0-9_]/g, '_');
         if (isWarehouseScopedRole()) {
           selectedStockWarehouseId = getScopedWarehouseId();
           selectedInventoryWarehouseId = getScopedWarehouseId();
@@ -12944,6 +12946,10 @@
     };
 
     window.clearAllExpenses = async () => {
+      if (!isAdmin()) {
+        showMessage('Seul l\'admin peut vider toutes les dépenses', 'error');
+        return;
+      }
       if (!await showConfirm('Vider toutes les dépenses récentes ? Cette action est irréversible.')) return;
       try {
         await fetchJson('/api/expenses', { method: 'DELETE' });
@@ -12958,6 +12964,11 @@
     window.deleteExpense = async (id) => {
       if (!await showConfirm('Supprimer cette dépense ?')) return;
       try {
+        if (!isAdmin()) {
+          addTrashItem('expenses', 'Dépenses', `Dépense #${id}`, 'Masqué dans votre profil');
+          showMessage('Dépense masquée dans votre profil (seul l\'admin peut supprimer définitivement)');
+          return;
+        }
         await fetchJson(`/api/expenses/${id}`, { method: 'DELETE' });
         addTrashItem('expenses', 'Dépenses', `Dépense #${id}`, 'Suppression dépense');
         showMessage('Dépense supprimée');
@@ -12983,6 +12994,11 @@
       if (!await showConfirm(`Supprimer ${ids.length} ligne(s) de dépense${orderLabel} ?`)) return;
 
       try {
+        if (!isAdmin()) {
+          addTrashItem('expenses', 'Dépenses', purchaseOrderId ? `Bon #${purchaseOrderId}` : 'Groupe dépenses', `Masqué dans votre profil (${ids.length} ligne(s))`);
+          showMessage(`${ids.length} ligne(s) masquée(s) dans votre profil (seul l'admin peut supprimer définitivement)`);
+          return;
+        }
         for (const id of ids) {
           await fetchJson(`/api/expenses/${id}`, { method: 'DELETE' });
         }
@@ -12999,6 +13015,11 @@
     window.deleteRevenue = async (id) => {
       if (!await showConfirm('Supprimer ce revenu ?')) return;
       try {
+        if (!isAdmin()) {
+          addTrashItem('revenues', 'Revenus', `Revenu #${id}`, 'Masqué dans votre profil');
+          showMessage('Revenu masqué dans votre profil (seul l\'admin peut supprimer définitivement)');
+          return;
+        }
         await fetchJson(`/api/revenues/${id}`, { method: 'DELETE' });
         addTrashItem('revenues', 'Revenus', `Revenu #${id}`, 'Suppression revenu');
         showMessage('Revenu supprimé');
@@ -13014,6 +13035,11 @@
       if (!await showConfirm('Supprimer ce bon de commande ?')) return;
       try {
         const order = purchaseOrdersCache.find(o => Number(o.id) === Number(id));
+        if (!isAdmin()) {
+          addTrashItem('purchase-orders', 'Bons de commande', order ? getPurchaseOrderDisplayName(order) : `Bon #${id}`, 'Masqué dans votre profil');
+          showMessage('Bon de commande masqué dans votre profil (seul l\'admin peut supprimer définitivement)');
+          return;
+        }
         await fetchJson(`/api/purchase-orders/${id}`, { method: 'DELETE' });
         addTrashItem('purchase-orders', 'Bons de commande', order ? getPurchaseOrderDisplayName(order) : `Bon #${id}`, order?.fournisseur || 'Suppression bon de commande');
         showMessage('Bon de commande supprimé');
@@ -13350,6 +13376,11 @@
       if (!await showConfirm('Supprimer cette demande de matériel ?')) return;
       try {
         const request = materialRequestsCache.find(item => Number(item.id) === Number(id));
+        if (!isAdmin()) {
+          addTrashItem('materials', 'Approvisionnement', request ? getMaterialRequestDisplayName(request) : `Demande #${id}`, 'Masqué dans votre profil');
+          showMessage('Demande masquée dans votre profil (seul l\'admin peut supprimer définitivement)');
+          return;
+        }
         await fetchJson(`/api/material-requests/${id}`, { method: 'DELETE' });
         addTrashItem('materials', 'Approvisionnement', request ? getMaterialRequestDisplayName(request) : `Demande #${id}`, request?.projetNom || request?.demandeur || 'Suppression demande');
         showMessage('Demande supprimée');
@@ -13368,6 +13399,14 @@
       }
       if (!await showConfirm(`Supprimer cette demande (${normalizedIds.length} article${normalizedIds.length > 1 ? 's' : ''}) ?`)) return;
       try {
+        if (!isAdmin()) {
+          for (const id of normalizedIds) {
+            const request = materialRequestsCache.find(item => Number(item.id) === Number(id));
+            addTrashItem('materials', 'Approvisionnement', request ? getMaterialRequestDisplayName(request) : `Demande #${id}`, 'Masqué dans votre profil');
+          }
+          showMessage('Demande masquée dans votre profil (seul l\'admin peut supprimer définitivement)');
+          return;
+        }
         for (const id of normalizedIds) {
           const request = materialRequestsCache.find(item => Number(item.id) === Number(id));
           await fetchJson(`/api/material-requests/${id}`, { method: 'DELETE' });
@@ -13406,6 +13445,11 @@
       if (!await showConfirm('Supprimer ce projet ? Cette action est irreversible.')) return;
       try {
         const project = projectsCache.find(p => Number(p.id) === Number(id));
+        if (!isAdmin()) {
+          addTrashItem('projects', 'Projets', project ? getProjectDisplayName(project) : `Projet #${id}`, 'Masqué dans votre profil');
+          showMessage('Projet masqué dans votre profil (seul l\'admin peut supprimer définitivement)');
+          return;
+        }
         await fetchJson(`/api/projects/${id}`, { method: 'DELETE' });
         if (selectedProjectId === id) {
           selectedProjectId = null;
@@ -13421,6 +13465,10 @@
     };
 
     window.deleteProjectFolder = async (id, siteCount = 0) => {
+      if (!isAdmin()) {
+        showMessage('Seul l\'admin peut supprimer des zones', 'error');
+        return;
+      }
       const totalSites = Number(siteCount || 0);
       const warning = totalSites > 0
         ? `Supprimer cette zone et ses ${totalSites} site${totalSites > 1 ? 's' : ''} ? Cette action est irreversible.`
@@ -13525,6 +13573,11 @@
       if (!await showConfirm('Supprimer cette assignation ?')) return;
       try {
         const assignment = assignmentsCache.find(a => Number(a.id) === Number(id));
+        if (!isAdmin()) {
+          addTrashItem('assignments', 'Assignations', assignment?.displayName || assignment?.assigneeName || `Assignation #${id}`, 'Masqué dans votre profil');
+          showMessage('Assignation masquée dans votre profil (seul l\'admin peut supprimer définitivement)');
+          return;
+        }
         await fetchJson(`/api/project-assignments/${id}`, { method: 'DELETE' });
         addTrashItem('assignments', 'Assignations', assignment?.displayName || assignment?.assigneeName || `Assignation #${id}`, assignment?.nomProjet || assignment?.role || 'Suppression assignation');
         showMessage('Assignation supprimée');
