@@ -3620,10 +3620,12 @@
     // Bootstrap token from URL hash (Capacitor mobile redirect cross-origin)
     (function () {
       try {
-        const m = location.hash.match(/[#&]auth=([^&]+)/);
-        if (m) {
-          localStorage.setItem('erp_token', decodeURIComponent(m[1]));
-          history.replaceState(null, '', location.pathname + location.search);
+        const queryToken = new URLSearchParams(location.search).get('mobileAuth');
+        const hashMatch = location.hash.match(/[#&]auth=([^&]+)/);
+        const rawToken = queryToken || (hashMatch ? hashMatch[1] : '');
+        if (rawToken) {
+          localStorage.setItem('erp_token', decodeURIComponent(rawToken));
+          history.replaceState(null, '', location.pathname);
         }
       } catch (_) {}
     })();

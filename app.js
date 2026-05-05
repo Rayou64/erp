@@ -2711,13 +2711,26 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe sont obligatoires' });
   }
 
-  const user = await get('SELECT * FROM users WHERE username = ?', [username]);
-  if (!user) {
-    return res.status(401).json({ error: 'Utilisateur ou mot de passe invalide' });
+  const normalizedUsername = String(username || '').trim();
+  const loginCandidates = normalizedUsername === 'achat'
+    ? ['achat', 'achat_user']
+    : [normalizedUsername];
+
+  let user = null;
+  let valid = false;
+  for (const candidate of loginCandidates) {
+    const candidateUser = await get('SELECT * FROM users WHERE username = ?', [candidate]);
+    if (!candidateUser) continue;
+
+    const candidateValid = await bcrypt.compare(password, candidateUser.password);
+    if (candidateValid) {
+      user = candidateUser;
+      valid = true;
+      break;
+    }
   }
 
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid) {
+  if (!user || !valid) {
     return res.status(401).json({ error: 'Utilisateur ou mot de passe invalide' });
   }
 

@@ -209,7 +209,7 @@
 
       function redirectToApp(authToken) {
         const dest = authToken
-          ? ERP_URL + '#auth=' + encodeURIComponent(authToken)
+          ? ERP_URL + '?mobileAuth=' + encodeURIComponent(authToken)
           : ERP_URL;
         window.location.replace(dest);
       }
