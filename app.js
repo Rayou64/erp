@@ -21,6 +21,45 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
+const ALLOWED_CORS_ORIGINS = new Set([
+  'http://localhost',
+  'http://localhost:4000',
+  'capacitor://localhost',
+  'ionic://localhost',
+  'https://ryanerp-hn5zd.ondigitalocean.app',
+]);
+
+app.use((req, res, next) => {
+  const origin = String(req.headers.origin || '').trim();
+  if (!origin) {
+    if (req.method === 'OPTIONS') return res.sendStatus(204);
+    return next();
+  }
+
+  let isAllowed = ALLOWED_CORS_ORIGINS.has(origin);
+  if (!isAllowed) {
+    try {
+      const parsed = new URL(origin);
+      isAllowed = parsed.protocol === 'https:' && parsed.hostname.endsWith('.ondigitalocean.app');
+    } catch {
+      isAllowed = false;
+    }
+  }
+
+  if (isAllowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Device-Token, X-Tracking-Token');
+  }
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(isAllowed ? 204 : 403);
+  }
+
+  return next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/mobile', express.static(path.join(__dirname, 'mobile', 'www')));
 
