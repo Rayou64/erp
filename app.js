@@ -24,6 +24,7 @@ app.use(helmet({
 const ALLOWED_CORS_ORIGINS = new Set([
   'http://localhost',
   'http://localhost:4000',
+  'https://localhost',
   'capacitor://localhost',
   'ionic://localhost',
   'https://ryanerp-hn5zd.ondigitalocean.app',
