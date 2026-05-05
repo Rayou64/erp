@@ -2,146 +2,556 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <title>Ryan ERP Mobile</title>
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
     :root {
-      --bg-1: #f4f7fb;
-      --bg-2: #dfe8f5;
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #818cf8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg: #f8fafc;
       --card: #ffffff;
-      --text: #0f172a;
-      --muted: #475569;
-      --primary: #0b5fff;
-      --primary-2: #0041c4;
-      --border: #d6deea;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
     }
-    * { box-sizing: border-box; }
+
     body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      background: radial-gradient(1200px 600px at 10% -10%, #ffffff 0%, var(--bg-1) 35%, var(--bg-2) 100%);
-      display: grid;
-      place-items: center;
-      padding: 20px;
-    }
-    .card {
-      width: min(520px, 100%);
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px;
-      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.10);
-    }
-    h1 {
-      margin: 0 0 6px;
-      font-size: 24px;
-      line-height: 1.2;
-    }
-    p { margin: 0; color: var(--muted); }
-    .profiles {
-      margin-top: 18px;
-      display: grid;
-      gap: 12px;
-    }
-    .profile-btn {
-      width: 100%;
-      border: 1px solid var(--border);
-      background: #f8fbff;
-      color: var(--text);
-      border-radius: 12px;
-      padding: 14px;
-      text-align: left;
-      cursor: pointer;
-      transition: transform .14s ease, box-shadow .14s ease;
-    }
-    .profile-btn:active { transform: translateY(1px); }
-    .profile-btn strong { display: block; font-size: 16px; }
-    .profile-btn span { color: var(--muted); font-size: 13px; }
-    .actions {
-      margin-top: 14px;
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      color: var(--text);
     }
-    .button {
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    /* LOGIN SCREEN */
+    .screen {
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+    .screen.active { display: block; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* LOGIN FORM */
+    .login-screen {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 32px 24px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .login-screen h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .login-screen p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .login-error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .login-error.show { display: block; }
+
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
       border: 0;
       border-radius: 10px;
-      padding: 10px 14px;
-      cursor: pointer;
       font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 12px;
     }
-    .button-primary {
-      background: linear-gradient(180deg, var(--primary), var(--primary-2));
-      color: #fff;
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
     }
-    .button-light {
-      background: #eef3fb;
-      color: #1e293b;
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .demo-hint {
+      margin-top: 20px;
+      padding: 12px;
+      background: #f0f9ff;
+      border-left: 3px solid var(--primary-light);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: left;
+    }
+
+    /* PROFILE SELECTOR */
+    .profiles-screen {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 28px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .profiles-screen h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .profiles-screen > p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 400px) {
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .profile-card {
+      background: linear-gradient(135deg, var(--bg), #ffffff);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .profile-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15);
+      border-color: var(--primary-light);
+    }
+
+    .profile-card:hover::before {
+      left: 100%;
+    }
+
+    .profile-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .profile-card strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .profile-card span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .profile-card.admin-card {
+      background: linear-gradient(135deg, #fef3c7, #fef08a);
+      border-color: #fcd34d;
+    }
+
+    .profile-card.achat-card {
+      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+      border-color: #93c5fd;
+    }
+
+    .profile-card.zone-card {
+      background: linear-gradient(135deg, #d1fae5, #c6f6d5);
+      border-color: #6ee7b7;
+    }
+
+    .profile-card.site-card {
+      background: linear-gradient(135deg, #fee2e2, #fecaca);
+      border-color: #fca5a5;
+    }
+
+    .profile-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: 0;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
       border: 1px solid var(--border);
     }
-    .hint {
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    .btn-logout {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 0;
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
       margin-top: 12px;
+    }
+
+    .btn-logout:hover {
+      background: #fecaca;
+    }
+
+    .info-box {
+      background: #ecfdf5;
+      border-left: 3px solid var(--success);
+      padding: 12px;
+      border-radius: 6px;
       font-size: 12px;
-      color: #64748b;
+      color: #065f46;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .login-screen, .profiles-screen {
+        border-radius: 16px;
+        padding: 24px 16px;
+      }
+      .login-screen h1, .profiles-screen h1 {
+        font-size: 24px;
+      }
+      .profile-grid {
+        gap: 10px;
+      }
+      .profile-card {
+        padding: 16px 12px;
+      }
+      .profile-icon {
+        font-size: 28px;
+      }
     }
   </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Ryan ERP Mobile</h1>
-    <p>Choisissez un profil pour ouvrir l'application.</p>
+  <div class="container">
+    <!-- LOGIN SCREEN -->
+    <div class="screen login-screen active" id="loginScreen">
+      <div class="logo">🔐</div>
+      <h1>Ryan ERP</h1>
+      <p>Connexion Mobile</p>
 
-    <section class="profiles">
-      <button class="profile-btn" id="profile-zone" type="button">
-        <strong>Profil 1 - Gestionnaire stock zone</strong>
-        <span>Operations zone, stock, autorisations</span>
-      </button>
-      <button class="profile-btn" id="profile-site" type="button">
-        <strong>Profil 2 - Chef chantier site</strong>
-        <span>Operations site et suivi chantier</span>
-      </button>
-    </section>
+      <div class="login-error" id="loginError"></div>
 
-    <section class="actions">
-      <button class="button button-primary" id="continue-last" type="button">Continuer avec le dernier profil</button>
-      <button class="button button-light" id="open-default" type="button">Ouvrir sans profil</button>
-    </section>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Utilisateur</label>
+          <input type="text" id="username" placeholder="ex: admin" autocomplete="username" required />
+        </div>
 
-    <p class="hint">Le profil sert de raccourci d'ouverture. La connexion reste securisee via vos identifiants ERP.</p>
-  </main>
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+        </div>
+
+        <button type="submit" class="btn-login">Connexion</button>
+      </form>
+
+      <div class="demo-hint">
+        💡 <strong>Accès démo :</strong><br>
+        • Admin: admin / admin123<br>
+        • Achat: achat_user / achat@123<br>
+        • Chef site: chef_chantier_site15 / chefsite15@123<br>
+        • Stock: commis_stock / stock123
+      </div>
+    </div>
+
+    <!-- PROFILE SELECTOR SCREEN -->
+    <div class="screen profiles-screen" id="profilesScreen">
+      <h1>Profils</h1>
+      <p id="userGreeting">Bienvenue !</p>
+
+      <div class="info-box">
+        ✅ Authentifié. Sélectionnez un profil pour accéder à l'application.
+      </div>
+
+      <div class="profile-grid">
+        <div class="profile-card admin-card" id="profile-admin" data-role="admin">
+          <div class="profile-icon">👨‍💼</div>
+          <strong>Admin</strong>
+          <span>Accès complet</span>
+        </div>
+
+        <div class="profile-card achat-card" id="profile-achat" data-role="achat">
+          <div class="profile-icon">📋</div>
+          <strong>Achat</strong>
+          <span>Achats & PO</span>
+        </div>
+
+        <div class="profile-card zone-card" id="profile-zone" data-role="gestionnaire_stock_zone">
+          <div class="profile-icon">📦</div>
+          <strong>Zone</strong>
+          <span>Gestion stock</span>
+        </div>
+
+        <div class="profile-card site-card" id="profile-site" data-role="chef_chantier_site">
+          <div class="profile-icon">🏗️</div>
+          <strong>Chantier</strong>
+          <span>Chef de site 15</span>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        <button class="btn btn-secondary" id="continueLastBtn">📌 Dernier</button>
+        <button class="btn btn-logout" id="logoutBtn">Déconnexion</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     (function () {
       const ERP_URL = 'https://ryanerp-hn5zd.ondigitalocean.app/erp.html';
-      const STORAGE_KEY = 'ryanerp_mobile_profile';
+      const LOGIN_KEY = 'ryanerp_mobile_auth';
+      const PROFILE_KEY = 'ryanerp_mobile_profile';
+      const API_BASE = 'https://ryanerp-hn5zd.ondigitalocean.app';
 
-      function openErp(profileCode) {
-        if (profileCode) {
-          localStorage.setItem(STORAGE_KEY, profileCode);
-        }
-        const finalProfile = profileCode || localStorage.getItem(STORAGE_KEY) || '';
-        const url = finalProfile
-          ? ERP_URL + '?mobileProfile=' + encodeURIComponent(finalProfile)
-          : ERP_URL;
-        window.location.replace(url);
+      // === UTILITIES ===
+      function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
       }
 
-      document.getElementById('profile-zone').addEventListener('click', function () {
-        openErp('gestionnaire_stock_zone');
+      function showError(message) {
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.textContent = message;
+        errorDiv.classList.add('show');
+        setTimeout(() => errorDiv.classList.remove('show'), 5000);
+      }
+
+      function getStoredAuth() {
+        try {
+          const stored = localStorage.getItem(LOGIN_KEY);
+          return stored ? JSON.parse(stored) : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function setStoredAuth(auth) {
+        localStorage.setItem(LOGIN_KEY, JSON.stringify(auth));
+      }
+
+      function clearStoredAuth() {
+        localStorage.removeItem(LOGIN_KEY);
+        localStorage.removeItem(PROFILE_KEY);
+      }
+
+      // === LOGIN LOGIC ===
+      document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!username || !password) {
+          showError('Veuillez remplir tous les champs');
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+
+          if (!response.ok) {
+            const data = await response.json();
+            showError(data.error || 'Authentification échouée');
+            return;
+          }
+
+          const { token, username: retUsername } = await response.json();
+          setStoredAuth({ token, username: retUsername, timestamp: Date.now() });
+
+          // Afficher greeting
+          document.getElementById('userGreeting').textContent = `Bienvenue, ${retUsername}! 👋`;
+          showScreen('profilesScreen');
+        } catch (err) {
+          showError('Erreur de connexion. Vérifiez votre connexion réseau.');
+          console.error(err);
+        }
       });
 
-      document.getElementById('profile-site').addEventListener('click', function () {
-        openErp('chef_chantier_site');
+      // === PROFILE SELECTION ===
+      document.querySelectorAll('.profile-card').forEach(card => {
+        card.addEventListener('click', function () {
+          const role = this.dataset.role;
+          const auth = getStoredAuth();
+          if (!auth || !auth.token) {
+            showScreen('loginScreen');
+            return;
+          }
+
+          localStorage.setItem(PROFILE_KEY, role);
+          const url = ERP_URL + '?mobileProfile=' + encodeURIComponent(role);
+          window.location.replace(url);
+        });
       });
 
-      document.getElementById('continue-last').addEventListener('click', function () {
-        openErp(localStorage.getItem(STORAGE_KEY) || '');
+      // === LOGOUT ===
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        clearStoredAuth();
+        showScreen('loginScreen');
+        document.getElementById('loginForm').reset();
+        document.getElementById('loginError').classList.remove('show');
       });
 
-      document.getElementById('open-default').addEventListener('click', function () {
-        openErp('');
+      // === CONTINUE WITH LAST PROFILE ===
+      document.getElementById('continueLastBtn').addEventListener('click', () => {
+        const lastProfile = localStorage.getItem(PROFILE_KEY);
+        if (!lastProfile) {
+          showError('Aucun profil mémorisé');
+          return;
+        }
+
+        const auth = getStoredAuth();
+        if (!auth || !auth.token) {
+          showScreen('loginScreen');
+          return;
+        }
+
+        const url = ERP_URL + '?mobileProfile=' + encodeURIComponent(lastProfile);
+        window.location.replace(url);
+      });
+
+      // === INITIALIZATION ===
+      window.addEventListener('load', () => {
+        const auth = getStoredAuth();
+        if (auth && auth.token) {
+          // Vérifier si le token est encore valide (pas expiré après 6h)
+          const tokenAge = Date.now() - (auth.timestamp || 0);
+          const SIX_HOURS = 6 * 60 * 60 * 1000;
+
+          if (tokenAge < SIX_HOURS) {
+            document.getElementById('userGreeting').textContent = `Bienvenue, ${auth.username}! 👋`;
+            showScreen('profilesScreen');
+            document.getElementById('continueLastBtn').style.display = 'flex';
+          } else {
+            clearStoredAuth();
+            showScreen('loginScreen');
+          }
+        } else {
+          showScreen('loginScreen');
+        }
       });
     })();
   </script>

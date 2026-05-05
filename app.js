@@ -2300,6 +2300,27 @@ async function initDb() {
     console.log(`Utilisateur ${siteChiefUsername} mis a jour avec role ${siteChiefRole}`);
   }
 
+  // Créer/Garantir le compte Achat (local + Railway)
+  const achatUsername = 'achat_user';
+  const achatRole = 'achat';
+  const achatPassword = process.env.ACHAT_PASSWORD || 'achat@123';
+  const achat = await get('SELECT id FROM users WHERE username = ?', [achatUsername]);
+  const achatHashedPassword = await bcrypt.hash(achatPassword, 10);
+  if (!achat) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, achatUsername, achatHashedPassword, achatRole, new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${achatUsername} cree avec role ${achatRole}`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [achatHashedPassword, achatRole, achatUsername]
+    );
+    console.log(`Utilisateur ${achatUsername} mis a jour avec role ${achatRole}`);
+  }
+
   // Supprimer les profils retires du lien public et de Railway.
   const removedPublicProfiles = await run(
     'DELETE FROM users WHERE role = ? OR username IN (?, ?, ?, ?)',
