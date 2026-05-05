@@ -1,5 +1,8 @@
 {
   "appId": "com.ryan.erp",
   "appName": "Ryan ERP",
-  "webDir": "www"
+  "webDir": "www",
+  "server": {
+    "allowNavigation": ["ryanerp-hn5zd.ondigitalocean.app"]
+  }
 }
