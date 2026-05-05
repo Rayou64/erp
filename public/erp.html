@@ -730,6 +730,10 @@
       margin: 0;
     }
 
+    .mobile-home-btn {
+      display: none;
+    }
+
     .hamburger-btn:hover {
       background: rgba(255,255,255,0.15);
     }
@@ -1224,6 +1228,110 @@
         display: flex;
         align-items: center;
       }
+
+      /* === Mobile Home Grid (Odoo-like) === */
+      .mobile-home-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.18);
+        border: none;
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+        cursor: pointer;
+        color: white;
+        transition: background 0.15s;
+        flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
+        padding: 0;
+        margin: 0;
+      }
+
+      .mobile-home-btn:active { background: rgba(255,255,255,0.35); }
+
+      #mobile-home {
+        display: block !important;
+      }
+
+      .mobile-home-header {
+        padding: 10px 12px 10px;
+        background: #f1f5f9;
+        border-bottom: 1px solid #e2e8f0;
+        margin: -8px -8px 14px;
+      }
+
+      .mobile-home-search {
+        display: flex;
+        align-items: center;
+        background: white;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 9px 12px;
+        gap: 8px;
+      }
+
+      .mobile-home-search-icon { font-size: 16px; }
+
+      .mobile-home-search input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 15px !important;
+        background: transparent;
+        color: #1e293b;
+      }
+
+      .mobile-module-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 2px 0;
+      }
+
+      .mobile-module-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 6px 12px;
+        border-radius: 14px;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.12s, opacity 0.12s;
+        text-align: center;
+        -webkit-tap-highlight-color: transparent;
+        min-height: 90px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        border: none;
+      }
+
+      .mobile-module-card:active {
+        transform: scale(0.91);
+        opacity: 0.82;
+      }
+
+      .mobile-module-icon {
+        font-size: 30px;
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+
+      .mobile-module-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: white;
+        line-height: 1.2;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        word-break: break-word;
+        hyphens: auto;
+      }
+    }
+
+    /* Hide #mobile-home on desktop */
+    #mobile-home {
+      display: none;
     }
 
     .tabs-container {
@@ -1803,8 +1911,9 @@
     <div class="main-content">
       <!-- Topbar -->
       <div class="topbar">
-        <div style="display:flex; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; gap:8px;">
           <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu" title="Menu">☰</button>
+          <button class="mobile-home-btn" id="mobile-home-btn" aria-label="Accueil" title="Accueil">🏠</button>
           <div class="topbar-left">
             <h2 id="page-title">Tableau de bord</h2>
             <div class="breadcrumb" id="page-breadcrumb"></div>
@@ -1820,6 +1929,17 @@
 
       <!-- Content Area -->
       <div class="content-area">
+        <!-- Mobile Home Grid (Odoo-like) - visible only on mobile -->
+        <div id="mobile-home" class="module">
+          <div class="mobile-home-header">
+            <div class="mobile-home-search">
+              <span class="mobile-home-search-icon">🔍</span>
+              <input type="text" id="mobile-home-search" placeholder="Rechercher un module..." autocomplete="off" />
+            </div>
+          </div>
+          <div class="mobile-module-grid" id="mobile-module-grid"></div>
+        </div>
+
         <!-- Dashboard Module -->
         <div id="dashboard" class="module active">
           <div class="page-header">
@@ -3497,6 +3617,17 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
+    // Bootstrap token from URL hash (Capacitor mobile redirect cross-origin)
+    (function () {
+      try {
+        const m = location.hash.match(/[#&]auth=([^&]+)/);
+        if (m) {
+          localStorage.setItem('erp_token', decodeURIComponent(m[1]));
+          history.replaceState(null, '', location.pathname + location.search);
+        }
+      } catch (_) {}
+    })();
+
     const token = localStorage.getItem('erp_token');
     if (!token) {
       window.location.href = 'index.html';
@@ -3621,6 +3752,7 @@
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'database', 'trash']);
     const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog']);
     const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'stock-management', 'database', 'trash']);
+    const ACHAT_ALLOWED_MODULES = new Set(['purchase-orders', 'material-catalog', 'expenses', 'reports', 'inventory', 'database', 'trash']);
     const AUTO_MAP_REFRESH_MS = 10000;
 
     function isCommis() {
@@ -3653,6 +3785,10 @@
 
     function isProcurementReviewer() {
       return currentUserRole === 'controle_achat';
+    }
+
+    function isAchat() {
+      return currentUserRole === 'achat';
     }
 
     function isPurchaseReadOnlyRole() {
@@ -3928,7 +4064,7 @@
     }
 
     function isRestrictedRole() {
-      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer();
+      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isAchat();
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
@@ -4731,6 +4867,7 @@
       if (isZoneStockManager()) return ZONE_STOCK_MANAGER_ALLOWED_MODULES;
       if (isGestStock()) return GEST_STOCK_ALLOWED_MODULES;
       if (isCommis()) return COMMIS_ALLOWED_MODULES;
+      if (isAchat()) return ACHAT_ALLOWED_MODULES;
       return null;
     }
 
@@ -9114,6 +9251,7 @@
         trash: ['Corbeille', 'Éléments supprimés classés par module'],
         users: ['Utilisateurs', 'Gestion des comptes'],
         settings: ['Paramètres', 'Configuration du système'],
+        'mobile-home': ['Accueil', 'Sélectionnez un module'],
       };
 
       const [title, subtitle] = titles[moduleName] || ['Module', 'Détails'];
@@ -9125,11 +9263,116 @@
         const section = sectionMap[moduleName];
         if (section && section !== title) {
           bc.innerHTML = `<span>${section}</span><span class="breadcrumb-sep">›</span><span style="color:#6366f1;">${title}</span>`;
+        } else if (moduleName === 'mobile-home') {
+          bc.innerHTML = '';
         } else {
           bc.innerHTML = `<span style="color:#6366f1;">${subtitle}</span>`;
         }
       }
     }
+
+    // ── Mobile Home Grid (Odoo-like) ──────────────────────────────────────
+    const MOBILE_ALL_MODULES = [
+      { id: 'dashboard',            emoji: '📊', label: 'Tableau de bord',  color: '#6366f1' },
+      { id: 'projects',             emoji: '🏗️', label: 'Projets',          color: '#0ea5e9' },
+      { id: 'project-progress',     emoji: '🧭', label: 'Suivi projets',    color: '#06b6d4' },
+      { id: 'journal-chantier',     emoji: '📒', label: 'Journal chantier', color: '#10b981' },
+      { id: 'assignments',          emoji: '👥', label: 'Assignations',     color: '#3b82f6' },
+      { id: 'materials',            emoji: '📦', label: 'Appro.',           color: '#f59e0b' },
+      { id: 'inventory',            emoji: '📊', label: 'Inventaire',       color: '#84cc16' },
+      { id: 'stock-management',     emoji: '📥', label: 'Stock',            color: '#22c55e' },
+      { id: 'sortie-autorisations', emoji: '✅', label: 'Autorisations',    color: '#14b8a6' },
+      { id: 'purchase-orders',      emoji: '🛒', label: 'Bons commande',    color: '#f97316' },
+      { id: 'material-catalog',     emoji: '📋', label: 'Catalogue',        color: '#8b5cf6' },
+      { id: 'parc-auto-maintenance',emoji: '🛠️', label: 'Maintenance',      color: '#ef4444' },
+      { id: 'parc-auto-transport',  emoji: '⛽', label: 'Transports',       color: '#dc2626' },
+      { id: 'maps',                 emoji: '🗺️', label: 'Maps',             color: '#0891b2' },
+      { id: 'expenses',             emoji: '💰', label: 'Dépenses',         color: '#d97706' },
+      { id: 'revenues',             emoji: '💵', label: 'Revenus',          color: '#16a34a' },
+      { id: 'reports',              emoji: '📈', label: 'Rapports',         color: '#7c3aed' },
+      { id: 'database',             emoji: '🗂️', label: 'Base données',     color: '#475569' },
+      { id: 'trash',                emoji: '🗑️', label: 'Corbeille',        color: '#64748b' },
+      { id: 'users',                emoji: '🔑', label: 'Utilisateurs',     color: '#1e293b' },
+      { id: 'settings',             emoji: '⚙️', label: 'Paramètres',       color: '#334155' },
+    ];
+
+    function renderMobileHome(filterText) {
+      const grid = document.getElementById('mobile-module-grid');
+      if (!grid) return;
+      const q = (filterText || '').toLowerCase().trim();
+      const allowedSet = isRestrictedRole() ? getAllowedModules() : null;
+
+      const filtered = MOBILE_ALL_MODULES.filter(m => {
+        // Role-based filter
+        if (allowedSet) {
+          // parc-auto submenu items: check 'parc-auto' OR exact id
+          if (m.id === 'parc-auto-maintenance' || m.id === 'parc-auto-transport') {
+            if (!allowedSet.has('parc-auto') && !allowedSet.has(m.id)) return false;
+          } else if (!allowedSet.has(m.id)) {
+            return false;
+          }
+        }
+        // Hide admin-only items for non-admins
+        if ((m.id === 'users' || m.id === 'settings') && !isAdmin()) return false;
+        // Text search filter
+        if (q && !m.label.toLowerCase().includes(q) && !m.id.toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      grid.innerHTML = filtered.map(m => `
+        <div class="mobile-module-card" data-mobile-module="${m.id}" style="background:${m.color};">
+          <div class="mobile-module-icon">${m.emoji}</div>
+          <div class="mobile-module-label">${m.label}</div>
+        </div>
+      `).join('') || '<p style="grid-column:1/-1;text-align:center;color:#64748b;padding:20px;">Aucun module trouvé</p>';
+
+      grid.querySelectorAll('.mobile-module-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const modId = card.dataset.mobileModule;
+          const isParcSub = modId === 'parc-auto-maintenance' || modId === 'parc-auto-transport';
+          const resolved = isParcSub ? 'parc-auto' : modId;
+          showModule(resolved);
+          if (resolved === 'dashboard') loadDashboard();
+          else if (resolved === 'projects') { selectedProjectGroupKey = null; selectedProjectId = null; showProjectFolderChooser(); loadProjects(); }
+          else if (resolved === 'project-progress') loadProjectProgress();
+          else if (resolved === 'journal-chantier') { loadProjectProgress(); loadJournalChantier(); }
+          else if (resolved === 'assignments') { loadAssignments(); loadProjects(); }
+          else if (resolved === 'materials') { loadProjects(); loadMaterials(); if (canLoadMaterialCatalogForCurrentRole()) loadMaterialCatalog(); }
+          else if (resolved === 'inventory') loadInventory();
+          else if (resolved === 'sortie-autorisations') loadStockIssueAuthorizations();
+          else if (resolved === 'stock-management') { selectedStockWarehouseId = isSiteChief() ? getSiteChiefWarehouseId() : ''; showStockWarehouseChooser(); loadStockManagement(); }
+          else if (resolved === 'purchase-orders') { loadProjects(); loadPurchaseOrders(); }
+          else if (resolved === 'material-catalog') loadMaterialCatalog();
+          else if (resolved === 'parc-auto') loadParcAuto();
+          else if (resolved === 'maps') loadMapsModule();
+          else if (resolved === 'expenses') loadExpenses();
+          else if (resolved === 'revenues') loadRevenues();
+          else if (resolved === 'reports') loadReports();
+          else if (resolved === 'database') { loadProjects(); loadDatabaseDocuments(); }
+          else if (resolved === 'trash') loadTrashModule();
+          if (isParcSub) {
+            setTimeout(() => {
+              const sId = modId === 'parc-auto-maintenance' ? 'parc-auto-maintenance-section' : 'parc-auto-transport-section';
+              document.getElementById(sId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          }
+        });
+      });
+    }
+
+    // Mobile Home search
+    document.getElementById('mobile-home-search')?.addEventListener('input', function () {
+      renderMobileHome(this.value);
+    });
+
+    // Mobile Home button (🏠) in topbar
+    document.getElementById('mobile-home-btn')?.addEventListener('click', () => {
+      showModule('mobile-home');
+      renderMobileHome('');
+      const searchEl = document.getElementById('mobile-home-search');
+      if (searchEl) searchEl.value = '';
+    });
+    // ── End Mobile Home Grid ───────────────────────────────────────────────
 
     // Bind sidebar navigation once so each menu item activates its module.
     document.querySelectorAll('.menu-item[data-module]').forEach(item => {
@@ -15344,6 +15587,13 @@
       document.getElementById('revenue-date').value = formatDateForInput();
       document.getElementById('auto-transport-date').value = formatDateForInput();
 
+      // On mobile (≤480px), show the Odoo-like module grid home screen
+      if (window.innerWidth <= 480) {
+        renderMobileHome('');
+        showModule('mobile-home');
+        return;
+      }
+
       if (isGestStock()) {
         showModule('stock-management');
         loadStockManagement();
@@ -15371,6 +15621,13 @@
       }
 
       if (isProcurementReviewer()) {
+        showModule('purchase-orders');
+        loadProjects();
+        loadPurchaseOrders();
+        return;
+      }
+
+      if (isAchat()) {
         showModule('purchase-orders');
         loadProjects();
         loadPurchaseOrders();

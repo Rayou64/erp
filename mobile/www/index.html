@@ -207,15 +207,16 @@
         localStorage.removeItem(ERP_USER_KEY);
       }
 
-      function redirectToApp() {
-        window.location.replace(ERP_URL);
+      function redirectToApp(authToken) {
+        const dest = authToken
+          ? ERP_URL + '#auth=' + encodeURIComponent(authToken)
+          : ERP_URL;
+        window.location.replace(dest);
       }
 
       const existingAuth = readMobileAuth();
       if (isAuthValid(existingAuth)) {
-        localStorage.setItem(ERP_TOKEN_KEY, existingAuth.token);
-        localStorage.setItem(ERP_USER_KEY, existingAuth.username || '');
-        redirectToApp();
+        redirectToApp(existingAuth.token);
       } else {
         clearAuth();
       }
@@ -261,7 +262,7 @@
           }
 
           saveAuth(data.token, data.username || username);
-          redirectToApp();
+          redirectToApp(data.token);
         } catch (error) {
           showError('Erreur réseau. Réessaie dans quelques instants.');
         } finally {
