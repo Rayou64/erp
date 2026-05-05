@@ -8,549 +8,265 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     :root {
-      --primary: #6366f1;
-      --primary-dark: #4f46e5;
-      --primary-light: #818cf8;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --bg: #f8fafc;
+      --primary: #0b5fff;
+      --primary-2: #0041c4;
+      --bg: #e7eefb;
       --card: #ffffff;
-      --text: #1e293b;
-      --muted: #64748b;
-      --border: #e2e8f0;
-      --shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #d6deea;
+      --danger-bg: #fee2e2;
+      --danger-text: #991b1b;
+      --shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(1300px 700px at 20% -20%, #ffffff 0%, #eef3fb 35%, var(--bg) 100%);
+      display: grid;
+      place-items: center;
       padding: 16px;
       color: var(--text);
     }
 
-    .container {
-      width: 100%;
-      max-width: 500px;
-    }
-
-    /* LOGIN SCREEN */
-    .screen {
-      display: none;
-      animation: slideIn 0.3s ease;
-    }
-    .screen.active { display: block; }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* LOGIN FORM */
-    .login-screen {
+    .card {
+      width: min(460px, 100%);
       background: var(--card);
-      border-radius: 20px;
-      padding: 32px 24px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
       box-shadow: var(--shadow);
-      text-align: center;
     }
 
-    .logo {
-      font-size: 48px;
-      margin-bottom: 16px;
-    }
-
-    .login-screen h1 {
+    h1 {
       font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--text);
+      margin-bottom: 6px;
+      line-height: 1.2;
     }
 
-    .login-screen p {
+    .subtitle {
       color: var(--muted);
+      margin-bottom: 18px;
       font-size: 14px;
-      margin-bottom: 32px;
     }
 
-    .form-group {
-      margin-bottom: 16px;
-      text-align: left;
-    }
-
-    .form-group label {
-      display: block;
+    .error {
+      display: none;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--danger-bg);
+      color: var(--danger-text);
       font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 8px;
     }
 
-    .form-group input {
+    .error.visible { display: block; }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .field input {
       width: 100%;
-      padding: 12px 14px;
       border: 1px solid var(--border);
       border-radius: 10px;
+      padding: 12px 14px;
       font-size: 16px;
-      transition: all 0.2s;
+      color: var(--text);
+      background: #fff;
     }
 
-    .form-group input:focus {
+    .field input:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      box-shadow: 0 0 0 3px rgba(11, 95, 255, 0.12);
     }
 
-    .login-error {
-      background: #fee2e2;
-      color: #991b1b;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .login-error.show { display: block; }
-
-    .btn-login {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      border: 0;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin-top: 12px;
-    }
-
-    .btn-login:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
-    }
-
-    .btn-login:active {
-      transform: translateY(0);
-    }
-
-    .demo-hint {
-      margin-top: 20px;
-      padding: 12px;
-      background: #f0f9ff;
-      border-left: 3px solid var(--primary-light);
-      border-radius: 6px;
-      font-size: 12px;
-      color: var(--muted);
-      text-align: left;
-    }
-
-    /* PROFILE SELECTOR */
-    .profiles-screen {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 28px 20px;
-      box-shadow: var(--shadow);
-    }
-
-    .profiles-screen h1 {
-      font-size: 26px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: var(--text);
-    }
-
-    .profiles-screen > p {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 24px;
-    }
-
-    .profile-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    @media (max-width: 400px) {
-      .profile-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .profile-card {
-      background: linear-gradient(135deg, var(--bg), #ffffff);
-      border: 2px solid var(--border);
-      border-radius: 14px;
-      padding: 20px 16px;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .profile-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      transition: left 0.5s;
-    }
-
-    .profile-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15);
-      border-color: var(--primary-light);
-    }
-
-    .profile-card:hover::before {
-      left: 100%;
-    }
-
-    .profile-icon {
-      font-size: 32px;
-      margin-bottom: 12px;
-    }
-
-    .profile-card strong {
-      display: block;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-
-    .profile-card span {
-      display: block;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .profile-card.admin-card {
-      background: linear-gradient(135deg, #fef3c7, #fef08a);
-      border-color: #fcd34d;
-    }
-
-    .profile-card.achat-card {
-      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-      border-color: #93c5fd;
-    }
-
-    .profile-card.zone-card {
-      background: linear-gradient(135deg, #d1fae5, #c6f6d5);
-      border-color: #6ee7b7;
-    }
-
-    .profile-card.site-card {
-      background: linear-gradient(135deg, #fee2e2, #fecaca);
-      border-color: #fca5a5;
-    }
-
-    .profile-actions {
+    .actions {
       display: flex;
       gap: 10px;
-      margin-top: 16px;
+      margin-top: 6px;
     }
 
-    .btn {
-      flex: 1;
-      padding: 12px;
+    .button {
       border: 0;
       border-radius: 10px;
-      font-weight: 600;
-      font-size: 14px;
+      padding: 12px 14px;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.3s;
+      font-size: 15px;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
+    .button-primary {
+      flex: 1;
+      color: #fff;
+      background: linear-gradient(180deg, var(--primary), var(--primary-2));
     }
 
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
-    }
-
-    .btn-secondary {
-      background: var(--bg);
-      color: var(--text);
+    .button-light {
+      color: #1e293b;
+      background: #eef3fb;
       border: 1px solid var(--border);
     }
 
-    .btn-secondary:hover {
-      background: var(--border);
-    }
-
-    .btn-logout {
-      background: #fee2e2;
-      color: #991b1b;
-      border: 0;
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
+    .hint {
       margin-top: 12px;
-    }
-
-    .btn-logout:hover {
-      background: #fecaca;
-    }
-
-    .info-box {
-      background: #ecfdf5;
-      border-left: 3px solid var(--success);
-      padding: 12px;
-      border-radius: 6px;
+      color: #64748b;
       font-size: 12px;
-      color: #065f46;
-      margin-bottom: 16px;
-    }
-
-    @media (max-width: 480px) {
-      body { padding: 12px; }
-      .login-screen, .profiles-screen {
-        border-radius: 16px;
-        padding: 24px 16px;
-      }
-      .login-screen h1, .profiles-screen h1 {
-        font-size: 24px;
-      }
-      .profile-grid {
-        gap: 10px;
-      }
-      .profile-card {
-        padding: 16px 12px;
-      }
-      .profile-icon {
-        font-size: 28px;
-      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- LOGIN SCREEN -->
-    <div class="screen login-screen active" id="loginScreen">
-      <div class="logo">🔐</div>
-      <h1>Ryan ERP</h1>
-      <p>Connexion Mobile</p>
+  <main class="card">
+    <h1>Connexion ERP</h1>
+    <p class="subtitle">Connexion obligatoire pour ouvrir l'application.</p>
 
-      <div class="login-error" id="loginError"></div>
+    <div id="error" class="error"></div>
 
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="username">Utilisateur</label>
-          <input type="text" id="username" placeholder="ex: admin" autocomplete="username" required />
-        </div>
-
-        <div class="form-group">
-          <label for="password">Mot de passe</label>
-          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
-        </div>
-
-        <button type="submit" class="btn-login">Connexion</button>
-      </form>
-
-      <div class="demo-hint">
-        💡 <strong>Accès démo :</strong><br>
-        • Admin: admin / admin123<br>
-        • Achat: achat_user / achat@123<br>
-        • Chef site: chef_chantier_site15 / chefsite15@123<br>
-        • Stock: commis_stock / stock123
-      </div>
-    </div>
-
-    <!-- PROFILE SELECTOR SCREEN -->
-    <div class="screen profiles-screen" id="profilesScreen">
-      <h1>Profils</h1>
-      <p id="userGreeting">Bienvenue !</p>
-
-      <div class="info-box">
-        ✅ Authentifié. Sélectionnez un profil pour accéder à l'application.
+    <form id="loginForm">
+      <div class="field">
+        <label for="username">Utilisateur</label>
+        <input type="text" id="username" autocomplete="username" required />
       </div>
 
-      <div class="profile-grid">
-        <div class="profile-card admin-card" id="profile-admin" data-role="admin">
-          <div class="profile-icon">👨‍💼</div>
-          <strong>Admin</strong>
-          <span>Accès complet</span>
-        </div>
-
-        <div class="profile-card achat-card" id="profile-achat" data-role="achat">
-          <div class="profile-icon">📋</div>
-          <strong>Achat</strong>
-          <span>Achats & PO</span>
-        </div>
-
-        <div class="profile-card zone-card" id="profile-zone" data-role="gestionnaire_stock_zone">
-          <div class="profile-icon">📦</div>
-          <strong>Zone</strong>
-          <span>Gestion stock</span>
-        </div>
-
-        <div class="profile-card site-card" id="profile-site" data-role="chef_chantier_site">
-          <div class="profile-icon">🏗️</div>
-          <strong>Chantier</strong>
-          <span>Chef de site 15</span>
-        </div>
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" autocomplete="current-password" required />
       </div>
 
-      <div class="profile-actions">
-        <button class="btn btn-secondary" id="continueLastBtn">📌 Dernier</button>
-        <button class="btn btn-logout" id="logoutBtn">Déconnexion</button>
+      <div class="actions">
+        <button type="submit" class="button button-primary" id="submitBtn">Se connecter</button>
+        <button type="button" class="button button-light" id="clearBtn">Effacer</button>
       </div>
-    </div>
-  </div>
+    </form>
+
+    <p class="hint">Sans authentification valide, aucun accès à l'application.</p>
+  </main>
 
   <script>
     (function () {
+      const API_BASE = 'https://ryanerp-hn5zd.ondigitalocean.app';
       const ERP_URL = 'https://ryanerp-hn5zd.ondigitalocean.app/erp.html';
       const LOGIN_KEY = 'ryanerp_mobile_auth';
-      const PROFILE_KEY = 'ryanerp_mobile_profile';
-      const API_BASE = 'https://ryanerp-hn5zd.ondigitalocean.app';
+      const ERP_TOKEN_KEY = 'erp_token';
+      const ERP_USER_KEY = 'erp_username';
+      const MAX_SESSION_MS = 6 * 60 * 60 * 1000;
 
-      // === UTILITIES ===
-      function showScreen(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-      }
+      const loginForm = document.getElementById('loginForm');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const submitBtn = document.getElementById('submitBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const errorBox = document.getElementById('error');
 
       function showError(message) {
-        const errorDiv = document.getElementById('loginError');
-        errorDiv.textContent = message;
-        errorDiv.classList.add('show');
-        setTimeout(() => errorDiv.classList.remove('show'), 5000);
+        errorBox.textContent = message;
+        errorBox.classList.add('visible');
       }
 
-      function getStoredAuth() {
+      function hideError() {
+        errorBox.textContent = '';
+        errorBox.classList.remove('visible');
+      }
+
+      function readMobileAuth() {
         try {
-          const stored = localStorage.getItem(LOGIN_KEY);
-          return stored ? JSON.parse(stored) : null;
-        } catch (e) {
+          const raw = localStorage.getItem(LOGIN_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch {
           return null;
         }
       }
 
-      function setStoredAuth(auth) {
-        localStorage.setItem(LOGIN_KEY, JSON.stringify(auth));
+      function isAuthValid(auth) {
+        if (!auth || !auth.token || !auth.timestamp) return false;
+        return (Date.now() - Number(auth.timestamp)) < MAX_SESSION_MS;
       }
 
-      function clearStoredAuth() {
+      function saveAuth(token, username) {
+        const payload = {
+          token,
+          username,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(LOGIN_KEY, JSON.stringify(payload));
+        localStorage.setItem(ERP_TOKEN_KEY, token);
+        localStorage.setItem(ERP_USER_KEY, username);
+      }
+
+      function clearAuth() {
         localStorage.removeItem(LOGIN_KEY);
-        localStorage.removeItem(PROFILE_KEY);
+        localStorage.removeItem(ERP_TOKEN_KEY);
+        localStorage.removeItem(ERP_USER_KEY);
       }
 
-      // === LOGIN LOGIC ===
-      document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
+      function redirectToApp() {
+        window.location.replace(ERP_URL);
+      }
+
+      const existingAuth = readMobileAuth();
+      if (isAuthValid(existingAuth)) {
+        localStorage.setItem(ERP_TOKEN_KEY, existingAuth.token);
+        localStorage.setItem(ERP_USER_KEY, existingAuth.username || '');
+        redirectToApp();
+      } else {
+        clearAuth();
+      }
+
+      clearBtn.addEventListener('click', function () {
+        hideError();
+        loginForm.reset();
+        usernameInput.focus();
+      });
+
+      loginForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        hideError();
+
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
 
         if (!username || !password) {
-          showError('Veuillez remplir tous les champs');
+          showError('Utilisateur et mot de passe obligatoires.');
           return;
         }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Connexion...';
 
         try {
           const response = await fetch(`${API_BASE}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, password }),
           });
 
-          if (!response.ok) {
-            const data = await response.json();
-            showError(data.error || 'Authentification échouée');
+          let data = {};
+          try {
+            data = await response.json();
+          } catch {
+            data = {};
+          }
+
+          if (!response.ok || !data.token) {
+            showError(data.error || 'Connexion refusée. Vérifie tes identifiants.');
             return;
           }
 
-          const { token, username: retUsername } = await response.json();
-          setStoredAuth({ token, username: retUsername, timestamp: Date.now() });
-
-          // Afficher greeting
-          document.getElementById('userGreeting').textContent = `Bienvenue, ${retUsername}! 👋`;
-          showScreen('profilesScreen');
-        } catch (err) {
-          showError('Erreur de connexion. Vérifiez votre connexion réseau.');
-          console.error(err);
-        }
-      });
-
-      // === PROFILE SELECTION ===
-      document.querySelectorAll('.profile-card').forEach(card => {
-        card.addEventListener('click', function () {
-          const role = this.dataset.role;
-          const auth = getStoredAuth();
-          if (!auth || !auth.token) {
-            showScreen('loginScreen');
-            return;
-          }
-
-          localStorage.setItem(PROFILE_KEY, role);
-          const url = ERP_URL + '?mobileProfile=' + encodeURIComponent(role);
-          window.location.replace(url);
-        });
-      });
-
-      // === LOGOUT ===
-      document.getElementById('logoutBtn').addEventListener('click', () => {
-        clearStoredAuth();
-        showScreen('loginScreen');
-        document.getElementById('loginForm').reset();
-        document.getElementById('loginError').classList.remove('show');
-      });
-
-      // === CONTINUE WITH LAST PROFILE ===
-      document.getElementById('continueLastBtn').addEventListener('click', () => {
-        const lastProfile = localStorage.getItem(PROFILE_KEY);
-        if (!lastProfile) {
-          showError('Aucun profil mémorisé');
-          return;
-        }
-
-        const auth = getStoredAuth();
-        if (!auth || !auth.token) {
-          showScreen('loginScreen');
-          return;
-        }
-
-        const url = ERP_URL + '?mobileProfile=' + encodeURIComponent(lastProfile);
-        window.location.replace(url);
-      });
-
-      // === INITIALIZATION ===
-      window.addEventListener('load', () => {
-        const auth = getStoredAuth();
-        if (auth && auth.token) {
-          // Vérifier si le token est encore valide (pas expiré après 6h)
-          const tokenAge = Date.now() - (auth.timestamp || 0);
-          const SIX_HOURS = 6 * 60 * 60 * 1000;
-
-          if (tokenAge < SIX_HOURS) {
-            document.getElementById('userGreeting').textContent = `Bienvenue, ${auth.username}! 👋`;
-            showScreen('profilesScreen');
-            document.getElementById('continueLastBtn').style.display = 'flex';
-          } else {
-            clearStoredAuth();
-            showScreen('loginScreen');
-          }
-        } else {
-          showScreen('loginScreen');
+          saveAuth(data.token, data.username || username);
+          redirectToApp();
+        } catch (error) {
+          showError('Erreur réseau. Réessaie dans quelques instants.');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Se connecter';
         }
       });
     })();
