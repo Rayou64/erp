@@ -14922,13 +14922,52 @@
 
     let _notifIntervalId = null;
     let _seenNotifIds = new Set();
+    let _notifApiWarned = false;
+
+    async function ensureNotificationPermissions() {
+      // Capacitor native notifications (Android)
+      if (window.Capacitor?.Plugins?.LocalNotifications) {
+        try {
+          const plugin = window.Capacitor.Plugins.LocalNotifications;
+          if (plugin.createChannel) {
+            await plugin.createChannel({
+              id: 'erp_notifs',
+              name: 'Ryan ERP',
+              description: 'Notifications ERP',
+              importance: 5,
+              visibility: 1
+            });
+          }
+          if (plugin.checkPermissions && plugin.requestPermissions) {
+            const perm = await plugin.checkPermissions();
+            if (perm?.display !== 'granted') {
+              await plugin.requestPermissions();
+            }
+          }
+        } catch (e) {
+          console.warn('[notifications] permission setup failed:', e?.message || e);
+        }
+        return;
+      }
+
+      // Browser fallback
+      if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+        try { await Notification.requestPermission(); } catch (_e) {}
+      }
+    }
 
     async function pollNotifications() {
       try {
         const resp = await fetch('/api/notifications', {
           headers: { Authorization: 'Bearer ' + localStorage.getItem('erp_token') }
         });
-        if (!resp.ok) return;
+        if (!resp.ok) {
+          if (!_notifApiWarned) {
+            _notifApiWarned = true;
+            console.warn('[notifications] API not accessible, status:', resp.status);
+          }
+          return;
+        }
         const notifs = await resp.json();
         const unread = notifs.filter(n => !n.isRead);
 
@@ -14963,6 +15002,7 @@
 
     function startNotifPolling() {
       if (_notifIntervalId) return;
+      ensureNotificationPermissions();
       pollNotifications();
       _notifIntervalId = setInterval(pollNotifications, 30000);
     }
@@ -15048,8 +15088,12 @@
               sound: null,
               channelId: 'erp_notifs'
             }]
-          }).catch(() => {});
-        } catch (e) {}
+          }).catch(err => {
+            console.warn('[notifications] schedule failed:', err?.message || err);
+          });
+        } catch (e) {
+          console.warn('[notifications] schedule exception:', e?.message || e);
+        }
         return;
       }
       // Web Notification API fallback

@@ -2518,6 +2518,8 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/projects$/ },
     { method: 'GET', pattern: /^\/material-requests$/ },
     { method: 'POST', pattern: /^\/material-requests$/ },
+    { method: 'GET', pattern: /^\/notifications$/ },
+    { method: 'POST', pattern: /^\/notifications\/read$/ },
     { method: 'POST', pattern: /^\/material-requests\/auto-stage$/ },
     { method: 'GET', pattern: /^\/stock-management\/orders$/ },
     { method: 'PATCH', pattern: /^\/stock-management\/orders\/\d+\/arrive$/ },
@@ -2530,6 +2532,8 @@ function authorizeRoleAccess(req, res, next) {
   const gestStockRules = [
     { method: 'GET',   pattern: /^\/projects$/ },
     { method: 'GET',   pattern: /^\/material-requests$/ },
+    { method: 'GET',   pattern: /^\/notifications$/ },
+    { method: 'POST',  pattern: /^\/notifications\/read$/ },
     { method: 'POST',  pattern: /^\/material-requests\/auto-stage$/ },
     { method: 'GET',   pattern: /^\/purchase-orders$/ },
     { method: 'PATCH', pattern: /^\/purchase-orders\/\d+\/validation$/ },
@@ -2545,6 +2549,8 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET',  pattern: /^\/projects$/ },
     { method: 'GET',  pattern: /^\/project-progress$/ },
     { method: 'POST', pattern: /^\/project-progress$/ },
+    { method: 'GET',  pattern: /^\/notifications$/ },
+    { method: 'POST', pattern: /^\/notifications\/read$/ },
     { method: 'GET',  pattern: /^\/project-folders$/ },
     { method: 'GET',  pattern: /^\/project-catalog$/ },
     { method: 'GET',  pattern: /^\/material-catalog$/ },
@@ -4554,6 +4560,8 @@ app.patch('/api/stock-management/orders/:id/arrive', async (req, res) => {
 
   res.json(order);
 });
+
+app.get('/api/stock-management/available', async (req, res) => {
   const rows = await all(`
     SELECT mr.id, mr.projetId, p.nomProjet, p.prefecture, p.nomSite, p.numeroMaison, p.typeMaison, mr.itemName, mr.quantiteDemandee, mr.quantiteRestante, mr.statut, mr.etapeApprovisionnement, mr.warehouseId
     FROM material_requests mr
