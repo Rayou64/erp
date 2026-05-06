@@ -3648,6 +3648,23 @@ app.post('/api/material-requests', async (req, res) => {
     });
   }
 
+  // Notify achat_user about new DA
+  try {
+    const site = String(projet?.nomSite || projet?.nomProjet || `Site #${projetId}`).trim();
+    const stageLabel = String(etapeApprovisionnement || '').trim();
+    const stagePart = stageLabel ? ` — Étape: ${stageLabel}` : '';
+    const item = String(request?.itemName || 'Materiel divers').trim();
+    await createNotification(
+      'achat_user',
+      'da_soumise',
+      '📋 Nouvelle demande d\'approvisionnement',
+      `Une DA a été soumise pour ${site}${stagePart}: ${item} (qté: ${quantite}).`,
+      { requestId: request.id, projetId }
+    );
+  } catch (notifErr) {
+    console.error('[notifications] DA soumise trigger error:', notifErr.message);
+  }
+
   res.status(201).json(request);
 });
 
@@ -4160,6 +4177,38 @@ app.patch('/api/purchase-orders/:id/validation', async (req, res) => {
   }
 
   const order = await getPurchaseOrderById(id);
+
+  // Notify achat_user when BC is validated or delivered
+  try {
+    if (statut === 'VALIDEE') {
+      await createNotification(
+        'achat_user',
+        'bc_valide',
+        '✅ Bon de commande validé',
+        `Le Bon de Commande #${id} a été validé par ${String(signatureName || '').trim() || 'un responsable'}.`,
+        { purchaseOrderId: id }
+      );
+    } else if (statut === 'LIVREE') {
+      await createNotification(
+        'achat_user',
+        'bc_livre',
+        '🚚 Commande livrée',
+        `Le Bon de Commande #${id} a été marqué comme livré — stock mis à jour.`,
+        { purchaseOrderId: id }
+      );
+    } else if (statut === 'ANNULEE') {
+      await createNotification(
+        'achat_user',
+        'bc_annule',
+        '❌ Bon de commande annulé',
+        `Le Bon de Commande #${id} a été annulé par ${String(signatureName || '').trim() || 'un responsable'}.`,
+        { purchaseOrderId: id }
+      );
+    }
+  } catch (notifErr) {
+    console.error('[notifications] BC validation trigger error:', notifErr.message);
+  }
+
   res.json({ ...order, authorizationDocs: [] });
 });
 
