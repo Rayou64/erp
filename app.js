@@ -20,49 +20,7 @@ app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
-
-const ALLOWED_CORS_ORIGINS = new Set([
-  'http://localhost',
-  'http://localhost:4000',
-  'https://localhost',
-  'capacitor://localhost',
-  'ionic://localhost',
-  'https://ryanerp-hn5zd.ondigitalocean.app',
-]);
-
-app.use((req, res, next) => {
-  const origin = String(req.headers.origin || '').trim();
-  if (!origin) {
-    if (req.method === 'OPTIONS') return res.sendStatus(204);
-    return next();
-  }
-
-  let isAllowed = ALLOWED_CORS_ORIGINS.has(origin);
-  if (!isAllowed) {
-    try {
-      const parsed = new URL(origin);
-      isAllowed = parsed.protocol === 'https:' && parsed.hostname.endsWith('.ondigitalocean.app');
-    } catch {
-      isAllowed = false;
-    }
-  }
-
-  if (isAllowed) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Device-Token, X-Tracking-Token');
-  }
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(isAllowed ? 204 : 403);
-  }
-
-  return next();
-});
-
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/mobile', express.static(path.join(__dirname, 'mobile', 'www')));
 
 const APP_DATA_DIR = process.env.APP_DATA_DIR || (process.env.RAILWAY_ENVIRONMENT ? '/data' : __dirname);
 const DB_FILE = process.env.DB_FILE || path.join(APP_DATA_DIR, 'data.db');
@@ -73,6 +31,10 @@ const COMMIS_STOCK_USERNAME = process.env.COMMIS_STOCK_USERNAME || 'commis_stock
 const COMMIS_STOCK_PASSWORD = process.env.COMMIS_STOCK_PASSWORD || 'stock123';
 const GEST_STOCK_USERNAME = process.env.GEST_STOCK_USERNAME || 'gestionnaire_stock';
 const GEST_STOCK_PASSWORD = process.env.GEST_STOCK_PASSWORD || 'geststock123';
+const EXECUTIVE_USERNAME = process.env.EXECUTIVE_USERNAME || 'dirigeant';
+const EXECUTIVE_PASSWORD = process.env.EXECUTIVE_PASSWORD || 'dirigeant123';
+const ACHAT_USERNAME = process.env.ACHAT_USERNAME || 'achat';
+const ACHAT_PASSWORD = process.env.ACHAT_PASSWORD || 'achat123';
 const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS || 60_000);
 const API_RATE_MAX = Number(process.env.API_RATE_MAX || 600);
 const AUTH_RATE_WINDOW_MS = Number(process.env.AUTH_RATE_WINDOW_MS || 15 * 60_000);
@@ -278,20 +240,6 @@ app.get('/readyz', async (_req, res) => {
     res.status(503).json({ status: 'not-ready', error: 'database-unreachable' });
   }
 });
-
-// APK Download Route
-app.get('/download-apk', (req, res) => {
-  const filePath = path.join(__dirname, 'downloads', 'app-release.apk');
-  res.download(filePath, 'RyanERP.apk', (err) => {
-    if (err) {
-      console.error('APK download error:', err);
-      res.status(404).json({ error: 'APK not found' });
-    }
-  });
-});
-
-// Static downloads folder
-app.use('/downloads', express.static(path.join(__dirname, 'downloads')));
 
 async function insertExpenseRecord({
   materialId = null,
@@ -1582,38 +1530,6 @@ async function ensureMaterialRequestsForOrder(orderId, options = {}) {
   return createdRequestIds;
 }
 
-// ── Notification helpers ──────────────────────────────────────────────────────
-
-async function getChefUsernameForProject(projetId) {
-  if (!projetId) return null;
-  const project = await get('SELECT numeroMaison FROM projects WHERE id = ?', [Number(projetId)]);
-  if (!project) return null;
-  const siteNumber = String(Number(String(project.numeroMaison || '').match(/\d+/)?.[0] || 0) || '');
-  if (!siteNumber || siteNumber === '0') return null;
-  const chefs = await all("SELECT username FROM users WHERE role = 'chef_chantier_site'");
-  for (const chef of chefs) {
-    const m = chef.username.match(/site[_-]?0*(\d+)/i);
-    if (m && String(Number(m[1])) === siteNumber) return chef.username;
-  }
-  return null;
-}
-
-async function createNotification(username, type, title, body, data = {}) {
-  if (!username || !title) return;
-  try {
-    const nextIdRow = await get('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM notifications');
-    const nextId = Number(nextIdRow?.nextId || nextIdRow?.nextid || 1);
-    await run(
-      'INSERT INTO notifications (id, username, type, title, body, data, isRead, createdAt) VALUES (?, ?, ?, ?, ?, ?, 0, ?)',
-      [nextId, String(username), String(type), String(title), String(body), JSON.stringify(data || {}), new Date().toISOString()]
-    );
-  } catch (err) {
-    console.error('[notifications] createNotification error:', err.message);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-
 async function initDb() {
   await run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
@@ -2128,18 +2044,6 @@ async function initDb() {
     FOREIGN KEY(vehicleId) REFERENCES auto_vehicles(id) ON DELETE CASCADE
   )`);
 
-  await run(`CREATE TABLE IF NOT EXISTS notifications (
-    id INTEGER PRIMARY KEY,
-    username TEXT NOT NULL,
-    type TEXT NOT NULL,
-    title TEXT NOT NULL,
-    body TEXT NOT NULL,
-    data TEXT NOT NULL DEFAULT '{}',
-    isRead INTEGER NOT NULL DEFAULT 0,
-    createdAt TEXT NOT NULL
-  )`);
-  try { await run('CREATE INDEX IF NOT EXISTS idx_notifications_username_read ON notifications(username, isRead, createdAt DESC)'); } catch (e) {}
-
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN vehicleId INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
   try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN deviceName TEXT NOT NULL DEFAULT 'smartphone'"); } catch (error) {}
   try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN tokenHash TEXT NOT NULL DEFAULT ''"); } catch (error) {}
@@ -2347,8 +2251,43 @@ async function initDb() {
     console.log('Utilisateur admin créé avec mot de passe admin123');
   }
 
+  const executive = await get('SELECT id FROM users WHERE username = ?', [EXECUTIVE_USERNAME]);
+  const executiveHashedPassword = await bcrypt.hash(EXECUTIVE_PASSWORD, 10);
+  if (!executive) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, EXECUTIVE_USERNAME, executiveHashedPassword, 'dirigeant', new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${EXECUTIVE_USERNAME} cree avec role dirigeant`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [executiveHashedPassword, 'dirigeant', EXECUTIVE_USERNAME]
+    );
+    console.log(`Utilisateur ${EXECUTIVE_USERNAME} mis a jour avec role dirigeant`);
+  }
+
   // Garantir un compte commis_stock toujours opérationnel (local + Railway)
   const commis = await get('SELECT id FROM users WHERE username = ?', [COMMIS_STOCK_USERNAME]);
+
+  // Garantir le compte achat toujours opérationnel (local + Railway)
+  const achatUser = await get('SELECT id FROM users WHERE username = ?', [ACHAT_USERNAME]);
+  const achatHashedPassword = await bcrypt.hash(ACHAT_PASSWORD, 10);
+  if (!achatUser) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, ACHAT_USERNAME, achatHashedPassword, 'achat', new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${ACHAT_USERNAME} cree avec role achat`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [achatHashedPassword, 'achat', ACHAT_USERNAME]
+    );
+    console.log(`Utilisateur ${ACHAT_USERNAME} mis a jour avec role achat`);
+  }
   const commisHashedPassword = await bcrypt.hash(COMMIS_STOCK_PASSWORD, 10);
   if (!commis) {
     const nextUserId = await getNextUserId();
@@ -2384,27 +2323,6 @@ async function initDb() {
       [siteChiefHashedPassword, siteChiefRole, siteChiefUsername]
     );
     console.log(`Utilisateur ${siteChiefUsername} mis a jour avec role ${siteChiefRole}`);
-  }
-
-  // Créer/Garantir le compte Achat (local + Railway)
-  const achatUsername = 'achat_user';
-  const achatRole = 'achat';
-  const achatPassword = process.env.ACHAT_PASSWORD || 'achat@123';
-  const achat = await get('SELECT id FROM users WHERE username = ?', [achatUsername]);
-  const achatHashedPassword = await bcrypt.hash(achatPassword, 10);
-  if (!achat) {
-    const nextUserId = await getNextUserId();
-    await run(
-      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
-      [nextUserId, achatUsername, achatHashedPassword, achatRole, new Date().toISOString()]
-    );
-    console.log(`Utilisateur ${achatUsername} cree avec role ${achatRole}`);
-  } else {
-    await run(
-      'UPDATE users SET password = ?, role = ? WHERE username = ?',
-      [achatHashedPassword, achatRole, achatUsername]
-    );
-    console.log(`Utilisateur ${achatUsername} mis a jour avec role ${achatRole}`);
   }
 
   // Supprimer les profils retires du lien public et de Railway.
@@ -2507,7 +2425,14 @@ function authenticateToken(req, res, next) {
 
 function authorizeRoleAccess(req, res, next) {
   const role = req.user && req.user.role;
-  if (role !== 'commis' && role !== 'gestionnaire_stock' && role !== 'chef_chantier_site') {
+  if (
+    role !== 'commis'
+    && role !== 'gestionnaire_stock'
+    && role !== 'chef_chantier_site'
+    && role !== 'dirigeant'
+    && role !== 'achat'
+    && role !== 'controle_achat'
+  ) {
     return next();
   }
 
@@ -2518,8 +2443,6 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/projects$/ },
     { method: 'GET', pattern: /^\/material-requests$/ },
     { method: 'POST', pattern: /^\/material-requests$/ },
-    { method: 'GET', pattern: /^\/notifications$/ },
-    { method: 'POST', pattern: /^\/notifications\/read$/ },
     { method: 'POST', pattern: /^\/material-requests\/auto-stage$/ },
     { method: 'GET', pattern: /^\/stock-management\/orders$/ },
     { method: 'PATCH', pattern: /^\/stock-management\/orders\/\d+\/arrive$/ },
@@ -2532,8 +2455,6 @@ function authorizeRoleAccess(req, res, next) {
   const gestStockRules = [
     { method: 'GET',   pattern: /^\/projects$/ },
     { method: 'GET',   pattern: /^\/material-requests$/ },
-    { method: 'GET',   pattern: /^\/notifications$/ },
-    { method: 'POST',  pattern: /^\/notifications\/read$/ },
     { method: 'POST',  pattern: /^\/material-requests\/auto-stage$/ },
     { method: 'GET',   pattern: /^\/purchase-orders$/ },
     { method: 'PATCH', pattern: /^\/purchase-orders\/\d+\/validation$/ },
@@ -2547,10 +2468,12 @@ function authorizeRoleAccess(req, res, next) {
 
   const siteChiefRules = [
     { method: 'GET',  pattern: /^\/projects$/ },
+    { method: 'GET',  pattern: /^\/project-assignments$/ },
+    { method: 'POST', pattern: /^\/project-assignments$/ },
+    { method: 'PATCH', pattern: /^\/project-assignments\/\d+$/ },
+    { method: 'DELETE', pattern: /^\/project-assignments\/\d+$/ },
     { method: 'GET',  pattern: /^\/project-progress$/ },
     { method: 'POST', pattern: /^\/project-progress$/ },
-    { method: 'GET',  pattern: /^\/notifications$/ },
-    { method: 'POST', pattern: /^\/notifications\/read$/ },
     { method: 'GET',  pattern: /^\/project-folders$/ },
     { method: 'GET',  pattern: /^\/project-catalog$/ },
     { method: 'GET',  pattern: /^\/material-catalog$/ },
@@ -2571,11 +2494,93 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET',  pattern: /^\/database-documents\/\d+\/download$/ },
   ];
 
+  const executiveRules = [
+    { method: 'GET', pattern: /^\/auth\/me$/ },
+    { method: 'GET', pattern: /^\/projects$/ },
+    { method: 'GET', pattern: /^\/project-assignments$/ },
+    { method: 'GET', pattern: /^\/project-progress$/ },
+    { method: 'GET', pattern: /^\/project-folders$/ },
+    { method: 'GET', pattern: /^\/project-catalog$/ },
+    { method: 'GET', pattern: /^\/material-catalog$/ },
+    { method: 'GET', pattern: /^\/material-requests$/ },
+    { method: 'GET', pattern: /^\/purchase-orders$/ },
+    { method: 'GET', pattern: /^\/stock-management\/available$/ },
+    { method: 'GET', pattern: /^\/stock-management\/issues$/ },
+    { method: 'GET', pattern: /^\/stock-management\/orders$/ },
+    { method: 'GET', pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'GET', pattern: /^\/expenses$/ },
+    { method: 'GET', pattern: /^\/revenues$/ },
+    { method: 'GET', pattern: /^\/vehicles$/ },
+    { method: 'GET', pattern: /^\/vehicles\/\d+\/locations$/ },
+    { method: 'GET', pattern: /^\/vehicles\/\d+$/ },
+    { method: 'GET', pattern: /^\/auto-vehicle-locations$/ },
+    { method: 'GET', pattern: /^\/auto-transport-costs$/ },
+  ];
+
+  const procurementReviewerRules = [
+    { method: 'GET', pattern: /^\/auth\/me$/ },
+    { method: 'GET', pattern: /^\/projects$/ },
+    { method: 'GET', pattern: /^\/project-assignments$/ },
+    { method: 'GET', pattern: /^\/project-folders$/ },
+    { method: 'GET', pattern: /^\/project-catalog$/ },
+    { method: 'GET', pattern: /^\/material-catalog$/ },
+    { method: 'GET', pattern: /^\/material-requests$/ },
+    { method: 'GET', pattern: /^\/purchase-orders$/ },
+    { method: 'GET', pattern: /^\/purchase-orders\/\d+\/pdf$/ },
+    { method: 'GET', pattern: /^\/purchase-orders\/\d+\/authorization-documents$/ },
+    { method: 'GET', pattern: /^\/stock-management\/available$/ },
+    { method: 'GET', pattern: /^\/stock-management\/issues$/ },
+    { method: 'GET', pattern: /^\/stock-management\/orders$/ },
+    { method: 'GET', pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'GET', pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
+    { method: 'GET', pattern: /^\/database-documents$/ },
+    { method: 'GET', pattern: /^\/database-documents\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/transfer-authorizations$/ },
+  ];
+
+  const achatRules = [
+    { method: 'GET',    pattern: /^\/auth\/me$/ },
+    { method: 'GET',    pattern: /^\/projects$/ },
+    { method: 'GET',    pattern: /^\/material-catalog$/ },
+    { method: 'GET',    pattern: /^\/material-requests$/ },
+    // Bons de commande – accès complet
+    { method: 'GET',    pattern: /^\/purchase-orders$/ },
+    { method: 'POST',   pattern: /^\/purchase-orders$/ },
+    { method: 'PATCH',  pattern: /^\/purchase-orders\/\d+\/validation$/ },
+    { method: 'PATCH',  pattern: /^\/purchase-orders\/\d+$/ },
+    { method: 'DELETE', pattern: /^\/purchase-orders\/\d+$/ },
+    { method: 'GET',    pattern: /^\/purchase-orders\/\d+\/pdf$/ },
+    { method: 'GET',    pattern: /^\/purchase-orders\/\d+\/authorization-documents$/ },
+    // Inventaire (toutes zones)
+    { method: 'GET',    pattern: /^\/stock-management\/available$/ },
+    { method: 'GET',    pattern: /^\/stock-management\/issues$/ },
+    { method: 'GET',    pattern: /^\/stock-management\/orders$/ },
+    // Autorisations de sortie – créer, valider/rejeter, PDF
+    { method: 'GET',    pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'POST',   pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'PATCH',  pattern: /^\/stock-issue-authorizations\/\d+\/decision$/ },
+    { method: 'GET',    pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
+    // Base de données – accès complet + téléchargements
+    { method: 'GET',    pattern: /^\/database-documents$/ },
+    { method: 'GET',    pattern: /^\/database-documents\/\d+\/download$/ },
+    { method: 'POST',   pattern: /^\/database-documents\/upload$/ },
+    { method: 'DELETE', pattern: /^\/database-documents\/\d+$/ },
+    // Corbeille – suppression d'éléments
+    { method: 'DELETE', pattern: /^\/material-requests\/\d+$/ },
+    { method: 'GET',    pattern: /^\/transfer-authorizations$/ },
+  ];
+
   const rules = role === 'gestionnaire_stock'
     ? gestStockRules
     : role === 'chef_chantier_site'
       ? siteChiefRules
-      : commisRules;
+      : role === 'controle_achat'
+        ? procurementReviewerRules
+      : role === 'dirigeant'
+        ? executiveRules
+      : role === 'achat'
+        ? achatRules
+        : commisRules;
   const isAllowed = rules.some(rule => rule.method === method && rule.pattern.test(pathName));
   if (isAllowed) {
     return next();
@@ -2762,26 +2767,13 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe sont obligatoires' });
   }
 
-  const normalizedUsername = String(username || '').trim();
-  const loginCandidates = normalizedUsername === 'achat'
-    ? ['achat', 'achat_user']
-    : [normalizedUsername];
-
-  let user = null;
-  let valid = false;
-  for (const candidate of loginCandidates) {
-    const candidateUser = await get('SELECT * FROM users WHERE username = ?', [candidate]);
-    if (!candidateUser) continue;
-
-    const candidateValid = await bcrypt.compare(password, candidateUser.password);
-    if (candidateValid) {
-      user = candidateUser;
-      valid = true;
-      break;
-    }
+  const user = await get('SELECT * FROM users WHERE username = ?', [username]);
+  if (!user) {
+    return res.status(401).json({ error: 'Utilisateur ou mot de passe invalide' });
   }
 
-  if (!user || !valid) {
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) {
     return res.status(401).json({ error: 'Utilisateur ou mot de passe invalide' });
   }
 
@@ -2795,34 +2787,6 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   res.json({ username: req.user.username, role: req.user.role, scope: null });
 });
-
-// ── Notifications API ─────────────────────────────────────────────────────────
-
-app.get('/api/notifications', authenticateToken, async (req, res) => {
-  const username = req.user.username;
-  const rows = await all(
-    'SELECT * FROM notifications WHERE username = ? ORDER BY createdAt DESC LIMIT 50',
-    [username]
-  );
-  res.json(rows.map(r => ({ ...r, data: (() => { try { return JSON.parse(r.data); } catch (e) { return {}; } })() })));
-});
-
-app.post('/api/notifications/read', authenticateToken, async (req, res) => {
-  const username = req.user.username;
-  const { ids } = req.body || {};
-  if (Array.isArray(ids) && ids.length) {
-    const placeholders = ids.map(() => '?').join(',');
-    await run(
-      `UPDATE notifications SET isRead = 1 WHERE username = ? AND id IN (${placeholders})`,
-      [username, ...ids.map(Number)]
-    );
-  } else {
-    await run('UPDATE notifications SET isRead = 1 WHERE username = ?', [username]);
-  }
-  res.json({ ok: true });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 app.post('/api/gps/ingest', async (req, res) => {
   const {
@@ -3648,23 +3612,6 @@ app.post('/api/material-requests', async (req, res) => {
     });
   }
 
-  // Notify achat_user about new DA
-  try {
-    const site = String(projet?.nomSite || projet?.nomProjet || `Site #${projetId}`).trim();
-    const stageLabel = String(etapeApprovisionnement || '').trim();
-    const stagePart = stageLabel ? ` — Étape: ${stageLabel}` : '';
-    const item = String(request?.itemName || 'Materiel divers').trim();
-    await createNotification(
-      'achat_user',
-      'da_soumise',
-      '📋 Nouvelle demande d\'approvisionnement',
-      `Une DA a été soumise pour ${site}${stagePart}: ${item} (qté: ${quantite}).`,
-      { requestId: request.id, projetId }
-    );
-  } catch (notifErr) {
-    console.error('[notifications] DA soumise trigger error:', notifErr.message);
-  }
-
   res.status(201).json(request);
 });
 
@@ -4087,28 +4034,6 @@ app.post('/api/purchase-orders', async (req, res) => {
   });
 
   const order = await getPurchaseOrderById(purchaseOrderId);
-
-  // Notify chef_chantier_site that their material request became a BC
-  try {
-    const notifProjetId = resolvedProjetId || resolvedSiteId;
-    if (notifProjetId) {
-      const chefUsername = await getChefUsernameForProject(notifProjetId);
-      if (chefUsername) {
-        const stage = resolvedEtape ? ` — Étape: ${resolvedEtape}` : '';
-        const site = resolvedNomSite || resolvedNomProjet || `Site #${notifProjetId}`;
-        await createNotification(
-          chefUsername,
-          'bc_created',
-          '📦 Bon de commande créé',
-          `Votre demande d'approvisionnement pour ${site}${stage} a été transformée en Bon de Commande #${purchaseOrderId} (fournisseur: ${String(fournisseur).trim()}).`,
-          { purchaseOrderId, projetId: notifProjetId }
-        );
-      }
-    }
-  } catch (notifErr) {
-    console.error('[notifications] BC created trigger error:', notifErr.message);
-  }
-
   res.status(201).json(order);
 });
 
@@ -4177,38 +4102,6 @@ app.patch('/api/purchase-orders/:id/validation', async (req, res) => {
   }
 
   const order = await getPurchaseOrderById(id);
-
-  // Notify achat_user when BC is validated or delivered
-  try {
-    if (statut === 'VALIDEE') {
-      await createNotification(
-        'achat_user',
-        'bc_valide',
-        '✅ Bon de commande validé',
-        `Le Bon de Commande #${id} a été validé par ${String(signatureName || '').trim() || 'un responsable'}.`,
-        { purchaseOrderId: id }
-      );
-    } else if (statut === 'LIVREE') {
-      await createNotification(
-        'achat_user',
-        'bc_livre',
-        '🚚 Commande livrée',
-        `Le Bon de Commande #${id} a été marqué comme livré — stock mis à jour.`,
-        { purchaseOrderId: id }
-      );
-    } else if (statut === 'ANNULEE') {
-      await createNotification(
-        'achat_user',
-        'bc_annule',
-        '❌ Bon de commande annulé',
-        `Le Bon de Commande #${id} a été annulé par ${String(signatureName || '').trim() || 'un responsable'}.`,
-        { purchaseOrderId: id }
-      );
-    }
-  } catch (notifErr) {
-    console.error('[notifications] BC validation trigger error:', notifErr.message);
-  }
-
   res.json({ ...order, authorizationDocs: [] });
 });
 
@@ -4585,28 +4478,6 @@ app.patch('/api/stock-management/orders/:id/arrive', async (req, res) => {
   }
 
   const order = await getPurchaseOrderById(orderId);
-
-  // Notify chef_chantier_site that the stock order for their site has arrived
-  try {
-    const notifProjetId = Number(orderRow.siteId || orderRow.projetId || 0) || null;
-    if (notifProjetId) {
-      const chefUsername = await getChefUsernameForProject(notifProjetId);
-      if (chefUsername) {
-        const site = orderRow.nomSiteManuel || orderRow.nomProjetManuel || `Site #${notifProjetId}`;
-        const stage = orderRow.etapeApprovisionnement ? ` (${orderRow.etapeApprovisionnement})` : '';
-        await createNotification(
-          chefUsername,
-          'stock_arrived',
-          '🚚 Commande arrivée en stock',
-          `La commande BC #${orderId} pour ${site}${stage} a été marquée comme arrivée en gestion de stock. Les matériaux sont disponibles.`,
-          { purchaseOrderId: orderId, projetId: notifProjetId }
-        );
-      }
-    }
-  } catch (notifErr) {
-    console.error('[notifications] stock arrived trigger error:', notifErr.message);
-  }
-
   res.json(order);
 });
 
@@ -5163,30 +5034,6 @@ app.patch('/api/stock-issue-authorizations/:id/decision', async (req, res) => {
   });
 
   const updated = await get('SELECT * FROM stock_issue_authorizations WHERE id = ?', [id]);
-
-  // Notify chef_chantier_site that their sortie authorization has been validated
-  if (decision === 'VALIDEE') {
-    try {
-      const notifProjetId = Number(authRow.projetId || 0) || null;
-      if (notifProjetId) {
-        const chefUsername = await getChefUsernameForProject(notifProjetId);
-        if (chefUsername) {
-          const site = authRow.nomSite ? `${authRow.nomProjet || ''} — Site ${authRow.numeroMaison || ''}`.trim() : `Projet #${notifProjetId}`;
-          const stage = authRow.etapeApprovisionnement ? ` (${authRow.etapeApprovisionnement})` : '';
-          await createNotification(
-            chefUsername,
-            'sortie_validee',
-            '✅ Autorisation de sortie validée',
-            `Votre demande de sortie de stock #${id} pour ${site}${stage} a été validée par ${decidedBy}. Vous pouvez retirer les matériaux à l'entrepôt.`,
-            { authorizationId: id, projetId: notifProjetId }
-          );
-        }
-      }
-    } catch (notifErr) {
-      console.error('[notifications] sortie validée trigger error:', notifErr.message);
-    }
-  }
-
   res.json({ ...updated, doc });
 });
 
@@ -6189,6 +6036,16 @@ app.post('/api/project-assignments', async (req, res) => {
     return res.status(404).json({ error: 'Projet non trouve' });
   }
 
+  if (String(req.user?.role || '').trim() === 'chef_chantier_site') {
+    const scopedProject = await get(
+      'SELECT id, numeroMaison, nomSite FROM projects WHERE id = ?',
+      [assignmentProjectId]
+    );
+    if (!scopedProject || !isInChefSiteScope(req.user, scopedProject)) {
+      return res.status(403).json({ error: 'Acces refuse a ce site' });
+    }
+  }
+
   const result = await run(
     'INSERT INTO project_assignments (projectId, userId, assigneeName, phoneNumber, role, assignedAt) VALUES (?, ?, ?, ?, ?, ?)',
     [
@@ -6220,6 +6077,10 @@ app.get('/api/project-assignments', async (_req, res) => {
     JOIN users u ON u.id = pa.userId
     ORDER BY pa.assignedAt DESC
   `);
+  if (String(_req.user?.role || '').trim() === 'chef_chantier_site') {
+    const scopedRows = rows.filter(row => isInChefSiteScope(_req.user, row));
+    return res.json(scopedRows);
+  }
   res.json(rows);
 });
 
@@ -6229,6 +6090,19 @@ app.patch('/api/project-assignments/:id', async (req, res) => {
 
   if (!id || !assigneeName || !String(assigneeName).trim() || !role || !String(role).trim()) {
     return res.status(400).json({ error: 'Nom et role sont obligatoires' });
+  }
+
+  if (String(req.user?.role || '').trim() === 'chef_chantier_site') {
+    const scopedAssignment = await get(
+      `SELECT pa.id, p.numeroMaison, p.nomSite
+       FROM project_assignments pa
+       JOIN projects p ON p.id = pa.projectId
+       WHERE pa.id = ?`,
+      [id]
+    );
+    if (!scopedAssignment || !isInChefSiteScope(req.user, scopedAssignment)) {
+      return res.status(403).json({ error: 'Acces refuse a cette assignation' });
+    }
   }
 
   const result = await run(
@@ -6253,6 +6127,20 @@ app.patch('/api/project-assignments/:id', async (req, res) => {
 
 app.delete('/api/project-assignments/:id', async (req, res) => {
   const id = Number(req.params.id);
+
+  if (String(req.user?.role || '').trim() === 'chef_chantier_site') {
+    const scopedAssignment = await get(
+      `SELECT pa.id, p.numeroMaison, p.nomSite
+       FROM project_assignments pa
+       JOIN projects p ON p.id = pa.projectId
+       WHERE pa.id = ?`,
+      [id]
+    );
+    if (!scopedAssignment || !isInChefSiteScope(req.user, scopedAssignment)) {
+      return res.status(403).json({ error: 'Acces refuse a cette assignation' });
+    }
+  }
+
   const result = await run('DELETE FROM project_assignments WHERE id = ?', [id]);
   if (result.changes === 0) {
     return res.status(404).json({ error: 'Assignation non trouvée' });
