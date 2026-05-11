@@ -2121,13 +2121,23 @@ async function initDb() {
     console.log(`Utilisateur ${COMMIS_STOCK_USERNAME} mis a jour avec role commis`);
   }
 
-  // Supprimer les profils retires du lien public (gestionnaire_stock et chef site 15)
-  const removedPublicProfiles = await run(
-    'DELETE FROM users WHERE role = ? OR username IN (?, ?)',
-    ['gestionnaire_stock', GEST_STOCK_USERNAME, SITE_CHIEF_USERNAME]
-  );
-  if (Number(removedPublicProfiles?.changes || 0) > 0) {
-    console.log(`Profils publics supprimes: ${Number(removedPublicProfiles.changes || 0)}`);
+  // Garantir un compte gestionnaire_stock toujours opérationnel
+  const gestStock = await get('SELECT id FROM users WHERE username = ?', [GEST_STOCK_USERNAME]);
+  const gestStockHashedPassword = await bcrypt.hash(GEST_STOCK_PASSWORD, 10);
+  if (!gestStock) {
+    const nextGestIdRow = await get('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM users');
+    const nextGestId = Number(nextGestIdRow?.nextId || nextGestIdRow?.nextid || 1);
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextGestId, GEST_STOCK_USERNAME, gestStockHashedPassword, 'gestionnaire_stock', new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${GEST_STOCK_USERNAME} créé avec role gestionnaire_stock`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [gestStockHashedPassword, 'gestionnaire_stock', GEST_STOCK_USERNAME]
+    );
+    console.log(`Utilisateur ${GEST_STOCK_USERNAME} mis a jour avec role gestionnaire_stock`);
   }
 
   // Garantir les identifiants gestionnaire de stock pour la zone Adzope
@@ -2160,6 +2170,25 @@ async function initDb() {
   );
   if (Number(cleanupResult?.changes || 0) > 0) {
     console.log(`Comptes gestionnaire_stock_zone legacy supprimes: ${Number(cleanupResult.changes || 0)}`);
+  }
+
+  // Garantir un compte chef de chantier du site PINUT-Adzope-15
+  const siteChief = await get('SELECT id FROM users WHERE username = ?', [SITE_CHIEF_USERNAME]);
+  const siteChiefHashedPassword = await bcrypt.hash(SITE_CHIEF_PASSWORD, 10);
+  if (!siteChief) {
+    const nextSiteChiefIdRow = await get('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM users');
+    const nextSiteChiefId = Number(nextSiteChiefIdRow?.nextId || nextSiteChiefIdRow?.nextid || 1);
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextSiteChiefId, SITE_CHIEF_USERNAME, siteChiefHashedPassword, 'chef_chantier_site', new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${SITE_CHIEF_USERNAME} créé avec role chef_chantier_site`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [siteChiefHashedPassword, 'chef_chantier_site', SITE_CHIEF_USERNAME]
+    );
+    console.log(`Utilisateur ${SITE_CHIEF_USERNAME} mis a jour avec role chef_chantier_site`);
   }
 
   // Garantir un compte de controle achat global (lecture + validation sorties)
@@ -3690,10 +3719,10 @@ app.post('/api/material-requests', async (req, res) => {
 
 app.get('/api/material-requests', async (req, res) => {
   let rows = await all(`
-    SELECT mr.*, COALESCE(p.nomProjet, 'Projet supprime') as projetNom, p.numeroMaison, p.typeMaison, pomax.dateProduitRecu,
+    SELECT mr.*, p.nomProjet as projetNom, p.numeroMaison, p.typeMaison, pomax.dateProduitRecu,
       COALESCE(NULLIF(TRIM(mr.warehouseId), ''), po.warehouseId) as warehouseId
     FROM material_requests mr
-    LEFT JOIN projects p ON p.id = mr.projetId
+    JOIN projects p ON p.id = mr.projetId
     LEFT JOIN (
       SELECT materialRequestId,
         MAX(id) as max_po_id,

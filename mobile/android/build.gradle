@@ -27,3 +27,15 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+// Force Java 17 compatibility for all subprojects (overrides plugins requiring Java 21)
+subprojects {
+    afterEvaluate { project ->
+        if (project.extensions.findByName('android')) {
+            project.android.compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+    }
+}

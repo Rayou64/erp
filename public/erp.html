@@ -258,6 +258,325 @@
       box-shadow: 0 10px 28px rgba(99, 102, 241, 0.5);
     }
 
+    .hr-employee-toolbar {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .hr-employee-toolbar-label {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .hr-employee-team-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .hr-employee-search-row {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+
+    .hr-employee-search-row input {
+      border: 1px solid #dbe4ff;
+      background: #f8faff;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #0f172a;
+    }
+
+    .hr-employee-search-row input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+      background: #ffffff;
+    }
+
+    .hr-employee-search-count {
+      font-size: 12px;
+      color: #475569;
+      font-weight: 600;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .hr-employee-dossiers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 22px;
+      align-items: start;
+    }
+
+    .hr-employee-kanban-column {
+      --hr-accent: #2563eb;
+      --hr-accent-soft: #eaf2ff;
+      --hr-accent-border: #c8dbff;
+      border: 1px solid #d9e4ff;
+      border-radius: 18px;
+      background: radial-gradient(120% 120% at 0% 0%, #ffffff 0%, #f5f8ff 56%, #edf2ff 100%);
+      box-shadow: 0 16px 36px rgba(37, 99, 235, 0.1);
+      border-left: 5px solid var(--hr-accent);
+      padding: 14px;
+      min-height: 180px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hr-employee-kanban-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 10px 10px 12px;
+      border: 1px solid var(--hr-accent-border);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, var(--hr-accent-soft) 100%);
+      position: sticky;
+      top: 8px;
+      z-index: 2;
+      backdrop-filter: blur(6px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 8px 18px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    .hr-employee-kanban-header::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0.46), transparent 48%, rgba(255, 255, 255, 0.22));
+      pointer-events: none;
+    }
+
+    .hr-employee-kanban-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .hr-employee-kanban-count {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--hr-accent);
+      background: var(--hr-accent-soft);
+      border: 1px solid var(--hr-accent-border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      white-space: nowrap;
+    }
+
+    .hr-employee-kanban-cards {
+      display: grid;
+      gap: 14px;
+      max-height: 74vh;
+      overflow-y: auto;
+      padding-right: 6px;
+      padding-bottom: 2px;
+    }
+
+    .hr-employee-dossier-card {
+      border: 1px solid #d6e2ff;
+      border-radius: 16px;
+      padding: 16px;
+      background: linear-gradient(155deg, #ffffff 0%, #f7faff 68%, #f0f6ff 100%);
+      box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+      animation: hrEmployeeCardIn 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+      animation-delay: var(--hr-enter-delay, 0ms);
+      will-change: transform, opacity;
+    }
+
+    .hr-employee-dossier-card:hover {
+      transform: translateY(-3px);
+      border-color: #bfceff;
+      box-shadow: 0 18px 34px rgba(59, 130, 246, 0.16);
+    }
+
+    .hr-employee-dossier-card:hover .hr-employee-card-role {
+      filter: saturate(1.08);
+      transform: translateY(-1px);
+    }
+
+    .hr-employee-dossier-card::before {
+      content: '';
+      display: block;
+      width: 46px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--hr-accent);
+      margin-bottom: 12px;
+      opacity: 0.9;
+    }
+
+    .hr-employee-card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .hr-employee-card-title {
+      margin: 0;
+      color: #0f172a;
+      font-size: 16px;
+      letter-spacing: 0.01em;
+    }
+
+    .hr-employee-card-role {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--hr-accent-border);
+      background: var(--hr-accent-soft);
+      color: var(--hr-accent);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .hr-employee-card-created {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .hr-employee-dossier-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #e2e8f8;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.84);
+    }
+
+    .hr-employee-doc-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .hr-employee-doc-list .list-item {
+      border: 1px solid #dfe7ff;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 12px;
+      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.12);
+    }
+
+    .hr-employee-doc-section {
+      margin-top: 14px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 12px;
+    }
+
+    .hr-employee-doc-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hr-employee-doc-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    @keyframes hrEmployeeCardIn {
+      from {
+        opacity: 0;
+        transform: translateY(9px) scale(0.995);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hr-employee-dossier-card {
+        animation: none;
+      }
+
+      .hr-employee-dossier-card,
+      .hr-employee-card-role {
+        transition: none;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .hr-employee-dossiers {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .hr-employee-kanban-cards {
+        max-height: none;
+      }
+
+      .hr-employee-kanban-header {
+        position: static;
+      }
+    }
+
+    .hr-employee-add-toggle {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 26px;
+      line-height: 1;
+      font-weight: 700;
+      color: #ffffff;
+      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+    }
+
+    .hr-employee-add-toggle:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 14px 30px rgba(79, 70, 229, 0.3);
+    }
+
+    .hr-employee-add-toggle.is-open {
+      background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+      box-shadow: 0 12px 26px rgba(20, 184, 166, 0.32);
+    }
+
+    .hr-employee-modal-card {
+      max-width: 560px;
+    }
+
     .content-area {
       flex: 1;
       overflow-y: auto;
@@ -629,6 +948,123 @@
       font-style: italic;
       letter-spacing: 0.2px;
       text-transform: none;
+    }
+
+    .hr-signature-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #dbe4ff;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      box-shadow: 0 18px 36px rgba(37, 99, 235, 0.08);
+    }
+
+    .hr-signature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(99,102,241,0.14) 0%, rgba(99,102,241,0.02) 62%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hr-signature-card-hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hr-signature-kicker {
+      margin-bottom: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #4f46e5;
+    }
+
+    .hr-signature-note {
+      margin-top: 8px;
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 460px;
+    }
+
+    .hr-signature-badge {
+      align-self: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(20,184,166,0.12));
+      border: 1px solid rgba(99,102,241,0.18);
+      color: #1e293b;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .hr-signature-upload {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0 6px;
+    }
+
+    .hr-signature-upload input[type="file"] {
+      display: none;
+    }
+
+    .hr-signature-upload .button {
+      width: 100%;
+      min-width: 154px;
+    }
+
+    .hr-signature-file-preview {
+      margin-top: 4px;
+      padding: 10px 12px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      background: #fff;
+      color: #475569;
+      font-size: 13px;
+    }
+
+    .hr-signature-help {
+      margin-top: 8px;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .hr-signature-doc-status {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .hr-signature-doc-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .hr-signature-empty-note {
+      font-size: 12px;
+      color: #64748b;
     }
 
     .table {
@@ -1899,7 +2335,7 @@
           <div class="menu-item" data-module="projects">🏗️ Projets</div>
           <div class="menu-item" data-module="project-progress">🧭 Suivi des projets</div>
           <div class="menu-item" data-module="journal-chantier">📒 Journal de chantier</div>
-          <div class="menu-item" data-module="assignments">👥 Ressources humaines</div>
+          <div class="menu-item" data-module="assignments">👥 Assignations de projet</div>
         </div>
 
         <!-- Approvisionnement -->
@@ -1932,6 +2368,16 @@
           <div class="menu-item" data-module="expenses">💰 Dépenses</div>
           <div class="menu-item" data-module="revenues">💵 Revenus</div>
           <div class="menu-item" data-module="reports">📈 Rapports</div>
+        </div>
+
+        <!-- Ressources humaines -->
+        <div class="menu-section">
+          <div class="menu-section-title">Ressources humaines</div>
+          <div class="menu-item" data-module="hr-employees">👥 Liste des employés</div>
+          <div class="menu-item" data-module="hr-attendance">🕘 Pointage journalier</div>
+          <div class="menu-item" data-module="hr-calendar">🗓️ Calendrier présence/congé</div>
+          <div class="menu-item" data-module="hr-leave">📝 Demandes de congé</div>
+          <div class="menu-item" data-module="hr-signatures">✍️ Demandes de signature</div>
         </div>
 
         <!-- Admin -->
@@ -2425,6 +2871,143 @@
           </div>
         </div>
 
+        <!-- HR Employees Module -->
+        <div id="hr-employees" class="module">
+          <div class="page-header">
+            <h1 id="hr-employees-page-title">Liste des employés</h1>
+            <p id="hr-employees-page-subtitle">Gérez les ressources humaines (poste, nom et téléphone)</p>
+          </div>
+          <div class="hr-employee-toolbar">
+            <button
+              type="button"
+              id="hr-employee-add-toggle"
+              class="hr-employee-add-toggle"
+              title="Ajouter un employé"
+              aria-expanded="false"
+            >+</button>
+            <span class="hr-employee-toolbar-label">Ajouter un employé</span>
+          </div>
+
+          <div class="card">
+            <div class="hr-employee-team-header">
+              <h3 id="hr-employee-team-title" style="margin: 0;">Équipe</h3>
+              <button type="button" id="hr-employee-import-btn" class="button button-small button-secondary">Importer</button>
+            </div>
+            <div class="hr-employee-search-row">
+              <input type="text" id="hr-employee-search" placeholder="Rechercher un dossier (nom, poste, téléphone, adresse, situation maritale)" />
+              <span id="hr-employee-search-count" class="hr-employee-search-count">0 dossier</span>
+            </div>
+            <input type="file" id="hr-employee-import-input" accept=".csv,.json,text/csv,application/json" style="display:none;" />
+            <div id="hr-employees-list-body" class="hr-employee-dossiers"></div>
+          </div>
+
+          <div id="hr-employee-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="hr-employee-modal-title">
+            <div class="modal-card hr-employee-modal-card">
+              <h3 id="hr-employee-modal-title" style="margin-bottom: 14px;">Nouvel employé</h3>
+              <form id="hr-employee-form">
+                <div class="form-group">
+                  <label>Nom complet *</label>
+                  <input type="text" id="hr-employee-name" required />
+                </div>
+                <div class="form-group">
+                  <label>Poste *</label>
+                  <input type="text" id="hr-employee-job" required placeholder="Ex: Gestionnaire achat" />
+                </div>
+                <div class="form-group">
+                  <label>Numéro de téléphone</label>
+                  <input type="tel" id="hr-employee-phone" placeholder="Ex: 07 12 34 56 78" />
+                </div>
+                <div class="form-group">
+                  <label>Adresse</label>
+                  <input type="text" id="hr-employee-address" placeholder="Ex: Cocody Angre, Abidjan" />
+                </div>
+                <div class="form-group">
+                  <label>Situation maritale</label>
+                  <select id="hr-employee-marital-status">
+                    <option value="">Non renseignée</option>
+                    <option value="Célibataire">Célibataire</option>
+                    <option value="Marié(e)">Marié(e)</option>
+                    <option value="Divorcé(e)">Divorcé(e)</option>
+                    <option value="Veuf(ve)">Veuf(ve)</option>
+                  </select>
+                </div>
+                <div class="form-group" id="hr-employee-profile-link-group" style="display:none;">
+                  <label>Lier à un profil existant</label>
+                  <select id="hr-employee-linked-username">
+                    <option value="">Aucun profil lié</option>
+                  </select>
+                </div>
+                <div class="modal-actions">
+                  <button type="button" id="hr-employee-modal-cancel" class="button button-secondary">Annuler</button>
+                  <button type="submit" class="button button-primary">Ajouter</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- HR Attendance Module -->
+        <div id="hr-attendance" class="module">
+          <div class="page-header">
+            <h1>Pointage journalier</h1>
+            <p>Marquez l'heure d'arrivée et de sortie des employés</p>
+          </div>
+          <div class="grid-2">
+            <div class="card form-card">
+              <h3 style="margin-bottom: 15px;">Saisir le pointage</h3>
+              <form id="hr-attendance-form">
+                <div class="form-group">
+                  <label>Employé *</label>
+                  <select id="hr-attendance-employee" required></select>
+                </div>
+                <div class="form-group">
+                  <label>Date *</label>
+                  <input type="date" id="hr-attendance-date" required />
+                </div>
+                <div class="form-group">
+                  <label>Heure d'arrivée</label>
+                  <input type="time" id="hr-attendance-checkin" />
+                </div>
+                <div class="form-group">
+                  <label>Heure de sortie</label>
+                  <input type="time" id="hr-attendance-checkout" />
+                </div>
+                <div class="form-group">
+                  <label>Code présence</label>
+                  <select id="hr-attendance-status">
+                    <option value="">Automatique (P / R)</option>
+                    <option value="P">P - Présence</option>
+                    <option value="R">R - Retard</option>
+                    <option value="A">A - Absence</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Note</label>
+                  <textarea id="hr-attendance-note" placeholder="Optionnel"></textarea>
+                </div>
+                <button type="submit" class="button button-primary" style="width:100%;">Enregistrer le pointage</button>
+              </form>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom: 15px;">Pointages récents</h3>
+              <div class="table-wrapper" style="overflow-x:auto;">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Employé</th>
+                      <th>Date</th>
+                      <th>Arrivée</th>
+                      <th>Sortie</th>
+                      <th>Code</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hr-attendance-list-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Assignments Module -->
         <div id="assignments" class="module">
           <div class="page-header">
@@ -2464,6 +3047,151 @@
                 <input type="text" id="assignment-search" placeholder="Rechercher une assignation (nom, rôle, projet, téléphone)" />
               </div>
               <ul id="assignments-list" class="list"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- HR Calendar Module -->
+        <div id="hr-calendar" class="module">
+          <div class="page-header">
+            <h1>Calendrier de présence et de congé</h1>
+            <p>Visualisez les codes de présence et congés par employé et par mois</p>
+          </div>
+          <div class="card">
+            <h3 style="margin-bottom: 15px;">Calendrier de présence et de congé</h3>
+            <div style="display:grid; grid-template-columns: minmax(220px, 280px) 180px; gap: 10px; margin-bottom: 12px; align-items:end;">
+              <div class="form-group" style="margin:0;">
+                <label>Employé</label>
+                <select id="hr-calendar-employee-filter"></select>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label>Mois</label>
+                <input type="month" id="hr-calendar-month" />
+              </div>
+            </div>
+
+            <div id="hr-calendar-legend" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;"></div>
+
+            <div id="hr-calendar-table-wrap" class="table-wrapper" style="overflow:auto;"></div>
+          </div>
+        </div>
+
+        <!-- HR Leave Module -->
+        <div id="hr-leave" class="module">
+          <div class="page-header">
+            <h1>Demandes de congé</h1>
+            <p>Chaque demande doit être approuvée ou rejetée avant d'être considérée comme traitée.</p>
+          </div>
+          <div class="grid-2">
+            <div class="card form-card">
+              <h3 style="margin-bottom: 15px;">Nouvelle demande de congé</h3>
+              <p style="margin:-6px 0 14px;color:#64748b;font-size:13px;">La demande sera enregistrée en attente, puis devra recevoir une décision d'approbation ou de rejet.</p>
+              <form id="hr-leave-form">
+                <div class="form-group">
+                  <label>Employé *</label>
+                  <select id="hr-leave-employee" required></select>
+                </div>
+                <div class="form-group">
+                  <label>Type de congé *</label>
+                  <select id="hr-leave-type" required>
+                    <option value="annuel">Congé annuel</option>
+                    <option value="maladie">Congé maladie</option>
+                    <option value="maternite">Congé maternité</option>
+                    <option value="paternite">Congé paternité</option>
+                    <option value="absence">Absence</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Date début *</label>
+                  <input type="date" id="hr-leave-start" required />
+                </div>
+                <div class="form-group">
+                  <label>Date fin *</label>
+                  <input type="date" id="hr-leave-end" required />
+                </div>
+                <div class="form-group">
+                  <label>Motif</label>
+                  <textarea id="hr-leave-reason" placeholder="Motif de la demande"></textarea>
+                </div>
+                <button type="submit" class="button button-primary" style="width:100%;">Envoyer la demande</button>
+              </form>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom: 15px;">Historique des demandes</h3>
+              <div class="table-wrapper" style="overflow-x:auto;">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Employé</th>
+                      <th>Type</th>
+                      <th>Période</th>
+                      <th>Statut</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hr-leave-list-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Demandes de Signature Module -->
+        <div id="hr-signatures" class="module">
+          <div class="page-header">
+            <h1>Demandes de signature</h1>
+            <p>Importez un PDF, affectez-le à un employé et gardez la signature en bas à droite de la dernière page.</p>
+          </div>
+
+          <div class="grid-2">
+            <div class="card form-card hr-signature-card">
+              <div class="hr-signature-card-hero">
+                <div>
+                  <div class="hr-signature-kicker">Flux de signature</div>
+                  <h3 style="margin: 0;">Soumettre un document à signer</h3>
+                  <p class="hr-signature-note">Choisis un PDF existant ou importe-en un nouveau. L’employé signera ensuite le document final, avec la signature positionnée comme pour les BC validés.</p>
+                </div>
+                <div class="hr-signature-badge">PDF uniquement</div>
+              </div>
+              <form id="hr-signature-request-form">
+                <label>Document à soumettre</label>
+                <select id="hr-signature-doc-select"></select>
+                <div class="hr-signature-help">Les documents disponibles ici sont des PDF prêts à envoyer à la signature.</div>
+
+                <div class="hr-signature-upload">
+                  <input type="file" id="hr-signature-upload-input" accept=".pdf,application/pdf" />
+                  <button type="button" id="hr-signature-upload-btn" class="button button-secondary">Importer un PDF</button>
+                </div>
+                <div id="hr-signature-file-preview" class="hr-signature-file-preview">Aucun fichier importé.</div>
+
+                <label>Employé destinataire</label>
+                <select id="hr-signature-employee-select" required></select>
+
+                <div class="hr-signature-doc-status">
+                  <span class="hr-signature-doc-pill">Signature manuscrite générée sur la dernière page</span>
+                </div>
+
+                <button type="submit" class="button button-primary" style="width:100%; margin-top: 12px;">📨 Envoyer pour signature</button>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3 style="margin-bottom: 15px;">Statuts des demandes</h3>
+              <div class="table-wrapper" style="overflow-x:auto;">
+                <table class="table" style="font-size: 13px;">
+                  <thead>
+                    <tr>
+                      <th>Document</th>
+                      <th>Employé</th>
+                      <th>Statut</th>
+                      <th>Signé par</th>
+                      <th>Date</th>
+                      <th>Fichier</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hr-signatures-list-body"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -2836,6 +3564,18 @@
               </form>
             </div>
             <div class="card">
+              <div id="po-priority-actions" style="display:none;margin-bottom:12px;padding:12px;border:2px solid #0f766e;border-radius:10px;background:linear-gradient(135deg,#ecfeff,#f0fdfa);box-shadow:0 10px 20px rgba(15,118,110,0.12);">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <div>
+                    <div style="font-weight:700;font-size:13px;color:#115e59;letter-spacing:.02em;text-transform:uppercase;">Action prioritaire</div>
+                    <div id="po-priority-label" style="margin-top:4px;font-weight:600;color:#0f172a;">Sélectionne un bon pour valider ou rejeter.</div>
+                  </div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" id="po-priority-reject" class="button button-danger">Rejeter</button>
+                    <button type="button" id="po-priority-validate" class="button button-success">Valider</button>
+                  </div>
+                </div>
+              </div>
               <h3 id="po-list-title" style="margin-bottom: 15px;">Bons récents</h3>
               <h4 style="margin-bottom: 8px; font-size: 13px; color: #475569;">Propositions depuis les demandes</h4>
               <ul id="po-suggestions-list" class="list" style="margin-bottom: 12px;"></ul>
@@ -3427,6 +4167,7 @@
             <button type="button" class="tab-button active" data-db-section="achats">Achats</button>
             <button type="button" class="tab-button" data-db-section="construction">Construction</button>
             <button type="button" class="tab-button" data-db-section="comptabilite">Comptabilité</button>
+            <button type="button" class="tab-button" data-db-section="hr_presence">Présence RH</button>
           </div>
           <div class="card">
             <h3 style="margin-bottom: 15px;">Importer un fichier</h3>
@@ -3465,7 +4206,7 @@
             <div class="grid-2" style="gap: 14px; margin-bottom: 14px;">
               <div class="form-group" style="margin-bottom: 0;">
                 <label>Recherche commune (3 sections)</label>
-                <input type="text" id="database-global-search" placeholder="Rechercher dans achats, construction et comptabilité" />
+                <input type="text" id="database-global-search" placeholder="Rechercher dans achats, construction, comptabilité et présence RH" />
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label>Recherche par section</label>
@@ -3804,6 +4545,7 @@
     let selectedProjectCreationFolderKey = '';
     let selectedProjectCatalogId = null;
     let currentUserRole = null;
+    let currentUserUsername = null;
     let currentUserScope = null;
     let databaseGlobalSearchTerm = '';
     let databaseSection = 'achats';
@@ -3811,6 +4553,7 @@
       achats: '',
       construction: '',
       comptabilite: '',
+      hr_presence: '',
     };
     const TRASH_STORAGE_KEY = 'erp_trash_items_v1';
     const DATABASE_TRASH_HIDDEN_IDS_KEY = 'erp_database_trashed_ids_v1';
@@ -3824,8 +4567,17 @@
       achats: [],
       construction: [],
       comptabilite: [],
+      hr_presence: [],
     };
     let assignmentsCache = [];
+    let hrEmployeesCache = [];
+    let hrEmployeeDocumentsCache = {};
+    let hrUserProfilesCache = [];
+    let hrEmployeeEditingId = null;
+    let hrEmployeeSearchTerm = '';
+    let hrAttendanceCache = [];
+    let hrLeaveRequestsCache = [];
+    let hrSignatureRequestsCache = [];
     let projectProgressCache = [];
     let projectProgressSearchTerm = '';
     let selectedProjectProgressProjectId = null;
@@ -3889,6 +4641,16 @@
     let expensesCurrentPage = 1;
     let auditCurrentPage = 1;
 
+    const HR_CODE_META = {
+      P: { label: 'Présence', color: '#166534', bg: '#dcfce7' },
+      R: { label: 'Retard', color: '#92400e', bg: '#fef3c7' },
+      MS: { label: 'Congé maladie', color: '#9f1239', bg: '#ffe4e6' },
+      A: { label: 'Absence', color: '#1e3a8a', bg: '#e2e8f0' },
+      CA: { label: 'Congé annuel', color: '#1d4ed8', bg: '#dbeafe' },
+      CM: { label: 'Congé maternité', color: '#be185d', bg: '#fce7f3' },
+      CP: { label: 'Congé paternité', color: '#6d28d9', bg: '#ede9fe' },
+    };
+
     const DEMO_WAREHOUSES = [
       { id: 'entrepot-plateau', name: 'Adzopé' },
       { id: 'entrepot-yopougon', name: 'Akoupé' },
@@ -3902,10 +4664,11 @@
     const COMMIS_ALLOWED_MODULES = new Set(['stock-management', 'inventory']);
     const GEST_STOCK_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations']);
     const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'database', 'materials', 'trash', 'projects']);
-    const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'database', 'trash']);
+    const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash']);
+    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database']);
     const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog']);
-    const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'assignments', 'material-catalog', 'stock-management', 'database', 'trash']);
-    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'expenses', 'revenues', 'reports', 'maps']);
+    const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'material-catalog', 'stock-management', 'database', 'trash']);
+    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'expenses', 'revenues', 'reports', 'maps']);
       const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash']);
     const AUTO_MAP_REFRESH_MS = 10000;
     const AUTO_DASHBOARD_REFRESH_MS = 30000;
@@ -3930,12 +4693,25 @@
       return currentUserRole === 'chef_chantier_site';
     }
 
+    function isHrDirector() {
+      return currentUserRole === 'directeur_rh';
+    }
+
     function isOpsReviewer() {
       return currentUserRole === 'ops_reviewer';
     }
 
     function isProcurementReviewer() {
       return currentUserRole === 'controle_achat';
+    }
+
+    function isHrPersonalProfileMode() {
+      const username = String(currentUserUsername || '').trim().toLowerCase();
+      return isProcurementReviewer() || username === 'chef_chantier_site15';
+    }
+
+    function canUploadHrProfileDocuments() {
+      return isHrDirector() || isProcurementReviewer() || String(currentUserUsername || '').trim().toLowerCase() === 'chef_chantier_site15';
     }
 
     function isExecutive() {
@@ -3952,6 +4728,17 @@
 
     function isProcurementStockReadOnly() {
       return isProcurementReviewer() || isExecutive();
+    }
+
+    function canExecutiveValidatePurchaseOrder(order) {
+      if (!isExecutive()) return false;
+      const creator = String(order?.creePar || '').trim().toLowerCase();
+      return creator === 'controle_achat_global';
+    }
+
+    function canCurrentUserValidatePurchaseOrder(order) {
+      if (isAdmin()) return true;
+      return canExecutiveValidatePurchaseOrder(order);
     }
 
     function isWarehouseScopedRole() {
@@ -4223,7 +5010,7 @@
     }
 
     function isRestrictedRole() {
-      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive() || isAchat();
+      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive() || isAchat() || isHrDirector();
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
@@ -5023,6 +5810,8 @@
     }
 
     function getAllowedModules() {
+      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
+      if (isHrDirector()) return HR_DIRECTOR_ALLOWED_MODULES;
       if (isExecutive()) return EXECUTIVE_ALLOWED_MODULES;
       if (isProcurementReviewer()) return PROCUREMENT_REVIEWER_ALLOWED_MODULES;
       if (isOpsReviewer()) return OPS_REVIEWER_ALLOWED_MODULES;
@@ -5217,6 +6006,15 @@
       }
 
       return date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function formatDateWithTime(value) {
+      if (!value) return 'Non disponible';
+      const date = parseDateValue(value);
+      if (Number.isNaN(date.getTime())) return 'Non disponible';
+      const dayPart = date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+      const timePart = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      return `${dayPart} à ${timePart}`;
     }
 
     function formatDateForInput(value) {
@@ -5961,6 +6759,7 @@
         achats: 'Achats',
         construction: 'Construction',
         comptabilite: 'Comptabilité',
+        hr_presence: 'Présence RH',
       };
       return labels[String(sectionCode || '').trim()] || String(sectionCode || 'Autre');
     }
@@ -5972,7 +6771,7 @@
         const parsed = JSON.parse(raw);
         if (!parsed || typeof parsed !== 'object') return;
 
-        ['achats', 'construction', 'comptabilite'].forEach(section => {
+        ['achats', 'construction', 'comptabilite', 'hr_presence'].forEach(section => {
           databaseTrashBySection[section] = Array.isArray(parsed[section]) ? parsed[section] : [];
         });
       } catch (error) {
@@ -5980,6 +6779,7 @@
           achats: [],
           construction: [],
           comptabilite: [],
+          hr_presence: [],
         };
       }
     }
@@ -6030,7 +6830,7 @@
       const container = document.getElementById('database-trash-panels');
       if (!container) return;
 
-      const sections = ['achats', 'construction', 'comptabilite'];
+      const sections = ['achats', 'construction', 'comptabilite', 'hr_presence'];
       const hasItems = sections.some(section => (databaseTrashBySection[section] || []).length > 0);
 
       if (!hasItems) {
@@ -8045,6 +8845,7 @@
 
       // Construire la liste des dossiers projet depuis projectFoldersCache + catalog
       const folderNames = [...new Set([
+        ...scopedProjects.map(project => String(project?.nomProjet || '').trim()).filter(Boolean),
         ...scopedFolders.map(f => String(f.nomProjet || '').trim()).filter(Boolean),
         ...(materialCatalogCache || [])
           .map(e => String(e.projectFolder || MATERIAL_CATALOG_PROJECT).trim())
@@ -8558,10 +9359,13 @@
       }).join('');
     }
 
-    function getExecutivePurchaseOrderStatus(order) {
+    function getPurchaseOrderDecisionStatus(order) {
       const validationStatus = String(order?.statutValidation || '').trim().toUpperCase();
-      if (validationStatus === 'VALIDEE' || validationStatus === 'REJETEE') {
-        return validationStatus;
+      if (validationStatus === 'VALIDEE') {
+        return 'VALIDEE';
+      }
+      if (validationStatus === 'ANNULEE' || validationStatus === 'REJETEE') {
+        return 'REJETEE';
       }
 
       const hasLinkedRequest = Number(order?.materialRequestId || 0) > 0
@@ -8884,13 +9688,19 @@
       if (!details) return;
 
       if (!order) {
+        renderPoPriorityActions(null);
         details.innerHTML = '<p style="color: #64748b;">Clique sur un bon pour voir ses détails.</p>';
         const authContainer = document.getElementById('po-authorization-list');
         if (authContainer) authContainer.textContent = 'Sélectionne un bon pour gérer les autorisations.';
         return;
       }
 
+      renderPoPriorityActions(order);
+
       const items = Array.isArray(order.items) ? order.items : [];
+      const displayedStatus = (isExecutive() || isProcurementReviewer())
+        ? getPurchaseOrderDecisionStatus(order)
+        : String(order.statut || '').trim().toUpperCase();
       const itemsHtml = items.length
         ? `
             <div class="table-wrapper" style="overflow-x: auto; margin-top: 8px;">
@@ -8925,11 +9735,11 @@
         <p style="margin-bottom: 8px;"><strong>Projet(s):</strong> ${escapeHtml(order.nomProjet || '-')}</p>
         <p style="margin-bottom: 8px;"><strong>Site de livraison:</strong> ${escapeHtml(order.numeroMaison || order.nomSiteManuel || '-')}</p>
         <p style="margin-bottom: 8px;"><strong>Entrepôt de livraison:</strong> ${escapeHtml(order.warehouseId ? getWarehouseNameById(order.warehouseId) : '-')}</p>
-        <p style="margin-bottom: 8px;"><strong>Statut:</strong> ${escapeHtml(order.statut || '-')}</p>
+        <p style="margin-bottom: 8px;"><strong>Statut:</strong> ${escapeHtml(displayedStatus || '-')}</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 8px;">
-          <button type="button" class="button button-small button-primary" onclick="openPurchaseOrderValidationModal(${Number(order.id)}, 'VALIDEE')">Valider et signer</button>
-          <button type="button" class="button button-small button-danger" onclick="openPurchaseOrderValidationModal(${Number(order.id)}, 'ANNULEE')">Rejeter et signer</button>
-          <button type="button" class="button button-small button-secondary" onclick="transformPurchaseOrderToStockAuthorization(${Number(order.id)})">Transformer en autorisation de sortie</button>
+          ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-primary" onclick="openPurchaseOrderValidationModal(${Number(order.id)}, 'VALIDEE')">Valider et signer</button>` : ''}
+          ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-danger" onclick="openPurchaseOrderValidationModal(${Number(order.id)}, 'ANNULEE')">Rejeter et signer</button>` : ''}
+          ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-secondary" onclick="transformPurchaseOrderToStockAuthorization(${Number(order.id)})">Transformer en autorisation de sortie</button>` : ''}
         </div>
         <p style="margin-bottom: 8px;"><strong>Date du bon:</strong> ${escapeHtml(formatDate(order.dateCommande))}</p>
         <p style="margin-bottom: 8px;"><strong>Montant total:</strong> ${escapeHtml(Number(order.montantTotal || 0).toFixed(2))} FCFA</p>
@@ -8958,9 +9768,9 @@
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
               <span style="color:#64748b;">Aucune autorisation liée à ce bon.</span>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button type="button" class="button button-small button-primary" onclick="openPurchaseOrderValidationModal(${order.id}, 'VALIDEE')">Signer validation</button>
-                <button type="button" class="button button-small button-danger" onclick="openPurchaseOrderValidationModal(${order.id}, 'ANNULEE')">Signer rejet</button>
-                <button type="button" class="button button-small button-secondary" onclick="transformPurchaseOrderToStockAuthorization(${order.id})">Transformer en autorisation de sortie</button>
+                ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-primary" onclick="openPurchaseOrderValidationModal(${order.id}, 'VALIDEE')">Signer validation</button>` : ''}
+                ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-danger" onclick="openPurchaseOrderValidationModal(${order.id}, 'ANNULEE')">Signer rejet</button>` : ''}
+                ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-secondary" onclick="transformPurchaseOrderToStockAuthorization(${order.id})">Transformer en autorisation de sortie</button>` : ''}
               </div>
             </div>
           `;
@@ -8969,9 +9779,9 @@
 
         container.innerHTML = `
           <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-            <button type="button" class="button button-small button-primary" onclick="openPurchaseOrderValidationModal(${order.id}, 'VALIDEE')">Signer validation</button>
-            <button type="button" class="button button-small button-danger" onclick="openPurchaseOrderValidationModal(${order.id}, 'ANNULEE')">Signer rejet</button>
-            <button type="button" class="button button-small button-secondary" onclick="transformPurchaseOrderToStockAuthorization(${order.id})">Transformer en autorisation de sortie</button>
+            ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-primary" onclick="openPurchaseOrderValidationModal(${order.id}, 'VALIDEE')">Signer validation</button>` : ''}
+            ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-danger" onclick="openPurchaseOrderValidationModal(${order.id}, 'ANNULEE')">Signer rejet</button>` : ''}
+            ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-secondary" onclick="transformPurchaseOrderToStockAuthorization(${order.id})">Transformer en autorisation de sortie</button>` : ''}
           </div>
           ${entries.map(entry => {
             const request = entry.request || {};
@@ -9433,6 +10243,1047 @@
       return payload;
     }
 
+    function canManageHrData() {
+      return !isProcurementReviewer() && !isExecutive();
+    }
+
+    function canDecideHrLeave() {
+      return isAdmin() || isAchat() || isSiteChief();
+    }
+
+    function getHrCodeBadge(code) {
+      const meta = HR_CODE_META[String(code || '').trim().toUpperCase()] || null;
+      if (!meta) return '<span style="color:#94a3b8;">-</span>';
+      return `<span style="display:inline-block;padding:3px 8px;border-radius:999px;font-weight:700;font-size:12px;color:${meta.color};background:${meta.bg};">${escapeHtml(String(code).toUpperCase())}</span>`;
+    }
+
+    function formatHrLeaveTypeLabel(value) {
+      const key = normalizeText(value || '');
+      if (key.includes('maternite')) return 'Congé maternité';
+      if (key.includes('paternite')) return 'Congé paternité';
+      if (key.includes('maladie')) return 'Congé maladie';
+      if (key.includes('absence')) return 'Absence';
+      return 'Congé annuel';
+    }
+
+    function formatHrStatusLabel(value) {
+      const key = String(value || '').trim().toUpperCase();
+      if (key === 'APPROUVEE') return 'Approuvée';
+      if (key === 'REJETEE') return 'Rejetée';
+      if (key === 'ANNULEE') return 'Annulée';
+      return 'En attente de décision';
+    }
+
+    function formatFileSizeLabel(fileSize) {
+      const size = Number(fileSize || 0);
+      if (!Number.isFinite(size) || size <= 0) return '-';
+      if (size < 1024) return `${size} o`;
+      if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} Ko`;
+      return `${(size / (1024 * 1024)).toFixed(1)} Mo`;
+    }
+
+    function parseHrProjectSiteLabel(addressValue) {
+      const value = String(addressValue || '').trim();
+      if (!value) {
+        return { project: '', site: '', rawAddress: '' };
+      }
+
+      const match = value.match(/^Projet:\s*(.*?)\s*\|\s*Site:\s*(.*)$/i);
+      if (!match) {
+        return { project: '', site: '', rawAddress: value };
+      }
+
+      return {
+        project: String(match[1] || '').trim(),
+        site: String(match[2] || '').trim(),
+        rawAddress: value,
+      };
+    }
+
+    function populateHrEmployeeSelects() {
+      const options = ['<option value="">Tous les employés</option>']
+        .concat(
+          hrEmployeesCache.map(employee => `<option value="${employee.id}">${escapeHtml(employee.fullName)}${employee.jobTitle ? ` (${escapeHtml(employee.jobTitle)})` : ''}</option>`)
+        )
+        .join('');
+
+      const calendarFilter = document.getElementById('hr-calendar-employee-filter');
+      if (calendarFilter) {
+        const prev = calendarFilter.value;
+        calendarFilter.innerHTML = options;
+        if (prev) calendarFilter.value = prev;
+      }
+
+      const attendanceSelect = document.getElementById('hr-attendance-employee');
+      if (attendanceSelect) {
+        const prev = attendanceSelect.value;
+        attendanceSelect.innerHTML = `<option value="">Sélectionner un employé</option>${hrEmployeesCache.map(employee => `<option value="${employee.id}">${escapeHtml(employee.fullName)}</option>`).join('')}`;
+        if (prev) attendanceSelect.value = prev;
+      }
+
+      const leaveSelect = document.getElementById('hr-leave-employee');
+      if (leaveSelect) {
+        const prev = leaveSelect.value;
+        leaveSelect.innerHTML = `<option value="">Sélectionner un employé</option>${hrEmployeesCache.map(employee => `<option value="${employee.id}">${escapeHtml(employee.fullName)}</option>`).join('')}`;
+        if (prev) leaveSelect.value = prev;
+      }
+    }
+
+    function getCurrentHrProfileEmployee() {
+      if (!isHrPersonalProfileMode()) return null;
+      const username = String(currentUserUsername || '').trim().toLowerCase();
+      if (!username) return null;
+
+      const byUsername = hrEmployeesCache.find(employee => String(employee.username || employee.createdBy || '').trim().toLowerCase() === username);
+      if (byUsername) return byUsername;
+
+      return hrEmployeesCache.find(employee => normalizeText(employee.fullName || '') === normalizeText(currentUserUsername || '')) || null;
+    }
+
+    function renderHrEmployeesList() {
+      const container = document.getElementById('hr-employees-list-body');
+      const searchCount = document.getElementById('hr-employee-search-count');
+      if (!container) return;
+
+      const profileMode = isHrPersonalProfileMode();
+      const profileEmployee = profileMode ? getCurrentHrProfileEmployee() : null;
+      const searchValue = normalizeText(String(hrEmployeeSearchTerm || '').trim());
+      const filteredEmployees = profileMode
+        ? (profileEmployee ? [profileEmployee] : [])
+        : (searchValue
+          ? hrEmployeesCache.filter(employee => {
+              const haystack = normalizeText([
+                employee.fullName,
+                employee.jobTitle,
+                employee.phoneNumber,
+                employee.address,
+                employee.maritalStatus,
+                employee.username,
+              ].join(' '));
+              return haystack.includes(searchValue);
+            })
+          : hrEmployeesCache);
+
+      if (searchCount) {
+        const count = filteredEmployees.length;
+        searchCount.textContent = profileMode
+          ? `${count} profil${count > 1 ? 's' : ''}`
+          : `${count} dossier${count > 1 ? 's' : ''}`;
+      }
+
+      if (!filteredEmployees.length) {
+        container.innerHTML = profileMode
+          ? '<div class="empty-state"><p>Aucun profil trouvé</p></div>'
+          : '<div class="empty-state"><p>Aucun employé</p></div>';
+        return;
+      }
+
+      const groupedByJob = profileMode
+        ? { [String(profileEmployee?.fullName || 'Employé').trim() || 'Employé']: filteredEmployees }
+        : filteredEmployees.reduce((acc, employee) => {
+            const key = String(employee.jobTitle || '').trim() || 'Sans poste';
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(employee);
+            return acc;
+          }, {});
+
+      const groupEntries = Object.entries(groupedByJob)
+        .sort((a, b) => a[0].localeCompare(b[0], 'fr', { sensitivity: 'base', numeric: true }));
+
+      const groupPalettes = [
+        { accent: '#2563eb', soft: '#eaf2ff', border: '#c8dbff' },
+        { accent: '#0f766e', soft: '#e7fbf8', border: '#b7ede6' },
+        { accent: '#b45309', soft: '#fff4e8', border: '#ffd7b0' },
+        { accent: '#7c3aed', soft: '#f2ecff', border: '#d8c8ff' },
+        { accent: '#be123c', soft: '#ffeaf0', border: '#ffc9d6' },
+        { accent: '#0369a1', soft: '#e8f6ff', border: '#bae4ff' },
+      ];
+
+      container.innerHTML = groupEntries.map(([groupName, employees], groupIndex) => {
+        const palette = groupPalettes[groupIndex % groupPalettes.length];
+        const columnStyle = `--hr-accent:${palette.accent}; --hr-accent-soft:${palette.soft}; --hr-accent-border:${palette.border};`;
+
+        return `
+        <section class="hr-employee-kanban-column" style="${columnStyle}">
+          <div class="hr-employee-kanban-header">
+            <span class="hr-employee-kanban-title">${escapeHtml(groupName)}</span>
+            <span class="hr-employee-kanban-count">${employees.length} ${profileMode ? 'profil' : 'dossier'}${employees.length > 1 ? 's' : ''}</span>
+          </div>
+          <div class="hr-employee-kanban-cards">
+            ${employees.map((employee, employeeIndex) => {
+              const employeeId = Number(employee.id);
+              const enterDelay = Math.min(employeeIndex * 45, 320);
+              const docs = Array.isArray(hrEmployeeDocumentsCache[employeeId]) ? hrEmployeeDocumentsCache[employeeId] : [];
+              const docsHtml = docs.length
+                ? docs.map(doc => `
+                    <div class="list-item" style="margin:0;">
+                      <div class="list-item-content">
+                        <div class="list-item-title">${escapeHtml(doc.title || doc.fileName || 'Document')}</div>
+                        <div class="list-item-meta">${escapeHtml(doc.fileName || '-')} • ${escapeHtml(formatFileSizeLabel(doc.fileSize))} • ${escapeHtml(formatDateWithSameDayTime(doc.updatedAt || doc.createdAt))}</div>
+                      </div>
+                      <div class="action-buttons">
+                        <button type="button" class="button button-small button-primary" onclick="downloadHrEmployeeDocument(${Number(doc.id)})">Télécharger</button>
+                        ${!profileMode && canManageHrData() ? `<button type="button" class="button button-small button-danger" onclick="deleteHrEmployeeDocument(${Number(doc.id)}, ${employeeId})">Supprimer</button>` : ''}
+                      </div>
+                    </div>
+                  `).join('')
+                : '<div class="empty-state" style="padding:8px;"><p>Aucun CV ou document importé</p></div>';
+
+              const projectSite = parseHrProjectSiteLabel(employee.address);
+              const canAttachDocuments = profileMode ? canUploadHrProfileDocuments() : canManageHrData();
+
+              return `
+                <article class="hr-employee-dossier-card" style="--hr-enter-delay:${enterDelay}ms;">
+                  <div class="hr-employee-card-head">
+                    <div>
+                      <h4 class="hr-employee-card-title">${profileMode ? escapeHtml(employee.fullName || '-') : `Dossier: ${escapeHtml(employee.fullName || '-')}`}</h4>
+                      <div class="hr-employee-card-created">Créé le ${escapeHtml(formatDateWithSameDayTime(employee.createdAt))}</div>
+                      ${profileMode ? '' : `<span class="hr-employee-card-role">${escapeHtml(employee.jobTitle || 'Sans poste')}</span>`}
+                    </div>
+                    ${profileMode ? '' : `
+                      <details class="actions-menu">
+                        <summary aria-label="Options employé">&#8942;</summary>
+                        <div class="actions-dropdown">
+                          <button type="button" onclick="downloadHrEmployeeProfileJson(${employeeId})">Télécharger profil JSON</button>
+                          <button type="button" onclick="downloadHrEmployeeProfileCsv(${employeeId})">Télécharger profil CSV</button>
+                          ${canManageHrData() ? `<button type="button" onclick="editHrEmployee(${employeeId})">Modifier</button>` : ''}
+                          ${canManageHrData() ? `<button type="button" onclick="deleteHrEmployee(${employeeId})">Supprimer</button>` : ''}
+                        </div>
+                      </details>
+                    `}
+                  </div>
+                  <div class="hr-employee-dossier-grid">
+                    <div><strong>Poste:</strong> ${escapeHtml(employee.jobTitle || '-')}</div>
+                    <div><strong>Projet:</strong> ${escapeHtml(projectSite.project || '-')}</div>
+                    <div><strong>Site:</strong> ${escapeHtml(projectSite.site || '-')}</div>
+                    <div><strong>Téléphone:</strong> ${escapeHtml(employee.phoneNumber || '-')}</div>
+                    <div><strong>Adresse:</strong> ${escapeHtml(projectSite.rawAddress || employee.address || '-')}</div>
+                    <div><strong>Situation maritale:</strong> ${escapeHtml(employee.maritalStatus || '-')}</div>
+                  </div>
+                  <div class="hr-employee-doc-section">
+                    <div class="hr-employee-doc-header">
+                      <strong class="hr-employee-doc-title">${profileMode ? 'Pièces jointes' : 'CV et documents'}</strong>
+                      ${canAttachDocuments ? `<button type="button" class="button button-small button-secondary" onclick="triggerHrEmployeeDocumentPicker(${employeeId})">${profileMode ? 'Ajouter une pièce jointe' : 'Importer CV/document'}</button>` : ''}
+                    </div>
+                    <input type="file" id="hr-employee-doc-input-${employeeId}" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.txt" style="display:none;" onchange="uploadHrEmployeeDocument(${employeeId})" />
+                    <div class="hr-employee-doc-list">${docsHtml}</div>
+                  </div>
+                  ${profileMode ? `
+                    <div class="hr-employee-signature-section" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--hr-accent-border);">
+                      <div class="hr-employee-doc-header">
+                        <strong class="hr-employee-doc-title">✍️ Signatures en attente</strong>
+                      </div>
+                      <div id="hr-pending-signatures-list-${employeeId}" class="hr-employee-doc-list">
+                        <div class="empty-state" style="padding:8px;"><p>Aucune signature en attente</p></div>
+                      </div>
+                    </div>
+                  ` : ''}
+                </article>
+              `;
+            }).join('')}
+          </div>
+        </section>
+      `;
+      }).join('');
+    }
+
+    window.triggerHrEmployeeDocumentPicker = function triggerHrEmployeeDocumentPicker(employeeId) {
+      if (!canManageHrData()) return;
+      const input = document.getElementById(`hr-employee-doc-input-${Number(employeeId)}`);
+      if (input) input.click();
+    };
+
+    window.uploadHrEmployeeDocument = async function uploadHrEmployeeDocument(employeeId) {
+      if (!canManageHrData()) return;
+      const input = document.getElementById(`hr-employee-doc-input-${Number(employeeId)}`);
+      const file = input && input.files && input.files[0] ? input.files[0] : null;
+      if (!file) return;
+
+      try {
+        const contentBase64 = await fileToBase64(file);
+        await fetchJson(`/api/hr/employees/${Number(employeeId)}/documents`, {
+          method: 'POST',
+          body: JSON.stringify({
+            title: file.name,
+            fileName: file.name,
+            contentBase64,
+            mimeType: file.type || 'application/octet-stream',
+            sourceModule: 'employee_dossier',
+          }),
+        });
+        showMessage('Document importé dans le dossier employé');
+        await loadHrEmployeesModule();
+      } catch (err) {
+        showMessage('Erreur import document: ' + err.message, 'error');
+      } finally {
+        if (input) input.value = '';
+      }
+    };
+
+    window.downloadHrEmployeeDocument = async function downloadHrEmployeeDocument(docId) {
+      try {
+        const authToken = localStorage.getItem('erp_token');
+        const resp = await fetch(`/api/hr/employees/documents/${Number(docId)}/download`, {
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error || `Erreur ${resp.status}`);
+        }
+
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const disp = resp.headers.get('Content-Disposition') || '';
+        const match = disp.match(/filename="([^"]+)"/);
+        a.download = match ? match[1] : 'document-employe';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        showMessage('Erreur téléchargement: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteHrEmployeeDocument = async function deleteHrEmployeeDocument(docId, employeeId) {
+      if (!canManageHrData()) return;
+      if (!window.confirm('Supprimer ce document du dossier employé ?')) return;
+
+      try {
+        await fetchJson(`/api/hr/employees/documents/${Number(docId)}`, { method: 'DELETE' });
+        showMessage('Document supprimé');
+        const docs = Array.isArray(hrEmployeeDocumentsCache[Number(employeeId)])
+          ? hrEmployeeDocumentsCache[Number(employeeId)]
+          : [];
+        hrEmployeeDocumentsCache[Number(employeeId)] = docs.filter(doc => Number(doc.id) !== Number(docId));
+        renderHrEmployeesList();
+      } catch (err) {
+        showMessage('Erreur suppression document: ' + err.message, 'error');
+      }
+    };
+
+    window.downloadHrEmployeeProfileJson = function downloadHrEmployeeProfileJson(id) {
+      const employee = hrEmployeesCache.find(row => Number(row.id) === Number(id));
+      if (!employee) return;
+      const payload = {
+        id: Number(employee.id),
+        fullName: String(employee.fullName || '').trim(),
+        jobTitle: String(employee.jobTitle || '').trim(),
+        phoneNumber: String(employee.phoneNumber || '').trim(),
+        address: String(employee.address || '').trim(),
+        maritalStatus: String(employee.maritalStatus || '').trim(),
+      };
+      const fileName = `employe-${String(payload.fullName || 'profil').replace(/\s+/g, '-').toLowerCase()}.json`;
+      triggerTextDownload(fileName, 'application/json;charset=utf-8', JSON.stringify(payload, null, 2));
+    };
+
+    window.downloadHrEmployeeProfileCsv = function downloadHrEmployeeProfileCsv(id) {
+      const employee = hrEmployeesCache.find(row => Number(row.id) === Number(id));
+      if (!employee) return;
+      const header = ['id', 'fullName', 'jobTitle', 'phoneNumber', 'address', 'maritalStatus'];
+      const row = [
+        Number(employee.id),
+        String(employee.fullName || '').trim(),
+        String(employee.jobTitle || '').trim(),
+        String(employee.phoneNumber || '').trim(),
+        String(employee.address || '').trim(),
+        String(employee.maritalStatus || '').trim(),
+      ];
+      const csv = `\uFEFF${header.join(';')}\n${row.map(value => escapeCsvCell(value)).join(';')}`;
+      const fileName = `employe-${String(employee.fullName || 'profil').replace(/\s+/g, '-').toLowerCase()}.csv`;
+      triggerTextDownload(fileName, 'text/csv;charset=utf-8', csv);
+    };
+
+    function renderHrAttendanceList() {
+      const tbody = document.getElementById('hr-attendance-list-body');
+      if (!tbody) return;
+
+      if (!hrAttendanceCache.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">Aucun pointage</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = hrAttendanceCache.slice(0, 20).map(row => {
+        const dateValue = row.effectiveDate || row.attendanceDate || row.dayDate;
+        const codeValue = row.statusCode || row.status || 'P';
+        return `
+          <tr>
+            <td>${escapeHtml(row.fullName || '-')}</td>
+            <td>${escapeHtml(dateValue || '-')}</td>
+            <td>${escapeHtml(row.checkInTime || '-')}</td>
+            <td>${escapeHtml(row.checkOutTime || '-')}</td>
+            <td>${getHrCodeBadge(codeValue)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderHrLeaveList() {
+      const tbody = document.getElementById('hr-leave-list-body');
+      if (!tbody) return;
+
+      if (!hrLeaveRequestsCache.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">Aucune demande de congé</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = hrLeaveRequestsCache.map(row => {
+        const statusLabel = formatHrStatusLabel(row.status);
+        const actions = canDecideHrLeave() && String(row.status || '').toUpperCase() === 'EN_ATTENTE'
+          ? `<button type="button" class="button button-small button-success" onclick="setHrLeaveStatus(${Number(row.id)}, 'APPROUVEE')">Approuver</button>
+             <button type="button" class="button button-small button-danger" onclick="setHrLeaveStatus(${Number(row.id)}, 'REJETEE')">Rejeter</button>`
+          : '<span style="color:#94a3b8;">-</span>';
+        return `
+          <tr>
+            <td>${escapeHtml(row.fullName || '-')}</td>
+            <td>${escapeHtml(formatHrLeaveTypeLabel(row.leaveType))}</td>
+            <td>${escapeHtml(row.startDate || '-')} → ${escapeHtml(row.endDate || '-')}</td>
+            <td>${escapeHtml(statusLabel)}</td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderHrCalendarLegend() {
+      const legend = document.getElementById('hr-calendar-legend');
+      if (!legend) return;
+      legend.innerHTML = Object.keys(HR_CODE_META).map(code => {
+        const meta = HR_CODE_META[code];
+        return `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;background:${meta.bg};color:${meta.color};">${code} ${escapeHtml(meta.label)}</span>`;
+      }).join('');
+    }
+
+    function renderHrCalendarTable(calendarPayload) {
+      const container = document.getElementById('hr-calendar-table-wrap');
+      if (!container) return;
+
+      const data = calendarPayload || {};
+      const employees = Array.isArray(data.employees) ? data.employees : [];
+      const daysInMonth = Number(data.daysInMonth || 31);
+
+      if (!employees.length) {
+        container.innerHTML = '<div class="empty-state"><p>Aucune donnée pour ce mois.</p></div>';
+        return;
+      }
+
+      const dayHeaders = Array.from({ length: daysInMonth }, (_, index) => `<th style="min-width:38px;text-align:center;">${index + 1}</th>`).join('');
+
+      const rowsHtml = employees.map(employee => {
+        const codes = employee.codes && typeof employee.codes === 'object' ? employee.codes : {};
+        const cells = Array.from({ length: daysInMonth }, (_, index) => {
+          const day = String(index + 1);
+          const code = String(codes[day] || '').trim().toUpperCase();
+          const meta = HR_CODE_META[code];
+          if (!meta) {
+            return '<td style="text-align:center;color:#cbd5e1;">-</td>';
+          }
+          return `<td style="text-align:center;font-weight:700;color:${meta.color};background:${meta.bg};">${code}</td>`;
+        }).join('');
+
+        return `
+          <tr>
+            <td style="min-width:220px;">
+              <div style="font-weight:700;">${escapeHtml(employee.fullName || '-')}</div>
+              <div style="font-size:12px;color:#64748b;">${escapeHtml(employee.jobTitle || 'Poste non renseigné')}</div>
+            </td>
+            ${cells}
+          </tr>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <table class="table" style="min-width:${260 + (daysInMonth * 38)}px;">
+          <thead>
+            <tr>
+              <th style="min-width:220px;">Employé</th>
+              ${dayHeaders}
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function setHrEmployeeFormOpen(isOpen) {
+      const modal = document.getElementById('hr-employee-modal');
+      const toggleButton = document.getElementById('hr-employee-add-toggle');
+      if (!modal || !toggleButton) return;
+
+      const open = Boolean(isOpen);
+      modal.classList.toggle('open', open);
+      toggleButton.classList.toggle('is-open', open);
+      toggleButton.textContent = open ? '×' : '+';
+      toggleButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+      if (!open) {
+        hrEmployeeEditingId = null;
+        const title = document.getElementById('hr-employee-modal-title');
+        const submitButton = document.querySelector('#hr-employee-form button[type="submit"]');
+        if (title) title.textContent = 'Nouvel employé';
+        if (submitButton) submitButton.textContent = 'Ajouter';
+      }
+
+      if (open) {
+        document.getElementById('hr-employee-name')?.focus();
+      }
+    }
+
+    function getRoleDisplayLabel(role) {
+      const key = String(role || '').trim().toLowerCase();
+      const labels = {
+        admin: 'Admin',
+        achat: 'Achat',
+        commis: 'Commis',
+        controle_achat: 'Contrôle achat',
+        chef_chantier_site: 'Chef chantier site',
+        directeur_rh: 'Directeur RH',
+        dirigeant: 'Dirigeant',
+        gestionnaire_stock: 'Gestionnaire stock',
+        gestionnaire_stock_zone: 'Gestionnaire stock zone',
+      };
+      return labels[key] || (role || '-');
+    }
+
+    function refreshHrEmployeeProfileOptions(selectedUsername = '') {
+      const group = document.getElementById('hr-employee-profile-link-group');
+      const select = document.getElementById('hr-employee-linked-username');
+      if (!group || !select) return;
+
+      const shouldShow = isHrDirector() && !isHrPersonalProfileMode();
+      group.style.display = shouldShow ? '' : 'none';
+      if (!shouldShow) {
+        select.innerHTML = '<option value="">Aucun profil lié</option>';
+        select.value = '';
+        return;
+      }
+
+      const options = ['<option value="">Aucun profil lié</option>']
+        .concat(
+          hrUserProfilesCache.map(user => {
+            const username = String(user.username || '').trim();
+            const roleLabel = getRoleDisplayLabel(user.role);
+            return `<option value="${escapeHtml(username)}">${escapeHtml(username)} (${escapeHtml(roleLabel)})</option>`;
+          })
+        )
+        .join('');
+      select.innerHTML = options;
+      select.value = String(selectedUsername || '').trim();
+    }
+
+    function openHrEmployeeFormCreateMode() {
+      hrEmployeeEditingId = null;
+      const form = document.getElementById('hr-employee-form');
+      const title = document.getElementById('hr-employee-modal-title');
+      const submitButton = document.querySelector('#hr-employee-form button[type="submit"]');
+      if (form) form.reset();
+      if (title) title.textContent = 'Nouvel employé';
+      if (submitButton) submitButton.textContent = 'Ajouter';
+      refreshHrEmployeeProfileOptions('');
+      setHrEmployeeFormOpen(true);
+    }
+
+    function openHrEmployeeFormEditMode(employee) {
+      if (!employee) return;
+      hrEmployeeEditingId = Number(employee.id);
+      const title = document.getElementById('hr-employee-modal-title');
+      const submitButton = document.querySelector('#hr-employee-form button[type="submit"]');
+      if (title) title.textContent = `Modifier employé: ${String(employee.fullName || '').trim() || '-'}`;
+      if (submitButton) submitButton.textContent = 'Enregistrer';
+      const nameInput = document.getElementById('hr-employee-name');
+      const jobInput = document.getElementById('hr-employee-job');
+      const phoneInput = document.getElementById('hr-employee-phone');
+      const addressInput = document.getElementById('hr-employee-address');
+      const maritalInput = document.getElementById('hr-employee-marital-status');
+      if (nameInput) nameInput.value = String(employee.fullName || '').trim();
+      if (jobInput) jobInput.value = String(employee.jobTitle || '').trim();
+      if (phoneInput) phoneInput.value = String(employee.phoneNumber || '').trim();
+      if (addressInput) addressInput.value = String(employee.address || '').trim();
+      if (maritalInput) maritalInput.value = String(employee.maritalStatus || '').trim();
+      refreshHrEmployeeProfileOptions(String(employee.username || '').trim());
+      setHrEmployeeFormOpen(true);
+    }
+
+    async function loadHrEmployeesModule() {
+      hrEmployeesCache = await fetchJson('/api/hr/employees').catch(() => []);
+      if (isHrDirector()) {
+        const users = await fetchJson('/api/users').catch(() => []);
+        hrUserProfilesCache = Array.isArray(users) ? users : [];
+      } else {
+        hrUserProfilesCache = [];
+      }
+      hrEmployeeDocumentsCache = {};
+      await Promise.all(hrEmployeesCache.map(async employee => {
+        const employeeId = Number(employee.id || 0);
+        if (!employeeId) return;
+        const docs = await fetchJson(`/api/hr/employees/${employeeId}/documents`).catch(() => []);
+        hrEmployeeDocumentsCache[employeeId] = Array.isArray(docs) ? docs : [];
+      }));
+      const profileMode = isHrPersonalProfileMode();
+      const pageTitle = document.getElementById('hr-employees-page-title');
+      const pageSubtitle = document.getElementById('hr-employees-page-subtitle');
+      const teamTitle = document.getElementById('hr-employee-team-title');
+      const hrEmployeeAddToggle = document.getElementById('hr-employee-add-toggle');
+      const hrEmployeeToolbarLabel = document.querySelector('.hr-employee-toolbar-label');
+      const hrEmployeeImportButton = document.getElementById('hr-employee-import-btn');
+      const hrEmployeeSearchInput = document.getElementById('hr-employee-search');
+      const hrEmployeeSearchRow = document.querySelector('.hr-employee-search-row');
+      if (hrEmployeeAddToggle) {
+        hrEmployeeAddToggle.style.display = profileMode ? 'none' : (canManageHrData() ? '' : 'none');
+      }
+      if (hrEmployeeToolbarLabel) {
+        hrEmployeeToolbarLabel.style.display = profileMode ? 'none' : (canManageHrData() ? '' : 'none');
+      }
+      if (hrEmployeeImportButton) {
+        hrEmployeeImportButton.style.display = profileMode ? 'none' : (canManageHrData() ? '' : 'none');
+      }
+      if (hrEmployeeSearchRow) {
+        hrEmployeeSearchRow.style.display = profileMode ? 'none' : '';
+      }
+      if (pageTitle) {
+        pageTitle.textContent = profileMode ? 'Profil' : 'Liste des employés';
+      }
+      if (pageSubtitle) {
+        pageSubtitle.textContent = profileMode
+          ? 'Vos renseignements et vos pièces jointes'
+          : 'Gérez les ressources humaines (poste, nom et téléphone)';
+      }
+      if (teamTitle) {
+        teamTitle.textContent = profileMode ? 'Profil' : 'Équipe';
+      }
+      if (hrEmployeeSearchInput && hrEmployeeSearchInput.value !== hrEmployeeSearchTerm) {
+        hrEmployeeSearchInput.value = hrEmployeeSearchTerm;
+      }
+      refreshHrEmployeeProfileOptions('');
+      setHrEmployeeFormOpen(false);
+      renderHrEmployeesList();
+      populateHrEmployeeSelects();
+      
+      // Note: profileMode is already declared earlier in this function at line 10651
+      if (profileMode) {
+        const profileEmployee = getCurrentHrProfileEmployee();
+        if (profileEmployee) {
+          await loadPendingSignaturesForProfile(profileEmployee.id);
+        }
+      }
+    }
+
+    async function loadHrAttendanceModule() {
+      if (!hrEmployeesCache.length) {
+        await loadHrEmployeesModule();
+      }
+      const attendanceFormCard = document.getElementById('hr-attendance-form')?.closest('.form-card');
+      if (attendanceFormCard) {
+        attendanceFormCard.style.display = canManageHrData() ? '' : 'none';
+      }
+      const selectedDate = document.getElementById('hr-attendance-date')?.value || formatDateForInput();
+      hrAttendanceCache = await fetchJson(`/api/hr/attendance?date=${encodeURIComponent(selectedDate)}`).catch(() => []);
+      renderHrAttendanceList();
+    }
+
+    async function loadHrLeaveModule() {
+      if (!hrEmployeesCache.length) {
+        await loadHrEmployeesModule();
+      }
+      hrLeaveRequestsCache = await fetchJson('/api/hr/leave-requests').catch(() => []);
+      renderHrLeaveList();
+    }
+
+    async function loadHrSignaturesModule() {
+      if (!hrEmployeesCache.length) {
+        await loadHrEmployeesModule();
+      }
+      const profileEmployee = isHrPersonalProfileMode() ? getCurrentHrProfileEmployee() : null;
+      const signatureRows = await fetchJson('/api/hr/signature-requests').catch(() => []);
+      hrSignatureRequestsCache = Array.isArray(signatureRows) ? signatureRows : [];
+      if (profileEmployee?.id) {
+        hrSignatureRequestsCache = hrSignatureRequestsCache.filter(req => Number(req.employeeId || 0) === Number(profileEmployee.id));
+      }
+      
+      // Load all documents for all employees
+      let allDocs = [];
+      try {
+        for (const emp of hrEmployeesCache) {
+          const empDocs = await fetchJson(`/api/hr/employees/${emp.id}/documents?includeSignature=1`).catch(() => []);
+          allDocs = allDocs.concat(empDocs.map(d => ({ ...d, employeeId: emp.id, employeeName: emp.fullName })));
+        }
+      } catch (err) {
+        console.error('Error loading documents:', err);
+      }
+      
+      const docSelect = document.getElementById('hr-signature-doc-select');
+      if (docSelect) {
+        const pdfDocs = allDocs.filter(d => /pdf$/i.test(String(d.mimeType || '')) || /\.pdf$/i.test(String(d.fileName || '')));
+        docSelect.innerHTML = '<option value="">-- Choisir un PDF --</option>' + 
+          pdfDocs.map(d => `<option value="${d.id}" data-emp-id="${d.employeeId}">${escapeHtml(d.employeeName || '-')} - ${escapeHtml(d.title || d.fileName || 'Document PDF')}</option>`).join('');
+      }
+
+      const preview = document.getElementById('hr-signature-file-preview');
+      if (preview) {
+        preview.textContent = 'Aucun fichier importé.';
+      }
+
+      const uploadInput = document.getElementById('hr-signature-upload-input');
+      if (uploadInput) {
+        uploadInput.value = '';
+      }
+      
+      // Load employees for the select
+      const empSelect = document.getElementById('hr-signature-employee-select');
+      if (empSelect) {
+        empSelect.innerHTML = '<option value="">-- Choisir un employé --</option>' + 
+          hrEmployeesCache.map(e => `<option value="${e.id}">${escapeHtml(e.fullName || '-')}</option>`).join('');
+      }
+      
+      renderHrSignaturesList();
+      
+      // Load pending signatures for profile mode
+      if (profileEmployee) {
+        await loadPendingSignaturesForProfile(profileEmployee.id);
+      }
+    }
+
+    function renderHrSignaturesList() {
+      const container = document.getElementById('hr-signatures-list-body');
+      if (!container) return;
+
+      const profileEmployee = isHrPersonalProfileMode() ? getCurrentHrProfileEmployee() : null;
+      const rows = profileEmployee?.id
+        ? hrSignatureRequestsCache.filter(req => Number(req.employeeId || 0) === Number(profileEmployee.id))
+        : hrSignatureRequestsCache;
+      
+      if (!rows.length) {
+        container.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:12px;">Aucune demande de signature</td></tr>';
+        return;
+      }
+      
+      container.innerHTML = rows.map(req => `
+        <tr>
+          <td>${escapeHtml(req.documentTitle || req.fileName || req.documentName || 'Document')}</td>
+          <td>${escapeHtml(req.employeeFullName || '-')}</td>
+          <td><span style="padding:4px 8px; border-radius:4px; font-size:12px; background:${req.status === 'signed' ? '#dcfce7' : req.status === 'rejected' ? '#fee2e2' : '#fef3c7'}; color:${req.status === 'signed' ? '#166534' : req.status === 'rejected' ? '#991b1b' : '#92400e'};"><strong>${req.status === 'signed' ? 'Signé' : req.status === 'rejected' ? 'Rejeté' : 'En attente'}</strong></span></td>
+          <td>${escapeHtml(req.signedBy || '-')}</td>
+          <td>${req.signedAt ? escapeHtml(formatDateWithTime(req.signedAt)) : '-'}</td>
+          <td>
+            <div class="action-buttons" style="justify-content:flex-end;">
+              ${req.status === 'signed' ? `<button type="button" class="button button-small button-secondary" onclick="downloadHrSignatureDocument(${Number(req.id)})">Télécharger</button>` : ''}
+              ${isHrDirector() ? `<button type="button" class="button button-small button-danger" onclick="deleteHrSignatureRequest(${Number(req.id)})">Supprimer</button>` : ''}
+              ${req.status !== 'signed' && !isHrDirector() ? '<span class="hr-signature-empty-note">-</span>' : ''}
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadPendingSignaturesForProfile(employeeId) {
+      try {
+        const pendingRows = await fetchJson('/api/hr/employee-profile/pending-signatures').catch(() => []);
+        const pending = (Array.isArray(pendingRows) ? pendingRows : [])
+          .filter(sig => Number(sig.employeeId || 0) === Number(employeeId));
+        const container = document.getElementById(`hr-pending-signatures-list-${employeeId}`);
+        if (!container) return;
+        
+        if (!pending.length) {
+          container.innerHTML = '<div class="empty-state" style="padding:8px;"><p>Aucune signature en attente</p></div>';
+          return;
+        }
+        
+        container.innerHTML = pending.map(sig => {
+          const requestId = Number(sig.requestId || sig.id);
+          const documentName = String(sig.documentTitle || sig.fileName || 'Document PDF');
+          return `
+          <div class="list-item" style="margin:0; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; margin-bottom: 8px;">
+            <div class="list-item-content">
+              <div class="list-item-title">${escapeHtml(sig.documentTitle || sig.fileName || 'Document PDF')}</div>
+              <div class="list-item-meta">Soumis par: ${escapeHtml(sig.submitterName || '-')} • ${escapeHtml(formatDateWithTime(sig.createdAt))}</div>
+            </div>
+            <div class="action-buttons">
+              <button type="button" class="button button-small button-primary" onclick='openSignatureCanvas(${requestId}, ${JSON.stringify(documentName)})'>✍️ Signer</button>
+            </div>
+          </div>
+        `;
+        }).join('');
+      } catch (err) {
+        console.error('Error loading pending signatures:', err);
+      }
+    }
+
+    window.openSignatureCanvas = function openSignatureCanvas(requestId, docName) {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay open';
+      modal.id = 'signature-canvas-modal';
+      modal.innerHTML = `
+        <div class="modal-dialog" style="width:90%; max-width:680px;">
+          <div class="modal-header">
+            <h2>Signer le document</h2>
+            <button type="button" class="modal-close" onclick="document.getElementById('signature-canvas-modal').remove()">×</button>
+          </div>
+          <div class="modal-body" style="padding: 16px;">
+            <div class="hr-signature-card" style="padding:16px; margin-bottom:16px;">
+              <div class="hr-signature-kicker">Signature employé</div>
+              <p style="margin-bottom: 8px;"><strong>Document:</strong> ${escapeHtml(docName)}</p>
+              <p style="color: #666; font-size: 13px; margin-bottom: 12px;">Saisis ton nom, la signature sera placée en bas à droite de la dernière page du PDF.</p>
+              <div style="margin-bottom: 12px;">
+                <label>Votre nom complet (requis)</label>
+                <input type="text" id="signature-name" class="signature-script-input" placeholder="Écrivez votre nom" style="width:100%; font-size:34px;" />
+                <div class="signature-preview">
+                  <span id="signature-preview-text" class="signature-preview-text signature-preview-placeholder">Aperçu de la signature</span>
+                </div>
+              </div>
+              <div class="hr-signature-doc-status">
+                <span class="hr-signature-doc-pill">Signature manuscrite dans le PDF final</span>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+              <button type="button" class="button button-secondary" onclick="clearSignatureCanvas()">Effacer</button>
+              <button type="button" class="button button-danger" onclick="rejectSignature(${requestId})">Refuser</button>
+              <button type="button" class="button button-primary" onclick="submitSignature(${requestId})">Signer</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const nameInput = document.getElementById('signature-name');
+      const preview = document.getElementById('signature-preview-text');
+      if (nameInput && preview) {
+        nameInput.addEventListener('input', () => {
+          const value = nameInput.value.trim();
+          preview.textContent = value || 'Aperçu de la signature';
+          preview.classList.toggle('signature-preview-placeholder', !value);
+        });
+        setTimeout(() => nameInput.focus(), 0);
+      }
+
+      // Store for submission
+      window.currentSignatureRequestId = requestId;
+      window.currentSignatureDocName = docName;
+    };
+
+    window.clearSignatureCanvas = function clearSignatureCanvas() {
+      const nameInput = document.getElementById('signature-name');
+      const preview = document.getElementById('signature-preview-text');
+      if (nameInput) {
+        nameInput.value = '';
+      }
+      if (preview) {
+        preview.textContent = 'Aperçu de la signature';
+        preview.classList.add('signature-preview-placeholder');
+      }
+    };
+
+    window.submitSignature = async function submitSignature(requestId) {
+      const name = document.getElementById('signature-name')?.value.trim();
+      
+      if (!name) {
+        showMessage('Veuillez entrer votre nom pour signer', 'error');
+        return;
+      }
+      
+      try {
+        await fetchJson(`/api/hr/signature-requests/${requestId}/sign`, {
+          method: 'POST',
+          body: JSON.stringify({ signatureName: name, signatureRole: 'Employé' }),
+        });
+        
+        showMessage('Document signé avec succès');
+        document.getElementById('signature-canvas-modal').remove();
+        
+        const profileEmployee = isHrPersonalProfileMode() ? getCurrentHrProfileEmployee() : null;
+        if (profileEmployee) {
+          await loadPendingSignaturesForProfile(profileEmployee.id);
+        }
+        if (currentModule === 'hr-signatures') {
+          await loadHrSignaturesModule();
+        }
+      } catch (err) {
+        showMessage('Erreur: ' + err.message, 'error');
+      }
+    };
+
+    window.downloadHrSignatureDocument = async function downloadHrSignatureDocument(requestId) {
+      try {
+        const token = localStorage.getItem('erp_token');
+        const response = await fetch(`/api/hr/signature-requests/${Number(requestId)}/download`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || `Erreur ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = objectUrl;
+        const disposition = response.headers.get('Content-Disposition') || '';
+        const match = disposition.match(/filename="([^"]+)"/);
+        anchor.download = match ? match[1] : `document-signe-${requestId}.pdf`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(objectUrl);
+      } catch (err) {
+        showMessage('Erreur téléchargement: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteHrSignatureRequest = async function deleteHrSignatureRequest(requestId) {
+      if (!isHrDirector()) {
+        showMessage('Action reservee au directeur RH', 'error');
+        return;
+      }
+      if (!window.confirm('Supprimer cette demande de signature ?')) return;
+
+      try {
+        await fetchJson(`/api/hr/signature-requests/${Number(requestId)}`, { method: 'DELETE' });
+        showMessage('Demande de signature supprimee');
+        if (currentModule === 'hr-signatures') {
+          await loadHrSignaturesModule();
+        }
+      } catch (err) {
+        showMessage('Erreur suppression: ' + err.message, 'error');
+      }
+    };
+
+    window.rejectSignature = async function rejectSignature(requestId) {
+      if (!window.confirm('Refuser cette demande de signature ?')) return;
+      
+      try {
+        await fetchJson(`/api/hr/signature-requests/${requestId}/sign`, {
+          method: 'POST',
+          body: JSON.stringify({ status: 'rejected', rejectionReason: 'Refusé par l\'employé' }),
+        });
+        
+        showMessage('Demande refusée');
+        document.getElementById('signature-canvas-modal').remove();
+        
+        const profileEmployee = isHrPersonalProfileMode() ? getCurrentHrProfileEmployee() : null;
+        if (profileEmployee) {
+          await loadPendingSignaturesForProfile(profileEmployee.id);
+        }
+        if (currentModule === 'hr-signatures') {
+          await loadHrSignaturesModule();
+        }
+      } catch (err) {
+        showMessage('Erreur: ' + err.message, 'error');
+      }
+    };
+
+    async function loadHrCalendarModule() {
+      if (!hrEmployeesCache.length) {
+        await loadHrEmployeesModule();
+      }
+      renderHrCalendarLegend();
+
+      const monthInput = document.getElementById('hr-calendar-month');
+      if (monthInput && !monthInput.value) {
+        monthInput.value = new Date().toISOString().slice(0, 7);
+      }
+
+      const employeeFilter = document.getElementById('hr-calendar-employee-filter')?.value || '';
+      const monthValue = monthInput?.value || new Date().toISOString().slice(0, 7);
+      const query = employeeFilter
+        ? `month=${encodeURIComponent(monthValue)}&employeeId=${encodeURIComponent(employeeFilter)}`
+        : `month=${encodeURIComponent(monthValue)}`;
+      const payload = await fetchJson(`/api/hr/leave-calendar?${query}`).catch(() => ({ employees: [] }));
+      renderHrCalendarTable(payload);
+    }
+
+    window.editHrEmployee = async function editHrEmployee(id) {
+      const employee = hrEmployeesCache.find(row => Number(row.id) === Number(id));
+      if (!employee || !canManageHrData()) return;
+      openHrEmployeeFormEditMode(employee);
+    };
+
+    window.deleteHrEmployee = async function deleteHrEmployee(id) {
+      if (!canManageHrData()) return;
+      if (!window.confirm('Supprimer cet employé ?')) return;
+      try {
+        await fetchJson(`/api/hr/employees/${id}`, { method: 'DELETE' });
+        delete hrEmployeeDocumentsCache[Number(id)];
+        showMessage('Employé supprimé');
+        await loadHrEmployeesModule();
+        await loadHrAttendanceModule();
+        await loadHrLeaveModule();
+        await loadHrCalendarModule();
+      } catch (err) {
+        showMessage(`Erreur: ${err.message}`, 'error');
+      }
+    };
+
+    window.setHrLeaveStatus = async function setHrLeaveStatus(id, status) {
+      if (!canDecideHrLeave()) return;
+      try {
+        await fetchJson(`/api/hr/leave-requests/${id}/status`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status }),
+        });
+        showMessage('Statut congé mis à jour');
+        await loadHrLeaveModule();
+        await loadHrCalendarModule();
+      } catch (err) {
+        showMessage(`Erreur: ${err.message}`, 'error');
+      }
+    };
+
+    async function importHrEmployeesFromFile(file) {
+      if (!file || !canManageHrData()) return;
+
+      const fileName = String(file.name || '').toLowerCase();
+      let entries = [];
+      try {
+        const text = await file.text();
+        if (fileName.endsWith('.json')) {
+          const parsed = JSON.parse(text);
+          entries = Array.isArray(parsed) ? parsed : [];
+        } else {
+          entries = parseCsvToObjects(text);
+        }
+      } catch (error) {
+        showMessage('Fichier invalide: ' + error.message, 'error');
+        return;
+      }
+
+      if (!entries.length) {
+        showMessage('Aucune ligne à importer', 'error');
+        return;
+      }
+
+      let imported = 0;
+      let skipped = 0;
+      for (const entry of entries) {
+        const fullName = String(entry.fullName || entry.nom || entry.name || '').trim();
+        const jobTitle = String(entry.jobTitle || entry.poste || entry.role || '').trim();
+        const phoneNumber = String(entry.phoneNumber || entry.telephone || entry.phone || '').trim();
+        const address = String(entry.address || entry.adresse || '').trim();
+        const maritalStatus = String(entry.maritalStatus || entry.situationMaritale || entry['situation maritale'] || '').trim();
+
+        if (!fullName || !jobTitle) {
+          skipped += 1;
+          continue;
+        }
+
+        try {
+          await fetchJson('/api/hr/employees', {
+            method: 'POST',
+            body: JSON.stringify({ fullName, jobTitle, phoneNumber, address, maritalStatus }),
+          });
+          imported += 1;
+        } catch (error) {
+          skipped += 1;
+        }
+      }
+
+      await loadHrEmployeesModule();
+      await loadHrCalendarModule();
+      showMessage(`Import terminé: ${imported} ajoutée(s), ${skipped} ignorée(s)`);
+    }
+
     function showModule(moduleName) {
       document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
       document.getElementById(moduleName)?.classList.add('active');
@@ -9447,7 +11298,12 @@
         projects: ['Projets de construction', 'Gérez vos projets et chantiers'],
         'project-progress': ['Suivi des projets', 'Suivi des étapes par chef de chantier'],
         'journal-chantier': ['Journal de chantier', 'Journal automatique des suivis par site'],
-        assignments: ['Ressources humaines', 'Affectations des équipes par projet'],
+        'hr-employees': ['Ressources humaines', 'Liste des employés'],
+        'hr-attendance': ['Ressources humaines', 'Pointage journalier'],
+        assignments: ['Construction', 'Assignations de projet'],
+        'hr-calendar': ['Ressources humaines', 'Calendrier présence/congé'],
+        'hr-leave': ['Ressources humaines', 'Demandes de congé'],
+        'hr-signatures': ['Ressources humaines', 'Demandes de signature'],
         materials: ['Approvisionnement', 'Demandes de matériel'],
         inventory: ['Inventaire', 'Stock de matériaux'],
         'purchase-orders': ['Bons de commande', 'Achats auprès des fournisseurs'],
@@ -10048,6 +11904,9 @@
 
         populateProjectSelects(projects);
         populateProjectZoneProjectSelect();
+        if (document.getElementById('purchase-orders')?.classList.contains('active')) {
+          populatePoProjFolderSelect();
+        }
       } catch (err) {
         showMessage('Erreur lors du chargement des projets', 'error');
       }
@@ -10667,6 +12526,37 @@
       loadInventory();
     };
 
+    function renderPoPriorityActions(order) {
+      const panel = document.getElementById('po-priority-actions');
+      const label = document.getElementById('po-priority-label');
+      const validateBtn = document.getElementById('po-priority-validate');
+      const rejectBtn = document.getElementById('po-priority-reject');
+      if (!panel || !label || !validateBtn || !rejectBtn) return;
+
+      const canReviewRole = isExecutive() || isAdmin() || isAchatProfile();
+      if (!canReviewRole) {
+        panel.style.display = 'none';
+        return;
+      }
+
+      const canDecide = Boolean(order) && canCurrentUserValidatePurchaseOrder(order);
+      panel.style.display = '';
+      if (!canDecide) {
+        label.textContent = 'Sélectionne un bon en attente pour valider ou rejeter immédiatement.';
+        validateBtn.disabled = true;
+        rejectBtn.disabled = true;
+        validateBtn.onclick = null;
+        rejectBtn.onclick = null;
+        return;
+      }
+
+      label.textContent = `Bon #${Number(order.id)} • ${order.fournisseur || '-'} • action immédiate requise`;
+      validateBtn.disabled = false;
+      rejectBtn.disabled = false;
+      validateBtn.onclick = () => openPurchaseOrderValidationModal(Number(order.id), 'VALIDEE');
+      rejectBtn.onclick = () => openPurchaseOrderValidationModal(Number(order.id), 'ANNULEE');
+    }
+
     async function loadPurchaseOrders() {
       if (!canLoadPurchaseOrdersForCurrentRole()) {
         purchaseOrdersCache = [];
@@ -10732,7 +12622,9 @@
 
         list.innerHTML = filteredOrders.length
           ? filteredOrders.map(o => {
-              const displayedStatus = isExecutive() ? getExecutivePurchaseOrderStatus(o) : String(o.statut || '').trim().toUpperCase();
+              const displayedStatus = (isExecutive() || isProcurementReviewer())
+                ? getPurchaseOrderDecisionStatus(o)
+                : String(o.statut || '').trim().toUpperCase();
               const badgeClass = displayedStatus === 'VALIDEE' || displayedStatus === 'LIVREE'
                 ? 'badge-green'
                 : displayedStatus === 'REJETEE'
@@ -10764,7 +12656,9 @@
               ? '<div class="empty-state"><p>Aucun bon ne correspond à la recherche</p></div>'
               : '<div class="empty-state"><p>Aucun bon de commande</p></div>');
 
-        renderPurchaseOrderDetails(filteredOrders.find(o => Number(o.id) === Number(selectedPurchaseOrderId)) || null);
+        const selectedOrder = filteredOrders.find(o => Number(o.id) === Number(selectedPurchaseOrderId)) || null;
+        renderPoPriorityActions(selectedOrder);
+        renderPurchaseOrderDetails(selectedOrder);
 
         refreshPoItemRequestOptions();
         populatePoProjFolderSelect();
@@ -11276,7 +13170,7 @@
           const etape = String(row.etapeApprovisionnement || row.requestEtape || 'Étape').trim();
           const siteNum = extractSiteNumberLabel(row.numeroMaison || '-');
           const title = `${etape}-${siteNum}`;
-          const canDecide = status === 'EN_ATTENTE' && !isSiteChief() && !isZoneStockManager() && !isExecutive();
+          const canDecide = status === 'EN_ATTENTE' && !isSiteChief() && !isZoneStockManager();
           const pdfDownloadUrl = `/api/stock-issue-authorizations/${Number(row.id)}/pdf`;
           const items = Array.isArray(row.items) ? row.items : [];
           const itemsLabel = items.length
@@ -12386,6 +14280,9 @@
       try {
         const documents = await fetchJson('/api/database-documents');
         databaseDocumentsCache = Array.isArray(documents) ? documents : [];
+        document.querySelectorAll('[data-db-section]').forEach(button => {
+          button.classList.toggle('active', button.dataset.dbSection === databaseSection);
+        });
         const title = document.getElementById('database-section-title');
         const list = document.getElementById('database-documents-list');
         const sectionInput = document.getElementById('database-section-search');
@@ -12550,6 +14447,7 @@
         achats: [],
         construction: [],
         comptabilite: [],
+        hr_presence: [],
       };
       const idSet = new Set(idsToDelete);
       databaseHiddenDocumentIds = databaseHiddenDocumentIds.filter(id => !idSet.has(Number(id)));
@@ -13001,8 +14899,12 @@
     async function loadUserInfo() {
       try {
         const user = await fetchJson('/api/auth/me');
+        currentUserUsername = user.username || null;
         currentUserRole = user.role || null;
         currentUserScope = user.scope || null;
+        if (isHrDirector()) {
+          databaseSection = 'hr_presence';
+        }
         if (isWarehouseScopedRole()) {
           selectedStockWarehouseId = getScopedWarehouseId();
           selectedInventoryWarehouseId = getScopedWarehouseId();
@@ -14072,44 +15974,303 @@
       }
     });
 
-    document.getElementById('assignment-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      try {
-        const selectedProjectFolderKey = document.getElementById('assignment-project').value;
-        const selectedProjectId = document.getElementById('assignment-house').value;
-        const assigneeName = document.getElementById('assignment-name').value.trim();
-        const role = document.getElementById('assignment-role').value.trim();
-        if (!selectedProjectFolderKey) {
-          showMessage('Sélectionne un dossier projet', 'error');
-          return;
-        }
-        if (!selectedProjectId) {
-          showMessage('Sélectionne un site', 'error');
-          return;
-        }
-        if (!assigneeName || !role) {
-          showMessage('Nom et rôle sont obligatoires', 'error');
-          return;
-        }
+    const assignmentForm = document.getElementById('assignment-form');
+    if (assignmentForm && document.getElementById('assignment-name')) {
+      assignmentForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        try {
+          const selectedProjectFolderKey = document.getElementById('assignment-project').value;
+          const selectedProjectId = document.getElementById('assignment-house').value;
+          const assigneeName = document.getElementById('assignment-name').value.trim();
+          const role = document.getElementById('assignment-role').value.trim();
+          if (!selectedProjectFolderKey) {
+            showMessage('Sélectionne un dossier projet', 'error');
+            return;
+          }
+          if (!selectedProjectId) {
+            showMessage('Sélectionne un site', 'error');
+            return;
+          }
+          if (!assigneeName || !role) {
+            showMessage('Nom et rôle sont obligatoires', 'error');
+            return;
+          }
 
-        await fetchJson('/api/project-assignments', {
-          method: 'POST',
-          body: JSON.stringify({
-            projetId: selectedProjectId,
-            userId: 1,
-            assigneeName,
-            role,
-            phoneNumber: document.getElementById('assignment-phone').value.trim(),
-          }),
+          await fetchJson('/api/project-assignments', {
+            method: 'POST',
+            body: JSON.stringify({
+              projetId: selectedProjectId,
+              userId: 1,
+              assigneeName,
+              role,
+              phoneNumber: document.getElementById('assignment-phone').value.trim(),
+            }),
+          });
+          e.target.reset();
+          showMessage('Assignation créée');
+          populateProjectSelects(projectsCache);
+          loadAssignments();
+        } catch (err) {
+          showMessage('Erreur: ' + err.message, 'error');
+        }
+      });
+    }
+
+    const hrEmployeeForm = document.getElementById('hr-employee-form');
+    const hrEmployeeAddToggle = document.getElementById('hr-employee-add-toggle');
+    const hrEmployeeModal = document.getElementById('hr-employee-modal');
+    const hrEmployeeModalCancel = document.getElementById('hr-employee-modal-cancel');
+    const hrEmployeeImportButton = document.getElementById('hr-employee-import-btn');
+    const hrEmployeeImportInput = document.getElementById('hr-employee-import-input');
+    const hrEmployeeSearchInput = document.getElementById('hr-employee-search');
+    const hrEmployeeLinkedUsername = document.getElementById('hr-employee-linked-username');
+    if (hrEmployeeAddToggle) {
+      hrEmployeeAddToggle.addEventListener('click', () => {
+        const isOpen = hrEmployeeAddToggle.getAttribute('aria-expanded') === 'true';
+        if (isOpen) {
+          setHrEmployeeFormOpen(false);
+          return;
+        }
+        openHrEmployeeFormCreateMode();
+      });
+    }
+
+    if (hrEmployeeModalCancel) {
+      hrEmployeeModalCancel.addEventListener('click', () => {
+        setHrEmployeeFormOpen(false);
+      });
+    }
+
+    if (hrEmployeeModal) {
+      hrEmployeeModal.addEventListener('click', e => {
+        if (e.target === hrEmployeeModal) {
+          setHrEmployeeFormOpen(false);
+        }
+      });
+    }
+
+    if (hrEmployeeImportButton && hrEmployeeImportInput) {
+      hrEmployeeImportButton.addEventListener('click', () => {
+        if (!canManageHrData()) {
+          showMessage('Action non autorisée pour ce profil', 'error');
+          return;
+        }
+        hrEmployeeImportInput.click();
+      });
+
+      hrEmployeeImportInput.addEventListener('change', async e => {
+        const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+        if (!file) return;
+        await importHrEmployeesFromFile(file);
+        hrEmployeeImportInput.value = '';
+      });
+    }
+
+    if (hrEmployeeSearchInput) {
+      hrEmployeeSearchInput.addEventListener('input', e => {
+        hrEmployeeSearchTerm = e.target.value;
+        renderHrEmployeesList();
+      });
+    }
+
+    if (hrEmployeeLinkedUsername) {
+      hrEmployeeLinkedUsername.addEventListener('change', () => {
+        const selectedUsername = String(hrEmployeeLinkedUsername.value || '').trim();
+        if (!selectedUsername) return;
+        const selectedUser = hrUserProfilesCache.find(user => String(user.username || '').trim() === selectedUsername);
+        if (!selectedUser) return;
+
+        const nameInput = document.getElementById('hr-employee-name');
+        const jobInput = document.getElementById('hr-employee-job');
+        if (nameInput && !String(nameInput.value || '').trim()) {
+          nameInput.value = selectedUsername;
+        }
+        if (jobInput && !String(jobInput.value || '').trim()) {
+          jobInput.value = getRoleDisplayLabel(selectedUser.role);
+        }
+      });
+    }
+
+    if (hrEmployeeForm) {
+      hrEmployeeForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        if (!canManageHrData()) {
+          showMessage('Action non autorisée pour ce profil', 'error');
+          return;
+        }
+        try {
+          const fullName = document.getElementById('hr-employee-name').value.trim();
+          const jobTitle = document.getElementById('hr-employee-job').value.trim();
+          const phoneNumber = document.getElementById('hr-employee-phone').value.trim();
+          const address = document.getElementById('hr-employee-address').value.trim();
+          const maritalStatus = document.getElementById('hr-employee-marital-status').value.trim();
+          const linkedUsername = String(document.getElementById('hr-employee-linked-username')?.value || '').trim();
+          if (!fullName || !jobTitle) {
+            showMessage('Nom et poste sont obligatoires', 'error');
+            return;
+          }
+
+          const isEditMode = Number.isInteger(hrEmployeeEditingId) && hrEmployeeEditingId > 0;
+          if (isEditMode) {
+            await fetchJson(`/api/hr/employees/${hrEmployeeEditingId}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ fullName, jobTitle, phoneNumber, address, maritalStatus, username: linkedUsername }),
+            });
+          } else {
+            await fetchJson('/api/hr/employees', {
+              method: 'POST',
+              body: JSON.stringify({ fullName, jobTitle, phoneNumber, address, maritalStatus, username: linkedUsername }),
+            });
+          }
+          e.target.reset();
+          setHrEmployeeFormOpen(false);
+          showMessage(isEditMode ? 'Employé mis à jour' : 'Employé ajouté');
+          await loadHrEmployeesModule();
+          await loadHrCalendarModule();
+        } catch (err) {
+          showMessage('Erreur: ' + err.message, 'error');
+        }
+      });
+    }
+
+    const hrAttendanceForm = document.getElementById('hr-attendance-form');
+    if (hrAttendanceForm) {
+      hrAttendanceForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        if (!canManageHrData()) {
+          showMessage('Action non autorisée pour ce profil', 'error');
+          return;
+        }
+        try {
+          const employeeId = Number(document.getElementById('hr-attendance-employee').value || 0);
+          const attendanceDate = document.getElementById('hr-attendance-date').value;
+          if (!employeeId || !attendanceDate) {
+            showMessage('Employé et date obligatoires', 'error');
+            return;
+          }
+
+          await fetchJson('/api/hr/attendance', {
+            method: 'POST',
+            body: JSON.stringify({
+              employeeId,
+              attendanceDate,
+              checkInTime: document.getElementById('hr-attendance-checkin').value,
+              checkOutTime: document.getElementById('hr-attendance-checkout').value,
+              statusCode: document.getElementById('hr-attendance-status').value,
+              note: document.getElementById('hr-attendance-note').value.trim(),
+            }),
+          });
+
+          showMessage('Pointage enregistré');
+          await loadHrAttendanceModule();
+          await loadHrCalendarModule();
+        } catch (err) {
+          showMessage('Erreur: ' + err.message, 'error');
+        }
+      });
+    }
+
+    const hrLeaveForm = document.getElementById('hr-leave-form');
+    if (hrLeaveForm) {
+      hrLeaveForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        try {
+          const employeeId = Number(document.getElementById('hr-leave-employee').value || 0);
+          const leaveType = document.getElementById('hr-leave-type').value;
+          const startDate = document.getElementById('hr-leave-start').value;
+          const endDate = document.getElementById('hr-leave-end').value;
+          if (!employeeId || !leaveType || !startDate || !endDate) {
+            showMessage('Champs congé obligatoires', 'error');
+            return;
+          }
+
+          await fetchJson('/api/hr/leave-requests', {
+            method: 'POST',
+            body: JSON.stringify({
+              employeeId,
+              leaveType,
+              startDate,
+              endDate,
+              reason: document.getElementById('hr-leave-reason').value.trim(),
+            }),
+          });
+
+          e.target.reset();
+          showMessage('Demande de congé envoyée');
+          await loadHrLeaveModule();
+          await loadHrCalendarModule();
+        } catch (err) {
+          showMessage('Erreur: ' + err.message, 'error');
+        }
+      });
+    }
+
+    const hrSignatureForm = document.getElementById('hr-signature-request-form');
+    if (hrSignatureForm) {
+      const uploadInput = document.getElementById('hr-signature-upload-input');
+      const uploadBtn = document.getElementById('hr-signature-upload-btn');
+      const uploadPreview = document.getElementById('hr-signature-file-preview');
+
+      if (uploadBtn && uploadInput) {
+        uploadBtn.addEventListener('click', () => uploadInput.click());
+        uploadInput.addEventListener('change', () => {
+          const file = uploadInput.files && uploadInput.files[0] ? uploadInput.files[0] : null;
+          if (uploadPreview) {
+            uploadPreview.textContent = file ? `Fichier prêt: ${file.name}` : 'Aucun fichier importé.';
+          }
         });
-        e.target.reset();
-        showMessage('Assignation créée');
-        populateProjectSelects(projectsCache);
-        loadAssignments();
-      } catch (err) {
-        showMessage('Erreur: ' + err.message, 'error');
       }
-    });
+
+      hrSignatureForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        try {
+          const employeeId = Number(document.getElementById('hr-signature-employee-select').value || 0);
+          const documentSelect = document.getElementById('hr-signature-doc-select');
+          const uploadFile = uploadInput && uploadInput.files && uploadInput.files[0] ? uploadInput.files[0] : null;
+          let documentId = Number(documentSelect?.value || 0);
+          if (!documentId || !employeeId) {
+            if (!uploadFile || !employeeId) {
+              showMessage('Document et employé obligatoires', 'error');
+              return;
+            }
+          }
+
+          if (uploadFile) {
+            const contentBase64 = await fileToBase64(uploadFile);
+            const uploaded = await fetchJson(`/api/hr/employees/${employeeId}/documents`, {
+              method: 'POST',
+              body: JSON.stringify({
+                title: uploadFile.name,
+                fileName: uploadFile.name,
+                contentBase64,
+                mimeType: uploadFile.type || 'application/pdf',
+                sourceModule: 'signature_request',
+              }),
+            });
+            documentId = Number(uploaded.id || 0);
+          }
+
+          if (!documentId) {
+            showMessage('Choisis un PDF ou importe-en un nouveau', 'error');
+            return;
+          }
+
+          await fetchJson('/api/hr/signature-requests', {
+            method: 'POST',
+            body: JSON.stringify({ documentId, employeeId }),
+          });
+
+          e.target.reset();
+          if (uploadPreview) {
+            uploadPreview.textContent = 'Aucun fichier importé.';
+          }
+          showMessage('Demande de signature envoyée');
+          await loadHrSignaturesModule();
+        } catch (err) {
+          showMessage('Erreur: ' + err.message, 'error');
+        }
+      });
+    }
 
     (function setupJournalProgressToggle() {
       const toggleBtn = document.getElementById('journal-progress-toggle');
@@ -14855,14 +17016,34 @@
       document.getElementById('project-create-name').focus();
     });
 
-    document.getElementById('assignment-search').addEventListener('input', e => {
-      assignmentSearchTerm = e.target.value;
-      renderAssignmentsList();
-    });
+    const assignmentSearchInput = document.getElementById('assignment-search');
+    if (assignmentSearchInput) {
+      assignmentSearchInput.addEventListener('input', e => {
+        assignmentSearchTerm = e.target.value;
+        renderAssignmentsList();
+      });
+    }
 
-    document.getElementById('assignment-project').addEventListener('change', e => {
-      populateAssignmentHouseSelect(projectsCache, e.target.value);
-    });
+    const assignmentProjectSelect = document.getElementById('assignment-project');
+    if (assignmentProjectSelect) {
+      assignmentProjectSelect.addEventListener('change', e => {
+        populateAssignmentHouseSelect(projectsCache, e.target.value);
+      });
+    }
+
+    const hrCalendarMonthInput = document.getElementById('hr-calendar-month');
+    if (hrCalendarMonthInput) {
+      hrCalendarMonthInput.addEventListener('change', () => {
+        loadHrCalendarModule();
+      });
+    }
+
+    const hrCalendarEmployeeFilter = document.getElementById('hr-calendar-employee-filter');
+    if (hrCalendarEmployeeFilter) {
+      hrCalendarEmployeeFilter.addEventListener('change', () => {
+        loadHrCalendarModule();
+      });
+    }
 
     document.getElementById('progress-project-folder').addEventListener('change', e => {
       if (!e.target.value) {
@@ -15481,10 +17662,26 @@
           loadProjectProgress();
           loadJournalChantier();
         }
+        else if (resolvedModule === 'hr-employees') {
+          loadHrEmployeesModule();
+        }
+        else if (resolvedModule === 'hr-attendance') {
+          loadHrAttendanceModule();
+        }
         else if (resolvedModule === 'assignments') {
-          loadAssignments();
           loadProjects();
-        } else if (resolvedModule === 'materials') {
+          loadAssignments();
+        }
+        else if (resolvedModule === 'hr-calendar') {
+          loadHrCalendarModule();
+        }
+        else if (resolvedModule === 'hr-leave') {
+          loadHrLeaveModule();
+        }
+        else if (resolvedModule === 'hr-signatures') {
+          loadHrSignaturesModule();
+        }
+        else if (resolvedModule === 'materials') {
           selectedMaterialRequestProjectId = null;
           selectedMaterialRequestFolderKey = '';
           loadProjects();
@@ -16143,15 +18340,18 @@
 
     async function pollRealtimeNotifications() {
       try {
-        const [orders, auths] = await Promise.all([
+        const [orders, auths, pendingSignatures] = await Promise.all([
           fetchJson('/api/purchase-orders').catch(() => []),
           fetchJson('/api/stock-issue-authorizations').catch(() => []),
+          fetchJson('/api/hr/employee-profile/pending-signatures').catch(() => []),
         ]);
         const poPending = Array.isArray(orders) ? orders.filter(o => String(o?.statut || '').toLowerCase().includes('attente')).length : 0;
         const authPending = Array.isArray(auths) ? auths.filter(a => String(a?.status || a?.statut || '').toLowerCase().includes('pending') || String(a?.status || a?.statut || '').toLowerCase().includes('attente')).length : 0;
+        const signaturePending = Array.isArray(pendingSignatures) ? pendingSignatures.length : 0;
 
         const lastPoCount = Number(sessionStorage.getItem('erp_last_po_pending') || '0');
         const lastAuthCount = Number(sessionStorage.getItem('erp_last_auth_pending') || '0');
+        const lastSignatureCount = Number(sessionStorage.getItem('erp_last_signature_pending') || '0');
 
         if (poPending > lastPoCount) {
           pushNotification('Nouveaux bons en attente', `${poPending} bon(s) nécessitent une action`, 'purchase-orders');
@@ -16159,9 +18359,13 @@
         if (authPending > lastAuthCount) {
           pushNotification('Autorisations en attente', `${authPending} autorisation(s) de sortie à traiter`, 'sortie-autorisations');
         }
+        if (signaturePending > lastSignatureCount) {
+          pushNotification('Signatures en attente', `${signaturePending} document(s) à signer`, 'hr-signatures');
+        }
 
         sessionStorage.setItem('erp_last_po_pending', String(poPending));
         sessionStorage.setItem('erp_last_auth_pending', String(authPending));
+        sessionStorage.setItem('erp_last_signature_pending', String(signaturePending));
       } catch (_) {
         // Ignore transient polling errors.
       }
@@ -16410,6 +18614,15 @@
       document.getElementById('po-date').value = formatDateForInput();
       document.getElementById('revenue-date').value = formatDateForInput();
       document.getElementById('auto-transport-date').value = formatDateForInput();
+      if (document.getElementById('hr-attendance-date')) {
+        document.getElementById('hr-attendance-date').value = formatDateForInput();
+      }
+      if (document.getElementById('hr-leave-start')) {
+        document.getElementById('hr-leave-start').value = formatDateForInput();
+      }
+      if (document.getElementById('hr-leave-end')) {
+        document.getElementById('hr-leave-end').value = formatDateForInput();
+      }
 
       if (isGestStock()) {
         showModule('stock-management');

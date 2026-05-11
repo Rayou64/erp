@@ -7366,7 +7366,7 @@
               </div>
               <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                 ${latest
-                  ? `<a class="button button-small button-secondary" href="${escapeHtml(latest.fileUrl || '#')}" target="_blank" rel="noopener" download="${escapeHtml(latest.fileName || 'autorisation-retrait.pdf')}">Téléchargement</a>`
+                  ? `<a class="button button-small button-secondary" href="${escapeHtml(latest.fileUrl || '#')}" target="_blank" rel="noopener" download="${escapeHtml(latest.fileName || 'autorisation-retrait.pdf')}">Télécharger autorisation</a>`
                   : '<span style="font-size:12px;color:#64748b;">Aucun document signé</span>'}
               </div>
             </div>
@@ -7902,18 +7902,7 @@
         const error = await res.json().catch(() => ({}));
         throw new Error(error.error || `Erreur ${res.status}`);
       }
-      if (res.status === 204 || res.status === 304) {
-        return null;
-      }
-      const rawBody = await res.text();
-      if (!rawBody) {
-        return null;
-      }
-      try {
-        return JSON.parse(rawBody);
-      } catch (_err) {
-        throw new Error('Réponse API invalide (JSON attendu)');
-      }
+      return res.json();
     }
 
     function showModule(moduleName) {
@@ -8122,8 +8111,7 @@
         if (Array.isArray(projectCatalog)) {
           projectCatalogCache = projectCatalog;
         }
-        const safeMaterials = Array.isArray(materials) ? materials : materialRequestsCache;
-        materialRequestsCache = sortRecent(safeMaterials, row => row?.dateDemande || row?.updatedAt || row?.createdAt || row?.id);
+        materialRequestsCache = sortRecent(materials, row => row?.dateDemande || row?.updatedAt || row?.createdAt || row?.id);
         ensureWarehouseAssignmentsForRows(materialRequestsCache);
         const selectedWarehouse = document.getElementById('material-warehouse')?.value || '';
         populateWarehouseSelect('material-warehouse', selectedWarehouse);
@@ -8169,7 +8157,7 @@
           listTitle.textContent = isSearchActive ? 'Résultats de recherche' : 'Demandes récentes';
         }
 
-        if (selectedMaterialRequestId && !safeMaterials.some(m => Number(m.id) === Number(selectedMaterialRequestId))) {
+        if (selectedMaterialRequestId && !materials.some(m => Number(m.id) === Number(selectedMaterialRequestId))) {
           selectedMaterialRequestId = null;
         }
 
@@ -8210,7 +8198,7 @@
               </li>
             `;
             }).join('')
-            : (safeMaterials.length
+          : (materials.length
               ? '<div class="empty-state"><p>Aucune demande ne correspond à la recherche</p></div>'
               : '<div class="empty-state"><p>Aucune demande de matériel</p></div>');
 
@@ -9396,7 +9384,7 @@
           fetchJson('/api/material-catalog'),
           fetchJson('/api/projects').catch(() => projectsCache),
         ]);
-        materialCatalogCache = Array.isArray(catalogData) ? catalogData : materialCatalogCache;
+        materialCatalogCache = catalogData;
         if (projects && projects.length) projectsCache = projects;
         populateMcProjectFolderSelects();
         openMcEditorForFolder(MATERIAL_CATALOG_PROJECT);

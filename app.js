@@ -1,3 +1,9 @@
+
+
+// --- ROUTES DYNAMIQUES ---
+// Retourne dynamiquement tous les entrepôts (projets ZONE_STOCK)
+// À placer après la création de app et la config des middlewares
+
 // app.js
 // API Construction & Logistique avec une base de données SQLite et authentification
 
@@ -7,6 +13,7 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const PDFDocument = require('pdfkit');
+const { PDFDocument: PdfLibDocument, StandardFonts: PdfLibStandardFonts, rgb: pdfRgb } = require('pdf-lib');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
@@ -22,6 +29,23 @@ app.use(helmet({
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// --- ROUTES DYNAMIQUES ---
+// Retourne dynamiquement tous les entrepôts (projets ZONE_STOCK)
+app.get('/api/warehouses', async (req, res) => {
+  try {
+    const rows = await all(`SELECT id, nomProjet, prefecture FROM projects WHERE UPPER(typeMaison) = 'ZONE_STOCK' ORDER BY prefecture ASC, nomProjet ASC`);
+    const warehouses = rows.map(row => ({
+      id: row.id,
+      name: row.prefecture || row.nomProjet,
+      project: row.nomProjet,
+      prefecture: row.prefecture
+    }));
+    res.json({ warehouses });
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur chargement entrepôts', details: String(e) });
+  }
+});
+
 const APP_DATA_DIR = process.env.APP_DATA_DIR || (process.env.RAILWAY_ENVIRONMENT ? '/data' : __dirname);
 const DB_FILE = process.env.DB_FILE || path.join(APP_DATA_DIR, 'data.db');
 const ARCHIVE_ROOT = process.env.ARCHIVE_ROOT || path.join(APP_DATA_DIR, 'archives');
@@ -33,6 +57,10 @@ const GEST_STOCK_USERNAME = process.env.GEST_STOCK_USERNAME || 'gestionnaire_sto
 const GEST_STOCK_PASSWORD = process.env.GEST_STOCK_PASSWORD || 'geststock123';
 const EXECUTIVE_USERNAME = process.env.EXECUTIVE_USERNAME || 'dirigeant';
 const EXECUTIVE_PASSWORD = process.env.EXECUTIVE_PASSWORD || 'dirigeant123';
+const HR_DIRECTOR_USERNAME = process.env.HR_DIRECTOR_USERNAME || 'directeur_rh';
+const HR_DIRECTOR_PASSWORD = process.env.HR_DIRECTOR_PASSWORD || 'rh123';
+const PROCUREMENT_REVIEWER_USERNAME = process.env.PROCUREMENT_REVIEWER_USERNAME || 'controle_achat_global';
+const PROCUREMENT_REVIEWER_PASSWORD = process.env.PROCUREMENT_REVIEWER_PASSWORD || 'achatglobal123';
 const ACHAT_USERNAME = process.env.ACHAT_USERNAME || 'achat';
 const ACHAT_PASSWORD = process.env.ACHAT_PASSWORD || 'achat123';
 const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS || 60_000);
@@ -187,6 +215,8 @@ const authRateLimiter = rateLimit({
   message: { error: 'Trop de tentatives de connexion. Reessaie plus tard.' },
 });
 
+
+
 app.use('/api', apiRateLimiter);
 
 const dbClient = createDbClient({
@@ -196,6 +226,16 @@ const dbClient = createDbClient({
 });
 const { run, get, all } = dbClient;
 const DB_DRIVER = dbClient.driver;
+
+// Création automatique du stock Songon Kassemblé (ZONE_STOCK) au démarrage
+(async () => {
+  try {
+    await ensureZoneStockProject('Songon Kassemblé', 'Songon Kassemblé');
+    console.log('Stock Songon Kassemblé (ZONE_STOCK) prêt.');
+  } catch (e) {
+    console.error('Erreur création stock Songon Kassemblé:', e);
+  }
+})();
 
 if (DB_DRIVER === 'postgres') {
   console.log('Mode base de donnees: PostgreSQL');
@@ -370,6 +410,127 @@ function resolveSignatureFontPath() {
   return null;
 }
 
+async function buildSignedHrDocumentPdfBuffer({ sourceFilePath, signatureName, signatureRole = '', signedAt = '', signedBy = '' }) {
+  const pdfBytes = await fs.promises.readFile(sourceFilePath);
+  const pdfDoc = await PdfLibDocument.load(pdfBytes);
+  const pages = pdfDoc.getPages();
+  if (!pages.length) {
+    throw new Error('Document PDF vide');
+  }
+
+  const lastPage = pages[pages.length - 1];
+  const { width, height } = lastPage.getSize();
+  const regularFont = await pdfDoc.embedFont(PdfLibStandardFonts.Helvetica);
+  let signatureFont = await pdfDoc.embedFont(PdfLibStandardFonts.HelveticaOblique);
+
+  const signatureFontPath = resolveSignatureFontPath();
+  if (signatureFontPath) {
+    try {
+      signatureFont = await pdfDoc.embedFont(await fs.promises.readFile(signatureFontPath));
+    } catch (_err) {
+      signatureFont = await pdfDoc.embedFont(PdfLibStandardFonts.HelveticaOblique);
+    }
+  }
+
+  const footerWidth = Math.min(220, Math.max(160, width - 80));
+  const footerX = Math.max(40, width - footerWidth - 40);
+  const footerY = Math.max(36, 42);
+  const signatureLabel = 'Signature autorisee';
+  const signerName = String(signatureName || '').trim() || 'Signature';
+  const signerRole = String(signatureRole || '').trim();
+  const signerDate = String(signedAt || '').trim() ? new Date(signedAt).toLocaleString('fr-FR') : new Date().toLocaleString('fr-FR');
+  const signedByValue = String(signedBy || '').trim();
+
+  lastPage.drawRectangle({
+    x: footerX - 10,
+    y: footerY - 4,
+    width: footerWidth,
+    height: 84,
+    borderWidth: 1,
+    borderColor: pdfRgb(0.81, 0.85, 0.92),
+    color: pdfRgb(1, 1, 1),
+    opacity: 0.94,
+  });
+
+  lastPage.drawText(signatureLabel, {
+    x: footerX,
+    y: footerY + 56,
+    size: 9,
+    font: regularFont,
+    color: pdfRgb(0.05, 0.11, 0.22),
+  });
+
+  lastPage.drawText(signerName, {
+    x: footerX,
+    y: footerY + 25,
+    size: 24,
+    font: signatureFont,
+    color: pdfRgb(0.07, 0.09, 0.15),
+  });
+
+  if (signerRole) {
+    lastPage.drawText(signerRole, {
+      x: footerX,
+      y: footerY + 10,
+      size: 9,
+      font: regularFont,
+      color: pdfRgb(0.2, 0.29, 0.4),
+    });
+  }
+
+  lastPage.drawText(`Date: ${signerDate}`, {
+    x: footerX,
+    y: footerY - 1,
+    size: 8,
+    font: regularFont,
+    color: pdfRgb(0.34, 0.41, 0.51),
+  });
+
+  if (signedByValue) {
+    lastPage.drawText(`Par: ${signedByValue}`, {
+      x: footerX + 112,
+      y: footerY - 1,
+      size: 8,
+      font: regularFont,
+      color: pdfRgb(0.34, 0.41, 0.51),
+    });
+  }
+
+  return Buffer.from(await pdfDoc.save());
+}
+
+async function archiveSignedHrDocument({ documentRow, signatureRequest, signatureName, signatureRole = '', signedAt = '' }) {
+  const sourcePath = path.join(ARCHIVE_ROOT, String(documentRow.relativePath || ''));
+  if (!String(documentRow.relativePath || '').trim() || !fs.existsSync(sourcePath)) {
+    throw new Error('Fichier source introuvable');
+  }
+
+  const isPdf = /pdf$/i.test(String(documentRow.mimeType || '')) || /\.pdf$/i.test(String(documentRow.fileName || ''));
+  if (!isPdf) {
+    throw new Error('Seuls les documents PDF peuvent être signes');
+  }
+
+  const signedFileName = `signe-${String(signatureRequest.id || documentRow.id || Date.now())}-${sanitizeFileName(documentRow.fileName || 'document.pdf')}`;
+  const signedRelativePath = path.join('construction', 'hr-employees', `employee-${Number(documentRow.employeeId || 0) || 'shared'}`, 'signed', signedFileName);
+  const signedAbsolutePath = path.join(ARCHIVE_ROOT, signedRelativePath);
+  fs.mkdirSync(path.dirname(signedAbsolutePath), { recursive: true });
+
+  const buffer = await buildSignedHrDocumentPdfBuffer({
+    sourceFilePath: sourcePath,
+    signatureName,
+    signatureRole,
+    signedAt,
+    signedBy: signatureRequest.signedBy || signatureRequest.employeeUsername || '',
+  });
+  await fs.promises.writeFile(signedAbsolutePath, buffer);
+
+  return {
+    fileName: signedFileName,
+    relativePath: signedRelativePath,
+    fileUrl: `/archives/${signedRelativePath.replace(/\\/g, '/')}`,
+  };
+}
+
 async function enrichPurchaseOrders(orders) {
   if (!orders.length) {
     return [];
@@ -542,7 +703,9 @@ function renderPurchaseOrderPdf(doc, order) {
   const orderDateLabel = Number.isNaN(orderDate.getTime()) ? new Date().toLocaleDateString('fr-FR') : orderDate.toLocaleDateString('fr-FR');
   const statusValue = String(order.statutValidation || order.statut || '').trim().toUpperCase();
   const isRejected = statusValue === 'ANNULEE' || statusValue === 'REJETEE';
-  const stampLabel = isRejected ? 'Rejet\u00e9' : 'Valid\u00e9';
+  const isValidated = statusValue === 'VALIDEE' || statusValue === 'LIVREE';
+  const stampLabel = isRejected ? 'Rejeté' : (isValidated ? 'Validé' : 'En attente');
+  const stampColor = isRejected ? '#b91c1c' : (isValidated ? '#166534' : '#b45309');
   const signatureFontPath = resolveSignatureFontPath();
   const signatureFontName = signatureFontPath ? 'SignatureScript' : 'Helvetica-Oblique';
 
@@ -639,13 +802,26 @@ function renderPurchaseOrderPdf(doc, order) {
   doc.font('Helvetica').fontSize(9).fillColor('#475569').text(`Edite le : ${new Date().toLocaleString('fr-FR')}`, 40, footerY + 10);
 
   doc.save();
-  doc.lineWidth(2).strokeColor(isRejected ? '#b91c1c' : '#166534').fillColor(isRejected ? '#b91c1c' : '#166534');
+  doc.lineWidth(2).strokeColor(stampColor).fillColor(stampColor);
   doc.roundedRect(40, 742, 160, 52, 8).stroke();
   doc.font('Helvetica-Bold').fontSize(8).text('TAMPON', 48, 748, { width: 144, align: 'left' });
   doc.font('Helvetica-Bold').fontSize(18).text(stampLabel, 48, 760, { width: 144, align: 'left' });
   doc.restore();
 
-  // Signature on the right (handwritten style when available).
+  const hasValidatorSignature = isValidated && String(order.signatureName || '').trim();
+  if (hasValidatorSignature) {
+    // After validation, place executive signature next to the validation stamp (bottom-left).
+    const validatorName = String(order.signatureName || '').trim();
+    const validatorRole = String(order.signatureRole || '').trim();
+    doc.font('Helvetica').fontSize(9).fillColor('#0f172a').text('Signature validation', 48, 798, { width: 190, align: 'left' });
+    doc.font(signatureFontName).fontSize(22).fillColor('#111827').text(validatorName, 48, 808, { width: 190, align: 'left' });
+    if (validatorRole) {
+      doc.font('Helvetica').fontSize(9).fillColor('#334155').text(validatorRole, 48, 830, { width: 190, align: 'left' });
+    }
+    return;
+  }
+
+  // Before validation, keep creator/requester signature on the right.
   const signerName = String(order.signatureName || order.createdBy || '').trim() || 'Signature';
   const signerRole = String(order.signatureRole || '').trim();
   doc.font('Helvetica').fontSize(9).fillColor('#0f172a').text('Signature autorisee', 335, 742, { width: 220, align: 'right' });
@@ -709,6 +885,7 @@ function getArchiveSectionLabel(sectionCode) {
     achats: 'Achats',
     construction: 'Construction',
     comptabilite: 'Comptabilite',
+    hr_presence: 'Presence RH',
   };
   return labels[sectionCode] || sectionCode;
 }
@@ -1736,6 +1913,9 @@ async function initDb() {
     await run('ALTER TABLE project_assignments ADD COLUMN phoneNumber TEXT');
   } catch (e) {}
   try {
+    await run('ALTER TABLE project_assignments ADD COLUMN employeeId INTEGER');
+  } catch (e) {}
+  try {
     await run('ALTER TABLE purchase_orders ADD COLUMN signatureName TEXT');
   } catch (e) {}
   try {
@@ -2132,13 +2312,152 @@ async function initDb() {
     id INTEGER PRIMARY KEY,
     projectId INTEGER NOT NULL,
     userId INTEGER NOT NULL,
+    employeeId INTEGER,
     assigneeName TEXT,
     phoneNumber TEXT,
     role TEXT NOT NULL,
     assignedAt TEXT NOT NULL,
     FOREIGN KEY(projectId) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(employeeId) REFERENCES hr_employees(id) ON DELETE SET NULL
   )`);
+
+  await run(`CREATE TABLE IF NOT EXISTS hr_employees (
+    id INTEGER PRIMARY KEY,
+    fullName TEXT NOT NULL,
+    jobTitle TEXT NOT NULL DEFAULT '',
+    phoneNumber TEXT NOT NULL DEFAULT '',
+    address TEXT NOT NULL DEFAULT '',
+    maritalStatus TEXT NOT NULL DEFAULT '',
+    username TEXT NOT NULL DEFAULT '',
+    createdBy TEXT NOT NULL DEFAULT 'admin',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  )`);
+
+  try { await run("ALTER TABLE hr_employees ADD COLUMN jobTitle TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN phoneNumber TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN address TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN maritalStatus TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN username TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN createdBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+
+  await run(`CREATE TABLE IF NOT EXISTS hr_employee_documents (
+    id INTEGER PRIMARY KEY,
+    employeeId INTEGER NOT NULL,
+    title TEXT NOT NULL DEFAULT '',
+    fileName TEXT NOT NULL,
+    relativePath TEXT NOT NULL,
+    fileSize INTEGER NOT NULL DEFAULT 0,
+    mimeType TEXT NOT NULL DEFAULT '',
+    sourceModule TEXT NOT NULL DEFAULT 'employee_dossier',
+    uploadedBy TEXT NOT NULL DEFAULT 'admin',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    FOREIGN KEY(employeeId) REFERENCES hr_employees(id) ON DELETE CASCADE
+  )`);
+
+  try { await run('ALTER TABLE hr_employee_documents ADD COLUMN employeeId INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
+  try { await run("ALTER TABLE hr_employee_documents ADD COLUMN title TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employee_documents ADD COLUMN fileName TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employee_documents ADD COLUMN relativePath TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run('ALTER TABLE hr_employee_documents ADD COLUMN fileSize INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
+  try { await run("ALTER TABLE hr_employee_documents ADD COLUMN mimeType TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employee_documents ADD COLUMN sourceModule TEXT NOT NULL DEFAULT 'employee_dossier'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employee_documents ADD COLUMN uploadedBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employee_documents ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employee_documents ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+
+  await run(`CREATE TABLE IF NOT EXISTS hr_attendance (
+    id INTEGER PRIMARY KEY,
+    employeeId INTEGER NOT NULL,
+    attendanceDate TEXT NOT NULL,
+    dayDate TEXT NOT NULL,
+    checkInTime TEXT,
+    checkOutTime TEXT,
+    statusCode TEXT NOT NULL DEFAULT 'P',
+    status TEXT NOT NULL DEFAULT 'P',
+    note TEXT NOT NULL DEFAULT '',
+    createdBy TEXT NOT NULL DEFAULT 'admin',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    FOREIGN KEY(employeeId) REFERENCES hr_employees(id) ON DELETE CASCADE
+  )`);
+
+  try { await run('ALTER TABLE hr_attendance ADD COLUMN employeeId INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
+  try { await run("ALTER TABLE hr_attendance ADD COLUMN attendanceDate TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_attendance ADD COLUMN dayDate TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run('ALTER TABLE hr_attendance ADD COLUMN checkInTime TEXT'); } catch (e) {}
+  try { await run('ALTER TABLE hr_attendance ADD COLUMN checkOutTime TEXT'); } catch (e) {}
+  try { await run("ALTER TABLE hr_attendance ADD COLUMN statusCode TEXT NOT NULL DEFAULT 'P'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_attendance ADD COLUMN status TEXT NOT NULL DEFAULT 'P'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_attendance ADD COLUMN note TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_attendance ADD COLUMN createdBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_attendance ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_attendance ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+
+  await run(`CREATE TABLE IF NOT EXISTS hr_leave_requests (
+    id INTEGER PRIMARY KEY,
+    employeeId INTEGER NOT NULL,
+    leaveType TEXT NOT NULL,
+    startDate TEXT NOT NULL,
+    endDate TEXT NOT NULL,
+    reason TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'EN_ATTENTE',
+    decisionNote TEXT NOT NULL DEFAULT '',
+    createdBy TEXT NOT NULL DEFAULT 'admin',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    decidedBy TEXT,
+    decidedAt TEXT,
+    FOREIGN KEY(employeeId) REFERENCES hr_employees(id) ON DELETE CASCADE
+  )`);
+
+  try { await run('ALTER TABLE hr_leave_requests ADD COLUMN employeeId INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
+  try { await run("ALTER TABLE hr_leave_requests ADD COLUMN leaveType TEXT NOT NULL DEFAULT 'annuel'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_leave_requests ADD COLUMN startDate TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_leave_requests ADD COLUMN endDate TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_leave_requests ADD COLUMN reason TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_leave_requests ADD COLUMN status TEXT NOT NULL DEFAULT 'EN_ATTENTE'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_leave_requests ADD COLUMN decisionNote TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_leave_requests ADD COLUMN createdBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_leave_requests ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_leave_requests ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run('ALTER TABLE hr_leave_requests ADD COLUMN decidedBy TEXT'); } catch (e) {}
+  try { await run('ALTER TABLE hr_leave_requests ADD COLUMN decidedAt TEXT'); } catch (e) {}
+
+  await run(`CREATE TABLE IF NOT EXISTS hr_document_signatures (
+    id INTEGER PRIMARY KEY,
+    documentId INTEGER NOT NULL,
+    employeeId INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    signatureData TEXT,
+    signedAt TEXT,
+    signedBy TEXT,
+    signedPdfFileName TEXT,
+    signedPdfRelativePath TEXT,
+    rejectionReason TEXT,
+    createdBy TEXT NOT NULL DEFAULT 'admin',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    FOREIGN KEY(documentId) REFERENCES hr_employee_documents(id) ON DELETE CASCADE,
+    FOREIGN KEY(employeeId) REFERENCES hr_employees(id) ON DELETE CASCADE
+  )`);
+
+  try { await run('ALTER TABLE hr_document_signatures ADD COLUMN documentId INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
+  try { await run('ALTER TABLE hr_document_signatures ADD COLUMN employeeId INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
+  try { await run("ALTER TABLE hr_document_signatures ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'"); } catch (e) {}
+  try { await run('ALTER TABLE hr_document_signatures ADD COLUMN signatureData TEXT'); } catch (e) {}
+  try { await run('ALTER TABLE hr_document_signatures ADD COLUMN signedAt TEXT'); } catch (e) {}
+  try { await run('ALTER TABLE hr_document_signatures ADD COLUMN signedBy TEXT'); } catch (e) {}
+  try { await run("ALTER TABLE hr_document_signatures ADD COLUMN signedPdfFileName TEXT"); } catch (e) {}
+  try { await run("ALTER TABLE hr_document_signatures ADD COLUMN signedPdfRelativePath TEXT"); } catch (e) {}
+  try { await run('ALTER TABLE hr_document_signatures ADD COLUMN rejectionReason TEXT'); } catch (e) {}
+  try { await run("ALTER TABLE hr_document_signatures ADD COLUMN createdBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_document_signatures ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_document_signatures ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
 
   await run(`CREATE TABLE IF NOT EXISTS project_progress_updates (
     id INTEGER PRIMARY KEY,
@@ -2226,6 +2545,12 @@ async function initDb() {
   await run('CREATE INDEX IF NOT EXISTS idx_expenses_project_status_date ON expenses(projetId, statut, dateExpense)');
   await run('CREATE INDEX IF NOT EXISTS idx_revenues_project_date ON revenues(projetId, dateRevenue)');
   await run('CREATE INDEX IF NOT EXISTS idx_project_assignments_project_user ON project_assignments(projectId, userId)');
+  await run('CREATE INDEX IF NOT EXISTS idx_hr_employees_name ON hr_employees(fullName)');
+  await run('CREATE INDEX IF NOT EXISTS idx_hr_employee_documents_employee ON hr_employee_documents(employeeId, updatedAt DESC)');
+  await run('CREATE INDEX IF NOT EXISTS idx_hr_attendance_employee_date ON hr_attendance(employeeId, attendanceDate)');
+  await run('CREATE INDEX IF NOT EXISTS idx_hr_attendance_daydate ON hr_attendance(dayDate)');
+  await run('CREATE INDEX IF NOT EXISTS idx_hr_leave_employee_dates ON hr_leave_requests(employeeId, startDate, endDate)');
+  await run('CREATE INDEX IF NOT EXISTS idx_hr_leave_status ON hr_leave_requests(status)');
   await run('CREATE INDEX IF NOT EXISTS idx_project_progress_project_date ON project_progress_updates(projectId, createdAt DESC)');
   await run('CREATE INDEX IF NOT EXISTS idx_stock_issues_project_date ON stock_issues(projetId, issuedAt)');
   await run('CREATE INDEX IF NOT EXISTS idx_generated_documents_section_updated ON generated_documents(sectionCode, updatedAt)');
@@ -2237,6 +2562,48 @@ async function initDb() {
   const getNextUserId = async () => {
     const row = await get('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM users');
     return Number(row?.nextId || 1);
+  };
+
+  const ensureHrEmployeeProfile = async ({ username, fullName, jobTitle, phoneNumber = '', address = '', maritalStatus = '', createdBy = username }) => {
+    const usernameValue = String(username || '').trim();
+    if (!usernameValue) return;
+
+    const existing = await get('SELECT * FROM hr_employees WHERE username = ? OR createdBy = ? OR fullName = ? ORDER BY id ASC LIMIT 1', [usernameValue, usernameValue, fullName || usernameValue]);
+    const now = new Date().toISOString();
+    if (existing) {
+      await run(
+        'UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, maritalStatus = ?, createdBy = COALESCE(NULLIF(?, ""), createdBy), updatedAt = ? WHERE id = ?',
+        [
+          String(fullName || usernameValue).trim(),
+          String(jobTitle || '').trim(),
+          String(phoneNumber || '').trim(),
+          String(address || '').trim(),
+          String(maritalStatus || '').trim(),
+          String(createdBy || usernameValue).trim(),
+          now,
+          Number(existing.id),
+        ]
+      );
+      return Number(existing.id);
+    }
+
+    const nextId = await getNextTableId('hr_employees');
+    await run(
+      'INSERT INTO hr_employees (id, fullName, jobTitle, phoneNumber, address, maritalStatus, username, createdBy, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        nextId,
+        String(fullName || usernameValue).trim(),
+        String(jobTitle || '').trim(),
+        String(phoneNumber || '').trim(),
+        String(address || '').trim(),
+        String(maritalStatus || '').trim(),
+        usernameValue,
+        String(createdBy || usernameValue).trim() || usernameValue,
+        now,
+        now,
+      ]
+    );
+    return nextId;
   };
 
   // Créer utilisateur admin par défaut
@@ -2266,6 +2633,23 @@ async function initDb() {
       [executiveHashedPassword, 'dirigeant', EXECUTIVE_USERNAME]
     );
     console.log(`Utilisateur ${EXECUTIVE_USERNAME} mis a jour avec role dirigeant`);
+  }
+
+  const hrDirector = await get('SELECT id FROM users WHERE username = ?', [HR_DIRECTOR_USERNAME]);
+  const hrDirectorHashedPassword = await bcrypt.hash(HR_DIRECTOR_PASSWORD, 10);
+  if (!hrDirector) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, HR_DIRECTOR_USERNAME, hrDirectorHashedPassword, 'directeur_rh', new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${HR_DIRECTOR_USERNAME} cree avec role directeur_rh`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [hrDirectorHashedPassword, 'directeur_rh', HR_DIRECTOR_USERNAME]
+    );
+    console.log(`Utilisateur ${HR_DIRECTOR_USERNAME} mis a jour avec role directeur_rh`);
   }
 
   // Garantir un compte commis_stock toujours opérationnel (local + Railway)
@@ -2325,10 +2709,47 @@ async function initDb() {
     console.log(`Utilisateur ${siteChiefUsername} mis a jour avec role ${siteChiefRole}`);
   }
 
+  // Garantir le compte contrôle achat (local + Railway)
+  const procurementReviewer = await get('SELECT id FROM users WHERE username = ?', [PROCUREMENT_REVIEWER_USERNAME]);
+  const procurementReviewerHashedPassword = await bcrypt.hash(PROCUREMENT_REVIEWER_PASSWORD, 10);
+  if (!procurementReviewer) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, PROCUREMENT_REVIEWER_USERNAME, procurementReviewerHashedPassword, 'controle_achat', new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${PROCUREMENT_REVIEWER_USERNAME} cree avec role controle_achat`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [procurementReviewerHashedPassword, 'controle_achat', PROCUREMENT_REVIEWER_USERNAME]
+    );
+    console.log(`Utilisateur ${PROCUREMENT_REVIEWER_USERNAME} mis a jour avec role controle_achat`);
+  }
+
+  await ensureHrEmployeeProfile({
+    username: HR_DIRECTOR_USERNAME,
+    fullName: 'Directeur RH',
+    jobTitle: 'Directeur RH',
+    createdBy: 'admin',
+  });
+  await ensureHrEmployeeProfile({
+    username: PROCUREMENT_REVIEWER_USERNAME,
+    fullName: 'Contrôle Achat',
+    jobTitle: 'Contrôle achat',
+    createdBy: PROCUREMENT_REVIEWER_USERNAME,
+  });
+  await ensureHrEmployeeProfile({
+    username: siteChiefUsername,
+    fullName: 'Chef chantier site 15',
+    jobTitle: 'Chef chantier site',
+    createdBy: siteChiefUsername,
+  });
+
   // Supprimer les profils retires du lien public et de Railway.
   const removedPublicProfiles = await run(
-    'DELETE FROM users WHERE role = ? OR username IN (?, ?, ?, ?)',
-    ['gestionnaire_stock', GEST_STOCK_USERNAME, 'chef_adzope_site15', 'controle_achat_global', 'gest_zone_adzope']
+    'DELETE FROM users WHERE role = ? OR username IN (?, ?, ?)',
+    ['gestionnaire_stock', GEST_STOCK_USERNAME, 'chef_adzope_site15', 'gest_zone_adzope']
   );
   if (Number(removedPublicProfiles?.changes || 0) > 0) {
     console.log(`Profils publics supprimes: ${Number(removedPublicProfiles.changes || 0)}`);
@@ -2429,6 +2850,7 @@ function authorizeRoleAccess(req, res, next) {
     role !== 'commis'
     && role !== 'gestionnaire_stock'
     && role !== 'chef_chantier_site'
+    && role !== 'directeur_rh'
     && role !== 'dirigeant'
     && role !== 'achat'
     && role !== 'controle_achat'
@@ -2449,6 +2871,7 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/stock-management\/available$/ },
     { method: 'GET', pattern: /^\/stock-management\/issues$/ },
     { method: 'POST', pattern: /^\/stock-management\/issues$/ },
+    { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
     { method: 'GET', pattern: /^\/transfer-authorizations$/ },
   ];
 
@@ -2463,6 +2886,7 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET',   pattern: /^\/stock-management\/available$/ },
     { method: 'GET',   pattern: /^\/stock-management\/issues$/ },
     { method: 'POST',  pattern: /^\/stock-management\/issues$/ },
+    { method: 'GET',   pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
     { method: 'GET',   pattern: /^\/transfer-authorizations$/ },
   ];
 
@@ -2472,6 +2896,27 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'POST', pattern: /^\/project-assignments$/ },
     { method: 'PATCH', pattern: /^\/project-assignments\/\d+$/ },
     { method: 'DELETE', pattern: /^\/project-assignments\/\d+$/ },
+    { method: 'GET', pattern: /^\/hr\/employees$/ },
+    { method: 'POST', pattern: /^\/hr\/employees$/ },
+    { method: 'PATCH', pattern: /^\/hr\/employees\/\d+$/ },
+    { method: 'DELETE', pattern: /^\/hr\/employees\/\d+$/ },
+    { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+    { method: 'POST', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+    { method: 'DELETE', pattern: /^\/hr\/employees\/documents\/\d+$/ },
+    { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/hr\/attendance$/ },
+    { method: 'POST', pattern: /^\/hr\/attendance$/ },
+    { method: 'PATCH', pattern: /^\/hr\/attendance\/\d+$/ },
+    { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
+    { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
+    { method: 'PATCH', pattern: /^\/hr\/leave-requests\/\d+\/status$/ },
+    { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
+    { method: 'GET', pattern: /^\/hr\/signature-requests$/ },
+    { method: 'POST', pattern: /^\/hr\/signature-requests$/ },
+    { method: 'GET', pattern: /^\/hr\/employee-profile\/pending-signatures$/ },
+    { method: 'POST', pattern: /^\/hr\/signature-requests\/\d+\/sign$/ },
+    { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/hr\/document-signatures\/\d+$/ },
     { method: 'GET',  pattern: /^\/project-progress$/ },
     { method: 'POST', pattern: /^\/project-progress$/ },
     { method: 'GET',  pattern: /^\/project-folders$/ },
@@ -2494,20 +2939,64 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET',  pattern: /^\/database-documents\/\d+\/download$/ },
   ];
 
+  const hrDirectorRules = [
+    { method: 'GET', pattern: /^\/auth\/me$/ },
+    { method: 'GET', pattern: /^\/users$/ },
+    { method: 'GET', pattern: /^\/hr\/employees$/ },
+    { method: 'POST', pattern: /^\/hr\/employees$/ },
+    { method: 'PATCH', pattern: /^\/hr\/employees\/[^/]+\/?$/ },
+    { method: 'DELETE', pattern: /^\/hr\/employees\/[^/]+\/?$/ },
+    { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+    { method: 'POST', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+    { method: 'DELETE', pattern: /^\/hr\/employees\/documents\/\d+$/ },
+    { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/hr\/attendance$/ },
+    { method: 'POST', pattern: /^\/hr\/attendance$/ },
+    { method: 'PATCH', pattern: /^\/hr\/attendance\/\d+$/ },
+    { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
+    { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
+    { method: 'PATCH', pattern: /^\/hr\/leave-requests\/\d+\/status$/ },
+    { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
+    { method: 'GET', pattern: /^\/(?:api\/)?hr\/signature-requests\/?$/ },
+    { method: 'POST', pattern: /^\/(?:api\/)?hr\/signature-requests\/?$/ },
+    { method: 'GET', pattern: /^\/(?:api\/)?hr\/employee-profile\/pending-signatures\/?$/ },
+    { method: 'POST', pattern: /^\/(?:api\/)?hr\/signature-requests\/\d+\/sign\/?$/ },
+    { method: 'DELETE', pattern: /^\/(?:api\/)?hr\/signature-requests\/\d+\/?$/ },
+    { method: 'GET', pattern: /^\/(?:api\/)?hr\/signature-requests\/\d+\/download\/?$/ },
+    { method: 'GET', pattern: /^\/hr\/document-signatures\/\d+$/ },
+    { method: 'GET', pattern: /^\/database-documents$/ },
+    { method: 'GET', pattern: /^\/database-documents\/\d+\/download$/ },
+    { method: 'POST', pattern: /^\/database-documents\/upload$/ },
+    { method: 'DELETE', pattern: /^\/database-documents\/\d+$/ },
+  ];
+
   const executiveRules = [
     { method: 'GET', pattern: /^\/auth\/me$/ },
     { method: 'GET', pattern: /^\/projects$/ },
     { method: 'GET', pattern: /^\/project-assignments$/ },
+    { method: 'GET', pattern: /^\/hr\/employees$/ },
+    { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+    { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/hr\/attendance$/ },
+    { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
+    { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
     { method: 'GET', pattern: /^\/project-progress$/ },
     { method: 'GET', pattern: /^\/project-folders$/ },
     { method: 'GET', pattern: /^\/project-catalog$/ },
     { method: 'GET', pattern: /^\/material-catalog$/ },
     { method: 'GET', pattern: /^\/material-requests$/ },
     { method: 'GET', pattern: /^\/purchase-orders$/ },
+    { method: 'GET', pattern: /^\/purchase-orders\/\d+\/pdf$/ },
+    { method: 'PATCH', pattern: /^\/purchase-orders\/\d+\/validation$/ },
     { method: 'GET', pattern: /^\/stock-management\/available$/ },
     { method: 'GET', pattern: /^\/stock-management\/issues$/ },
     { method: 'GET', pattern: /^\/stock-management\/orders$/ },
     { method: 'GET', pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'PATCH', pattern: /^\/stock-issue-authorizations\/\d+\/decision$/ },
+    { method: 'GET', pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
+    { method: 'GET', pattern: /^\/database-documents$/ },
+    { method: 'GET', pattern: /^\/database-documents\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
     { method: 'GET', pattern: /^\/expenses$/ },
     { method: 'GET', pattern: /^\/revenues$/ },
     { method: 'GET', pattern: /^\/vehicles$/ },
@@ -2521,18 +3010,30 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/auth\/me$/ },
     { method: 'GET', pattern: /^\/projects$/ },
     { method: 'GET', pattern: /^\/project-assignments$/ },
+    { method: 'GET', pattern: /^\/hr\/employees$/ },
+    { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+    { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/hr\/attendance$/ },
+    { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
+    { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
+    { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
+    { method: 'GET', pattern: /^\/hr\/signature-requests$/ },
+    { method: 'POST', pattern: /^\/hr\/signature-requests$/ },
+    { method: 'GET', pattern: /^\/hr\/employee-profile\/pending-signatures$/ },
+    { method: 'POST', pattern: /^\/hr\/signature-requests\/\d+\/sign$/ },
+    { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/hr\/document-signatures\/\d+$/ },
     { method: 'GET', pattern: /^\/project-folders$/ },
     { method: 'GET', pattern: /^\/project-catalog$/ },
     { method: 'GET', pattern: /^\/material-catalog$/ },
     { method: 'GET', pattern: /^\/material-requests$/ },
     { method: 'GET', pattern: /^\/purchase-orders$/ },
+    { method: 'POST', pattern: /^\/purchase-orders$/ },
     { method: 'GET', pattern: /^\/purchase-orders\/\d+\/pdf$/ },
     { method: 'GET', pattern: /^\/purchase-orders\/\d+\/authorization-documents$/ },
     { method: 'GET', pattern: /^\/stock-management\/available$/ },
     { method: 'GET', pattern: /^\/stock-management\/issues$/ },
     { method: 'GET', pattern: /^\/stock-management\/orders$/ },
-    { method: 'GET', pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'GET', pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
     { method: 'GET', pattern: /^\/database-documents$/ },
     { method: 'GET', pattern: /^\/database-documents\/\d+\/download$/ },
     { method: 'GET', pattern: /^\/transfer-authorizations$/ },
@@ -2541,6 +3042,22 @@ function authorizeRoleAccess(req, res, next) {
   const achatRules = [
     { method: 'GET',    pattern: /^\/auth\/me$/ },
     { method: 'GET',    pattern: /^\/projects$/ },
+    { method: 'GET',    pattern: /^\/hr\/employees$/ },
+    { method: 'POST',   pattern: /^\/hr\/employees$/ },
+    { method: 'PATCH',  pattern: /^\/hr\/employees\/[^/]+\/?$/ },
+    { method: 'DELETE', pattern: /^\/hr\/employees\/[^/]+\/?$/ },
+    { method: 'GET',    pattern: /^\/hr\/employees\/\d+\/documents$/ },
+    { method: 'POST',   pattern: /^\/hr\/employees\/\d+\/documents$/ },
+    { method: 'DELETE', pattern: /^\/hr\/employees\/documents\/\d+$/ },
+    { method: 'GET',    pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
+    { method: 'GET',    pattern: /^\/hr\/attendance$/ },
+    { method: 'POST',   pattern: /^\/hr\/attendance$/ },
+    { method: 'PATCH',  pattern: /^\/hr\/attendance\/\d+$/ },
+    { method: 'GET',    pattern: /^\/hr\/leave-requests$/ },
+    { method: 'POST',   pattern: /^\/hr\/leave-requests$/ },
+    { method: 'PATCH',  pattern: /^\/hr\/leave-requests\/\d+\/status$/ },
+    { method: 'GET',    pattern: /^\/hr\/leave-calendar$/ },
+    { method: 'GET',    pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
     { method: 'GET',    pattern: /^\/material-catalog$/ },
     { method: 'GET',    pattern: /^\/material-requests$/ },
     // Bons de commande – accès complet
@@ -2574,6 +3091,8 @@ function authorizeRoleAccess(req, res, next) {
     ? gestStockRules
     : role === 'chef_chantier_site'
       ? siteChiefRules
+      : role === 'directeur_rh'
+        ? hrDirectorRules
       : role === 'controle_achat'
         ? procurementReviewerRules
       : role === 'dirigeant'
@@ -2622,6 +3141,62 @@ function isInChefSiteScope(user, projectLikeRow) {
   ].filter(Boolean);
 
   return candidates.some(token => token === scope);
+}
+
+function isProcurementReviewerRole(user) {
+  return String(user?.role || '').trim() === 'controle_achat';
+}
+
+async function getHrScopedEmployeeIdsForUser(user) {
+  if (!isProcurementReviewerRole(user)) return null;
+
+  const username = String(user?.username || '').trim();
+  if (!username) return [];
+
+  const rows = await all(
+    `SELECT id
+     FROM hr_employees
+     WHERE LOWER(TRIM(COALESCE(username, ''))) = LOWER(TRIM(?))
+        OR LOWER(TRIM(COALESCE(createdBy, ''))) = LOWER(TRIM(?))
+        OR LOWER(TRIM(fullName)) = LOWER(TRIM(?))
+     ORDER BY id ASC`,
+    [username, username, username]
+  );
+
+  return (rows || [])
+    .map(row => Number(row?.id || 0))
+    .filter(id => Number.isInteger(id) && id > 0);
+}
+
+async function getHrProfileEmployeeForUser(user) {
+  const username = String(user?.username || '').trim();
+  if (!username) return null;
+
+  const byIdentity = await get(
+    `SELECT id, fullName, username, createdBy
+     FROM hr_employees
+     WHERE LOWER(TRIM(COALESCE(username, ''))) = LOWER(TRIM(?))
+        OR LOWER(TRIM(COALESCE(createdBy, ''))) = LOWER(TRIM(?))
+        OR LOWER(TRIM(fullName)) = LOWER(TRIM(?))
+     ORDER BY updatedAt DESC, id DESC
+     LIMIT 1`,
+    [username, username, username]
+  );
+  if (byIdentity?.id) return byIdentity;
+
+  const byAssignment = await get(
+    `SELECT he.id, he.fullName, he.username, he.createdBy
+     FROM project_assignments pa
+     JOIN users u ON u.id = pa.userId
+     JOIN hr_employees he ON he.id = pa.employeeId
+     WHERE LOWER(TRIM(u.username)) = LOWER(TRIM(?))
+     ORDER BY pa.assignedAt DESC, he.id DESC
+     LIMIT 1`,
+    [username]
+  );
+  if (byAssignment?.id) return byAssignment;
+
+  return null;
 }
 
 async function mirrorSiteChiefActionToAdmin({
@@ -3071,7 +3646,11 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
 });
 
 app.get('/api/users', async (_req, res) => {
-  const rows = await all('SELECT id, username, role FROM users ORDER BY username');
+  const rows = await all(`
+    SELECT id, username, role FROM users 
+    WHERE username IN ('directeur_rh', 'controle_achat_global', 'chef_chantier_site15', 'dirigeant')
+    ORDER BY username
+  `);
   res.json(rows);
 });
 
@@ -3880,6 +4459,7 @@ app.post('/api/purchase-orders', async (req, res) => {
     signatureName = null,
     signatureRole = null,
   } = req.body;
+  const createdBy = String(req.user?.username || creePar || 'admin').trim() || 'admin';
 
   if (!fournisseur || !String(fournisseur).trim()) {
     return res.status(400).json({ error: 'Le fournisseur est obligatoire' });
@@ -3997,7 +4577,7 @@ app.post('/api/purchase-orders', async (req, res) => {
     [
       purchaseOrderId,
       firstRequestId,
-      String(creePar || 'admin').trim() || 'admin',
+      createdBy,
       String(fournisseur).trim(),
       computedTotal,
       preparedItems[0].quantite,
@@ -4061,9 +4641,29 @@ app.get('/api/purchase-orders/:id/pdf', async (req, res) => {
 app.patch('/api/purchase-orders/:id/validation', async (req, res) => {
   const id = Number(req.params.id);
   const { statut, signatureName = '', signatureRole = '', signedAt = null } = req.body || {};
+  const role = String(req.user?.role || '').trim();
 
   if (!['EN_COURS', 'VALIDEE', 'LIVREE', 'ANNULEE'].includes(statut)) {
     return res.status(400).json({ error: 'Statut invalide' });
+  }
+
+  if (role !== 'admin' && role !== 'dirigeant') {
+    return res.status(403).json({ error: 'Seul le dirigeant peut valider/rejeter les bons de commande' });
+  }
+
+  const existingOrder = await get('SELECT id, creePar, statutValidation FROM purchase_orders WHERE id = ?', [id]);
+  if (!existingOrder) {
+    return res.status(404).json({ error: 'Commande non trouvée' });
+  }
+
+  if (role === 'dirigeant') {
+    const creator = String(existingOrder.creePar || '').trim().toLowerCase();
+    if (creator !== String(PROCUREMENT_REVIEWER_USERNAME || '').trim().toLowerCase()) {
+      return res.status(403).json({ error: 'Le dirigeant peut valider uniquement les bons créés par controle_achat_global' });
+    }
+    if (statut === 'LIVREE' || statut === 'EN_COURS') {
+      return res.status(400).json({ error: 'Le dirigeant peut uniquement valider ou rejeter un bon' });
+    }
   }
 
   if ((statut === 'VALIDEE' || statut === 'ANNULEE') && (!String(signatureName || '').trim() || !signedAt)) {
@@ -4071,12 +4671,36 @@ app.patch('/api/purchase-orders/:id/validation', async (req, res) => {
   }
 
   const receptionDate = statut === 'LIVREE' ? new Date().toISOString() : null;
+  const normalizedSignatureName = String(signatureName || '').trim();
+  const normalizedSignatureRole = String(signatureRole || '').trim();
   const result = await run(
-    "UPDATE purchase_orders SET statut = ?, statutValidation = ?, dateReception = CASE WHEN ? = 'LIVREE' THEN COALESCE(dateReception, ?) ELSE dateReception END WHERE id = ?",
-    [statut, statut, statut, receptionDate, id]
+    `UPDATE purchase_orders
+     SET statut = ?,
+         statutValidation = ?,
+         dateReception = CASE WHEN ? = 'LIVREE' THEN COALESCE(dateReception, ?) ELSE dateReception END,
+         signatureName = CASE WHEN ? IN ('VALIDEE', 'ANNULEE') THEN ? ELSE signatureName END,
+         signatureRole = CASE WHEN ? IN ('VALIDEE', 'ANNULEE') THEN ? ELSE signatureRole END
+     WHERE id = ?`,
+    [
+      statut,
+      statut,
+      statut,
+      receptionDate,
+      statut,
+      normalizedSignatureName || null,
+      statut,
+      normalizedSignatureRole || null,
+      id,
+    ]
   );
   if (result.changes === 0) {
     return res.status(404).json({ error: 'Commande non trouvée' });
+  }
+
+  try {
+    await archivePurchaseOrderPdf(id);
+  } catch (error) {
+    console.error('Erreur regeneration PDF bon de commande:', error?.message || error);
   }
 
   const linkedItems = await all('SELECT materialRequestId FROM purchase_order_items WHERE purchaseOrderId = ?', [id]);
@@ -4355,6 +4979,7 @@ app.get('/api/stock-management/orders', async (req, res) => {
     LEFT JOIN purchase_order_items poi ON poi.purchaseOrderId = po.id
     LEFT JOIN material_requests mr ON mr.id = poi.materialRequestId
     LEFT JOIN projects p ON p.id = mr.projetId
+    WHERE UPPER(COALESCE(po.statutValidation, po.statut, '')) IN ('VALIDEE', 'LIVREE')
     ORDER BY po.dateCommande DESC, po.id DESC, poi.id ASC
   `);
 
@@ -4423,6 +5048,16 @@ app.patch('/api/stock-management/orders/:id/arrive', async (req, res) => {
   const orderId = Number(req.params.id);
   if (!orderId) {
     return res.status(400).json({ error: 'ID commande invalide' });
+  }
+
+  const orderBeforeUpdate = await get('SELECT id, statut, statutValidation FROM purchase_orders WHERE id = ?', [orderId]);
+  if (!orderBeforeUpdate) {
+    return res.status(404).json({ error: 'Commande introuvable' });
+  }
+
+  const validationStatus = String(orderBeforeUpdate.statutValidation || orderBeforeUpdate.statut || '').trim().toUpperCase();
+  if (validationStatus !== 'VALIDEE' && validationStatus !== 'LIVREE') {
+    return res.status(409).json({ error: 'Le bon doit etre validé avant de marquer arrivé' });
   }
 
   const arrivalDate = new Date().toISOString();
@@ -6021,7 +6656,1334 @@ app.delete('/api/auto-transport-costs/:id', async (req, res) => {
   res.json({ message: 'Cout transport supprime' });
 });
 
+function isValidIsoDate(dateValue) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(dateValue || '').trim());
+}
+
+function isValidTimeValue(timeValue) {
+  if (!String(timeValue || '').trim()) return true;
+  return /^\d{2}:\d{2}$/.test(String(timeValue || '').trim());
+}
+
+function normalizeHrCode(rawCode) {
+  const value = String(rawCode || '').trim().toUpperCase();
+  const allowed = new Set(['P', 'R', 'MS', 'A', 'CA', 'CM', 'CP']);
+  return allowed.has(value) ? value : 'P';
+}
+
+function inferAttendanceCode(checkInTime, manualCode = '') {
+  if (String(manualCode || '').trim()) {
+    return normalizeHrCode(manualCode);
+  }
+  const timeValue = String(checkInTime || '').trim();
+  if (!timeValue) return 'P';
+  return timeValue > '08:30' ? 'R' : 'P';
+}
+
+function normalizeLeaveTypeCode(leaveType) {
+  const value = normalizeTextValue(leaveType);
+  if (value.includes('maternite')) return 'CM';
+  if (value.includes('paternite')) return 'CP';
+  if (value.includes('maladie')) return 'MS';
+  if (value.includes('absence')) return 'A';
+  return 'CA';
+}
+
+function normalizeTextValue(rawValue) {
+  return String(rawValue || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+function formatMonthRange(monthValue) {
+  const [yearRaw, monthRaw] = String(monthValue || '').split('-');
+  const year = Number(yearRaw);
+  const month = Number(monthRaw);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+    return null;
+  }
+  const startDate = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-01`;
+  const endDateObj = new Date(Date.UTC(year, month, 0));
+  const endDate = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(endDateObj.getUTCDate()).padStart(2, '0')}`;
+  const daysInMonth = endDateObj.getUTCDate();
+  return { year, month, startDate, endDate, daysInMonth };
+}
+
+function listDatesInRange(startDate, endDate) {
+  const start = new Date(`${startDate}T00:00:00.000Z`);
+  const end = new Date(`${endDate}T00:00:00.000Z`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return [];
+
+  const dates = [];
+  const cursor = new Date(start);
+  while (cursor <= end) {
+    dates.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return dates;
+}
+
+function getHrAttendanceStatusLabel(code, isWeekend, leaveTypeLabel = '') {
+  const normalizedCode = normalizeHrCode(code);
+  if (['MS', 'CA', 'CM', 'CP'].includes(normalizedCode)) {
+    return leaveTypeLabel ? `Conge (${leaveTypeLabel})` : 'Conge';
+  }
+  if (normalizedCode === 'R') return 'Present (retard)';
+  if (normalizedCode === 'P') return 'Present';
+  if (normalizedCode === 'A') return 'Absent';
+  return isWeekend ? 'Weekend' : 'Absent';
+}
+
+async function generateHrAttendanceSheetPdfBuffer({ employee, range, rows, monthLabel }) {
+  return await new Promise((resolve, reject) => {
+    const chunks = [];
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    doc.on('data', chunk => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const employeeName = String(employee?.fullName || `Employe #${Number(employee?.id || 0)}`).trim();
+    const jobTitle = String(employee?.jobTitle || '-').trim() || '-';
+    const monthText = String(monthLabel || `${String(range.year).padStart(4, '0')}-${String(range.month).padStart(2, '0')}`).trim();
+
+    const renderHeader = () => {
+      doc.font('Helvetica-Bold').fontSize(16).fillColor('#0f172a').text('Fiche mensuelle de presence', { align: 'center' });
+      doc.moveDown(0.6);
+      doc.font('Helvetica').fontSize(10).fillColor('#334155');
+      doc.text(`Employe: ${employeeName}`);
+      doc.text(`Poste: ${jobTitle}`);
+      doc.text(`Mois: ${monthText}`);
+      doc.text(`Genere le: ${new Date().toLocaleString('fr-FR')}`);
+      doc.moveDown(0.8);
+    };
+
+    const headers = ['Date', 'Jour', 'Code', 'Statut'];
+    const colWidths = [95, 95, 60, 260];
+    const rowHeight = 19;
+    const startX = doc.page.margins.left;
+    const bottomLimit = doc.page.height - doc.page.margins.bottom - 20;
+
+    const drawTableHeader = y => {
+      let cursorX = startX;
+      doc.save();
+      doc.rect(startX, y, colWidths.reduce((sum, width) => sum + width, 0), rowHeight).fill('#e2e8f0');
+      doc.restore();
+      doc.font('Helvetica-Bold').fontSize(10).fillColor('#0f172a');
+      headers.forEach((header, index) => {
+        doc.text(header, cursorX + 5, y + 5, { width: colWidths[index] - 10, align: 'left' });
+        cursorX += colWidths[index];
+      });
+    };
+
+    const drawTableRow = (y, row, isOdd) => {
+      const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+      if (isOdd) {
+        doc.save();
+        doc.rect(startX, y, tableWidth, rowHeight).fill('#f8fafc');
+        doc.restore();
+      }
+      doc.font('Helvetica').fontSize(9).fillColor('#1e293b');
+      let cursorX = startX;
+      const values = [row.dateLabel, row.dayLabel, row.codeLabel, row.statusLabel];
+      values.forEach((value, index) => {
+        doc.text(String(value || ''), cursorX + 5, y + 5, { width: colWidths[index] - 10, align: 'left' });
+        cursorX += colWidths[index];
+      });
+
+      doc.save();
+      doc.moveTo(startX, y + rowHeight).lineTo(startX + tableWidth, y + rowHeight).lineWidth(0.5).strokeColor('#cbd5e1').stroke();
+      doc.restore();
+    };
+
+    renderHeader();
+    let y = doc.y;
+    drawTableHeader(y);
+    y += rowHeight;
+
+    rows.forEach((row, index) => {
+      if (y + rowHeight > bottomLimit) {
+        doc.addPage();
+        renderHeader();
+        y = doc.y;
+        drawTableHeader(y);
+        y += rowHeight;
+      }
+      drawTableRow(y, row, index % 2 === 1);
+      y += rowHeight;
+    });
+
+    doc.end();
+  });
+}
+
+async function generateOrUpdateHrAttendanceSheet(employeeId, monthValue) {
+  const numericEmployeeId = Number(employeeId || 0);
+  if (!Number.isInteger(numericEmployeeId) || numericEmployeeId <= 0) return null;
+
+  const range = formatMonthRange(monthValue);
+  if (!range) return null;
+
+  const employee = await get('SELECT id, fullName, jobTitle FROM hr_employees WHERE id = ?', [numericEmployeeId]);
+  if (!employee) return null;
+
+  const attendanceRows = await all(
+    `SELECT COALESCE(NULLIF(attendanceDate, ''), dayDate) AS effectiveDate,
+            COALESCE(NULLIF(statusCode, ''), NULLIF(status, ''), 'P') AS code
+     FROM hr_attendance
+     WHERE employeeId = ?
+       AND COALESCE(NULLIF(attendanceDate, ''), dayDate) >= ?
+       AND COALESCE(NULLIF(attendanceDate, ''), dayDate) <= ?`,
+    [numericEmployeeId, range.startDate, range.endDate]
+  );
+
+  const leaveRows = await all(
+    `SELECT leaveType, startDate, endDate
+     FROM hr_leave_requests
+     WHERE employeeId = ?
+       AND status = 'APPROUVEE'
+       AND startDate <= ?
+       AND endDate >= ?`,
+    [numericEmployeeId, range.endDate, range.startDate]
+  );
+
+  const attendanceByDate = new Map();
+  (Array.isArray(attendanceRows) ? attendanceRows : []).forEach(row => {
+    const dateKey = String(row?.effectiveDate || '').slice(0, 10);
+    if (!isValidIsoDate(dateKey)) return;
+    attendanceByDate.set(dateKey, normalizeHrCode(row?.code));
+  });
+
+  const leaveByDate = new Map();
+  (Array.isArray(leaveRows) ? leaveRows : []).forEach(leave => {
+    const effectiveStart = String(leave?.startDate || '').slice(0, 10);
+    const effectiveEnd = String(leave?.endDate || '').slice(0, 10);
+    if (!isValidIsoDate(effectiveStart) || !isValidIsoDate(effectiveEnd)) return;
+
+    const boundedStart = effectiveStart < range.startDate ? range.startDate : effectiveStart;
+    const boundedEnd = effectiveEnd > range.endDate ? range.endDate : effectiveEnd;
+    const leaveCode = normalizeLeaveTypeCode(leave?.leaveType);
+    const leaveLabel = {
+      MS: 'maladie',
+      CA: 'annuel',
+      CM: 'maternite',
+      CP: 'paternite',
+      A: 'absence',
+    }[leaveCode] || 'conge';
+
+    listDatesInRange(boundedStart, boundedEnd).forEach(dateValue => {
+      leaveByDate.set(dateValue, { code: leaveCode, label: leaveLabel });
+    });
+  });
+
+  const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  const rows = [];
+  for (let day = 1; day <= range.daysInMonth; day += 1) {
+    const dateValue = `${String(range.year).padStart(4, '0')}-${String(range.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dateObj = new Date(`${dateValue}T00:00:00.000Z`);
+    const weekday = dateObj.getUTCDay();
+    const isWeekend = weekday === 0 || weekday === 6;
+
+    const leaveEntry = leaveByDate.get(dateValue) || null;
+    const code = leaveEntry?.code || attendanceByDate.get(dateValue) || '';
+    const normalizedCode = code ? normalizeHrCode(code) : '';
+    const effectiveCode = normalizedCode || (isWeekend ? '-' : 'A');
+    const statusLabel = getHrAttendanceStatusLabel(effectiveCode, isWeekend, leaveEntry?.label || '');
+
+    rows.push({
+      dateLabel: dateValue,
+      dayLabel: dayNames[weekday] || '-',
+      codeLabel: effectiveCode,
+      statusLabel,
+    });
+  }
+
+  const monthToken = `${String(range.year).padStart(4, '0')}-${String(range.month).padStart(2, '0')}`;
+  const monthLabel = new Date(Date.UTC(range.year, range.month - 1, 1)).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const employeeNameSafe = sanitizeFileName(String(employee.fullName || `employe-${numericEmployeeId}`));
+  const fileName = sanitizeFileName(`presence-${employeeNameSafe}-${monthToken}.pdf`);
+  const relativePath = path.join('construction', 'hr-presence', `employee-${numericEmployeeId}`, fileName);
+  const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+
+  const pdfBuffer = await generateHrAttendanceSheetPdfBuffer({ employee, range, rows, monthLabel });
+  await fs.promises.writeFile(absolutePath, pdfBuffer);
+
+  const title = `Feuille de presence ${String(employee.fullName || `Employe ${numericEmployeeId}`)} - ${monthToken}`;
+  const nowIso = new Date().toISOString();
+
+  const existing = await get(
+    'SELECT id, relativePath FROM generated_documents WHERE sectionCode = ? AND entityType = ? AND entityId = ? AND title = ? ORDER BY id DESC LIMIT 1',
+    ['hr_presence', 'hr_attendance_sheet', numericEmployeeId, title]
+  );
+
+  if (existing?.relativePath) {
+    const oldAbsolutePath = path.join(ARCHIVE_ROOT, String(existing.relativePath));
+    if (oldAbsolutePath !== absolutePath && fs.existsSync(oldAbsolutePath)) {
+      try {
+        await fs.promises.unlink(oldAbsolutePath);
+      } catch (unlinkError) {
+        console.warn('Unable to remove previous HR presence sheet:', unlinkError.message);
+      }
+    }
+  }
+
+  if (existing?.id) {
+    await run(
+      `UPDATE generated_documents
+       SET sectionLabel = ?, fileName = ?, relativePath = ?, updatedAt = ?
+       WHERE id = ?`,
+      ['Presence RH', fileName, relativePath, nowIso, Number(existing.id)]
+    );
+  } else {
+    const nextDocumentId = await getNextTableId('generated_documents');
+    await run(
+      `INSERT INTO generated_documents
+        (id, sectionCode, sectionLabel, entityType, entityId, title, fileName, relativePath, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        nextDocumentId,
+        'hr_presence',
+        'Presence RH',
+        'hr_attendance_sheet',
+        numericEmployeeId,
+        title,
+        fileName,
+        relativePath,
+        nowIso,
+        nowIso,
+      ]
+    );
+  }
+
+  return {
+    title,
+    fileName,
+    relativePath,
+    sectionCode: 'hr_presence',
+  };
+}
+
+async function archiveHrEmployeeDocument({ employeeId, title = '', fileName = '', fileBuffer, mimeType = '', sourceModule = 'employee_dossier', uploadedBy = 'admin' }) {
+  const numericEmployeeId = Number(employeeId || 0);
+  if (!Number.isInteger(numericEmployeeId) || numericEmployeeId <= 0) {
+    throw new Error('Employe invalide');
+  }
+
+  if (!fileBuffer || !Buffer.isBuffer(fileBuffer) || fileBuffer.length === 0) {
+    throw new Error('Fichier vide');
+  }
+
+  const safeName = sanitizeFileName(fileName || 'document');
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const finalFileName = `${stamp}-${safeName}`;
+  const relativePath = path.join('construction', 'hr-employees', `employee-${numericEmployeeId}`, finalFileName);
+  const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  await fs.promises.writeFile(absolutePath, fileBuffer);
+
+  const now = new Date().toISOString();
+  const nextDocId = await getNextTableId('hr_employee_documents');
+  const normalizedSourceModule = String(sourceModule || '').trim() === 'signature_request' ? 'signature_request' : 'employee_dossier';
+  await run(
+    `INSERT INTO hr_employee_documents
+      (id, employeeId, title, fileName, relativePath, fileSize, mimeType, sourceModule, uploadedBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      nextDocId,
+      numericEmployeeId,
+      String(title || '').trim() || safeName,
+      finalFileName,
+      relativePath,
+      Number(fileBuffer.length || 0),
+      String(mimeType || '').trim(),
+      normalizedSourceModule,
+      String(uploadedBy || 'admin').trim() || 'admin',
+      now,
+      now,
+    ]
+  );
+
+  const created = await get('SELECT * FROM hr_employee_documents WHERE id = ?', [nextDocId]);
+  return {
+    ...created,
+    fileUrl: `/archives/${String(relativePath || '').replace(/\\/g, '/')}`,
+  };
+}
+
+app.get('/api/hr/employees', async (_req, res) => {
+  const scopedEmployeeIds = await getHrScopedEmployeeIdsForUser(_req.user);
+  if (scopedEmployeeIds && !scopedEmployeeIds.length) {
+    return res.json([]);
+  }
+
+  const whereClause = scopedEmployeeIds
+    ? `WHERE id IN (${scopedEmployeeIds.map(() => '?').join(', ')})`
+    : '';
+
+  const rows = await all(
+    `SELECT id, fullName, jobTitle, phoneNumber, address, maritalStatus, COALESCE(username, createdBy, '') AS username, createdBy, createdAt, updatedAt
+     FROM hr_employees
+     ${whereClause}
+     ORDER BY fullName ASC, id ASC`,
+    scopedEmployeeIds || []
+  );
+  res.json(rows);
+});
+
+app.post('/api/hr/employees', async (req, res) => {
+  const { fullName, jobTitle = '', phoneNumber = '', address = '', maritalStatus = '', username = '' } = req.body || {};
+  const nameValue = String(fullName || '').trim();
+  if (!nameValue) {
+    return res.status(400).json({ error: 'Nom employe obligatoire' });
+  }
+
+  const now = new Date().toISOString();
+  const nextId = await getNextTableId('hr_employees');
+  await run(
+    `INSERT INTO hr_employees (id, fullName, jobTitle, phoneNumber, address, maritalStatus, username, createdBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      nextId,
+      nameValue,
+      String(jobTitle || '').trim(),
+      String(phoneNumber || '').trim(),
+      String(address || '').trim(),
+      String(maritalStatus || '').trim(),
+      String(username || '').trim(),
+      String(req.user?.username || 'admin').trim() || 'admin',
+      now,
+      now,
+    ]
+  );
+
+  const employee = await get('SELECT * FROM hr_employees WHERE id = ?', [nextId]);
+  res.status(201).json(employee);
+});
+
+app.get('/api/hr/employees/:id/documents', async (req, res) => {
+  const employeeId = Number(req.params.id || 0);
+  if (!Number.isInteger(employeeId) || employeeId <= 0) {
+    return res.status(400).json({ error: 'Employe invalide' });
+  }
+
+  const employee = await get('SELECT id FROM hr_employees WHERE id = ?', [employeeId]);
+  if (!employee) {
+    return res.status(404).json({ error: 'Employe introuvable' });
+  }
+
+  const includeSignature = String(req.query.includeSignature || '').trim() === '1';
+  const whereClauses = ['employeeId = ?'];
+  const params = [employeeId];
+  if (!includeSignature) {
+    whereClauses.push("COALESCE(sourceModule, 'employee_dossier') <> 'signature_request'");
+  }
+
+  const rows = await all(
+    `SELECT id, employeeId, title, fileName, relativePath, fileSize, mimeType, sourceModule, uploadedBy, createdAt, updatedAt
+     FROM hr_employee_documents
+     WHERE ${whereClauses.join(' AND ')}
+     ORDER BY updatedAt DESC, id DESC`,
+    params
+  );
+
+  res.json((rows || []).map(row => ({
+    ...row,
+    fileUrl: `/archives/${String(row.relativePath || '').replace(/\\/g, '/')}`,
+  })));
+});
+
+app.post('/api/hr/employees/:id/documents', async (req, res) => {
+  const employeeId = Number(req.params.id || 0);
+  if (!Number.isInteger(employeeId) || employeeId <= 0) {
+    return res.status(400).json({ error: 'Employe invalide' });
+  }
+
+  const employee = await get('SELECT id FROM hr_employees WHERE id = ?', [employeeId]);
+  if (!employee) {
+    return res.status(404).json({ error: 'Employe introuvable' });
+  }
+
+  const { title = '', fileName = '', contentBase64 = '', mimeType = '', sourceModule = 'employee_dossier' } = req.body || {};
+  if (!String(fileName || '').trim() || !String(contentBase64 || '').trim()) {
+    return res.status(400).json({ error: 'fileName et contentBase64 sont obligatoires' });
+  }
+
+  let buffer;
+  try {
+    buffer = Buffer.from(String(contentBase64 || ''), 'base64');
+  } catch (error) {
+    return res.status(400).json({ error: 'Fichier invalide (base64)' });
+  }
+
+  if (!buffer || !buffer.length) {
+    return res.status(400).json({ error: 'Le fichier est vide' });
+  }
+
+  const doc = await archiveHrEmployeeDocument({
+    employeeId,
+    title,
+    fileName,
+    fileBuffer: buffer,
+    mimeType,
+    sourceModule: String(sourceModule || '').trim() === 'signature_request' ? 'signature_request' : 'employee_dossier',
+    uploadedBy: String(req.user?.username || 'admin').trim() || 'admin',
+  });
+
+  res.status(201).json(doc);
+});
+
+app.delete('/api/hr/employees/documents/:docId', async (req, res) => {
+  const docId = Number(req.params.docId || 0);
+  if (!Number.isInteger(docId) || docId <= 0) {
+    return res.status(400).json({ error: 'Document invalide' });
+  }
+
+  const row = await get('SELECT * FROM hr_employee_documents WHERE id = ?', [docId]);
+  if (!row) {
+    return res.status(404).json({ error: 'Document introuvable' });
+  }
+
+  await run('DELETE FROM hr_employee_documents WHERE id = ?', [docId]);
+  const filePath = path.join(ARCHIVE_ROOT, String(row.relativePath || ''));
+  if (String(row.relativePath || '').trim() && fs.existsSync(filePath)) {
+    try { await fs.promises.unlink(filePath); } catch (e) {}
+  }
+
+  res.json({ message: 'Document supprime' });
+});
+
+app.get('/api/hr/employees/documents/:docId/download', async (req, res) => {
+  const docId = Number(req.params.docId || 0);
+  if (!Number.isInteger(docId) || docId <= 0) {
+    return res.status(400).json({ error: 'Document invalide' });
+  }
+
+  const row = await get('SELECT * FROM hr_employee_documents WHERE id = ?', [docId]);
+  if (!row) {
+    return res.status(404).json({ error: 'Document introuvable' });
+  }
+
+  const filePath = path.join(ARCHIVE_ROOT, String(row.relativePath || ''));
+  if (!String(row.relativePath || '').trim() || !fs.existsSync(filePath)) {
+    return res.status(404).json({ error: 'Fichier introuvable' });
+  }
+
+  const safeFileName = sanitizeFileName(String(row.fileName || 'document'));
+  res.setHeader('Content-Disposition', `attachment; filename="${safeFileName}"`);
+  res.setHeader('Content-Type', String(row.mimeType || 'application/octet-stream') || 'application/octet-stream');
+  return res.sendFile(filePath);
+});
+
+app.patch('/api/hr/employees/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  const { fullName, jobTitle = '', phoneNumber = '', address = '', maritalStatus = '', username = '' } = req.body || {};
+  const nameValue = String(fullName || '').trim();
+  if (!id || !nameValue) {
+    return res.status(400).json({ error: 'Employe invalide' });
+  }
+
+  const result = await run(
+    'UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, maritalStatus = ?, username = ?, updatedAt = ? WHERE id = ?',
+    [
+      nameValue,
+      String(jobTitle || '').trim(),
+      String(phoneNumber || '').trim(),
+      String(address || '').trim(),
+      String(maritalStatus || '').trim(),
+      String(username || '').trim(),
+      new Date().toISOString(),
+      id,
+    ]
+  );
+  if (!result.changes) {
+    return res.status(404).json({ error: 'Employe introuvable' });
+  }
+
+  const employee = await get('SELECT * FROM hr_employees WHERE id = ?', [id]);
+  res.json(employee);
+});
+
+app.delete('/api/hr/employees/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!id) {
+    return res.status(400).json({ error: 'Employe invalide' });
+  }
+
+  const docs = await all('SELECT id, relativePath FROM hr_employee_documents WHERE employeeId = ?', [id]);
+
+  const result = await run('DELETE FROM hr_employees WHERE id = ?', [id]);
+  if (!result.changes) {
+    return res.status(404).json({ error: 'Employe introuvable' });
+  }
+
+  for (const doc of (docs || [])) {
+    const filePath = path.join(ARCHIVE_ROOT, String(doc.relativePath || ''));
+    if (String(doc.relativePath || '').trim() && fs.existsSync(filePath)) {
+      try { await fs.promises.unlink(filePath); } catch (e) {}
+    }
+  }
+
+  res.json({ message: 'Employe supprime' });
+});
+
+app.get('/api/hr/attendance', async (req, res) => {
+  const employeeId = Number(req.query.employeeId || 0);
+  const date = String(req.query.date || '').trim();
+  const month = String(req.query.month || '').trim();
+  const scopedEmployeeIds = await getHrScopedEmployeeIdsForUser(req.user);
+
+  if (scopedEmployeeIds && !scopedEmployeeIds.length) {
+    return res.json([]);
+  }
+
+  const conditions = [];
+  const params = [];
+  if (scopedEmployeeIds) {
+    conditions.push(`a.employeeId IN (${scopedEmployeeIds.map(() => '?').join(', ')})`);
+    params.push(...scopedEmployeeIds);
+  }
+  if (employeeId > 0) {
+    conditions.push('a.employeeId = ?');
+    params.push(employeeId);
+  }
+  if (isValidIsoDate(date)) {
+    conditions.push("COALESCE(NULLIF(a.attendanceDate, ''), a.dayDate) = ?");
+    params.push(date);
+  } else if (/^\d{4}-\d{2}$/.test(month)) {
+    const range = formatMonthRange(month);
+    if (range) {
+      conditions.push("COALESCE(NULLIF(a.attendanceDate, ''), a.dayDate) >= ?");
+      conditions.push("COALESCE(NULLIF(a.attendanceDate, ''), a.dayDate) <= ?");
+      params.push(range.startDate, range.endDate);
+    }
+  }
+
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const rows = await all(
+    `SELECT a.*, e.fullName, e.jobTitle, e.phoneNumber,
+      COALESCE(NULLIF(a.attendanceDate, ''), a.dayDate) AS effectiveDate
+     FROM hr_attendance a
+     JOIN hr_employees e ON e.id = a.employeeId
+     ${whereClause}
+     ORDER BY effectiveDate DESC, e.fullName ASC`,
+    params
+  );
+  res.json(rows);
+});
+
+app.post('/api/hr/attendance', async (req, res) => {
+  const {
+    employeeId,
+    attendanceDate,
+    dayDate,
+    checkInTime = '',
+    checkOutTime = '',
+    statusCode = '',
+    note = '',
+  } = req.body || {};
+
+  const numericEmployeeId = Number(employeeId || 0);
+  const effectiveDate = String(attendanceDate || dayDate || '').trim();
+
+  if (!numericEmployeeId || !isValidIsoDate(effectiveDate)) {
+    return res.status(400).json({ error: 'Employe et date obligatoires' });
+  }
+  if (!isValidTimeValue(checkInTime) || !isValidTimeValue(checkOutTime)) {
+    return res.status(400).json({ error: 'Format heure invalide (HH:MM)' });
+  }
+
+  const employee = await get('SELECT id FROM hr_employees WHERE id = ?', [numericEmployeeId]);
+  if (!employee) {
+    return res.status(404).json({ error: 'Employe introuvable' });
+  }
+
+  const codeValue = inferAttendanceCode(checkInTime, statusCode);
+  const now = new Date().toISOString();
+  const existing = await get(
+    "SELECT id FROM hr_attendance WHERE employeeId = ? AND COALESCE(NULLIF(attendanceDate, ''), dayDate) = ?",
+    [numericEmployeeId, effectiveDate]
+  );
+
+  if (existing) {
+    await run(
+      `UPDATE hr_attendance
+       SET attendanceDate = ?, dayDate = ?, checkInTime = ?, checkOutTime = ?,
+           statusCode = ?, status = ?, note = ?, updatedAt = ?
+       WHERE id = ?`,
+      [
+        effectiveDate,
+        effectiveDate,
+        String(checkInTime || '').trim(),
+        String(checkOutTime || '').trim(),
+        codeValue,
+        codeValue,
+        String(note || '').trim(),
+        now,
+        Number(existing.id),
+      ]
+    );
+    const row = await get('SELECT * FROM hr_attendance WHERE id = ?', [Number(existing.id)]);
+    try {
+      await generateOrUpdateHrAttendanceSheet(numericEmployeeId, String(effectiveDate).slice(0, 7));
+    } catch (sheetError) {
+      console.error('Error generating HR attendance sheet:', sheetError);
+    }
+    return res.json(row);
+  }
+
+  const nextId = await getNextTableId('hr_attendance');
+  await run(
+    `INSERT INTO hr_attendance
+      (id, employeeId, attendanceDate, dayDate, checkInTime, checkOutTime, statusCode, status, note, createdBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      nextId,
+      numericEmployeeId,
+      effectiveDate,
+      effectiveDate,
+      String(checkInTime || '').trim(),
+      String(checkOutTime || '').trim(),
+      codeValue,
+      codeValue,
+      String(note || '').trim(),
+      String(req.user?.username || 'admin').trim() || 'admin',
+      now,
+      now,
+    ]
+  );
+
+  const row = await get('SELECT * FROM hr_attendance WHERE id = ?', [nextId]);
+  try {
+    await generateOrUpdateHrAttendanceSheet(numericEmployeeId, String(effectiveDate).slice(0, 7));
+  } catch (sheetError) {
+    console.error('Error generating HR attendance sheet:', sheetError);
+  }
+  res.status(201).json(row);
+});
+
+app.patch('/api/hr/attendance/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  const {
+    checkInTime = '',
+    checkOutTime = '',
+    statusCode = '',
+    note = '',
+  } = req.body || {};
+
+  if (!id || !isValidTimeValue(checkInTime) || !isValidTimeValue(checkOutTime)) {
+    return res.status(400).json({ error: 'Pointage invalide' });
+  }
+
+  const current = await get('SELECT * FROM hr_attendance WHERE id = ?', [id]);
+  if (!current) {
+    return res.status(404).json({ error: 'Pointage introuvable' });
+  }
+
+  const codeValue = inferAttendanceCode(checkInTime, statusCode || current.statusCode || current.status);
+  await run(
+    `UPDATE hr_attendance
+     SET checkInTime = ?, checkOutTime = ?, statusCode = ?, status = ?, note = ?, updatedAt = ?
+     WHERE id = ?`,
+    [
+      String(checkInTime || '').trim(),
+      String(checkOutTime || '').trim(),
+      codeValue,
+      codeValue,
+      String(note || '').trim(),
+      new Date().toISOString(),
+      id,
+    ]
+  );
+
+  const row = await get('SELECT * FROM hr_attendance WHERE id = ?', [id]);
+  try {
+    const rowDate = String(row?.attendanceDate || row?.dayDate || '').slice(0, 7);
+    if (rowDate) {
+      await generateOrUpdateHrAttendanceSheet(Number(row.employeeId || 0), rowDate);
+    }
+  } catch (sheetError) {
+    console.error('Error generating HR attendance sheet:', sheetError);
+  }
+  res.json(row);
+});
+
+app.get('/api/hr/leave-requests', async (req, res) => {
+  const employeeId = Number(req.query.employeeId || 0);
+  const scopedEmployeeIds = await getHrScopedEmployeeIdsForUser(req.user);
+
+  if (scopedEmployeeIds && !scopedEmployeeIds.length) {
+    return res.json([]);
+  }
+
+  const conditions = [];
+  const params = [];
+  if (scopedEmployeeIds) {
+    conditions.push(`lr.employeeId IN (${scopedEmployeeIds.map(() => '?').join(', ')})`);
+    params.push(...scopedEmployeeIds);
+  }
+  if (employeeId > 0) {
+    conditions.push('lr.employeeId = ?');
+    params.push(employeeId);
+  }
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const rows = await all(
+    `SELECT lr.*, e.fullName, e.jobTitle, e.phoneNumber
+     FROM hr_leave_requests lr
+     JOIN hr_employees e ON e.id = lr.employeeId
+     ${whereClause}
+     ORDER BY lr.createdAt DESC, lr.id DESC`,
+    params
+  );
+  res.json(rows);
+});
+
+app.post('/api/hr/leave-requests', async (req, res) => {
+  const { employeeId, leaveType, startDate, endDate, reason = '' } = req.body || {};
+  const numericEmployeeId = Number(employeeId || 0);
+  const leaveTypeValue = String(leaveType || '').trim();
+  const startDateValue = String(startDate || '').trim();
+  const endDateValue = String(endDate || '').trim();
+
+  if (!numericEmployeeId || !leaveTypeValue || !isValidIsoDate(startDateValue) || !isValidIsoDate(endDateValue)) {
+    return res.status(400).json({ error: 'Champs demande de conge invalides' });
+  }
+  if (endDateValue < startDateValue) {
+    return res.status(400).json({ error: 'Date fin inferieure a date debut' });
+  }
+
+  const employee = await get('SELECT id FROM hr_employees WHERE id = ?', [numericEmployeeId]);
+  if (!employee) {
+    return res.status(404).json({ error: 'Employe introuvable' });
+  }
+
+  const nextId = await getNextTableId('hr_leave_requests');
+  const now = new Date().toISOString();
+  await run(
+    `INSERT INTO hr_leave_requests
+      (id, employeeId, leaveType, startDate, endDate, reason, status, decisionNote, createdBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      nextId,
+      numericEmployeeId,
+      leaveTypeValue,
+      startDateValue,
+      endDateValue,
+      String(reason || '').trim(),
+      'EN_ATTENTE',
+      '',
+      String(req.user?.username || 'admin').trim() || 'admin',
+      now,
+      now,
+    ]
+  );
+
+  const row = await get('SELECT * FROM hr_leave_requests WHERE id = ?', [nextId]);
+  res.status(201).json(row);
+});
+
+app.patch('/api/hr/leave-requests/:id/status', async (req, res) => {
+  const id = Number(req.params.id);
+  const status = String(req.body?.status || '').trim().toUpperCase();
+  const decisionNote = String(req.body?.decisionNote || '').trim();
+  if (!id || !['EN_ATTENTE', 'APPROUVEE', 'REJETEE'].includes(status)) {
+    return res.status(400).json({ error: 'Statut conge invalide' });
+  }
+
+  const result = await run(
+    'UPDATE hr_leave_requests SET status = ?, decisionNote = ?, decidedBy = ?, decidedAt = ?, updatedAt = ? WHERE id = ?',
+    [
+      status,
+      decisionNote,
+      String(req.user?.username || 'admin').trim() || 'admin',
+      new Date().toISOString(),
+      new Date().toISOString(),
+      id,
+    ]
+  );
+  if (!result.changes) {
+    return res.status(404).json({ error: 'Demande de conge introuvable' });
+  }
+
+  const row = await get('SELECT * FROM hr_leave_requests WHERE id = ?', [id]);
+  res.json(row);
+});
+
+app.get('/api/hr/leave-calendar', async (req, res) => {
+  const monthRaw = String(req.query.month || '').trim() || new Date().toISOString().slice(0, 7);
+  const range = formatMonthRange(monthRaw);
+  if (!range) {
+    return res.status(400).json({ error: 'Format mois invalide. Utilise YYYY-MM' });
+  }
+
+  const scopedEmployeeIds = await getHrScopedEmployeeIdsForUser(req.user);
+  if (scopedEmployeeIds && !scopedEmployeeIds.length) {
+    return res.json({
+      month: monthRaw,
+      daysInMonth: range.daysInMonth,
+      legend: {
+        P: 'Presence',
+        R: 'Retard',
+        MS: 'Conge maladie',
+        A: 'Absence',
+        CA: 'Conge annuel',
+        CM: 'Conge maternite',
+        CP: 'Conge paternite',
+      },
+      employees: [],
+    });
+  }
+
+  const employeeIdFilter = Number(req.query.employeeId || 0);
+  const employeeConditions = [];
+  const employeeParams = [];
+  if (scopedEmployeeIds) {
+    employeeConditions.push(`id IN (${scopedEmployeeIds.map(() => '?').join(', ')})`);
+    employeeParams.push(...scopedEmployeeIds);
+  }
+  if (employeeIdFilter > 0) {
+    employeeConditions.push('id = ?');
+    employeeParams.push(employeeIdFilter);
+  }
+  const employeeWhere = employeeConditions.length ? `WHERE ${employeeConditions.join(' AND ')}` : '';
+  const employees = await all(
+    `SELECT id, fullName, jobTitle, phoneNumber
+     FROM hr_employees
+     ${employeeWhere}
+     ORDER BY fullName ASC, id ASC`,
+    employeeParams
+  );
+
+  if (!employees.length) {
+    return res.json({
+      month: monthRaw,
+      daysInMonth: range.daysInMonth,
+      legend: {
+        P: 'Presence',
+        R: 'Retard',
+        MS: 'Conge maladie',
+        A: 'Absence',
+        CA: 'Conge annuel',
+        CM: 'Conge maternite',
+        CP: 'Conge paternite',
+      },
+      employees: [],
+    });
+  }
+
+  const employeeIds = employees.map(row => Number(row.id)).filter(id => Number.isInteger(id) && id > 0);
+  const placeholders = employeeIds.map(() => '?').join(', ');
+
+  const attendanceRows = await all(
+    `SELECT employeeId, COALESCE(NULLIF(attendanceDate, ''), dayDate) AS effectiveDate,
+            COALESCE(NULLIF(statusCode, ''), NULLIF(status, ''), 'P') AS code
+     FROM hr_attendance
+     WHERE employeeId IN (${placeholders})
+       AND COALESCE(NULLIF(attendanceDate, ''), dayDate) >= ?
+       AND COALESCE(NULLIF(attendanceDate, ''), dayDate) <= ?`,
+    [...employeeIds, range.startDate, range.endDate]
+  );
+
+  const leaveRows = await all(
+    `SELECT employeeId, leaveType, startDate, endDate
+     FROM hr_leave_requests
+     WHERE employeeId IN (${placeholders})
+       AND status = 'APPROUVEE'
+       AND startDate <= ?
+       AND endDate >= ?`,
+    [...employeeIds, range.endDate, range.startDate]
+  );
+
+  const codeMapByEmployee = new Map();
+  for (const employee of employees) {
+    codeMapByEmployee.set(Number(employee.id), {});
+  }
+
+  for (const row of attendanceRows) {
+    const employeeId = Number(row.employeeId || 0);
+    const day = Number(String(row.effectiveDate || '').slice(8, 10));
+    if (!codeMapByEmployee.has(employeeId) || !Number.isInteger(day) || day < 1 || day > range.daysInMonth) continue;
+    codeMapByEmployee.get(employeeId)[String(day)] = normalizeHrCode(row.code);
+  }
+
+  for (const leave of leaveRows) {
+    const employeeId = Number(leave.employeeId || 0);
+    if (!codeMapByEmployee.has(employeeId)) continue;
+    const effectiveStart = leave.startDate < range.startDate ? range.startDate : String(leave.startDate || range.startDate).slice(0, 10);
+    const effectiveEnd = leave.endDate > range.endDate ? range.endDate : String(leave.endDate || range.endDate).slice(0, 10);
+    const leaveCode = normalizeLeaveTypeCode(leave.leaveType);
+    const dayEntries = listDatesInRange(effectiveStart, effectiveEnd);
+    dayEntries.forEach(dateValue => {
+      const day = Number(String(dateValue || '').slice(8, 10));
+      if (Number.isInteger(day) && day >= 1 && day <= range.daysInMonth) {
+        codeMapByEmployee.get(employeeId)[String(day)] = leaveCode;
+      }
+    });
+  }
+
+  const payloadEmployees = employees.map(employee => ({
+    id: Number(employee.id),
+    fullName: employee.fullName,
+    jobTitle: employee.jobTitle,
+    phoneNumber: employee.phoneNumber,
+    codes: codeMapByEmployee.get(Number(employee.id)) || {},
+  }));
+
+  res.json({
+    month: monthRaw,
+    daysInMonth: range.daysInMonth,
+    legend: {
+      P: 'Presence',
+      R: 'Retard',
+      MS: 'Conge maladie',
+      A: 'Absence',
+      CA: 'Conge annuel',
+      CM: 'Conge maternite',
+      CP: 'Conge paternite',
+    },
+    employees: payloadEmployees,
+  });
+});
+
+// ===== Document Signature Routes =====
+
+app.post('/api/hr/signature-requests', async (req, res) => {
+  const { documentId, employeeId } = req.body || {};
+  const numericDocumentId = Number(documentId || 0);
+  const numericEmployeeId = Number(employeeId || 0);
+
+  if (!numericDocumentId || !numericEmployeeId) {
+    return res.status(400).json({ error: 'documentId et employeeId requis' });
+  }
+
+  const doc = await get('SELECT * FROM hr_employee_documents WHERE id = ?', [numericDocumentId]);
+  if (!doc) {
+    return res.status(404).json({ error: 'Document non trouve' });
+  }
+
+  const isPdf = /pdf$/i.test(String(doc.mimeType || '')) || /\.pdf$/i.test(String(doc.fileName || ''));
+  if (!isPdf) {
+    return res.status(400).json({ error: 'Seuls les documents PDF peuvent etre soumis a la signature' });
+  }
+
+  const employee = await get('SELECT id FROM hr_employees WHERE id = ?', [numericEmployeeId]);
+  if (!employee) {
+    return res.status(404).json({ error: 'Employe non trouve' });
+  }
+
+  const nextId = await getNextTableId('hr_document_signatures');
+  const now = new Date().toISOString();
+  await run(
+    `INSERT INTO hr_document_signatures 
+     (id, documentId, employeeId, status, createdBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [nextId, numericDocumentId, numericEmployeeId, 'pending', String(req.user?.username || 'admin').trim() || 'admin', now, now]
+  );
+
+  const row = await get('SELECT * FROM hr_document_signatures WHERE id = ?', [nextId]);
+  res.status(201).json(row);
+});
+
+app.get('/api/hr/signature-requests', async (req, res) => {
+  const role = String(req.user?.role || '').trim();
+  const isPrivileged = role === 'admin' || role === 'directeur_rh';
+
+  const profileEmployee = isPrivileged ? null : await getHrProfileEmployeeForUser(req.user);
+  if (!isPrivileged && !profileEmployee?.id) {
+    return res.json([]);
+  }
+
+  const whereClause = isPrivileged ? '' : 'WHERE ds.employeeId = ?';
+  const params = isPrivileged ? [] : [Number(profileEmployee.id)];
+
+  const rows = await all(
+    `SELECT ds.*, hd.fileName, hd.mimeType, hd.relativePath AS documentRelativePath, hd.title AS documentTitle, he.fullName as employeeFullName, he.username AS employeeUsername
+     FROM hr_document_signatures ds
+     JOIN hr_employee_documents hd ON ds.documentId = hd.id
+     JOIN hr_employees he ON ds.employeeId = he.id
+     ${whereClause}
+     ORDER BY ds.createdAt DESC`
+    ,
+    params
+  );
+  res.json(rows || []);
+});
+
+app.get('/api/hr/employee-profile/pending-signatures', async (req, res) => {
+  if (!String(req.user?.username || '').trim()) {
+    return res.status(403).json({ error: 'Acces refuse' });
+  }
+
+  const employee = await getHrProfileEmployeeForUser(req.user);
+  if (!employee) {
+    return res.json([]);
+  }
+
+  const rows = await all(
+    `SELECT ds.*, ds.id AS requestId, ds.createdBy AS submitterName, hd.fileName, hd.mimeType, hd.relativePath AS documentRelativePath, hd.title AS documentTitle
+     FROM hr_document_signatures ds
+     JOIN hr_employee_documents hd ON ds.documentId = hd.id
+     WHERE ds.employeeId = ? AND ds.status = 'pending'
+     ORDER BY ds.createdAt DESC`,
+    [Number(employee.id)]
+  );
+  return res.json(rows || []);
+});
+
+app.get('/api/hr/employees/:employeeId/documents', async (req, res) => {
+  const employeeId = Number(req.params.employeeId);
+  try {
+    const rows = await all(
+      `SELECT id, title, fileName, fileSize, relativePath, description, createdAt
+       FROM hr_employee_documents
+       WHERE employeeId = ?
+       ORDER BY createdAt DESC`,
+      [employeeId]
+    );
+    res.json(rows || []);
+  } catch (err) {
+    console.error('Error fetching employee documents:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/hr/signature-requests/:requestId/sign', async (req, res) => {
+  const requestId = Number(req.params.requestId);
+  const { signatureName, signatureRole = '' } = req.body || {};
+
+  if (!requestId) {
+    return res.status(400).json({ error: 'requestId requis' });
+  }
+
+  const signatureRequest = await get(
+    `SELECT ds.*, he.username AS employeeUsername
+     FROM hr_document_signatures ds
+     JOIN hr_employees he ON ds.employeeId = he.id
+     WHERE ds.id = ?`,
+    [requestId]
+  );
+
+  if (!signatureRequest) {
+    return res.status(404).json({ error: 'Demande de signature non trouvee' });
+  }
+
+  const signerUsername = String(req.user?.username || '').trim();
+  const requestEmployeeUsername = String(signatureRequest.employeeUsername || '').trim();
+  if (!signerUsername || signerUsername !== requestEmployeeUsername) {
+    return res.status(403).json({ error: 'Seul l employe peut signer' });
+  }
+
+  const now = new Date().toISOString();
+  const signatureData = String(signatureName || '').trim();
+  const documentRow = await get('SELECT * FROM hr_employee_documents WHERE id = ?', [Number(signatureRequest.documentId || 0)]);
+  if (!documentRow) {
+    return res.status(404).json({ error: 'Document source introuvable' });
+  }
+
+  let signedPdf = null;
+  try {
+    signedPdf = await archiveSignedHrDocument({
+      documentRow,
+      signatureRequest,
+      signatureName: signatureData,
+      signatureRole: String(signatureRole || '').trim(),
+      signedAt: now,
+    });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+  
+  await run(
+    `UPDATE hr_document_signatures 
+     SET status = ?, signatureData = ?, signedBy = ?, signedAt = ?, signedPdfFileName = ?, signedPdfRelativePath = ?, updatedAt = ?
+     WHERE id = ?`,
+    ['signed', signatureData, req.user.username, now, signedPdf.fileName, signedPdf.relativePath, now, requestId]
+  );
+
+  const row = await get(
+    `SELECT ds.*, hd.fileName AS documentFileName, hd.mimeType AS documentMimeType, hd.relativePath AS documentRelativePath, hd.title AS documentTitle, he.fullName AS employeeFullName
+     FROM hr_document_signatures ds
+     JOIN hr_employee_documents hd ON hd.id = ds.documentId
+     JOIN hr_employees he ON he.id = ds.employeeId
+     WHERE ds.id = ?`,
+    [requestId]
+  );
+  res.json({ ...row, signedDocumentUrl: signedPdf.fileUrl });
+});
+
+app.delete('/api/hr/signature-requests/:id', async (req, res) => {
+  const id = Number(req.params.id || 0);
+  if (!id) {
+    return res.status(400).json({ error: 'id requis' });
+  }
+
+  const row = await get('SELECT id, signedPdfRelativePath FROM hr_document_signatures WHERE id = ?', [id]);
+  if (!row) {
+    return res.status(404).json({ error: 'Demande de signature introuvable' });
+  }
+
+  const relativePath = String(row.signedPdfRelativePath || '').trim();
+  if (relativePath) {
+    const signedAbsolutePath = path.join(ARCHIVE_ROOT, relativePath);
+    if (fs.existsSync(signedAbsolutePath)) {
+      try {
+        await fs.promises.unlink(signedAbsolutePath);
+      } catch (unlinkError) {
+        console.warn('Unable to delete signed HR PDF:', unlinkError.message);
+      }
+    }
+  }
+
+  await run('DELETE FROM hr_document_signatures WHERE id = ?', [id]);
+  return res.json({ message: 'Demande de signature supprimee' });
+});
+
+app.get('/api/hr/signature-requests/:requestId/download', async (req, res) => {
+  const requestId = Number(req.params.requestId || 0);
+  if (!requestId) {
+    return res.status(400).json({ error: 'requestId requis' });
+  }
+
+  const row = await get(
+    `SELECT ds.*, hd.fileName AS documentFileName, hd.mimeType AS documentMimeType, hd.relativePath AS documentRelativePath, hd.title AS documentTitle, he.fullName AS employeeFullName, he.username AS employeeUsername
+     FROM hr_document_signatures ds
+     JOIN hr_employee_documents hd ON hd.id = ds.documentId
+     JOIN hr_employees he ON he.id = ds.employeeId
+     WHERE ds.id = ?`,
+    [requestId]
+  );
+
+  if (!row) {
+    return res.status(404).json({ error: 'Demande de signature non trouvee' });
+  }
+  if (String(row.status || '').trim() !== 'signed') {
+    return res.status(409).json({ error: 'Le document n est pas encore signe' });
+  }
+
+  let signedPath = String(row.signedPdfRelativePath || '').trim() ? path.join(ARCHIVE_ROOT, String(row.signedPdfRelativePath)) : '';
+  if (!signedPath || !fs.existsSync(signedPath)) {
+    const documentRow = await get('SELECT * FROM hr_employee_documents WHERE id = ?', [Number(row.documentId || 0)]);
+    if (!documentRow) {
+      return res.status(404).json({ error: 'Document source introuvable' });
+    }
+    const rebuilt = await archiveSignedHrDocument({
+      documentRow,
+      signatureRequest: row,
+      signatureName: String(row.signatureData || row.signedBy || row.employeeFullName || '').trim(),
+      signatureRole: 'Employe',
+      signedAt: String(row.signedAt || ''),
+    });
+    signedPath = path.join(ARCHIVE_ROOT, String(rebuilt.relativePath || ''));
+    await run('UPDATE hr_document_signatures SET signedPdfFileName = ?, signedPdfRelativePath = ?, updatedAt = ? WHERE id = ?', [rebuilt.fileName, rebuilt.relativePath, new Date().toISOString(), requestId]);
+  }
+
+  const downloadName = sanitizeFileName(String(row.signedPdfFileName || `document-signe-${requestId}.pdf`));
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
+  return res.sendFile(signedPath);
+});
+
+app.get('/api/hr/document-signatures/:docId', async (req, res) => {
+  const docId = Number(req.params.docId);
+  if (!docId) {
+    return res.status(400).json({ error: 'docId requis' });
+  }
+
+  const rows = await all(
+    `SELECT ds.*, he.fullName as employeeFullName
+     FROM hr_document_signatures ds
+     JOIN hr_employees he ON ds.employeeId = he.id
+     WHERE ds.documentId = ?
+     ORDER BY ds.createdAt DESC`,
+    [docId]
+  );
+  res.json(rows || []);
+});
+
+// Get documents for an employee
+app.get('/api/hr/employees/:employeeId/documents', async (req, res) => {
+  try {
+    const employeeId = Number(req.params.employeeId || 0);
+    if (!employeeId) return res.status(400).json({ error: 'Employee ID required' });
+
+    // Role-based access check
+    if (!isAdmin(req) && !isHrDirector(req)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const docs = await all(
+      'SELECT * FROM hr_employee_documents WHERE employeeId = ? ORDER BY createdAt DESC',
+      [employeeId]
+    );
+    res.json(docs || []);
+  } catch (err) {
+    console.error('Error fetching employee documents:', err);
+    res.status(500).json({ error: 'Failed to fetch documents' });
+  }
+});
+
 app.post('/api/project-assignments', async (req, res) => {
+  async function ensureAssignmentEmployee({ assigneeName, role, phoneNumber = '', createdBy = 'admin', projectName = '', siteNumber = '' }) {
+    const fullName = String(assigneeName || '').trim();
+    const jobTitle = String(role || '').trim();
+    if (!fullName || !jobTitle) return null;
+
+    const roleNormalized = normalizeTextValue(jobTitle);
+    const isChefChantier = roleNormalized.includes('chef') && roleNormalized.includes('chantier');
+    const addressLabel = isChefChantier
+      ? `Projet: ${String(projectName || '').trim() || '-'} | Site: ${String(siteNumber || '').trim() || '-'}`
+      : '';
+
+    const normalizedPhone = String(phoneNumber || '').trim();
+    const existingEmployee = await get(
+      `SELECT *
+       FROM hr_employees
+       WHERE LOWER(TRIM(fullName)) = LOWER(TRIM(?))
+       ORDER BY updatedAt DESC, id DESC
+       LIMIT 1`,
+      [fullName]
+    );
+
+    if (existingEmployee && Number(existingEmployee.id) > 0) {
+      const preservedAddress = isChefChantier
+        ? addressLabel
+        : String(existingEmployee.address || '').trim();
+      await run(
+        'UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, updatedAt = ? WHERE id = ?',
+        [
+          fullName,
+          jobTitle,
+          normalizedPhone,
+          preservedAddress,
+          new Date().toISOString(),
+          Number(existingEmployee.id),
+        ]
+      );
+      return Number(existingEmployee.id);
+    }
+
+    const now = new Date().toISOString();
+    const nextEmployeeId = await getNextTableId('hr_employees');
+    await run(
+      `INSERT INTO hr_employees (id, fullName, jobTitle, phoneNumber, address, maritalStatus, createdBy, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        nextEmployeeId,
+        fullName,
+        jobTitle,
+        normalizedPhone,
+        addressLabel,
+        '',
+        String(createdBy || 'admin').trim() || 'admin',
+        now,
+        now,
+      ]
+    );
+
+    return nextEmployeeId;
+  }
+
   const { projetId, projectId, userId, assigneeName, role, phoneNumber = '' } = req.body;
   const assignmentProjectId = Number(projectId || projetId);
   if (!assignmentProjectId || !role || !assigneeName || !String(assigneeName).trim()) {
@@ -6031,7 +7993,7 @@ app.post('/api/project-assignments', async (req, res) => {
   const numericUserId = Number(userId);
   const effectiveUserId = Number.isInteger(numericUserId) && numericUserId > 0 ? numericUserId : req.user.id;
 
-  const projet = await get('SELECT id FROM projects WHERE id = ?', [assignmentProjectId]);
+  const projet = await get('SELECT id, nomProjet, numeroMaison, nomSite FROM projects WHERE id = ?', [assignmentProjectId]);
   if (!projet) {
     return res.status(404).json({ error: 'Projet non trouve' });
   }
@@ -6046,11 +8008,21 @@ app.post('/api/project-assignments', async (req, res) => {
     }
   }
 
+  const linkedEmployeeId = await ensureAssignmentEmployee({
+    assigneeName,
+    role,
+    phoneNumber,
+    createdBy: req.user.username,
+    projectName: projet.nomProjet,
+    siteNumber: projet.numeroMaison || projet.nomSite,
+  });
+
   const result = await run(
-    'INSERT INTO project_assignments (projectId, userId, assigneeName, phoneNumber, role, assignedAt) VALUES (?, ?, ?, ?, ?, ?)',
+    'INSERT INTO project_assignments (projectId, userId, employeeId, assigneeName, phoneNumber, role, assignedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
     [
       assignmentProjectId,
       effectiveUserId,
+      linkedEmployeeId,
       String(assigneeName).trim(),
       String(phoneNumber).trim(),
       String(role).trim(),
@@ -6059,7 +8031,7 @@ app.post('/api/project-assignments', async (req, res) => {
   );
 
   const assignment = await get(`
-    SELECT pa.*, p.nomProjet, u.username, COALESCE(pa.assigneeName, u.username) as displayName
+    SELECT pa.*, p.nomProjet, p.nomSite, p.numeroMaison, u.username, COALESCE(pa.assigneeName, u.username) as displayName
     FROM project_assignments pa
     JOIN projects p ON p.id = pa.projectId
     JOIN users u ON u.id = pa.userId
@@ -6071,7 +8043,7 @@ app.post('/api/project-assignments', async (req, res) => {
 
 app.get('/api/project-assignments', async (_req, res) => {
   const rows = await all(`
-    SELECT pa.*, p.nomProjet, u.username, COALESCE(pa.assigneeName, u.username) as displayName
+    SELECT pa.*, p.nomProjet, p.nomSite, p.numeroMaison, u.username, COALESCE(pa.assigneeName, u.username) as displayName
     FROM project_assignments pa
     JOIN projects p ON p.id = pa.projectId
     JOIN users u ON u.id = pa.userId
@@ -6105,9 +8077,91 @@ app.patch('/api/project-assignments/:id', async (req, res) => {
     }
   }
 
+  const existingAssignment = await get(
+    `SELECT pa.id, pa.employeeId, p.nomProjet, p.nomSite, p.numeroMaison
+     FROM project_assignments pa
+     JOIN projects p ON p.id = pa.projectId
+     WHERE pa.id = ?`,
+    [id]
+  );
+  if (!existingAssignment) {
+    return res.status(404).json({ error: 'Assignation non trouvee' });
+  }
+
+  const normalizedAssignee = String(assigneeName).trim();
+  const normalizedRole = String(role).trim();
+  const normalizedPhone = String(phoneNumber).trim();
+  const roleNormalized = normalizeTextValue(normalizedRole);
+  const isChefChantier = roleNormalized.includes('chef') && roleNormalized.includes('chantier');
+  const addressLabel = isChefChantier
+    ? `Projet: ${String(existingAssignment.nomProjet || '').trim() || '-'} | Site: ${String(existingAssignment.numeroMaison || existingAssignment.nomSite || '').trim() || '-'}`
+    : '';
+  const nowIso = new Date().toISOString();
+  let linkedEmployeeId = Number(existingAssignment.employeeId || 0);
+
+  if (linkedEmployeeId > 0) {
+    const employee = await get('SELECT * FROM hr_employees WHERE id = ?', [linkedEmployeeId]);
+    if (employee) {
+      const preservedAddress = isChefChantier
+        ? addressLabel
+        : String(employee.address || '').trim();
+      await run(
+        'UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, updatedAt = ? WHERE id = ?',
+        [normalizedAssignee, normalizedRole, normalizedPhone, preservedAddress, nowIso, linkedEmployeeId]
+      );
+    } else {
+      linkedEmployeeId = 0;
+    }
+  }
+
+  if (!linkedEmployeeId) {
+    const existingEmployee = normalizedPhone
+      ? await get(
+        `SELECT id
+         FROM hr_employees
+         WHERE LOWER(TRIM(fullName)) = LOWER(TRIM(?))
+           AND LOWER(TRIM(jobTitle)) = LOWER(TRIM(?))
+           AND TRIM(phoneNumber) = TRIM(?)
+         ORDER BY id DESC
+         LIMIT 1`,
+        [normalizedAssignee, normalizedRole, normalizedPhone]
+      )
+      : await get(
+        `SELECT id
+         FROM hr_employees
+         WHERE LOWER(TRIM(fullName)) = LOWER(TRIM(?))
+           AND LOWER(TRIM(jobTitle)) = LOWER(TRIM(?))
+         ORDER BY id DESC
+         LIMIT 1`,
+        [normalizedAssignee, normalizedRole]
+      );
+
+    if (existingEmployee && Number(existingEmployee.id) > 0) {
+      linkedEmployeeId = Number(existingEmployee.id);
+    } else {
+      const nextEmployeeId = await getNextTableId('hr_employees');
+      await run(
+        `INSERT INTO hr_employees (id, fullName, jobTitle, phoneNumber, address, maritalStatus, createdBy, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          nextEmployeeId,
+          normalizedAssignee,
+          normalizedRole,
+          normalizedPhone,
+          addressLabel,
+          '',
+          String(req.user.username || 'admin').trim() || 'admin',
+          nowIso,
+          nowIso,
+        ]
+      );
+      linkedEmployeeId = nextEmployeeId;
+    }
+  }
+
   const result = await run(
-    'UPDATE project_assignments SET assigneeName = ?, role = ?, phoneNumber = ? WHERE id = ?',
-    [String(assigneeName).trim(), String(role).trim(), String(phoneNumber).trim(), id]
+    'UPDATE project_assignments SET employeeId = ?, assigneeName = ?, role = ?, phoneNumber = ? WHERE id = ?',
+    [linkedEmployeeId, normalizedAssignee, normalizedRole, normalizedPhone, id]
   );
 
   if (result.changes === 0) {
@@ -6115,7 +8169,7 @@ app.patch('/api/project-assignments/:id', async (req, res) => {
   }
 
   const assignment = await get(`
-    SELECT pa.*, p.nomProjet, u.username, COALESCE(pa.assigneeName, u.username) as displayName
+    SELECT pa.*, p.nomProjet, p.nomSite, p.numeroMaison, u.username, COALESCE(pa.assigneeName, u.username) as displayName
     FROM project_assignments pa
     JOIN projects p ON p.id = pa.projectId
     JOIN users u ON u.id = pa.userId
