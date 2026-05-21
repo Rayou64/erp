@@ -5,6 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
+    "text:scan-mojibake": "node scripts/fix-mojibake.js",
+    "text:fix-mojibake": "node scripts/fix-mojibake.js --apply",
     "backup:now": "node scripts/backup-local.js",
     "backup:verify": "node scripts/backup-local.js --verify-latest",
     "backup:auto": "chokidar \"app.js\" \"public/**/*\" \"scripts/**/*\" \"db/**/*\" \"README.md\" \"package.json\" -i \"node_modules/**\" -i \"archives/**\" -i \"backups/**\" --debounce 1500 -c \"npm run backup:now\"",

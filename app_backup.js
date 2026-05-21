@@ -192,23 +192,6 @@ function authenticateToken(req, res, next) {
     next();
   });
 }
-  if (!authHeader) {
-    return res.status(401).json({ error: 'Token manquant' });
-  }
-
-  const token = authHeader.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ error: 'Token manquant' });
-  }
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(401).json({ error: 'Token invalide' });
-    }
-    req.user = user;
-    next();
-  });
-}
 
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
@@ -304,11 +287,20 @@ app.get('/api/projects', async (_req, res) => {
 
 app.delete('/api/projects/:id', async (req, res) => {
   const id = Number(req.params.id);
+
+  // Delete associated warehouses
+  const deleteWarehousesResult = await run('DELETE FROM warehouses WHERE projectId = ?', [id]);
+
+  // Delete the project
   const result = await run('DELETE FROM projects WHERE id = ?', [id]);
   if (result.changes === 0) {
     return res.status(404).json({ error: 'Projet non trouvé' });
   }
-  res.json({ message: 'Projet supprimé avec succès' });
+
+  res.json({ 
+    message: 'Projet supprimé avec succès',
+    warehousesDeleted: deleteWarehousesResult.changes
+  });
 });
 
 app.post('/api/material-requests', async (req, res) => {
@@ -484,6 +476,24 @@ app.delete('/api/project-assignments/:id', async (req, res) => {
     return res.status(404).json({ error: 'Assignation non trouvée' });
   }
   res.json({ message: 'Assignation supprimée' });
+});
+
+app.delete('/api/zones/:id', async (req, res) => {
+  const id = Number(req.params.id);
+
+  // Delete associated warehouses in other profiles
+  const deleteWarehousesResult = await run('DELETE FROM warehouses WHERE zoneId = ?', [id]);
+
+  // Delete the zone
+  const result = await run('DELETE FROM zones WHERE id = ?', [id]);
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Zone non trouvée' });
+  }
+
+  res.json({ 
+    message: 'Zone supprimée avec succès',
+    warehousesDeleted: deleteWarehousesResult.changes
+  });
 });
 
 // --- ROUTES TABLEAU DE BORD ADMIN ---

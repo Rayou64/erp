@@ -27,7 +27,36 @@ app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Forcer explicitement UTF-8 sur les fichiers texte statiques pour eviter les lectures CP-1252/ISO-8859-1.
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    const lower = String(filePath || '').toLowerCase();
+    if (lower.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return;
+    }
+    if (lower.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      return;
+    }
+    if (lower.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+      return;
+    }
+    if (lower.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    }
+  },
+}));
+
+// Middleware de secours pour les routes HTML non statiques.
+app.use((req, res, next) => {
+  if (req.path.endsWith('.html')) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  }
+  next();
+});
 
 // --- ROUTES DYNAMIQUES ---
 // Retourne dynamiquement tous les entrepôts (projets ZONE_STOCK)
@@ -50,9 +79,23 @@ const APP_DATA_DIR = process.env.APP_DATA_DIR || (process.env.RAILWAY_ENVIRONMEN
 const DB_FILE = process.env.DB_FILE || path.join(APP_DATA_DIR, 'data.db');
 const ARCHIVE_ROOT = process.env.ARCHIVE_ROOT || path.join(APP_DATA_DIR, 'archives');
 const JWT_SECRET = process.env.JWT_SECRET || 'erp-secret-2026';
-const PORT = process.env.PORT || 4000;
+const PORT = Number(process.env.PORT || 4000);
+const LOCALHOST_FALLBACK_PORT = Number(process.env.LOCALHOST_FALLBACK_PORT || (PORT === 4000 ? 3000 : 0));
 const COMMIS_STOCK_USERNAME = process.env.COMMIS_STOCK_USERNAME || 'commis_stock';
 const COMMIS_STOCK_PASSWORD = process.env.COMMIS_STOCK_PASSWORD || 'stock123';
+
+// Entrepôts masqués par projet (PINUT)
+const HIDDEN_WAREHOUSES = {
+  'entrepot-plateau': true,    // Adzopé
+  'entrepot-yopougon': true,   // Akoupé
+  'entrepot-bingerville': true, // Alepe
+  'entrepot-port-bouet': true  // Yakassé
+};
+
+function isWarehouseHidden(warehouseId) {
+  return HIDDEN_WAREHOUSES[String(warehouseId || '').trim()] === true;
+}
+
 const GEST_STOCK_USERNAME = process.env.GEST_STOCK_USERNAME || 'gestionnaire_stock';
 const GEST_STOCK_PASSWORD = process.env.GEST_STOCK_PASSWORD || 'geststock123';
 const EXECUTIVE_USERNAME = process.env.EXECUTIVE_USERNAME || 'dirigeant';
@@ -63,6 +106,8 @@ const PROCUREMENT_REVIEWER_USERNAME = process.env.PROCUREMENT_REVIEWER_USERNAME 
 const PROCUREMENT_REVIEWER_PASSWORD = process.env.PROCUREMENT_REVIEWER_PASSWORD || 'achatglobal123';
 const ACHAT_USERNAME = process.env.ACHAT_USERNAME || 'achat';
 const ACHAT_PASSWORD = process.env.ACHAT_PASSWORD || 'achat123';
+const KOKAN_USERNAME = process.env.KOKAN_USERNAME || 'Kokan_SK';
+const KOKAN_PASSWORD = process.env.KOKAN_PASSWORD || 'Stock_SK123';
 const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS || 60_000);
 const API_RATE_MAX = Number(process.env.API_RATE_MAX || 600);
 const AUTH_RATE_WINDOW_MS = Number(process.env.AUTH_RATE_WINDOW_MS || 15 * 60_000);
@@ -74,6 +119,7 @@ const AUTO_BACKUP_DEBOUNCE_MS = Number(process.env.AUTO_BACKUP_DEBOUNCE_MS || 10
 let isReady = false;
 let isShuttingDown = false;
 let server = null;
+let localhostFallbackServer = null;
 let autoBackupTimer = null;
 let autoBackupInProgress = false;
 let autoBackupPending = false;
@@ -227,16 +273,6 @@ const dbClient = createDbClient({
 const { run, get, all } = dbClient;
 const DB_DRIVER = dbClient.driver;
 
-// Création automatique du stock Songon Kassemblé (ZONE_STOCK) au démarrage
-(async () => {
-  try {
-    await ensureZoneStockProject('Songon Kassemblé', 'Songon Kassemblé');
-    console.log('Stock Songon Kassemblé (ZONE_STOCK) prêt.');
-  } catch (e) {
-    console.error('Erreur création stock Songon Kassemblé:', e);
-  }
-})();
-
 if (DB_DRIVER === 'postgres') {
   console.log('Mode base de donnees: PostgreSQL');
 } else {
@@ -267,6 +303,49 @@ app.get('/healthz', (_req, res) => {
   }
   res.json({ status: 'ok' });
 });
+
+// ============ Custom Warehouses API Endpoints ============
+app.get('/api/custom-warehouses', authenticateToken, async (req, res) => {
+  try {
+    const rows = await all(`SELECT * FROM custom_warehouses ORDER BY updatedAt DESC`);
+    res.json({ warehouses: rows || [] });
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur chargement entrepôts personnalisés', details: String(e) });
+  }
+});
+
+app.post('/api/custom-warehouses', authenticateToken, async (req, res) => {
+  try {
+    const { id, name, linkedProjectId, linkedProjectName, linkedZoneId, linkedZoneName, prefecture, color } = req.body;
+    if (!id || !name) {
+      return res.status(400).json({ error: 'id et name sont obligatoires' });
+    }
+    const now = new Date().toISOString();
+    const createdBy = req.user.username;
+    await run(
+      `INSERT INTO custom_warehouses (id, name, linkedProjectId, linkedProjectName, linkedZoneId, linkedZoneName, prefecture, color, createdBy, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, name, linkedProjectId || null, linkedProjectName || null, linkedZoneId || null, linkedZoneName || null, prefecture || null, color || null, createdBy, now, now]
+    );
+    res.json({ success: true, warehouse: { id, name, linkedProjectId, linkedProjectName, linkedZoneId, linkedZoneName, prefecture, color, createdBy, createdAt: now, updatedAt: now } });
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur création entrepôt', details: String(e) });
+  }
+});
+
+app.delete('/api/custom-warehouses/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'id est obligatoire' });
+    }
+    await run(`DELETE FROM custom_warehouses WHERE id = ?`, [id]);
+    res.json({ success: true, message: 'Entrepôt supprimé' });
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur suppression entrepôt', details: String(e) });
+  }
+});
+// ============ End Custom Warehouses API Endpoints ============
 
 app.get('/readyz', async (_req, res) => {
   if (!isReady || isShuttingDown) {
@@ -701,11 +780,6 @@ function renderPurchaseOrderPdf(doc, order) {
     : 'Site non renseigne';
   const orderDate = new Date(order.dateCommande || Date.now());
   const orderDateLabel = Number.isNaN(orderDate.getTime()) ? new Date().toLocaleDateString('fr-FR') : orderDate.toLocaleDateString('fr-FR');
-  const statusValue = String(order.statutValidation || order.statut || '').trim().toUpperCase();
-  const isRejected = statusValue === 'ANNULEE' || statusValue === 'REJETEE';
-  const isValidated = statusValue === 'VALIDEE' || statusValue === 'LIVREE';
-  const stampLabel = isRejected ? 'Rejeté' : (isValidated ? 'Validé' : 'En attente');
-  const stampColor = isRejected ? '#b91c1c' : (isValidated ? '#166534' : '#b45309');
   const signatureFontPath = resolveSignatureFontPath();
   const signatureFontName = signatureFontPath ? 'SignatureScript' : 'Helvetica-Oblique';
 
@@ -796,39 +870,19 @@ function renderPurchaseOrderPdf(doc, order) {
   });
   doc.restore();
 
-  // Footer: signature and decision stamp.
+  // Footer: signatures and decision status.
   const footerY = 730;
   doc.moveTo(40, footerY).lineTo(555, footerY).lineWidth(1).strokeColor('#94a3b8').stroke();
   doc.font('Helvetica').fontSize(9).fillColor('#475569').text(`Edite le : ${new Date().toLocaleString('fr-FR')}`, 40, footerY + 10);
 
-  doc.save();
-  doc.lineWidth(2).strokeColor(stampColor).fillColor(stampColor);
-  doc.roundedRect(40, 742, 160, 52, 8).stroke();
-  doc.font('Helvetica-Bold').fontSize(8).text('TAMPON', 48, 748, { width: 144, align: 'left' });
-  doc.font('Helvetica-Bold').fontSize(18).text(stampLabel, 48, 760, { width: 144, align: 'left' });
-  doc.restore();
+  const purchaseSignatureName = String(order.signatureName || order.creePar || order.createdBy || '').trim() || 'Signataire';
+  const purchaseSignatureRole = String(order.signatureRole || '').trim();
 
-  const hasValidatorSignature = isValidated && String(order.signatureName || '').trim();
-  if (hasValidatorSignature) {
-    // After validation, place executive signature next to the validation stamp (bottom-left).
-    const validatorName = String(order.signatureName || '').trim();
-    const validatorRole = String(order.signatureRole || '').trim();
-    doc.font('Helvetica').fontSize(9).fillColor('#0f172a').text('Signature validation', 48, 798, { width: 190, align: 'left' });
-    doc.font(signatureFontName).fontSize(22).fillColor('#111827').text(validatorName, 48, 808, { width: 190, align: 'left' });
-    if (validatorRole) {
-      doc.font('Helvetica').fontSize(9).fillColor('#334155').text(validatorRole, 48, 830, { width: 190, align: 'left' });
-    }
-    return;
-  }
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#0f172a').text('Validé par', 48, 744, { width: 190, align: 'left' });
+  doc.font('Helvetica').fontSize(9).fillColor('#334155').text(purchaseSignatureRole || '____________________', 48, 760, { width: 190, align: 'left' });
 
-  // Before validation, keep creator/requester signature on the right.
-  const signerName = String(order.signatureName || order.createdBy || '').trim() || 'Signature';
-  const signerRole = String(order.signatureRole || '').trim();
-  doc.font('Helvetica').fontSize(9).fillColor('#0f172a').text('Signature autorisee', 335, 742, { width: 220, align: 'right' });
-  doc.font(signatureFontName).fontSize(26).fillColor('#111827').text(signerName, 335, 754, { width: 220, align: 'right' });
-  if (signerRole) {
-    doc.font('Helvetica').fontSize(9).fillColor('#334155').text(signerRole, 335, 784, { width: 220, align: 'right' });
-  }
+  doc.font('Helvetica').fontSize(9).fillColor('#0f172a').text("Signature de l'achat", 335, 742, { width: 220, align: 'right' });
+  doc.font(signatureFontName).fontSize(26).fillColor('#111827').text(purchaseSignatureName, 335, 754, { width: 220, align: 'right' });
 }
 
 async function generatePurchaseOrderPdfBuffer(order) {
@@ -921,22 +975,27 @@ function parseCatalogStageLabels(value) {
   if (!raw) return [];
   return raw
     .split(/[;,|/]+/)
+    .flatMap(label => String(label || '').split(/::|>|\|/))
     .map(label => String(label || '').trim())
     .filter(Boolean);
 }
 
 function isCatalogStageMatching(catalogNotes, requestedStage) {
-  const requestedKey = normalizeStageLabel(requestedStage);
-  if (!requestedKey) return true;
+  const requestedParts = parseCatalogStageLabels(requestedStage);
+  const requestedMainKey = normalizeStageLabel(requestedParts[0] || requestedStage);
+  const requestedSubKey = normalizeStageLabel(requestedParts.slice(1).join('::') || '');
+  if (!requestedMainKey) return true;
 
-  const stages = parseCatalogStageLabels(catalogNotes);
-  if (!stages.length) return true;
+  const catalogParts = parseCatalogStageLabels(catalogNotes);
+  if (!catalogParts.length) return true;
 
-  return stages.some(stageLabel => {
-    const catalogKey = normalizeStageLabel(stageLabel);
-    if (!catalogKey) return false;
-    return catalogKey === requestedKey || catalogKey.includes(requestedKey) || requestedKey.includes(catalogKey);
-  });
+  const catalogMainKey = normalizeStageLabel(catalogParts[0] || catalogNotes);
+  const catalogSubKey = normalizeStageLabel(catalogParts.slice(1).join('::') || '');
+  if (!catalogMainKey) return false;
+  if (requestedSubKey) {
+    return catalogMainKey === requestedMainKey && catalogSubKey === requestedSubKey;
+  }
+  return catalogMainKey === requestedMainKey;
 }
 
 function resolvePurchaseOrderStageDisplay(value) {
@@ -963,11 +1022,18 @@ function extractSiteNumberLabel(value) {
   return stripped || raw;
 }
 
+function shortenDocumentStageLabel(value, maxLen = 72) {
+  const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+  if (normalized.length <= maxLen) return normalized;
+  return `${normalized.slice(0, Math.max(8, maxLen - 1)).trim()}…`;
+}
+
 function buildPurchaseOrderDocumentTitle(order) {
   const stageRaw = resolvePurchaseOrderStageDisplay(order?.etapeApprovisionnement)
     || resolvePurchaseOrderStageDisplay(order?.items?.[0]?.etapeApprovisionnement)
     || '';
-  const stageLabel = stageRaw || 'Étape';
+  const stageLabel = shortenDocumentStageLabel(stageRaw || 'Étape', 72);
 
   const siteRaw = String(order?.numeroMaison || order?.nomSiteManuel || '').trim();
   const siteLabel = extractSiteNumberLabel(siteRaw);
@@ -976,7 +1042,7 @@ function buildPurchaseOrderDocumentTitle(order) {
 }
 
 function buildStageSiteTitle(stageValue, siteValue) {
-  const stageLabel = String(stageValue || '').trim() || 'Etape';
+  const stageLabel = shortenDocumentStageLabel(String(stageValue || '').trim() || 'Etape', 72);
   const siteLabel = extractSiteNumberLabel(siteValue);
   return `${stageLabel}-${siteLabel}`;
 }
@@ -1048,6 +1114,7 @@ function renderMaterialAuthorizationPdf(doc, payload) {
   const signedAtLabel = isRequestDocument ? 'Emis le :' : 'Sign\u00e9 le :';
   const requestStatusLabel = isRequestDocument ? 'DEMANDEE' : normalizedDecision;
   const requestStageLabel = String(request.etapeApprovisionnement || '-').trim() || '-';
+  const requestStageLabelSingleLine = requestStageLabel.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim() || '-';
   const warehouseLabel = resolveWarehouseLabel(request.warehouseId);
 
   if (signatureFontPath) {
@@ -1076,26 +1143,36 @@ function renderMaterialAuthorizationPdf(doc, payload) {
   doc.moveTo(40, 100).lineTo(555, 100).lineWidth(1).strokeColor('#cccccc').stroke();
 
   // === INFORMATIONS DEMANDE ===
-  doc.font('Helvetica-Bold').fontSize(11).fillColor('#000000').text('Informations de la demande', 40, 110);
+  const requestInfoTitleY = 110;
+  const requestInfoRow1Y = 128;
+  doc.font('Helvetica-Bold').fontSize(11).fillColor('#000000').text('Informations de la demande', 40, requestInfoTitleY);
 
-  doc.font('Helvetica-Bold').fontSize(10).text('Demandeur :', 40, 128);
-  doc.font('Helvetica').fontSize(10).text(String(request.demandeur || '-').trim() || '-', 130, 128);
-  doc.font('Helvetica-Bold').fontSize(10).text('\u00c9tape :', 300, 128);
-  doc.font('Helvetica').fontSize(10).text(requestStageLabel, 345, 128);
+  doc.font('Helvetica-Bold').fontSize(10).text('Demandeur :', 40, requestInfoRow1Y);
+  doc.font('Helvetica').fontSize(10).text(String(request.demandeur || '-').trim() || '-', 130, requestInfoRow1Y);
+  doc.font('Helvetica-Bold').fontSize(10).text('\u00c9tape :', 300, requestInfoRow1Y);
+  doc.font('Helvetica').fontSize(10).text(requestStageLabelSingleLine, 345, requestInfoRow1Y, {
+    width: 205,
+  });
 
-  doc.font('Helvetica-Bold').fontSize(10).text('Entrepot :', 40, 144);
-  doc.font('Helvetica').fontSize(10).text(warehouseLabel, 130, 144);
-  doc.font('Helvetica-Bold').fontSize(10).text('Statut :', 300, 144);
-  doc.font('Helvetica').fontSize(10).text(requestStatusLabel, 345, 144);
+  const stageTextHeight = Math.max(12, doc.heightOfString(requestStageLabelSingleLine, { width: 205 }));
+  const requestInfoRow2Y = requestInfoRow1Y + Math.max(16, stageTextHeight + 4);
+
+  doc.font('Helvetica-Bold').fontSize(10).text('Entrepot :', 40, requestInfoRow2Y);
+  doc.font('Helvetica').fontSize(10).text(warehouseLabel, 130, requestInfoRow2Y);
+  doc.font('Helvetica-Bold').fontSize(10).text('Statut :', 300, requestInfoRow2Y);
+  doc.font('Helvetica').fontSize(10).text(requestStatusLabel, 345, requestInfoRow2Y);
+
+  const requestInfoSeparatorY = requestInfoRow2Y + 18;
 
   // Separator
-  doc.moveTo(40, 162).lineTo(555, 162).lineWidth(1).strokeColor('#cccccc').stroke();
+  doc.moveTo(40, requestInfoSeparatorY).lineTo(555, requestInfoSeparatorY).lineWidth(1).strokeColor('#cccccc').stroke();
 
   // === TABLE MATERIEL AUTORISE ===
-  doc.font('Helvetica-Bold').fontSize(11).fillColor('#000000').text(materialSectionTitle, 40, 172);
+  const materialSectionTitleY = requestInfoSeparatorY + 10;
+  doc.font('Helvetica-Bold').fontSize(11).fillColor('#000000').text(materialSectionTitle, 40, materialSectionTitleY);
 
   const startX = 40;
-  const tableTop = 190;
+  const tableTop = materialSectionTitleY + 18;
   const widths = [375, 140];
   const rowHeight = 20;
 
@@ -1122,12 +1199,16 @@ function renderMaterialAuthorizationPdf(doc, payload) {
       Number(request.quantiteDemandee || 0).toFixed(2),
     ]);
   }
-  // Cap at 18 rows max to guarantee one page
-  const displayRows = rows.slice(0, 18);
+  // Dynamic cap to keep content above footer even when stage text spans multiple lines.
+  const footerY = 730;
+  const firstDataRowY = tableTop + rowHeight;
+  const maxDataBottomY = footerY - 24;
+  const availableRowsHeight = Math.max(rowHeight, maxDataBottomY - firstDataRowY);
+  const maxRowsPerPage = Math.max(1, Math.min(18, Math.floor(availableRowsHeight / rowHeight)));
+  const displayRows = rows.slice(0, maxRowsPerPage);
   displayRows.forEach((row, idx) => drawRow(tableTop + rowHeight * (idx + 1), row, false));
 
   // === FOOTER: signature + tampon (fixed at bottom of page) ===
-  const footerY = 730;
   doc.moveTo(40, footerY).lineTo(555, footerY).lineWidth(1).strokeColor('#999999').stroke();
 
   // Date/heure de signature (left)
@@ -2030,10 +2111,11 @@ async function initDb() {
   )`);
 
   // Repair legacy mojibake sequences introduced during cross-environment syncs.
+  // Use CHAR(65533) (replacement char) and UTF-8-as-CP1252 variants to stay robust across editors/OS.
   try {
     await run(`
       UPDATE project_catalog
-      SET typeProjet = REPLACE(typeProjet, 'sant�', 'santé')
+      SET typeProjet = REPLACE(REPLACE(typeProjet, 'santÃ©', 'santé'), 'sant' || char(65533), 'santé')
       WHERE LOWER(TRIM(nomProjet)) = 'pinut'
     `);
   } catch (e) {}
@@ -2045,37 +2127,62 @@ async function initDb() {
           REPLACE(
             REPLACE(
               REPLACE(
-                REPLACE(description, 'sant�', 'santé'),
-                '�chelle',
+                REPLACE(
+                  REPLACE(description, 'santÃ©', 'santé'),
+                  'sant' || char(65533),
+                  'santé'
+                ),
+                'Ã©chelle',
                 'échelle'
               ),
-              'C�te',
-              'Côte'
+              char(65533) || 'chelle',
+              'échelle'
             ),
-            'am�liorer',
-            'améliorer'
+            'CÃ´te',
+            'Côte'
           ),
-          'acc�s',
-          'accès'
+          'C' || char(65533) || 'te',
+          'Côte'
         ),
-        '� ',
-        'à '
+        'amÃ©liorer',
+        'améliorer'
       )
       WHERE LOWER(TRIM(nomProjet)) = 'pinut'
     `);
   } catch (e) {}
   try {
     await run(`
+      UPDATE project_catalog
+      SET description = REPLACE(description, 'accÃ¨s', 'accès')
+      WHERE LOWER(TRIM(nomProjet)) = 'pinut'
+    `);
+  } catch (e) {}
+  try {
+    await run(`
+      UPDATE project_catalog
+      SET description = REPLACE(description, 'acc' || char(65533) || 's', 'accès')
+      WHERE LOWER(TRIM(nomProjet)) = 'pinut'
+    `);
+  } catch (e) {}
+  try {
+    await run(`
+      UPDATE project_catalog
+      SET description = REPLACE(description, char(65533) || ' ', 'à ')
+      WHERE LOWER(TRIM(nomProjet)) = 'pinut'
+    `);
+  } catch (e) {}
+  try {
+    await run(`
       UPDATE projects
-      SET typeMaison = REPLACE(typeMaison, 'sant�', 'santé')
+      SET typeMaison = REPLACE(REPLACE(typeMaison, 'santÃ©', 'santé'), 'sant' || char(65533), 'santé')
       WHERE LOWER(TRIM(nomProjet)) = 'pinut'
     `);
   } catch (e) {}
   try {
     await run(`
       UPDATE building_material_catalog
-      SET unite = REPLACE(unite, 'm�', 'm³'),
-          notes = REPLACE(notes, '�tape', 'Étape')
+      SET unite = REPLACE(REPLACE(unite, 'mÃ³', 'm³'), 'm' || char(65533), 'm³'),
+          notes = REPLACE(REPLACE(notes, 'Ã‰tape', 'Étape'), char(65533) || 'tape', 'Étape')
       WHERE LOWER(TRIM(projectFolder)) = 'pinut'
     `);
   } catch (e) {}
@@ -2326,6 +2433,9 @@ async function initDb() {
     id INTEGER PRIMARY KEY,
     fullName TEXT NOT NULL,
     jobTitle TEXT NOT NULL DEFAULT '',
+    sexe TEXT NOT NULL DEFAULT '',
+    typeContrat TEXT NOT NULL DEFAULT '',
+    dateEmbauche TEXT NOT NULL DEFAULT '',
     phoneNumber TEXT NOT NULL DEFAULT '',
     address TEXT NOT NULL DEFAULT '',
     maritalStatus TEXT NOT NULL DEFAULT '',
@@ -2336,6 +2446,9 @@ async function initDb() {
   )`);
 
   try { await run("ALTER TABLE hr_employees ADD COLUMN jobTitle TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN sexe TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN typeContrat TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN dateEmbauche TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN phoneNumber TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN address TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN maritalStatus TEXT NOT NULL DEFAULT ''"); } catch (e) {}
@@ -2533,6 +2646,21 @@ async function initDb() {
     }
   } catch (e) {}
   try { await run('ALTER TABLE purchase_orders ADD COLUMN warehouseId TEXT'); } catch (e) {}
+
+  // Custom warehouses table for storing user-created warehouses
+  await run(`CREATE TABLE IF NOT EXISTS custom_warehouses (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    linkedProjectId TEXT,
+    linkedProjectName TEXT,
+    linkedZoneId TEXT,
+    linkedZoneName TEXT,
+    prefecture TEXT,
+    color TEXT,
+    createdBy TEXT,
+    createdAt TEXT,
+    updatedAt TEXT
+  )`);
 
   try {
   await run('CREATE INDEX IF NOT EXISTS idx_projects_site_house ON projects(nomSite, numeroMaison)');
@@ -2746,6 +2874,31 @@ async function initDb() {
     createdBy: siteChiefUsername,
   });
 
+  // Garantir le profil KOKAN (gestionnaire stock Songon)
+  const kokan = await get('SELECT id FROM users WHERE username = ?', [KOKAN_USERNAME]);
+  const kokanHashedPassword = await bcrypt.hash(KOKAN_PASSWORD, 10);
+  if (!kokan) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, KOKAN_USERNAME, kokanHashedPassword, 'gestionnaire_stock_songon', new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${KOKAN_USERNAME} cree avec role gestionnaire_stock_songon`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [kokanHashedPassword, 'gestionnaire_stock_songon', KOKAN_USERNAME]
+    );
+    console.log(`Utilisateur ${KOKAN_USERNAME} mis a jour avec role gestionnaire_stock_songon`);
+  }
+
+  await ensureHrEmployeeProfile({
+    username: KOKAN_USERNAME,
+    fullName: 'KOKAN',
+    jobTitle: 'Gestionnaire de Stock Songon',
+    createdBy: 'admin',
+  });
+
   // Supprimer les profils retires du lien public et de Railway.
   const removedPublicProfiles = await run(
     'DELETE FROM users WHERE role = ? OR username IN (?, ?, ?)',
@@ -2760,6 +2913,15 @@ initDb().then(() => {
   server = app.listen(PORT, () => {
     isReady = true;
     console.log(`API Construction & Logistique démarrée sur http://localhost:${PORT}`);
+
+    if (LOCALHOST_FALLBACK_PORT > 0 && LOCALHOST_FALLBACK_PORT !== PORT) {
+      localhostFallbackServer = app.listen(LOCALHOST_FALLBACK_PORT, () => {
+        console.log(`Compatibilite locale active sur http://localhost:${LOCALHOST_FALLBACK_PORT}`);
+      });
+      localhostFallbackServer.on('error', error => {
+        console.error(`Impossible d'activer la compatibilite localhost:${LOCALHOST_FALLBACK_PORT}:`, error.message || error);
+      });
+    }
     
     // Exécuter les réconciliations en arrière-plan sans bloquer
     setImmediate(() => {
@@ -2790,8 +2952,14 @@ async function shutdown(signal) {
   console.log(`Signal ${signal} recu. Arret en cours...`);
 
   try {
+    if (localhostFallbackServer) {
+      await new Promise(resolve => localhostFallbackServer.close(resolve));
+      localhostFallbackServer = null;
+    }
+
     if (server) {
       await new Promise(resolve => server.close(resolve));
+      server = null;
     }
   } catch (error) {
     console.error('Erreur fermeture serveur HTTP:', error);
@@ -2849,17 +3017,24 @@ function authorizeRoleAccess(req, res, next) {
   if (
     role !== 'commis'
     && role !== 'gestionnaire_stock'
+    && role !== 'gestionnaire_stock_songon'
     && role !== 'chef_chantier_site'
     && role !== 'directeur_rh'
     && role !== 'dirigeant'
     && role !== 'achat'
     && role !== 'controle_achat'
+    && role !== 'controle_achat_global'
   ) {
     return next();
   }
 
   const method = String(req.method || '').toUpperCase();
   const pathName = String(req.path || '');
+  const originalUrl = String(req.originalUrl || '');
+
+  if (role === 'gestionnaire_stock_songon' && method === 'GET') {
+    return next();
+  }
 
   const commisRules = [
     { method: 'GET', pattern: /^\/projects$/ },
@@ -2879,7 +3054,7 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET',   pattern: /^\/projects$/ },
     { method: 'GET',   pattern: /^\/material-requests$/ },
     { method: 'POST',  pattern: /^\/material-requests\/auto-stage$/ },
-    { method: 'GET',   pattern: /^\/purchase-orders$/ },
+    { method: 'GET',   pattern: /^\/purchase-orders(?:\/.*)?$/ },
     { method: 'PATCH', pattern: /^\/purchase-orders\/\d+\/validation$/ },
     { method: 'GET',   pattern: /^\/stock-management\/orders$/ },
     { method: 'PATCH', pattern: /^\/stock-management\/orders\/\d+\/arrive$/ },
@@ -2887,6 +3062,37 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET',   pattern: /^\/stock-management\/issues$/ },
     { method: 'POST',  pattern: /^\/stock-management\/issues$/ },
     { method: 'GET',   pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
+    { method: 'GET',   pattern: /^\/transfer-authorizations$/ },
+  ];
+
+  const gestStockSongonRules = [
+    { method: 'GET',   pattern: /^\/auth\/me$/ },
+    { method: 'GET',   pattern: /^\/projects$/ },
+    { method: 'GET',   pattern: /^\/purchase-orders$/ },
+    { method: 'GET',   pattern: /^\/project-progress$/ },
+    { method: 'POST',  pattern: /^\/project-progress$/ },
+    { method: 'GET',   pattern: /^\/project-folders$/ },
+    { method: 'GET',   pattern: /^\/project-catalog$/ },
+    { method: 'GET',   pattern: /^\/material-requests$/ },
+    { method: 'PATCH', pattern: /^\/material-requests\/\d+\/remaining$/ },
+    { method: 'PATCH', pattern: /^\/material-requests\/\d+\/statut$/ },
+    { method: 'GET',   pattern: /^\/material-requests\/\d+\/authorization-documents$/ },
+    { method: 'GET',   pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'GET',   pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
+    { method: 'GET',   pattern: /^\/material-catalog$/ },
+    { method: 'GET',   pattern: /^\/database-documents$/ },
+    { method: 'GET',   pattern: /^\/database-documents\/\d+\/download$/ },
+    { method: 'GET',   pattern: /^\/hr\/employees$/ },
+    // Gestion de stock: memes capacites qu'admin sur ce module
+    { method: 'GET',   pattern: /^\/stock-management\/orders$/ },
+    { method: 'PATCH', pattern: /^\/stock-management\/orders\/\d+\/arrive$/ },
+    { method: 'GET',   pattern: /^\/stock-management\/available$/ },
+    { method: 'GET',   pattern: /^\/stock-management\/available-stock$/ },
+    { method: 'GET',   pattern: /^\/stock-management\/issues$/ },
+    { method: 'POST',  pattern: /^\/stock-management\/issues$/ },
+    { method: 'GET',   pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'POST',  pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'GET',   pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
     { method: 'GET',   pattern: /^\/transfer-authorizations$/ },
   ];
 
@@ -3029,6 +3235,7 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/material-requests$/ },
     { method: 'GET', pattern: /^\/purchase-orders$/ },
     { method: 'POST', pattern: /^\/purchase-orders$/ },
+    { method: 'DELETE', pattern: /^\/purchase-orders\/\d+$/ },
     { method: 'GET', pattern: /^\/purchase-orders\/\d+\/pdf$/ },
     { method: 'GET', pattern: /^\/purchase-orders\/\d+\/authorization-documents$/ },
     { method: 'GET', pattern: /^\/stock-management\/available$/ },
@@ -3072,10 +3279,9 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET',    pattern: /^\/stock-management\/available$/ },
     { method: 'GET',    pattern: /^\/stock-management\/issues$/ },
     { method: 'GET',    pattern: /^\/stock-management\/orders$/ },
-    // Autorisations de sortie – créer, valider/rejeter, PDF
+    // Autorisations de sortie – créer + lecture PDF (decision reservee admin/dirigeant)
     { method: 'GET',    pattern: /^\/stock-issue-authorizations$/ },
     { method: 'POST',   pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'PATCH',  pattern: /^\/stock-issue-authorizations\/\d+\/decision$/ },
     { method: 'GET',    pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
     // Base de données – accès complet + téléchargements
     { method: 'GET',    pattern: /^\/database-documents$/ },
@@ -3089,11 +3295,13 @@ function authorizeRoleAccess(req, res, next) {
 
   const rules = role === 'gestionnaire_stock'
     ? gestStockRules
+    : role === 'gestionnaire_stock_songon'
+      ? gestStockSongonRules
     : role === 'chef_chantier_site'
       ? siteChiefRules
       : role === 'directeur_rh'
         ? hrDirectorRules
-      : role === 'controle_achat'
+        : role === 'controle_achat' || role === 'controle_achat_global'
         ? procurementReviewerRules
       : role === 'dirigeant'
         ? executiveRules
@@ -3143,8 +3351,45 @@ function isInChefSiteScope(user, projectLikeRow) {
   return candidates.some(token => token === scope);
 }
 
+function normalizeScopeText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+function isSongonStockManagerRole(user) {
+  return String(user?.role || '').trim() === 'gestionnaire_stock_songon';
+}
+
+function isInSongonZoneScope(projectLikeRow) {
+  const candidates = [
+    projectLikeRow?.prefecture,
+    projectLikeRow?.nomProjet,
+    projectLikeRow?.nomSite,
+    projectLikeRow?.nomSiteManuel,
+    projectLikeRow?.zoneName,
+  ]
+    .map(normalizeScopeText)
+    .filter(Boolean);
+
+  return candidates.some(value => value.includes('songon'));
+}
+
+function isInUserProjectScope(user, projectLikeRow) {
+  if (String(user?.role || '').trim() === 'chef_chantier_site') {
+    return isInChefSiteScope(user, projectLikeRow);
+  }
+  if (isSongonStockManagerRole(user)) {
+    return isInSongonZoneScope(projectLikeRow);
+  }
+  return true;
+}
+
 function isProcurementReviewerRole(user) {
-  return String(user?.role || '').trim() === 'controle_achat';
+  const role = String(user?.role || '').trim();
+  return role === 'controle_achat' || role === 'controle_achat_global';
 }
 
 async function getHrScopedEmployeeIdsForUser(user) {
@@ -3360,7 +3605,16 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
 });
 
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
-  res.json({ username: req.user.username, role: req.user.role, scope: null });
+  const role = String(req.user?.role || '').trim();
+  const scope = role === 'gestionnaire_stock_songon'
+    ? {
+        warehouseId: 'entrepot-songon-2',
+        zoneName: 'Songon',
+        siteNumber: '',
+      }
+    : null;
+
+  res.json({ username: req.user.username, role: req.user.role, scope });
 });
 
 app.post('/api/gps/ingest', async (req, res) => {
@@ -3445,6 +3699,7 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
     projetId,
     zoneName = '',
     nomProjet = '',
+    catalogProjectFolder = '',
     demandeur,
     etapeApprovisionnement = '',
     warehouseId = '',
@@ -3507,12 +3762,66 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
   }
 
   const projectFolder = String(project.nomProjet || '').trim();
-  const catalogRows = await all(
-    'SELECT * FROM building_material_catalog WHERE projectFolder = ? ORDER BY materialName ASC',
-    [projectFolder]
-  );
+  const requestedCatalogFolder = String(catalogProjectFolder || '').trim();
 
-  const stageCatalog = (catalogRows || [])
+  const normalizeFolderKey = value => String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const allCatalogRows = await all('SELECT * FROM building_material_catalog ORDER BY materialName ASC');
+  const allCatalogFolders = [...new Set((allCatalogRows || [])
+    .map(row => String(row?.projectFolder || '').trim())
+    .filter(Boolean))];
+
+  const baseProjectFolderKey = normalizeFolderKey(projectFolder);
+  const requestedCatalogFolderKey = normalizeFolderKey(requestedCatalogFolder);
+
+  const discoveredFolders = allCatalogFolders.filter(folderName => {
+    const key = normalizeFolderKey(folderName);
+    if (!key) return false;
+    if (requestedCatalogFolderKey && key === requestedCatalogFolderKey) return true;
+    if (key === baseProjectFolderKey) return true;
+    return key.startsWith(`${baseProjectFolderKey} - `);
+  });
+
+  const candidateFolders = [];
+  const candidateFolderKeys = new Set();
+  const pushCandidateFolder = folderName => {
+    const raw = String(folderName || '').trim();
+    if (!raw) return;
+    const key = normalizeFolderKey(raw);
+    if (!key || candidateFolderKeys.has(key)) return;
+    candidateFolderKeys.add(key);
+    candidateFolders.push(raw);
+  };
+
+  pushCandidateFolder(requestedCatalogFolder);
+  pushCandidateFolder(projectFolder);
+  (discoveredFolders || []).forEach(row => pushCandidateFolder(row?.projectFolder || ''));
+
+  let resolvedProjectFolder = projectFolder;
+  let stageCatalogRows = [];
+
+  for (const folderName of candidateFolders) {
+    const folderKey = normalizeFolderKey(folderName);
+    const rows = (allCatalogRows || []).filter(entry => normalizeFolderKey(entry?.projectFolder || '') === folderKey);
+    if (!rows.length) continue;
+
+    const stageRows = rows.filter(entry => isCatalogStageMatching(entry.notes, stageRaw));
+    if (!stageCatalogRows.length) {
+      resolvedProjectFolder = folderName;
+    }
+    if (stageRows.length) {
+      resolvedProjectFolder = folderName;
+      stageCatalogRows = stageRows;
+      break;
+    }
+  }
+
+  const stageCatalog = (stageCatalogRows || [])
     .filter(entry => isCatalogStageMatching(entry.notes, stageRaw))
     .map(entry => ({
       materialName: String(entry.materialName || '').trim(),
@@ -3537,7 +3846,7 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
 
   if (!stageCatalog.length) {
     return res.status(404).json({
-      error: `Aucun article catalogue trouve pour l'etape "${stageRaw}" sur le projet "${projectFolder}".`,
+      error: `Aucun article catalogue trouve pour l'etape "${stageRaw}" sur le projet "${resolvedProjectFolder || projectFolder}".`,
     });
   }
 
@@ -3681,7 +3990,11 @@ app.post('/api/project-catalog', async (req, res) => {
 });
 
 app.get('/api/project-catalog', async (_req, res) => {
-  const rows = await all('SELECT * FROM project_catalog ORDER BY id DESC');
+  const rows = await all('SELECT * FROM project_catalog WHERE isHidden = 0 ORDER BY id DESC');
+  const role = String(_req.user?.role || '').trim();
+  if (role === 'gestionnaire_stock_songon') {
+    return res.json(rows.filter(row => isInSongonZoneScope(row)));
+  }
   res.json(rows);
 });
 
@@ -3732,11 +4045,15 @@ app.post('/api/project-folders', async (req, res) => {
 });
 
 app.get('/api/project-folders', async (_req, res) => {
-  const rows = await all('SELECT pf.*, pc.typeProjet FROM project_folders pf LEFT JOIN project_catalog pc ON pc.id = pf.projectId ORDER BY pf.id DESC');
+  const rows = await all('SELECT pf.*, pc.typeProjet FROM project_folders pf LEFT JOIN project_catalog pc ON pc.id = pf.projectId WHERE pf.isHidden = 0 ORDER BY pf.id DESC');
+  const role = String(_req.user?.role || '').trim();
+  if (role === 'gestionnaire_stock_songon') {
+    return res.json(rows.filter(row => isInSongonZoneScope(row)));
+  }
   res.json(rows);
 });
 
-app.delete('/api/project-folders/:id', async (req, res) => {
+async function handleDeleteProjectFolder(req, res) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) {
     return res.status(400).json({ error: 'Identifiant de zone invalide' });
@@ -3753,24 +4070,42 @@ app.delete('/api/project-folders/:id', async (req, res) => {
     'SELECT id FROM projects WHERE LOWER(nomProjet) = LOWER(?) AND LOWER(prefecture) = LOWER(?)',
     [projectName, prefectureName]
   );
+  const zoneWarehouses = await all(
+    `SELECT id
+     FROM projects
+     WHERE LOWER(prefecture) = LOWER(?)
+       AND UPPER(COALESCE(typeMaison, '')) = 'ZONE_STOCK'`,
+    [prefectureName]
+  );
+
+  const linkedProjectIds = Array.from(
+    new Set(
+      [...(sites || []), ...(zoneWarehouses || [])]
+        .map(row => Number(row.id))
+        .filter(value => Number.isInteger(value) && value > 0)
+    )
+  );
+
+  if (linkedProjectIds.length) {
+    const placeholders = linkedProjectIds.map(() => '?').join(',');
+    await run(`DELETE FROM project_assignments WHERE projectId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM material_requests WHERE projetId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM project_progress_updates WHERE projectId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM revenues WHERE projetId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM expenses WHERE projetId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM stock_issues WHERE projetId IN (${placeholders})`, linkedProjectIds);
+  }
 
   const deletedSitesResult = await run(
     'DELETE FROM projects WHERE LOWER(nomProjet) = LOWER(?) AND LOWER(prefecture) = LOWER(?)',
     [projectName, prefectureName]
   );
-
-  if (Array.isArray(sites) && sites.length) {
-    const siteIds = sites.map(site => Number(site.id)).filter(value => Number.isInteger(value));
-    if (siteIds.length) {
-      const placeholders = siteIds.map(() => '?').join(',');
-      await run(`DELETE FROM project_assignments WHERE projectId IN (${placeholders})`, siteIds);
-      await run(`DELETE FROM material_requests WHERE projetId IN (${placeholders})`, siteIds);
-      await run(`DELETE FROM project_progress_updates WHERE projectId IN (${placeholders})`, siteIds);
-      await run(`DELETE FROM revenues WHERE projetId IN (${placeholders})`, siteIds);
-      await run(`DELETE FROM expenses WHERE projetId IN (${placeholders})`, siteIds);
-      await run(`DELETE FROM stock_issues WHERE projetId IN (${placeholders})`, siteIds);
-    }
-  }
+  const deletedWarehousesResult = await run(
+    `DELETE FROM projects
+     WHERE LOWER(prefecture) = LOWER(?)
+       AND UPPER(COALESCE(typeMaison, '')) = 'ZONE_STOCK'`,
+    [prefectureName]
+  );
 
   const folderDeleteResult = await run('DELETE FROM project_folders WHERE id = ?', [id]);
   if (folderDeleteResult.changes === 0) {
@@ -3781,8 +4116,12 @@ app.delete('/api/project-folders/:id', async (req, res) => {
     message: 'Zone supprimée avec succès',
     deletedZoneId: id,
     deletedSites: Number(deletedSitesResult?.changes || 0),
+    deletedWarehouses: Number(deletedWarehousesResult?.changes || 0),
   });
-});
+}
+
+app.delete('/api/project-folders/:id', handleDeleteProjectFolder);
+app.delete('/api/zones/:id', handleDeleteProjectFolder);
 
 app.post('/api/projects', async (req, res) => {
   const {
@@ -3797,8 +4136,12 @@ app.post('/api/projects', async (req, res) => {
     statutConstruction = ''
   } = req.body;
   const projectIdValue = Number(projectId);
-  let projectName = String(nomProjet || '').trim();
-  let siteType = String(typeMaison || '').trim();
+  const requestedProjectName = String(nomProjet || '').trim();
+  let projectName = requestedProjectName;
+  let siteType = normalizeVillaTypeShortLabel(typeMaison);
+  if (!siteType) {
+    siteType = normalizeVillaTypeShortLabel(requestedProjectName);
+  }
   const prefectureName = String(prefecture || '').trim() || 'Non renseigne';
   const siteName = String(nomSite || '').trim();
   if (Number.isInteger(projectIdValue) && projectIdValue > 0) {
@@ -3807,7 +4150,9 @@ app.post('/api/projects', async (req, res) => {
       return res.status(400).json({ error: 'Projet introuvable pour ce site' });
     }
     projectName = String(parent.nomProjet || '').trim();
-    siteType = String(parent.typeProjet || '').trim();
+    if (!siteType) {
+      siteType = normalizeVillaTypeShortLabel(parent.typeProjet);
+    }
   }
   if (!projectName) {
     return res.status(400).json({ error: 'Le nom du projet est obligatoire' });
@@ -3873,7 +4218,7 @@ app.post('/api/projects/bulk', async (req, res) => {
   const projectName = String(nomProjet || '').trim();
   const prefectureName = String(prefecture || '').trim() || 'Non renseigne';
   const firstSiteName = String(nomSite || '').trim();
-  const buildingType = String(typeMaison || '').trim();
+  const buildingType = normalizeVillaTypeShortLabel(typeMaison);
   const siteReference = String(numeroMaison || '').trim();
   const requestedCount = Number(count);
 
@@ -3969,19 +4314,40 @@ app.post('/api/projects/bulk', async (req, res) => {
 });
 
 app.get('/api/projects', async (req, res) => {
-  const rows = await all('SELECT * FROM projects ORDER BY id DESC');
-  if (String(req.user?.role || '').trim() === 'chef_chantier_site') {
-    return res.json(rows.filter(row => isInChefSiteScope(req.user, row)));
+  const rows = await all('SELECT * FROM projects WHERE isHidden = 0 ORDER BY id DESC');
+  const role = String(req.user?.role || '').trim();
+  if (role === 'chef_chantier_site') {
+    return res.json(rows.filter(row => isInUserProjectScope(req.user, row)));
   }
   res.json(rows);
 });
 
 app.patch('/api/projects/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const { nomProjet, prefecture = 'Non renseigne', nomSite = '', typeMaison = '', numeroMaison = '', description = '' } = req.body;
-  const projectName = String(nomProjet || '').trim();
-  const prefectureName = String(prefecture || '').trim() || 'Non renseigne';
-  const siteName = String(nomSite || '').trim();
+  const {
+    nomProjet,
+    prefecture,
+    nomSite,
+    typeMaison,
+    numeroMaison,
+    description,
+    etapeConstruction,
+    statutConstruction,
+  } = req.body || {};
+
+  const existingProject = await get('SELECT * FROM projects WHERE id = ?', [id]);
+  if (!existingProject) {
+    return res.status(404).json({ error: 'Projet non trouve' });
+  }
+
+  const projectName = String(nomProjet ?? existingProject.nomProjet ?? '').trim();
+  const prefectureName = String(prefecture ?? existingProject.prefecture ?? 'Non renseigne').trim() || 'Non renseigne';
+  const siteName = String(nomSite ?? existingProject.nomSite ?? '').trim();
+  const siteType = normalizeVillaTypeShortLabel(typeMaison ?? existingProject.typeMaison ?? '');
+  const siteNumber = String(numeroMaison ?? existingProject.numeroMaison ?? '').trim();
+  const siteDescription = String(description ?? existingProject.description ?? '').trim();
+  const constructionStage = String(etapeConstruction ?? existingProject.etapeConstruction ?? '').trim();
+  const constructionStatus = normalizeProjectConstructionStatus(statutConstruction ?? existingProject.statutConstruction ?? '');
 
   if (!id || !projectName) {
     return res.status(400).json({ error: 'Le nom du projet est obligatoire' });
@@ -4000,14 +4366,16 @@ app.patch('/api/projects/:id', async (req, res) => {
   }
 
   const result = await run(
-    'UPDATE projects SET nomProjet = ?, prefecture = ?, nomSite = ?, typeMaison = ?, numeroMaison = ?, description = ? WHERE id = ?',
+    'UPDATE projects SET nomProjet = ?, prefecture = ?, nomSite = ?, typeMaison = ?, numeroMaison = ?, description = ?, etapeConstruction = ?, statutConstruction = ? WHERE id = ?',
     [
       projectName,
       prefectureName,
       siteName,
-      String(typeMaison).trim(),
-      String(numeroMaison).trim(),
-      String(description).trim(),
+      siteType,
+      siteNumber,
+      siteDescription,
+      constructionStage,
+      constructionStatus,
       id,
     ]
   );
@@ -4041,6 +4409,12 @@ app.post('/api/material-requests', async (req, res) => {
     groupId = null,
     warehouseId = null,
   } = req.body;
+
+  // Check if warehouse is hidden
+  if (warehouseId && isWarehouseHidden(warehouseId)) {
+    return res.status(403).json({ error: 'Cet entrepot est indisponible' });
+  }
+
   if (!projetId || !demandeur || quantiteDemandee == null) {
     return res.status(400).json({ error: 'projetId, demandeur et quantiteDemandee sont obligatoires' });
   }
@@ -4210,8 +4584,9 @@ app.get('/api/material-requests', async (req, res) => {
     LEFT JOIN purchase_orders po ON po.id = pomax.max_po_id
     ORDER BY mr.dateDemande DESC
   `);
-  if (String(req.user?.role || '').trim() === 'chef_chantier_site') {
-    return res.json(rows.filter(row => isInChefSiteScope(req.user, row)));
+  const role = String(req.user?.role || '').trim();
+  if (role === 'chef_chantier_site') {
+    return res.json(rows.filter(row => isInUserProjectScope(req.user, row)));
   }
   res.json(rows);
 });
@@ -4461,6 +4836,11 @@ app.post('/api/purchase-orders', async (req, res) => {
   } = req.body;
   const createdBy = String(req.user?.username || creePar || 'admin').trim() || 'admin';
 
+  // Check if warehouse is hidden
+  if (warehouseId && isWarehouseHidden(warehouseId)) {
+    return res.status(403).json({ error: 'Cet entrepot est indisponible' });
+  }
+
   if (!fournisseur || !String(fournisseur).trim()) {
     return res.status(400).json({ error: 'Le fournisseur est obligatoire' });
   }
@@ -4647,20 +5027,16 @@ app.patch('/api/purchase-orders/:id/validation', async (req, res) => {
     return res.status(400).json({ error: 'Statut invalide' });
   }
 
-  if (role !== 'admin' && role !== 'dirigeant') {
+  if (role !== 'dirigeant') {
     return res.status(403).json({ error: 'Seul le dirigeant peut valider/rejeter les bons de commande' });
   }
 
-  const existingOrder = await get('SELECT id, creePar, statutValidation FROM purchase_orders WHERE id = ?', [id]);
+  const existingOrder = await get('SELECT id, statutValidation FROM purchase_orders WHERE id = ?', [id]);
   if (!existingOrder) {
     return res.status(404).json({ error: 'Commande non trouvée' });
   }
 
   if (role === 'dirigeant') {
-    const creator = String(existingOrder.creePar || '').trim().toLowerCase();
-    if (creator !== String(PROCUREMENT_REVIEWER_USERNAME || '').trim().toLowerCase()) {
-      return res.status(403).json({ error: 'Le dirigeant peut valider uniquement les bons créés par controle_achat_global' });
-    }
     if (statut === 'LIVREE' || statut === 'EN_COURS') {
       return res.status(400).json({ error: 'Le dirigeant peut uniquement valider ou rejeter un bon' });
     }
@@ -5034,10 +5410,13 @@ app.get('/api/stock-management/orders', async (req, res) => {
     projects: Array.from(order.projects),
   }));
 
-  if (String(req.user?.role || '').trim() === 'chef_chantier_site') {
-    result = result.filter(order => isInChefSiteScope(req.user, {
+  const role = String(req.user?.role || '').trim();
+  if (role === 'chef_chantier_site' || role === 'gestionnaire_stock_songon') {
+    result = result.filter(order => isInUserProjectScope(req.user, {
       numeroMaison: order.numeroMaison,
       nomSite: order.nomSiteManuel,
+      nomProjet: order.nomProjet,
+      zoneName: order.zoneName,
     }));
   }
 
@@ -5124,8 +5503,35 @@ app.get('/api/stock-management/available', async (req, res) => {
     WHERE mr.statut IN ('EN_STOCK', 'EPUISE')
     ORDER BY p.nomProjet ASC, mr.itemName ASC, mr.id DESC
   `);
-  const scopedRows = String(req.user?.role || '').trim() === 'chef_chantier_site'
-    ? rows.filter(row => isInChefSiteScope(req.user, row))
+  const role = String(req.user?.role || '').trim();
+  const scopedRows = (role === 'chef_chantier_site' || role === 'gestionnaire_stock_songon')
+    ? rows.filter(row => isInUserProjectScope(req.user, row))
+    : rows;
+
+  res.json(scopedRows.map(row => {
+    const isZone = String(row.typeMaison || '').toUpperCase() === 'ZONE_STOCK';
+    return {
+      ...row,
+      quantiteDemandee: Number(row.quantiteDemandee || 0),
+      quantiteRestante: Number(row.quantiteRestante || 0),
+      zoneName: isZone ? (row.prefecture || '') : '',
+      sourceType: isZone ? 'ZONE_STOCK' : 'SITE',
+    };
+  }));
+});
+
+// Alias legacy pour compatibilite des clients qui appellent encore available-stock.
+app.get('/api/stock-management/available-stock', async (req, res) => {
+  const rows = await all(`
+    SELECT mr.id, mr.projetId, p.nomProjet, p.prefecture, p.nomSite, p.numeroMaison, p.typeMaison, mr.itemName, mr.quantiteDemandee, mr.quantiteRestante, mr.statut, mr.etapeApprovisionnement, mr.warehouseId
+    FROM material_requests mr
+    JOIN projects p ON p.id = mr.projetId
+    WHERE mr.statut IN ('EN_STOCK', 'EPUISE')
+    ORDER BY p.nomProjet ASC, mr.itemName ASC, mr.id DESC
+  `);
+  const role = String(req.user?.role || '').trim();
+  const scopedRows = (role === 'chef_chantier_site' || role === 'gestionnaire_stock_songon')
+    ? rows.filter(row => isInUserProjectScope(req.user, row))
     : rows;
 
   res.json(scopedRows.map(row => {
@@ -5151,8 +5557,9 @@ app.get('/api/stock-management/issues', async (req, res) => {
     ORDER BY si.issuedAt DESC, si.id DESC
     LIMIT 100
   `);
-  const scopedRows = String(req.user?.role || '').trim() === 'chef_chantier_site'
-    ? rows.filter(row => isInChefSiteScope(req.user, row))
+  const role = String(req.user?.role || '').trim();
+  const scopedRows = (role === 'chef_chantier_site' || role === 'gestionnaire_stock_songon')
+    ? rows.filter(row => isInUserProjectScope(req.user, row))
     : rows;
   res.json(scopedRows);
 });
@@ -5193,8 +5600,9 @@ app.get('/api/stock-issue-authorizations', async (req, res) => {
     params
   );
 
-  const scopedRows = String(req.user?.role || '').trim() === 'chef_chantier_site'
-    ? (rows || []).filter(row => isInChefSiteScope(req.user, row))
+  const role = String(req.user?.role || '').trim();
+  const scopedRows = (role === 'chef_chantier_site' || role === 'gestionnaire_stock_songon')
+    ? (rows || []).filter(row => isInUserProjectScope(req.user, row))
     : (rows || []);
 
   const authorizationIds = scopedRows.map(row => Number(row.id)).filter(Boolean);
@@ -5254,8 +5662,9 @@ app.get('/api/stock-issue-authorizations/:id/pdf', async (req, res) => {
     return res.status(404).json({ error: 'Autorisation introuvable' });
   }
 
-  if (String(req.user?.role || '').trim() === 'chef_chantier_site' && !isInChefSiteScope(req.user, authRow)) {
-    return res.status(403).json({ error: 'Acces refuse: ce document ne concerne pas votre site' });
+  const authRole = String(req.user?.role || '').trim();
+  if ((authRole === 'chef_chantier_site' || authRole === 'gestionnaire_stock_songon') && !isInUserProjectScope(req.user, authRow)) {
+    return res.status(403).json({ error: 'Acces refuse: ce document ne concerne pas votre perimetre' });
   }
 
   let row = await get(
@@ -5368,6 +5777,11 @@ app.post('/api/stock-issue-authorizations', async (req, res) => {
       return res.status(404).json({ error: `Matériel introuvable (id ${requestId})` });
     }
 
+    const createRole = String(req.user?.role || '').trim();
+    if ((createRole === 'chef_chantier_site' || createRole === 'gestionnaire_stock_songon') && !isInUserProjectScope(req.user, requestRow)) {
+      return res.status(403).json({ error: 'Acces refuse: demande autorisee uniquement dans votre perimetre' });
+    }
+
     const remaining = Number(requestRow.quantiteRestante || 0);
     if (outQty > remaining) {
       return res.status(400).json({ error: `Quantité demandée (${outQty.toFixed(2)}) supérieure au stock restant (${remaining.toFixed(2)}) pour ${requestRow.itemName}` });
@@ -5389,6 +5803,11 @@ app.post('/api/stock-issue-authorizations', async (req, res) => {
       outQty,
       requestRow,
     });
+  }
+
+  // Check if warehouse is hidden
+  if (resolvedWarehouseId && isWarehouseHidden(resolvedWarehouseId)) {
+    return res.status(403).json({ error: 'Cet entrepot est indisponible' });
   }
 
   if (String(req.user?.role || '').trim() === 'chef_chantier_site') {
@@ -5564,8 +5983,9 @@ app.patch('/api/stock-issue-authorizations/:id/decision', async (req, res) => {
   if (!id || !['VALIDEE', 'REJETEE'].includes(decision)) {
     return res.status(400).json({ error: 'Decision invalide' });
   }
-  if (req.user && (req.user.role === 'commis' || req.user.role === 'chef_chantier_site' || req.user.role === 'gestionnaire_stock_zone')) {
-    return res.status(403).json({ error: 'Ce profil ne peut pas valider/rejeter une sortie' });
+  const role = String(req.user?.role || '').trim();
+  if (role !== 'dirigeant' && role !== 'admin') {
+    return res.status(403).json({ error: 'Seuls admin et dirigeant peuvent valider/rejeter une sortie' });
   }
   if (!String(signatureName || '').trim() || !String(signatureRole || '').trim()) {
     return res.status(400).json({ error: 'Signature et fonction obligatoires pour valider ou rejeter' });
@@ -5682,7 +6102,7 @@ app.post('/api/stock-management/issues', async (req, res) => {
   }
 
   const requestRow = await get(
-    `SELECT mr.id, mr.projetId, mr.quantiteRestante, mr.statut, p.nomSite, p.numeroMaison
+    `SELECT mr.id, mr.projetId, mr.quantiteRestante, mr.statut, mr.warehouseId, p.nomSite, p.numeroMaison
      FROM material_requests mr
      LEFT JOIN projects p ON p.id = mr.projetId
      WHERE mr.id = ?`,
@@ -5692,8 +6112,15 @@ app.post('/api/stock-management/issues', async (req, res) => {
     return res.status(404).json({ error: 'Matériel introuvable' });
   }
 
-  if (String(req.user?.role || '').trim() === 'chef_chantier_site' && !isInChefSiteScope(req.user, requestRow)) {
-    return res.status(403).json({ error: 'Acces refuse: sortie autorisee uniquement vers le site 15' });
+  // Check if warehouse is hidden
+  const warehouseId = String(requestRow.warehouseId || '').trim();
+  if (warehouseId && isWarehouseHidden(warehouseId)) {
+    return res.status(403).json({ error: 'Cet entrepot est indisponible' });
+  }
+
+  const issueRole = String(req.user?.role || '').trim();
+  if ((issueRole === 'chef_chantier_site' || issueRole === 'gestionnaire_stock_songon') && !isInUserProjectScope(req.user, requestRow)) {
+    return res.status(403).json({ error: 'Acces refuse: sortie autorisee uniquement dans votre perimetre' });
   }
 
   const remaining = Number(requestRow.quantiteRestante || 0);
@@ -5819,9 +6246,10 @@ app.get('/api/database-documents', async (req, res) => {
       ? await all('SELECT * FROM generated_documents WHERE sectionCode = ? ORDER BY updatedAt DESC, id DESC', [sectionCode])
       : await all('SELECT * FROM generated_documents ORDER BY updatedAt DESC, id DESC');
 
-    const isSiteChiefRole = String(req.user?.role || '').trim() === 'chef_chantier_site';
+    const scopedRole = String(req.user?.role || '').trim();
+    const isScopedRole = scopedRole === 'chef_chantier_site' || scopedRole === 'gestionnaire_stock_songon';
     const isSiteChiefDocumentAllowed = async row => {
-      if (!isSiteChiefRole) return true;
+      if (!isScopedRole) return true;
 
       const entityType = String(row?.entityType || '').trim().toLowerCase();
       const entityId = Number(row?.entityId || 0);
@@ -5835,7 +6263,7 @@ app.get('/api/database-documents', async (req, res) => {
            WHERE mr.id = ?`,
           [entityId]
         );
-        return !!scopedRow && isInChefSiteScope(req.user, scopedRow);
+        return !!scopedRow && isInUserProjectScope(req.user, scopedRow);
       }
 
       if (entityType === 'purchase_order') {
@@ -5848,7 +6276,7 @@ app.get('/api/database-documents', async (req, res) => {
           [entityId]
         );
         if (Array.isArray(linkedRequests) && linkedRequests.length) {
-          return linkedRequests.some(rowItem => isInChefSiteScope(req.user, rowItem));
+          return linkedRequests.some(rowItem => isInUserProjectScope(req.user, rowItem));
         }
 
         const orderFallback = await get(
@@ -5858,7 +6286,7 @@ app.get('/api/database-documents', async (req, res) => {
            WHERE po.id = ?`,
           [entityId]
         );
-        return !!orderFallback && isInChefSiteScope(req.user, orderFallback);
+        return !!orderFallback && isInUserProjectScope(req.user, orderFallback);
       }
 
       if (entityType === 'stock_issue_authorization') {
@@ -5870,13 +6298,13 @@ app.get('/api/database-documents', async (req, res) => {
            WHERE sia.id = ?`,
           [entityId]
         );
-        return !!scopedRow && isInChefSiteScope(req.user, scopedRow);
+        return !!scopedRow && isInUserProjectScope(req.user, scopedRow);
       }
 
       return false;
     };
 
-    if (isSiteChiefRole) {
+    if (isScopedRole) {
       const scopedRows = [];
       for (const row of rows) {
         if (await isSiteChiefDocumentAllowed(row)) {
@@ -6041,7 +6469,8 @@ app.get('/api/database-documents/:id/download', async (req, res) => {
     return res.status(404).json({ error: 'Document introuvable' });
   }
 
-  if (String(req.user?.role || '').trim() === 'chef_chantier_site') {
+  const docRole = String(req.user?.role || '').trim();
+  if (docRole === 'chef_chantier_site' || docRole === 'gestionnaire_stock_songon') {
     const entityType = String(row.entityType || '').trim().toLowerCase();
     const entityId = Number(row.entityId || 0);
     let inScope = false;
@@ -6054,7 +6483,7 @@ app.get('/api/database-documents/:id/download', async (req, res) => {
          WHERE mr.id = ?`,
         [entityId]
       );
-      inScope = !!scopedRow && isInChefSiteScope(req.user, scopedRow);
+      inScope = !!scopedRow && isInUserProjectScope(req.user, scopedRow);
     } else if (entityType === 'purchase_order' && entityId > 0) {
       const linkedRows = await all(
         `SELECT p.nomSite, p.numeroMaison
@@ -6064,7 +6493,7 @@ app.get('/api/database-documents/:id/download', async (req, res) => {
          WHERE poi.purchaseOrderId = ?`,
         [entityId]
       );
-      inScope = Array.isArray(linkedRows) && linkedRows.some(scopeRow => isInChefSiteScope(req.user, scopeRow));
+      inScope = Array.isArray(linkedRows) && linkedRows.some(scopeRow => isInUserProjectScope(req.user, scopeRow));
       if (!inScope) {
         const fallbackRow = await get(
           `SELECT p.nomSite, p.numeroMaison
@@ -6073,7 +6502,7 @@ app.get('/api/database-documents/:id/download', async (req, res) => {
            WHERE po.id = ?`,
           [entityId]
         );
-        inScope = !!fallbackRow && isInChefSiteScope(req.user, fallbackRow);
+        inScope = !!fallbackRow && isInUserProjectScope(req.user, fallbackRow);
       }
     } else if (entityType === 'stock_issue_authorization' && entityId > 0) {
       const scopedRow = await get(
@@ -6084,7 +6513,7 @@ app.get('/api/database-documents/:id/download', async (req, res) => {
          WHERE sia.id = ?`,
         [entityId]
       );
-      inScope = !!scopedRow && isInChefSiteScope(req.user, scopedRow);
+      inScope = !!scopedRow && isInUserProjectScope(req.user, scopedRow);
     }
 
     if (!inScope) {
@@ -6697,6 +7126,30 @@ function normalizeTextValue(rawValue) {
     .toLowerCase();
 }
 
+function normalizeVillaTypeShortLabel(rawValue) {
+  const value = String(rawValue || '').trim();
+  if (!value) return '';
+  const normalized = value.toUpperCase().replace(/^VILLA\s+/i, '').trim();
+  const match = normalized.match(/^T\s*([0-9]+)$/i) || normalized.match(/\bT\s*([0-9]+)\b/i);
+  if (match) return `T${match[1]}`;
+  return normalized;
+}
+
+function normalizeProjectConstructionStatus(rawValue) {
+  const value = normalizeTextValue(rawValue);
+  if (!value) return '';
+  if (value.includes('construit') || value.includes('termine') || value.includes('acheve') || value.includes('livre')) {
+    return 'CONSTRUIT';
+  }
+  if (value.includes('construction') || value.includes('cours') || value.includes('demarre')) {
+    return 'EN_CONSTRUCTION';
+  }
+  if (value.includes('pas') || value.includes('debut')) {
+    return 'PAS_DEMARRE';
+  }
+  return String(rawValue || '').trim().toUpperCase();
+}
+
 function formatMonthRange(monthValue) {
   const [yearRaw, monthRaw] = String(monthValue || '').split('-');
   const year = Number(yearRaw);
@@ -7023,7 +7476,11 @@ app.get('/api/hr/employees', async (_req, res) => {
     : '';
 
   const rows = await all(
-    `SELECT id, fullName, jobTitle, phoneNumber, address, maritalStatus, COALESCE(username, createdBy, '') AS username, createdBy, createdAt, updatedAt
+    `SELECT id, fullName, jobTitle,
+            COALESCE(NULLIF(sexe, ''), 'Neant') AS sexe,
+            COALESCE(NULLIF(typeContrat, ''), 'Neant') AS typeContrat,
+            COALESCE(NULLIF(dateEmbauche, ''), SUBSTR(createdAt, 1, 10)) AS dateEmbauche,
+            phoneNumber, address, maritalStatus, COALESCE(username, createdBy, '') AS username, createdBy, createdAt, updatedAt
      FROM hr_employees
      ${whereClause}
      ORDER BY fullName ASC, id ASC`,
@@ -7032,22 +7489,74 @@ app.get('/api/hr/employees', async (_req, res) => {
   res.json(rows);
 });
 
+function normalizeHrSexe(value) {
+  const raw = String(value || '').trim().toUpperCase();
+  if (raw === 'F') return 'F';
+  if (raw === 'M') return 'M';
+  if (!raw || raw === 'NEANT' || raw === 'NÉANT') return 'Neant';
+  return 'Neant';
+}
+
+function normalizeHrContractType(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return 'Neant';
+
+  const normalized = raw.toUpperCase();
+  const allowedMap = {
+    'NEANT': 'Neant',
+    'NÉANT': 'Neant',
+    'CDI': 'CDI',
+    'CDD': 'CDD',
+    'STAGE': 'Stage',
+    'FREELANCE': 'Freelance',
+    'INTERIM': 'Intérim',
+    'INTÉRIM': 'Intérim',
+    'CONSULTANT': 'Consultant',
+    'AUTRE': 'Autre',
+  };
+
+  return allowedMap[normalized] || 'Neant';
+}
+
+function normalizeHrHireDate(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return raw;
+  }
+
+  const fr = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (fr) {
+    return `${fr[3]}-${fr[2]}-${fr[1]}`;
+  }
+
+  return '';
+}
+
 app.post('/api/hr/employees', async (req, res) => {
-  const { fullName, jobTitle = '', phoneNumber = '', address = '', maritalStatus = '', username = '' } = req.body || {};
+  const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', username = '' } = req.body || {};
   const nameValue = String(fullName || '').trim();
+  const hireDateValue = normalizeHrHireDate(dateEmbauche);
   if (!nameValue) {
     return res.status(400).json({ error: 'Nom employe obligatoire' });
+  }
+  if (!hireDateValue) {
+    return res.status(400).json({ error: "Date d'embauche obligatoire (format AAAA-MM-JJ)" });
   }
 
   const now = new Date().toISOString();
   const nextId = await getNextTableId('hr_employees');
   await run(
-    `INSERT INTO hr_employees (id, fullName, jobTitle, phoneNumber, address, maritalStatus, username, createdBy, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO hr_employees (id, fullName, jobTitle, sexe, typeContrat, dateEmbauche, phoneNumber, address, maritalStatus, username, createdBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       nextId,
       nameValue,
       String(jobTitle || '').trim(),
+      normalizeHrSexe(sexe),
+      normalizeHrContractType(typeContrat),
+      hireDateValue,
       String(phoneNumber || '').trim(),
       String(address || '').trim(),
       String(maritalStatus || '').trim(),
@@ -7178,17 +7687,24 @@ app.get('/api/hr/employees/documents/:docId/download', async (req, res) => {
 
 app.patch('/api/hr/employees/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const { fullName, jobTitle = '', phoneNumber = '', address = '', maritalStatus = '', username = '' } = req.body || {};
+  const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', username = '' } = req.body || {};
   const nameValue = String(fullName || '').trim();
+  const hireDateValue = normalizeHrHireDate(dateEmbauche);
   if (!id || !nameValue) {
     return res.status(400).json({ error: 'Employe invalide' });
   }
+  if (!hireDateValue) {
+    return res.status(400).json({ error: "Date d'embauche obligatoire (format AAAA-MM-JJ)" });
+  }
 
   const result = await run(
-    'UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, maritalStatus = ?, username = ?, updatedAt = ? WHERE id = ?',
+    'UPDATE hr_employees SET fullName = ?, jobTitle = ?, sexe = ?, typeContrat = ?, dateEmbauche = ?, phoneNumber = ?, address = ?, maritalStatus = ?, username = ?, updatedAt = ? WHERE id = ?',
     [
       nameValue,
       String(jobTitle || '').trim(),
+      normalizeHrSexe(sexe),
+      normalizeHrContractType(typeContrat),
+      hireDateValue,
       String(phoneNumber || '').trim(),
       String(address || '').trim(),
       String(maritalStatus || '').trim(),
@@ -8500,8 +9016,9 @@ app.get('/api/project-progress', async (req, res) => {
     ? await all(`${baseQuery} WHERE p.id = ? ORDER BY ppu.createdAt DESC, ppu.id DESC`, [projectId])
     : await all(`${baseQuery} ORDER BY ppu.createdAt DESC, ppu.id DESC`);
 
-  const scopedRows = String(req.user?.role || '').trim() === 'chef_chantier_site'
-    ? rows.filter(row => isInChefSiteScope(req.user, row))
+  const role = String(req.user?.role || '').trim();
+  const scopedRows = (role === 'chef_chantier_site' || role === 'gestionnaire_stock_songon')
+    ? rows.filter(row => isInUserProjectScope(req.user, row))
     : rows;
 
   res.json(scopedRows.map(formatProjectProgressRow));
@@ -8768,11 +9285,20 @@ app.patch('/api/material-catalog/:id', async (req, res) => {
   res.json(row);
 });
 
+
+// Suppression d’une entrée ou d’un catalogue entier
 app.delete('/api/material-catalog/:id', async (req, res) => {
   const id = Number(req.params.id);
   const result = await run('DELETE FROM building_material_catalog WHERE id = ?', [id]);
   if (result.changes === 0) return res.status(404).json({ error: 'Entrée catalogue introuvable' });
   res.json({ message: 'Entrée supprimée' });
+});
+
+app.delete('/api/material-catalog', async (req, res) => {
+  const folder = req.query.projectFolder ? String(req.query.projectFolder).trim() : null;
+  if (!folder) return res.status(400).json({ error: 'projectFolder requis' });
+  const result = await run('DELETE FROM building_material_catalog WHERE projectFolder = ?', [folder]);
+  res.json({ message: `Catalogue supprimé pour ${folder}`, deleted: result.changes });
 });
 
 app.post('/api/materials', async (req, res) => {

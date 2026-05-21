@@ -23,9 +23,7 @@
   </div>
 
   <script>
-    if (localStorage.getItem('erp_token')) {
-      window.location.href = 'erp.html';
-    }
+    // Keep login page accessible even with an active token so users can switch profile.
 
     const form = document.querySelector('#login-form');
     const errorBox = document.querySelector('#login-error');

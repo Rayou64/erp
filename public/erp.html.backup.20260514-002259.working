@@ -5065,7 +5065,7 @@
 
     const COMMIS_ALLOWED_MODULES = new Set(['stock-management', 'inventory']);
     const GEST_STOCK_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations']);
-    const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier']);
+    const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'database', 'materials', 'trash', 'projects']);
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash']);
     const HR_DIRECTOR_ALLOWED_MODULES = new Set(['hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database']);
     const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog']);
@@ -5088,7 +5088,7 @@
     }
 
     function isZoneStockManager() {
-      return currentUserRole === 'gestionnaire_stock_zone' || currentUserRole === 'gestionnaire_stock_songon';
+      return currentUserRole === 'gestionnaire_stock_zone';
     }
 
     function isSiteChief() {
@@ -5133,10 +5133,13 @@
     }
 
     function canExecutiveValidatePurchaseOrder(order) {
-      return isExecutive();
+      if (!isExecutive()) return false;
+      const creator = String(order?.creePar || '').trim().toLowerCase();
+      return creator === 'controle_achat_global';
     }
 
     function canCurrentUserValidatePurchaseOrder(order) {
+      if (isAdmin()) return true;
       return canExecutiveValidatePurchaseOrder(order);
     }
 
@@ -5144,34 +5147,8 @@
       return isSiteChief() || isZoneStockManager();
     }
 
-    function resolveScopedWarehouseId() {
-      const rawScopedId = String(currentUserScope?.warehouseId || '').trim();
-      const warehouses = getAllStockWarehouses();
-
-      if (rawScopedId && warehouses.some(item => String(item?.id || '').trim() === rawScopedId)) {
-        return rawScopedId;
-      }
-
-      const scopeZoneRaw = isZoneStockManager()
-        ? String(getEffectiveZoneManagerScope()?.zoneName || '').trim()
-        : String(getEffectiveSiteChiefScope()?.zoneName || '').trim();
-      const scopeZone = normalizeText(scopeZoneRaw);
-
-      if (scopeZone) {
-        const matched = warehouses.find(item => {
-          const zoneLabel = normalizeText(String(item?.linkedZoneName || item?.prefecture || '').trim());
-          return zoneLabel && (zoneLabel === scopeZone || zoneLabel.includes(scopeZone) || scopeZone.includes(zoneLabel));
-        });
-        if (matched?.id) {
-          return String(matched.id).trim();
-        }
-      }
-
-      return rawScopedId || 'entrepot-plateau';
-    }
-
     function getScopedWarehouseId() {
-      return resolveScopedWarehouseId();
+      return String(currentUserScope?.warehouseId || 'entrepot-plateau').trim();
     }
 
     function canManageDatabaseDocuments() {
@@ -5277,15 +5254,18 @@
         const scopeZoneName = normalizeText(zoneManagerScope.zoneName);
         
         return source.filter(project => {
-          // If explicit project ids are provided, enforce them.
-          const projectId = Number(project?.id || 0);
-          if (scopedIds.size && !scopedIds.has(projectId)) return false;
+          // Must be PINUT project
+          const projectName = normalizeText(String(project?.nomProjet || '').trim());
+          if (projectName !== normalizeText('PINUT')) return false;
           
-          // Then apply zone scoping when available.
+          // Must be in scoped projects list
+          const projectId = Number(project?.id || 0);
+          if (!scopedIds.has(projectId)) return false;
+          
+          // Must be in correct zone
           if (scopeZoneName) {
             const projectZone = normalizeText(String(project?.prefecture || '').trim());
-            const projectName = normalizeText(String(project?.nomProjet || '').trim());
-            if (projectZone !== scopeZoneName && !projectName.includes(scopeZoneName)) return false;
+            if (projectZone !== scopeZoneName) return false;
           }
           
           return true;
@@ -5403,11 +5383,7 @@
         return source.filter(project => {
           const projectId = Number(project?.id || 0);
           if (Number.isInteger(projectId) && projectId > 0) {
-            if (scopedIds.size) {
-              return scopedIds.has(projectId);
-            }
-            const projectName = normalizeText(String(project?.nomProjet || '').trim());
-            return scopedProjectNames.has(projectName);
+            return scopedIds.has(projectId);
           }
           const projectName = normalizeText(String(project?.nomProjet || '').trim());
           return scopedProjectNames.has(projectName);
@@ -6630,8 +6606,9 @@
         .filter(line => line.itemName || line.quantiteDemandee);
     }
 
-    function getProgressIssueTotalsByRequestId() {
-      return (Array.isArray(stockIssuesCache) ? stockIssuesCache : []).reduce((acc, issue) => {
+    function getProgressAvailableMaterials(projectId, stageFilter = '') {
+      const stageKey = normalizeStageKey(stageFilter);
+      const issueTotalsByRequestId = (Array.isArray(stockIssuesCache) ? stockIssuesCache : []).reduce((acc, issue) => {
         const requestId = Number(issue?.materialRequestId || 0);
         const qty = Number(issue?.quantiteSortie || 0);
         if (!requestId || Number.isNaN(qty) || qty <= 0) return acc;
@@ -6649,73 +6626,6 @@
         }
         return acc;
       }, {});
-    }
-
-    function extractProgressMainStage(stageValue) {
-      const parsed = parseCatalogStage(String(stageValue || '').trim());
-      return String(parsed.mainStage || stageValue || '').trim();
-    }
-
-    function getProgressAvailableStages(projectId) {
-      const pid = Number(projectId || 0);
-      if (!pid) return [];
-
-      const issueTotalsByRequestId = getProgressIssueTotalsByRequestId();
-      const stageByKey = new Map();
-
-      materialRequestsCache
-        .filter(row => Number(row?.projetId) === pid && String(row?.statut || '').toUpperCase() !== 'REJETEE')
-        .forEach(row => {
-          const issueTotals = issueTotalsByRequestId[Number(row.id)] || { transferredQty: 0, consumedQty: 0 };
-          const siteRemaining = Math.max(Number(issueTotals.transferredQty || 0) - Number(issueTotals.consumedQty || 0), 0);
-          if (!(siteRemaining > 0)) return;
-
-          const mainStage = extractProgressMainStage(row?.etapeApprovisionnement || '');
-          if (!mainStage) return;
-
-          const key = normalizeStageKey(mainStage) || mainStage.toLowerCase();
-          if (!stageByKey.has(key)) {
-            stageByKey.set(key, mainStage);
-          }
-        });
-
-      return Array.from(stageByKey.values())
-        .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base', numeric: true }));
-    }
-
-    function populateProgressStageOptions(projectId, selectedStage = '') {
-      const stageSelect = document.getElementById('progress-stage');
-      if (!stageSelect) return;
-
-      const pid = Number(projectId || 0);
-      if (!pid) {
-        stageSelect.innerHTML = '<option value="">Sélectionner d\'abord un site</option>';
-        return;
-      }
-
-      const stages = getProgressAvailableStages(pid);
-      if (!stages.length) {
-        stageSelect.innerHTML = '<option value="">Aucune étape disponible depuis l\'inventaire</option>';
-        return;
-      }
-
-      const wantedKey = normalizeStageKey(selectedStage || stageSelect.value || '');
-      stageSelect.innerHTML = '<option value="">Sélectionner une étape</option>' +
-        stages.map(stage => `<option value="${escapeHtml(stage)}">${escapeHtml(stage)}</option>`).join('');
-
-      if (wantedKey) {
-        const matchedStage = stages.find(stage => normalizeStageKey(stage) === wantedKey);
-        stageSelect.value = matchedStage || '';
-      }
-
-      if (!stageSelect.value) {
-        stageSelect.value = stages[0];
-      }
-    }
-
-    function getProgressAvailableMaterials(projectId, stageFilter = '') {
-      const stageKey = normalizeStageKey(stageFilter);
-      const issueTotalsByRequestId = getProgressIssueTotalsByRequestId();
 
       const grouped = new Map();
       materialRequestsCache
@@ -6723,10 +6633,7 @@
           if (Number(row?.projetId) !== Number(projectId)) return false;
           if (String(row?.statut || '').toUpperCase() === 'REJETEE') return false;
           if (!stageKey) return true;
-          const rawStage = String(row?.etapeApprovisionnement || '').trim();
-          const fullStageKey = normalizeStageKey(rawStage);
-          const mainStageKey = normalizeStageKey(extractProgressMainStage(rawStage));
-          return fullStageKey === stageKey || mainStageKey === stageKey;
+          return normalizeStageKey(row?.etapeApprovisionnement || '') === stageKey;
         })
         .forEach(row => {
           const issueTotals = issueTotalsByRequestId[Number(row.id)] || { transferredQty: 0, consumedQty: 0 };
@@ -6977,28 +6884,30 @@
       localStorage.setItem(DEMO_WAREHOUSES_STORAGE_KEY, JSON.stringify(demoWarehouseAssignments));
     }
 
-    async function loadCustomStockWarehouses() {
+    function loadCustomStockWarehouses() {
       try {
-        const response = await fetchJson('/api/custom-warehouses');
-        if (response && response.warehouses) {
-          customStockWarehouses = response.warehouses
-            .filter(item => item && String(item.id || '').trim())
-            .map(item => ({
-              ...item,
-              custom: true,
-              isHidden: false,
-            }));
-        } else {
+        const raw = localStorage.getItem(CUSTOM_STOCK_WAREHOUSES_STORAGE_KEY);
+        if (!raw) {
           customStockWarehouses = [];
+          return;
         }
+        const parsed = JSON.parse(raw);
+        customStockWarehouses = Array.isArray(parsed)
+          ? parsed
+              .filter(item => item && String(item.id || '').trim())
+              .map(item => ({
+                ...item,
+                custom: true,
+                isHidden: false,
+              }))
+          : [];
       } catch (error) {
-        console.warn('Erreur chargement entrepôts personnalisés:', error);
         customStockWarehouses = [];
       }
     }
 
-    async function saveCustomStockWarehouses() {
-      // Les entrepôts sont sauvegardés via l'API, pas en localStorage
+    function saveCustomStockWarehouses() {
+      localStorage.setItem(CUSTOM_STOCK_WAREHOUSES_STORAGE_KEY, JSON.stringify(customStockWarehouses));
     }
 
     function getAllStockWarehouses() {
@@ -7290,7 +7199,7 @@
       return select.value;
     }
 
-    async function createLinkedStockWarehouse() {
+    function createLinkedStockWarehouse() {
       const projectSelect = document.getElementById('stock-new-warehouse-project');
       const nameInput = document.getElementById('stock-new-warehouse-name');
       const zoneSelect = document.getElementById('stock-new-warehouse-zone');
@@ -7327,29 +7236,22 @@
         return;
       }
 
-      try {
-        const warehouseData = {
-          id,
-          name: warehouseName,
-          linkedProjectId: projectId,
-          linkedProjectName: String(project.nomProjet || '').trim(),
-          linkedZoneId: String(zone.id || '').trim(),
-          linkedZoneName: String(zone.prefecture || zone.nomSite || zone.nomProjet || '').trim(),
-          prefecture: String(zone.prefecture || zone.nomSite || zone.nomProjet || '').trim(),
-        };
-        
-        await fetchJson('/api/custom-warehouses', { method: 'POST', body: JSON.stringify(warehouseData) });
-        
-        // Recharger les entrepôts depuis l'API
-        await loadCustomStockWarehouses();
-        
-        selectedStockWarehouseId = id;
-        await loadStockManagement();
-        nameInput.value = '';
-        showMessage('Entrepôt ajouté avec succès');
-      } catch (error) {
-        showMessage('Erreur création entrepôt: ' + error.message, 'error');
-      }
+      customStockWarehouses.push({
+        id,
+        name: warehouseName,
+        linkedProjectId: projectId,
+        linkedProjectName: String(project.nomProjet || '').trim(),
+        linkedZoneId: String(zone.id || '').trim(),
+        linkedZoneName: String(zone.prefecture || zone.nomSite || zone.nomProjet || '').trim(),
+        prefecture: String(zone.prefecture || zone.nomSite || zone.nomProjet || '').trim(),
+        isHidden: false,
+        custom: true,
+      });
+      saveCustomStockWarehouses();
+      selectedStockWarehouseId = id;
+      void loadStockManagement();
+      nameInput.value = '';
+      showMessage('Entrepôt ajouté avec succès');
     }
 
     async function deleteCustomStockWarehouse(warehouseId) {
@@ -7366,31 +7268,25 @@
         return;
       }
 
-      try {
-        await fetchJson(`/api/custom-warehouses/${normalizedId}`, { method: 'DELETE' });
-        
-        // Recharger les entrepôts depuis l'API
-        await loadCustomStockWarehouses();
+      customStockWarehouses = customStockWarehouses.filter(item => String(item.id || '').trim() !== normalizedId);
+      saveCustomStockWarehouses();
 
-        Object.keys(demoWarehouseAssignments).forEach(requestId => {
-          if (demoWarehouseAssignments[requestId] === normalizedId) {
-            delete demoWarehouseAssignments[requestId];
-          }
-        });
-        saveDemoWarehouseAssignments();
-
-        if (String(selectedStockWarehouseId || '').trim() === normalizedId) {
-          selectedStockWarehouseId = '';
+      Object.keys(demoWarehouseAssignments).forEach(requestId => {
+        if (demoWarehouseAssignments[requestId] === normalizedId) {
+          delete demoWarehouseAssignments[requestId];
         }
+      });
+      saveDemoWarehouseAssignments();
 
-        populateStockWarehouseProjectSelect();
-        populateStockWarehouseZoneSelect();
-        renderStockWarehouseQuickChoices();
-        await loadStockManagement();
-        showMessage('Entrepôt supprimé');
-      } catch (error) {
-        showMessage('Erreur suppression entrepôt: ' + error.message, 'error');
+      if (String(selectedStockWarehouseId || '').trim() === normalizedId) {
+        selectedStockWarehouseId = '';
       }
+
+      populateStockWarehouseProjectSelect();
+      populateStockWarehouseZoneSelect();
+      renderStockWarehouseQuickChoices();
+      await loadStockManagement();
+      showMessage('Entrepôt supprimé');
     }
 
     function loadTrashItemsFromStorage() {
@@ -7651,34 +7547,13 @@
       return /^T\d+$/i.test(normalized) ? normalized : '';
     }
 
-    function getProjectVillaTypeLabel(project, folder = null) {
-      const candidates = [
-        project?.typeMaison,
-        project?.typeVilla,
-        project?.villaType,
-        project?.typeProjet,
-        project?.nomProjet,
-        project?.nomSite,
-        project?.numeroMaison,
-      ];
-      for (const candidate of candidates) {
-        const label = getVillaTypeShortLabel(candidate || '');
-        if (label) return label;
-      }
-      if (folder) {
-        const folderType = getFolderVillaTypeLabel(folder);
-        if (folderType) return folderType;
-      }
-      return '';
-    }
-
     function getFolderVillaTypeLabel(folder) {
       const siteTypes = [...new Set((Array.isArray(folder?.houses) ? folder.houses : [])
-        .map(house => getProjectVillaTypeLabel(house))
+        .map(house => getVillaTypeShortLabel(house?.typeMaison || ''))
         .filter(type => /^T\d+$/i.test(type)))];
       if (siteTypes.length === 1) return siteTypes[0];
       if (siteTypes.length > 1) return '';
-      const folderType = getVillaTypeShortLabel(folder?.typeProjet || folder?.typeMaison || folder?.nomProjet || '');
+      const folderType = getVillaTypeShortLabel(folder?.typeProjet || folder?.typeMaison || '');
       return /^T\d+$/i.test(folderType) ? folderType : '';
     }
 
@@ -7692,7 +7567,7 @@
 
     function getProjectSiteLabel(project) {
       const siteName = String(project?.nomSite || '').trim() || String(project?.numeroMaison || '').trim() || `Site ${project?.id || ''}`.trim();
-      const siteType = getProjectVillaTypeLabel(project);
+      const siteType = getVillaTypeShortLabel(project?.typeMaison || '');
       const base = `Site N°${siteName}`;
       return siteType ? `${base} (${siteType})` : base;
     }
@@ -8292,7 +8167,7 @@
           <p style="margin-bottom: 6px;"><strong>Préfecture:</strong> ${escapeHtml(zone.prefecture || 'Non renseigne')}</p>
           <p style="margin-bottom: 6px;"><strong>Site sélectionné:</strong> ${escapeHtml(site.nomSite || '-')} ${site.numeroMaison ? `• Réf ${escapeHtml(site.numeroMaison)}` : ''}</p>
           <p style="margin-bottom: 6px;"><strong>Statut:</strong> <span class="project-status-pill ${statusClass}">${escapeHtml(siteLifecycle.label)}</span></p>
-          <p style="margin-bottom: 6px;"><strong>Type de villa:</strong> ${getProjectVillaTypeLabel(site, zone) || 'Non renseigné'}</p>
+          <p style="margin-bottom: 6px;"><strong>Type de villa:</strong> ${getVillaTypeShortLabel(site.typeMaison || '') || 'Non renseigné'}</p>
           <p style="margin-bottom: 8px;"><strong>Type de projet:</strong> ${escapeHtml(zone.typeProjet || 'Construction de Villa')}</p>
         </div>
       `;
@@ -8399,7 +8274,7 @@
                                             <div class="list-item" style="margin:0;">
                                               <div class="list-item-content project-item-clickable ${selectedProjectId === site.id ? 'project-item-selected' : ''}" onclick="viewProject(${Number(site.id)})">
                                                 <div class="list-item-title">${escapeHtml(site.nomSite || 'Site')}</div>
-                                                <div class="list-item-meta">${escapeHtml(getProjectVillaTypeLabel(site, zone) || 'Type non renseigné')}${site.numeroMaison ? ` • Réf ${escapeHtml(site.numeroMaison)}` : ''}<span class="project-status-pill ${statusClass}">${escapeHtml(siteLifecycle.label)}</span></div>
+                                                <div class="list-item-meta">${escapeHtml(getVillaTypeShortLabel(site.typeMaison || '') || 'Type non renseigné')}${site.numeroMaison ? ` • Réf ${escapeHtml(site.numeroMaison)}` : ''}<span class="project-status-pill ${statusClass}">${escapeHtml(siteLifecycle.label)}</span></div>
                                               </div>
                                               ${isPurchaseReadOnlyRole() ? '' : `<div class="action-buttons">
                                                 <details class="actions-menu">
@@ -8727,7 +8602,6 @@
       if (folderSelect && folderKey) {
         folderSelect.value = folderKey;
         populateProgressHouseSelect(projectsCache, folderSelect.value);
-        populateProgressStageOptions(document.getElementById('progress-project')?.value || '', document.getElementById('progress-stage')?.value || '');
         autoFillProgressMaterialLinesFromSelection();
       }
 
@@ -8745,15 +8619,11 @@
 
       const folderSelect = document.getElementById('progress-project-folder');
       const projectSelect = document.getElementById('progress-project');
-      const stageSelect = document.getElementById('progress-stage');
       if (folderSelect) {
         folderSelect.value = '';
       }
       if (projectSelect) {
         projectSelect.innerHTML = '<option value="">Sélectionner d\'abord une zone</option>';
-      }
-      if (stageSelect) {
-        stageSelect.innerHTML = '<option value="">Sélectionner d\'abord un site</option>';
       }
 
       refreshProgressMaterialAvailability();
@@ -9014,13 +8884,11 @@
 
     async function loadProjectProgress() {
       try {
-        const [updates, projects, materials, stockIssues, projectFolders, projectCatalog] = await Promise.all([
+        const [updates, projects, materials, stockIssues] = await Promise.all([
           fetchJson('/api/project-progress').catch(() => []),
           fetchJson('/api/projects').catch(() => projectsCache),
           fetchJson('/api/material-requests').catch(() => materialRequestsCache),
           fetchJson('/api/stock-management/issues').catch(() => stockIssuesCache),
-          fetchJson('/api/project-folders').catch(() => projectFoldersCache),
-          fetchJson('/api/project-catalog').catch(() => projectCatalogCache),
         ]);
 
         if (Array.isArray(projects) && projects.length) {
@@ -9033,14 +8901,6 @@
 
         if (Array.isArray(stockIssues)) {
           stockIssuesCache = stockIssues;
-        }
-
-        if (Array.isArray(projectFolders)) {
-          projectFoldersCache = projectFolders;
-        }
-
-        if (Array.isArray(projectCatalog)) {
-          projectCatalogCache = projectCatalog;
         }
 
         projectProgressCache = sortRecent(updates, item => item?.createdAt || item?.updatedAt || item?.id);
@@ -9065,7 +8925,6 @@
 
           const currentProjectValue = document.getElementById('progress-project')?.value || '';
           populateProgressHouseSelect(scopedProjects, folderSelect.value, currentProjectValue);
-          populateProgressStageOptions(document.getElementById('progress-project')?.value || '', document.getElementById('progress-stage')?.value || '');
           autoFillProgressMaterialLinesFromSelection();
 
           selectedProjectProgressFolderKey = folderSelect.value || '';
@@ -9840,7 +9699,7 @@
       if (!folderName) return '';
       const siteId = Number(document.getElementById('po-proj-site')?.value || 0);
       const site = siteId ? getProjectById(siteId) : null;
-      const siteType = normalizeMcVillaType(getProjectVillaTypeLabel(site) || '');
+      const siteType = normalizeMcVillaType(site?.typeMaison || '');
       if (siteType) {
         const typedFolder = `${folderName} - ${siteType}`;
         const hasTyped = (Array.isArray(materialCatalogCache) ? materialCatalogCache : []).some(entry => {
@@ -9855,7 +9714,7 @@
     function getPoSelectedVillaTypeLabel() {
       const siteId = Number(document.getElementById('po-proj-site')?.value || 0);
       const site = siteId ? getProjectById(siteId) : null;
-      const siteType = getProjectVillaTypeLabel(site);
+      const siteType = getVillaTypeShortLabel(site?.typeMaison || '');
       if (siteType) return siteType;
 
       const folderName = String(document.getElementById('po-proj-folder')?.value || '').trim();
@@ -10060,7 +9919,22 @@
     }
 
     function resolveMaterialVillaTypeLabel() {
-      const resolveProjectVillaType = project => getProjectVillaTypeLabel(project);
+      const resolveProjectVillaType = project => {
+        const candidates = [
+          project?.typeMaison,
+          project?.typeVilla,
+          project?.villaType,
+          project?.typeProjet,
+          project?.nomSite,
+          project?.numeroMaison,
+          getProjectSiteLabel(project),
+        ];
+        for (const candidate of candidates) {
+          const normalized = normalizeMcVillaType(candidate || '');
+          if (/^T\d+$/i.test(normalized)) return normalized;
+        }
+        return '';
+      };
 
       const creationMode = String(document.getElementById('material-creation-mode')?.value || 'site').trim().toLowerCase();
 
@@ -10280,7 +10154,24 @@
       }
 
       const selectedSiteObj = selectedSite ? getProjectById(Number(selectedSite)) : null;
-      const selectedSiteType = getProjectVillaTypeLabel(selectedSiteObj);
+      const resolvePoVillaType = project => {
+        const candidates = [
+          project?.typeMaison,
+          project?.typeVilla,
+          project?.villaType,
+          project?.typeProjet,
+          project?.nomSite,
+          project?.numeroMaison,
+          getProjectSiteLabel(project),
+        ];
+        for (const candidate of candidates) {
+          const normalized = normalizeMcVillaType(candidate || '');
+          if (/^T\d+$/i.test(normalized)) return normalized;
+        }
+        return '';
+      };
+
+      const selectedSiteType = resolvePoVillaType(selectedSiteObj);
       const typedFolderName = (selectedSiteObj && selectedSiteType) ? `${folderName} - ${selectedSiteType}` : '';
       const preferredFolder = typedFolderName || folderName;
 
@@ -10309,13 +10200,11 @@
       if (!container) return 0;
       container.innerHTML = '';
       for (const entry of entries) {
-        const parsedQty = parseDecimalInput(entry.quantiteParBatiment);
-        const parsedPrice = parseDecimalInput(entry.prixUnitaire);
         addPoItemRow({
           catalogId: entry.id,
           article: entry.materialName || '',
-          quantite: Number((Number.isNaN(parsedQty) ? 1 : parsedQty) || 1).toFixed(2),
-          prixUnitaire: Number((Number.isNaN(parsedPrice) ? 0 : parsedPrice) || 0).toFixed(2),
+          quantite: Number(entry.quantiteParBatiment || 1).toFixed(2),
+          prixUnitaire: Number(entry.prixUnitaire || 0).toFixed(2),
         });
         const newRow = container.querySelector('.po-item-row:last-child');
         if (newRow) newRow.dataset.catalogId = String(entry.id);
@@ -10351,7 +10240,7 @@
 
       const project = getProjectById(request.projetId);
       const projectFolder = project && project.nomProjet ? String(project.nomProjet).trim() : MATERIAL_CATALOG_PROJECT;
-      const projectType = normalizeMcVillaType(getProjectVillaTypeLabel(project) || '');
+      const projectType = normalizeMcVillaType(project?.typeMaison || '');
       const typedProjectFolder = projectType ? `${projectFolder} - ${projectType}` : '';
 
       let scoped = (materialCatalogCache || []).filter(entry => {
@@ -10373,7 +10262,7 @@
       const entries = getPoCatalogEntriesForRequest(requestOrId);
       const options = entries.map(entry => `
         <option value="${entry.id}" ${String(selectedId) === String(entry.id) ? 'selected' : ''}>
-          ${escapeHtml(entry.materialName || 'Matériau')} • Qte ${Number((Number.isNaN(parseDecimalInput(entry.quantiteParBatiment)) ? 0 : parseDecimalInput(entry.quantiteParBatiment)) || 0).toFixed(2)} • ${Number((Number.isNaN(parseDecimalInput(entry.prixUnitaire)) ? 0 : parseDecimalInput(entry.prixUnitaire)) || 0).toFixed(2)} FCFA
+          ${escapeHtml(entry.materialName || 'Matériau')} • Qte ${Number(entry.quantiteParBatiment || 0).toFixed(2)} • ${Number(entry.prixUnitaire || 0).toFixed(2)} FCFA
         </option>
       `).join('');
       return `<option value="">Sélectionner du catalogue</option>${options}`;
@@ -10465,8 +10354,7 @@
             if (matchingEntry) {
               catalogSelect.value = String(matchingEntry.id);
               if (!priceInput.value) {
-                const parsedPrice = parseDecimalInput(matchingEntry.prixUnitaire);
-                priceInput.value = Number((Number.isNaN(parsedPrice) ? 0 : parsedPrice) || 0).toFixed(2);
+                priceInput.value = Number(matchingEntry.prixUnitaire || 0).toFixed(2);
               }
             }
           }
@@ -10484,12 +10372,11 @@
           }
 
           articleInput.value = String(catalogEntry.materialName || '').trim() || articleInput.value;
-          const defaultQty = parseDecimalInput(catalogEntry.quantiteParBatiment);
+          const defaultQty = Number(catalogEntry.quantiteParBatiment || 0);
           if (!Number.isNaN(defaultQty) && defaultQty > 0) {
-            qtyInput.value = Number(defaultQty).toFixed(2);
+            qtyInput.value = defaultQty.toFixed(2);
           }
-          const defaultPrice = parseDecimalInput(catalogEntry.prixUnitaire);
-          priceInput.value = Number((Number.isNaN(defaultPrice) ? 0 : defaultPrice) || 0).toFixed(2);
+          priceInput.value = Number(catalogEntry.prixUnitaire || 0).toFixed(2);
           updatePoOrderTotal();
         });
       }
@@ -10824,7 +10711,7 @@
       details.style.display = '';
 
       // Villa type (T1/T2/T3)
-      const villaType = getProjectVillaTypeLabel(project);
+      const villaType = getVillaTypeShortLabel(project.typeMaison || project.typeVilla || project.villaType || '');
       // Project type (e.g. Construction de Villa)
       const projectType = escapeHtml(project.typeProjet || 'Construction de Villa');
 
@@ -10880,7 +10767,7 @@
               : 'Aucune personne assignée';
 
             // Villa type for each house
-            const houseVillaType = getProjectVillaTypeLabel(house, folder) || folderVillaType;
+            const houseVillaType = getVillaTypeShortLabel(house.typeMaison || '') || folderVillaType;
 
             return `
               <div class="card" style="margin-bottom: 10px; background-color: #ffffff; border: 1px solid #e2e8f0;">
@@ -13732,19 +13619,12 @@
             }
             return selectedProjectIds.size ? selectedProjectIds.has(projectId) : true;
           });
-        const hasSiteInventoryPresence = item => {
+        const siteScopedMaterials = scopedMaterials.filter(item => {
           const issueTotals = issueTotalsByRequestId[Number(item.id)] || { transferredQty: 0, consumedQty: 0 };
           const transferredQty = Number(issueTotals.transferredQty || 0);
           const consumedQty = Number(issueTotals.consumedQty || 0);
           const usedFromRequest = Math.max(Number(item.quantiteDemandee || 0) - Number(item.quantiteRestante || 0), 0);
-          const status = String(item.statut || '').trim().toUpperCase();
-          const hasStockOnHand = ['EN_STOCK', 'LIVREE', 'EPUISE'].includes(status)
-            || Number(item.quantiteDemandee || 0) > 0
-            || Number(item.quantiteRestante || 0) > 0;
-          return transferredQty > 0 || consumedQty > 0 || usedFromRequest > 0 || hasStockOnHand;
-        };
-        const siteScopedMaterials = scopedMaterials.filter(item => {
-          return hasSiteInventoryPresence(item);
+          return transferredQty > 0 || consumedQty > 0 || usedFromRequest > 0;
         });
         const selectedHouse = selectedInventoryHouseId ? getProjectById(selectedInventoryHouseId) : null;
 
@@ -13836,7 +13716,13 @@
           );
         } else if (inventoryViewMode === 'building') {
           if (detailTitle) detailTitle.textContent = 'Inventaire par site et par étape';
-          const siteRows = scopedMaterials.filter(item => hasSiteInventoryPresence(item));
+          const siteRows = scopedMaterials.filter(item => {
+            const issueTotals = issueTotalsByRequestId[Number(item.id)] || { transferredQty: 0, consumedQty: 0 };
+            const transferredQty = Number(issueTotals.transferredQty || 0);
+            const consumedQty = Number(issueTotals.consumedQty || 0);
+            const usedFromRequest = Math.max(Number(item.quantiteDemandee || 0) - Number(item.quantiteRestante || 0), 0);
+            return transferredQty > 0 || consumedQty > 0 || usedFromRequest > 0;
+          });
           detailedRows = aggregateRows(
             siteRows,
             item => `${normalizeText(item.itemName)}__${normalizeText(getSiteInventoryStageLabel(item))}__${Number(item.projetId || 0)}`,
@@ -13846,7 +13732,7 @@
               const projectName = project?.nomProjet || item.nomProjet || 'Projet';
               return {
                 stageLabel: getSiteInventoryStageLabel(item),
-                warehouseLabel: getWarehouseNameById(getWarehouseIdForRequest(item)),
+                warehouseLabel: '-',
                 projectLabel: getProjectAbbreviation(projectName),
                 buildingLabel: `Site N°${houseNumber}`,
               };
@@ -13870,7 +13756,10 @@
               };
             }
           ).map(row => {
-            const statut = row.totalUtilise > 0 ? 'SUR_SITE' : 'EN_STOCK';
+            // Marquer ÉPUISÉ si totalRestant est 0 et il y a une demande
+            const statut = row.totalRestant <= 0 && row.totalDemande > 0
+              ? 'EPUISE'
+              : 'SUR_SITE';
             return { ...row, statut };
           });
         }
@@ -13970,7 +13859,7 @@
       const rejectBtn = document.getElementById('po-priority-reject');
       if (!panel || !label || !validateBtn || !rejectBtn) return;
 
-      const canReviewRole = isExecutive();
+      const canReviewRole = isExecutive() || isAdmin() || isAchatProfile();
       if (!canReviewRole) {
         panel.style.display = 'none';
         return;
@@ -13999,21 +13888,6 @@
         purchaseOrdersCache = [];
         return;
       }
-
-      const suggestionsList = document.getElementById('po-suggestions-list');
-      const poFormCard = document.querySelector('#purchase-orders .form-card');
-      const suggestionsTitle = suggestionsList ? suggestionsList.previousElementSibling : null;
-      const isStatusOnlyView = isZoneStockManager();
-
-      if (isExecutive() || isStatusOnlyView) {
-        if (suggestionsList) {
-          suggestionsList.innerHTML = '';
-          suggestionsList.style.display = 'none';
-        }
-        if (suggestionsTitle) suggestionsTitle.style.display = 'none';
-        if (poFormCard) poFormCard.style.display = 'none';
-      }
-
       try {
         const [orders, materials, catalogEntries] = await Promise.all([
           fetchJson('/api/purchase-orders'),
@@ -14026,17 +13900,21 @@
         if (Array.isArray(catalogEntries)) {
           materialCatalogCache = catalogEntries;
         }
-        if (isExecutive() || isStatusOnlyView) {
+        const suggestionsList = document.getElementById('po-suggestions-list');
+        const poFormCard = document.querySelector('#purchase-orders .form-card');
+        if (isExecutive()) {
           if (suggestionsList) {
             suggestionsList.innerHTML = '';
             suggestionsList.style.display = 'none';
+            const suggestionsTitle = suggestionsList.previousElementSibling;
+            if (suggestionsTitle) suggestionsTitle.style.display = 'none';
           }
-          if (suggestionsTitle) suggestionsTitle.style.display = 'none';
-          // Masquer le formulaire de création pour le dirigeant et le gestionnaire stock zone.
+          // Masquer le formulaire de création pour le dirigeant
           if (poFormCard) poFormCard.style.display = 'none';
         } else {
           if (suggestionsList) {
             suggestionsList.style.display = '';
+            const suggestionsTitle = suggestionsList.previousElementSibling;
             if (suggestionsTitle) suggestionsTitle.style.display = '';
           }
           if (poFormCard) poFormCard.style.display = '';
@@ -14068,13 +13946,9 @@
           selectedPurchaseOrderId = null;
         }
 
-        if (isZoneStockManager()) {
-          selectedPurchaseOrderId = null;
-        }
-
         list.innerHTML = filteredOrders.length
           ? filteredOrders.map(o => {
-              const displayedStatus = (isExecutive() || isProcurementReviewer() || isZoneStockManager())
+              const displayedStatus = (isExecutive() || isProcurementReviewer())
                 ? getPurchaseOrderDecisionStatus(o)
                 : String(o.statut || '').trim().toUpperCase();
               const badgeClass = displayedStatus === 'VALIDEE' || displayedStatus === 'LIVREE'
@@ -14082,24 +13956,23 @@
                 : displayedStatus === 'REJETEE'
                   ? 'badge-red'
                   : 'badge-yellow';
-              const isStatusOnlyView = isZoneStockManager();
               return `
               <li class="list-item">
-                <div class="list-item-content ${isStatusOnlyView ? '' : 'project-item-clickable'} ${Number(selectedPurchaseOrderId) === Number(o.id) ? 'project-item-selected' : ''}" ${isStatusOnlyView ? '' : `onclick="viewPurchaseOrder(${o.id})"`}>
+                <div class="list-item-content project-item-clickable ${Number(selectedPurchaseOrderId) === Number(o.id) ? 'project-item-selected' : ''}" onclick="viewPurchaseOrder(${o.id})">
                   <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(o))}</div>
-                  <div class="list-item-meta">${isStatusOnlyView ? `Statut: ${escapeHtml(displayedStatus)}` : `${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(displayedStatus)}${isExecutive() && o.creePar ? ` • <em>Par ${escapeHtml(o.creePar)}</em>` : ''}`}</div>
+                  <div class="list-item-meta">${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(displayedStatus)}${isExecutive() && o.creePar ? ` • <em>Par ${escapeHtml(o.creePar)}</em>` : ''}</div>
                 </div>
                 <div class="action-buttons">
-                  ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-success" onclick="validatePurchaseOrder(${o.id})">Valider</button>` : ''}
-                  ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-danger" onclick="rejectPurchaseOrder(${o.id})">Rejeter</button>` : ''}
-                  ${isStatusOnlyView ? '' : `<details class="actions-menu">
+                  <details class="actions-menu">
                     <summary aria-label="Actions bon de commande">&#8942;</summary>
                     <div class="actions-dropdown">
                       ${isPurchaseReadOnlyRole() ? '' : `<button type="button" onclick="editPurchaseOrder(${o.id})">Modifier</button>`}
+                      ${isPurchaseReadOnlyRole() ? '' : `<button type="button" onclick="validatePurchaseOrder(${o.id})">Valider</button>`}
+                      ${isPurchaseReadOnlyRole() ? '' : `<button type="button" onclick="rejectPurchaseOrder(${o.id})">Rejeter</button>`}
                       <button type="button" onclick="downloadPurchaseOrderPdf(${o.id})">Telecharger PDF</button>
                       ${isPurchaseReadOnlyRole() ? '' : `<button type="button" onclick="deletePurchaseOrder(${o.id})">Mettre en corbeille</button>`}
                     </div>
-                  </details>`}
+                  </details>
                 </div>
                 <span class="badge ${badgeClass}">${escapeHtml(displayedStatus)}</span>
               </li>
@@ -14109,30 +13982,13 @@
               ? '<div class="empty-state"><p>Aucun bon ne correspond à la recherche</p></div>'
               : '<div class="empty-state"><p>Aucun bon de commande</p></div>');
 
-        const selectedOrder = isZoneStockManager()
-          ? null
-          : (filteredOrders.find(o => Number(o.id) === Number(selectedPurchaseOrderId)) || null);
-
-        if (isZoneStockManager()) {
-          const details = document.getElementById('po-details');
-          if (details) {
-            details.innerHTML = '<p style="color:#64748b;">Vue Kokan: statut uniquement (Validée / Rejetée / En attente).</p>';
-          }
-          renderPoPriorityActions(null);
-        } else {
-          renderPoPriorityActions(selectedOrder);
-          renderPurchaseOrderDetails(selectedOrder);
-        }
+        const selectedOrder = filteredOrders.find(o => Number(o.id) === Number(selectedPurchaseOrderId)) || null;
+        renderPoPriorityActions(selectedOrder);
+        renderPurchaseOrderDetails(selectedOrder);
 
         refreshPoItemRequestOptions();
         populatePoProjFolderSelect();
       } catch (err) {
-        if (isStatusOnlyView) {
-          const details = document.getElementById('po-details');
-          if (details) {
-            details.innerHTML = '<p style="color:#64748b;">Vue Kokan: statut uniquement (Validée / Rejetée / En attente).</p>';
-          }
-        }
         showMessage('Erreur', 'error');
       }
     }
@@ -14169,8 +14025,7 @@
         const projetId = Number(row.id || 0);
         const isZoneStock = String(row?.typeMaison || '').trim().toUpperCase() === 'ZONE_STOCK';
         const rowZone = normalizeText(getProjectZoneDisplayName(row));
-        const zoneMatches = rowZone === zoneNorm || rowZone.includes(zoneNorm) || zoneNorm.includes(rowZone);
-        if (!isZoneStock && zoneMatches && projetId && !seen.has(projetId)) {
+        if (!isZoneStock && rowZone === zoneNorm && projetId && !seen.has(projetId)) {
           seen.add(projetId);
           houses.push({
             projetId,
@@ -14200,29 +14055,19 @@
       const warehouse = getWarehouseById(selectedStockWarehouseId);
       const zoneNorm = normalizeText(String(warehouse?.name || '').trim());
 
-      const zoneRows = zoneNorm
-        ? warehouseRows.filter(row => {
-            const rowZone = normalizeText(String(row?.zoneName || row?.prefecture || row?.nomSite || '').trim());
-            const zoneMatches = rowZone === zoneNorm || rowZone.includes(zoneNorm) || zoneNorm.includes(rowZone);
-            return zoneMatches && String(row?.sourceType || '').toUpperCase() === 'ZONE_STOCK' && Number(row.quantiteRestante || 0) > 0;
-          })
-        : [];
+      if (!zoneNorm) return [];
+
+      const zoneRows = warehouseRows.filter(row => {
+        const rowZone = normalizeText(String(row?.zoneName || row?.prefecture || row?.nomSite || '').trim());
+        return rowZone === zoneNorm && String(row?.sourceType || '').toUpperCase() === 'ZONE_STOCK' && Number(row.quantiteRestante || 0) > 0;
+      });
       if (zoneRows.length) {
         return zoneRows;
       }
-
-      const siteRows = warehouseRows.filter(row => Number(row.quantiteRestante || 0) > 0);
-
-      if (isZoneStockManager()) {
-        if (selectedProjectId) {
-          return siteRows.filter(row => Number(row.projetId) === selectedProjectId);
-        }
-        return siteRows;
-      }
-
+      if (isZoneStockManager()) return [];
       if (!selectedProjectId) return [];
 
-      return siteRows
+      return warehouseRows
         .filter(row => Number(row.projetId) === selectedProjectId && Number(row.quantiteRestante || 0) > 0);
     }
 
@@ -14265,26 +14110,7 @@
 
       candidateRows.forEach(row => {
         const itemKey = normalizeText(row?.itemName || '');
-        const matchingEntries = catalogEntries.filter(entry => {
-          const catalogItemKey = normalizeText(entry?.materialName || '');
-          if (!catalogItemKey || !itemKey) return false;
-          return catalogItemKey === itemKey
-            || catalogItemKey.includes(itemKey)
-            || itemKey.includes(catalogItemKey);
-        });
-
-        if (!matchingEntries.length) {
-          const fallbackStage = String(row?.etapeApprovisionnement || '').trim();
-          if (!fallbackStage) return;
-          const dedupeKey = `${Number(row?.id || 0)}__${normalizeStageKey(fallbackStage)}`;
-          if (seen.has(dedupeKey)) return;
-          seen.add(dedupeKey);
-          resolvedRows.push({
-            ...row,
-            etapeApprovisionnement: fallbackStage,
-          });
-          return;
-        }
+        const matchingEntries = catalogEntries.filter(entry => normalizeText(entry?.materialName || '') === itemKey);
 
         matchingEntries.forEach(entry => {
           const catalogStage = String(getCatalogEntryStage(entry) || '').trim();
@@ -14571,6 +14397,7 @@
                   ${canMarkArrived
                     ? `<button class="button button-small button-primary" onclick="markStockOrderArrived(${order.id})">Marquer arrivé</button>`
                     : `<span class="badge ${getInventoryBadgeClass(order.statut)}">${escapeHtml(statusLabel)}</span>`}
+                  ${isZoneStockManager() ? `<button class="button button-small button-danger" onclick="trashStockOrder(${order.id}, ${JSON.stringify(getPurchaseOrderDisplayName(order))})">Mettre en corbeille</button>` : ''}
                 </div>
               </li>
             `;
@@ -14606,17 +14433,6 @@
 
     async function loadStockManagement() {
       try {
-        // Charger les entrepôts personnalisés depuis l'API
-        await loadCustomStockWarehouses();
-
-        if (isWarehouseScopedRole()) {
-          const resolvedScopedWarehouse = getScopedWarehouseId();
-          if (resolvedScopedWarehouse) {
-            selectedStockWarehouseId = resolvedScopedWarehouse;
-            selectedInventoryWarehouseId = resolvedScopedWarehouse;
-          }
-        }
-
         const issueCard = document.getElementById('stock-issue-form')?.closest('.card');
         if (issueCard) {
           issueCard.style.display = isProcurementStockReadOnly() ? 'none' : '';
@@ -14761,7 +14577,7 @@
           const etape = String(row.etapeApprovisionnement || row.requestEtape || 'Étape').trim();
           const siteNum = extractSiteNumberLabel(row.numeroMaison || '-');
           const title = `${etape}-${siteNum}`;
-          const canDecide = status === 'EN_ATTENTE' && (isExecutive() || isAdmin());
+          const canDecide = status === 'EN_ATTENTE' && !isSiteChief() && !isZoneStockManager();
           const pdfDownloadUrl = `/api/stock-issue-authorizations/${Number(row.id)}/pdf`;
           const items = Array.isArray(row.items) ? row.items : [];
           const itemsLabel = items.length
@@ -14791,10 +14607,6 @@
     }
 
     function openSiaSignModal(id, decision) {
-      if (!(isExecutive() || isAdmin())) {
-        showMessage('Seuls admin et dirigeant peuvent valider/rejeter une sortie', 'error');
-        return;
-      }
       siaCurrentId = id;
       siaCurrentDecision = decision;
       const modal = document.getElementById('sia-sign-modal');
@@ -14994,26 +14806,8 @@
     }
 
     function getMcProjectFolder(catalogId, villaType) {
-      const numericId = Number(catalogId || 0);
       const catalog = (projectCatalogCache || []).find(c => Number(c.id) === Number(catalogId));
-      const project = getProjectById(catalogId);
-      let name = catalog
-        ? String(catalog.nomProjet || '').trim()
-        : String(project?.nomProjet || '').trim();
-
-      // Fallback for hierarchy entries created from project folders with synthetic negative ids.
-      if (!name && Number.isInteger(numericId) && numericId < 0) {
-        const fromFolder = (Array.isArray(projectFoldersCache) ? projectFoldersCache : []).find(folder => {
-          const folderName = String(folder?.nomProjet || '').trim();
-          if (!folderName) return false;
-          const fallbackId = -(Math.abs(hashCode(folderName.toLowerCase())) || 1);
-          return fallbackId === numericId;
-        });
-        if (fromFolder) {
-          name = String(fromFolder.nomProjet || '').trim();
-        }
-      }
-
+      const name = catalog ? String(catalog.nomProjet || '').trim() : '';
       if (!name) return '';
       const vt = normalizeMcVillaType(villaType);
       return vt ? `${name} - ${vt}` : name;
@@ -15188,15 +14982,12 @@
       const sites = getMcScopedSitesForProject(catalogId);
       const siteTypes = [...new Set(
         sites
-          .map(site => normalizeMcVillaType(getProjectVillaTypeLabel(site) || ''))
+          .map(site => normalizeMcVillaType(site.typeMaison || ''))
           .filter(Boolean)
       )].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
 
       const configuredTypes = getConfiguredMcVillaTypes();
-      const hasVillaProjectContext = sites.some(site => {
-        const merged = `${String(site.typeMaison || '')} ${String(site.nomProjet || '')}`;
-        return /villa|\bt\s*\d+\b/i.test(merged);
-      });
+      const hasVillaProjectContext = sites.some(site => /villa|\bt\s*\d+\b/i.test(String(site.typeMaison || '')));
 
       if (configuredTypes.length && (hasVillaProjectContext || siteTypes.some(type => /^T\d+$/i.test(type)))) {
         return configuredTypes;
@@ -15312,7 +15103,7 @@
       const requestedType = normalizeMcVillaType(villaType);
       const siteCount = scopedSites.filter(site => {
         if (!requestedType) return true;
-        return normalizeMcVillaType(getProjectVillaTypeLabel(site) || '') === requestedType;
+        return normalizeMcVillaType(site.typeMaison || '') === requestedType;
       }).length;
       if (subtitleEl) subtitleEl.textContent = `${siteCount} site${siteCount !== 1 ? 's' : ''} de ce type — cette liste s'applique à chacun d'eux`;
 
@@ -15830,7 +15621,7 @@
       const selectedSite = siteId ? getProjectById(siteId) : null;
       const siteFolder = String(selectedSite?.nomProjet || '').trim();
       if (siteFolder) {
-        const siteType = normalizeMcVillaType(getProjectVillaTypeLabel(selectedSite) || '');
+        const siteType = normalizeMcVillaType(selectedSite?.typeMaison || '');
         if (siteType) {
           const typedFolder = `${siteFolder} - ${siteType}`;
           const hasTypedCatalog = (Array.isArray(materialCatalogCache) ? materialCatalogCache : []).some(entry => {
@@ -15847,7 +15638,7 @@
         : null;
       const projectFolder = String(selectedProject?.nomProjet || '').trim();
       if (projectFolder) {
-        const projectType = normalizeMcVillaType(getProjectVillaTypeLabel(selectedProject) || '');
+        const projectType = normalizeMcVillaType(selectedProject?.typeMaison || '');
         if (projectType) {
           const typedFolder = `${projectFolder} - ${projectType}`;
           const hasTypedCatalog = (Array.isArray(materialCatalogCache) ? materialCatalogCache : []).some(entry => {
@@ -16223,18 +16014,14 @@
 
     function buildPoItemInitialValuesFromRequest(request) {
       const matchingCatalog = findCatalogEntryForRequest(request);
-      const catalogQtyRaw = parseDecimalInput(matchingCatalog?.quantiteParBatiment);
-      const catalogQty = Number.isNaN(catalogQtyRaw) ? 0 : catalogQtyRaw;
-      const requestQtyRaw = parseDecimalInput(request?.quantiteRestante || request?.quantiteDemandee || 1);
-      const requestQty = Number.isNaN(requestQtyRaw) ? 1 : requestQtyRaw;
-      const catalogPriceRaw = parseDecimalInput(matchingCatalog?.prixUnitaire);
-      const catalogPrice = Number.isNaN(catalogPriceRaw) ? 0 : catalogPriceRaw;
+      const catalogQty = Number(matchingCatalog?.quantiteParBatiment || 0);
+      const requestQty = Number(request?.quantiteRestante || request?.quantiteDemandee || 1);
       return {
         materialRequestId: request.id,
         catalogId: matchingCatalog ? matchingCatalog.id : '',
         article: matchingCatalog?.materialName || request.itemName || '',
         quantite: Number((catalogQty > 0 ? catalogQty : requestQty) || 1).toFixed(2),
-        prixUnitaire: matchingCatalog ? Number(catalogPrice || 0).toFixed(2) : '',
+        prixUnitaire: matchingCatalog ? Number(matchingCatalog.prixUnitaire || 0).toFixed(2) : '',
       };
     }
 
@@ -19396,7 +19183,6 @@
         selectedProjectProgressFolderKey = '';
         expandedProjectProgressBuildingId = null;
         populateProgressHouseSelect(projectsCache, '');
-        populateProgressStageOptions('');
         resetProgressMaterialLines();
         renderProjectProgressDashboard();
         return;
@@ -19405,7 +19191,6 @@
     });
 
     document.getElementById('progress-project').addEventListener('change', () => {
-      populateProgressStageOptions(document.getElementById('progress-project')?.value || '', document.getElementById('progress-stage')?.value || '');
       autoFillProgressMaterialLinesFromSelection();
     });
 
@@ -21059,13 +20844,6 @@
         showModule('materials');
         loadProjects();
         loadMaterials();
-        return;
-      }
-
-      if (isZoneStockManager()) {
-        loadProjects();
-        showModule('stock-management');
-        loadStockManagement();
         return;
       }
 
