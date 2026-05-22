@@ -30,6 +30,7 @@ const ALLOWED_CORS_ORIGINS = new Set([
   'http://127.0.0.1',
   'capacitor://localhost',
   'ionic://localhost',
+  'null',
   'https://ryanerp-hn5zd.ondigitalocean.app',
 ]);
 
@@ -3167,6 +3168,10 @@ process.on('unhandledRejection', reason => {
 });
 
 function authenticateToken(req, res, next) {
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ error: 'Token manquant' });
@@ -3187,6 +3192,10 @@ function authenticateToken(req, res, next) {
 }
 
 function authorizeRoleAccess(req, res, next) {
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const role = req.user && req.user.role;
   if (
     role !== 'commis'
