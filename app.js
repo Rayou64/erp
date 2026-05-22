@@ -110,6 +110,39 @@ const KOKAN_USERNAME = process.env.KOKAN_USERNAME || 'Kokan_SK';
 const KOKAN_PASSWORD = process.env.KOKAN_PASSWORD || 'Stock_SK123';
 const CONDUCTEUR_TRAVAUX_USERNAME = process.env.CONDUCTEUR_TRAVAUX_USERNAME || 'Conducteur_de_travaux';
 const CONDUCTEUR_TRAVAUX_PASSWORD = process.env.CONDUCTEUR_TRAVAUX_PASSWORD || 'Yaofoffie_SK';
+const STANDARD_EMPLOYEE_PROFILES = [
+  { fullName: 'AGBODJRO BEUGRE AWO ELFRIED JOSEPH', username: 'AGBODJRO123', password: 'AGBODJRO123@2026' },
+  { fullName: 'APPIA ROBERT NICAISE', username: 'APPIA123', password: 'APPIA123@2026' },
+  { fullName: 'ATTA BINDE GREGOIRE MARC', username: 'ATTA123', password: 'ATTA123@2026' },
+  { fullName: 'BADO NARCISSE BONDIALI', username: 'BADO123', password: 'BADO123@2026' },
+  { fullName: 'BALMA MOHAMED', username: 'BALMA123', password: 'BALMA123@2026' },
+  { fullName: 'BEAKA DAVY WILFRIED', username: 'BEAKA123', password: 'BEAKA123@2026' },
+  { fullName: 'BOSSIO KEHATON JEAN MARC', username: 'BOSSIO123', password: 'BOSSIO123@2026' },
+  { fullName: 'COULIBALY MALICK', username: 'COULIBALY123', password: 'COULIBALY123@2026' },
+  { fullName: 'DABIE VALENTINE EPSE DJINA', username: 'DABIE123', password: 'DABIE123@2026' },
+  { fullName: 'DJE BI IRIE JEAN CLAUDE', username: 'DJE123', password: 'DJE123@2026' },
+  { fullName: 'DOUDOU ALEXANDRE', username: 'DOUDOU123', password: 'DOUDOU123@2026' },
+  { fullName: 'DOUMBIA BRAHIM', username: 'DOUMBIA123', password: 'DOUMBIA123@2026' },
+  { fullName: 'GNEKPO AKOULA YANNICK ZEGBEHI', username: 'GNEKPO123', password: 'GNEKPO123@2026' },
+  { fullName: 'KENDREBEOGO EMILE', username: 'KENDREBEOGO123', password: 'KENDREBEOGO123@2026' },
+  { fullName: 'KOAUSSI YAO MAURICE', username: 'KOAUSSI123', password: 'KOAUSSI123@2026' },
+  { fullName: 'KOFFI KOUAKOU KRA', username: 'KOFFI123', password: 'KOFFI123@2026' },
+  { fullName: 'KONE ABOUBACAR', username: 'KONE123', password: 'KONE123@2026' },
+  { fullName: 'KONE YAYA', username: 'KONE124', password: 'KONE124@2026' },
+  { fullName: 'KOUAME ROLAND', username: 'KOUAME123', password: 'KOUAME123@2026' },
+  { fullName: 'KOUAME YAFFI BROU FELIX', username: 'KOUAME124', password: 'KOUAME124@2026' },
+  { fullName: 'KOUASSI KOUAME ANDERSON FRANCK O.', username: 'KOUASSI123', password: 'KOUASSI123@2026' },
+  { fullName: 'KPANKOUN ACONASSOU Bienvenu Bernabé', username: 'KPANKOUN123', password: 'KPANKOUN123@2026' },
+  { fullName: 'MME GUIEGUIE EPSE MAKOUBI NADIA', username: 'MME123', password: 'MME123@2026' },
+  { fullName: 'NDJIE ABOMO ELI', username: 'NDJIE123', password: 'NDJIE123@2026' },
+  { fullName: 'N\'GUESSAN KOUASSI CELESTIN', username: 'NGUESSAN123', password: 'NGUESSAN123@2026' },
+  { fullName: 'OULAI OSWALD', username: 'OULAI123', password: 'OULAI123@2026' },
+  { fullName: 'SAI JEAN CLAUDE HILAIRE', username: 'SAI123', password: 'SAI123@2026' },
+  { fullName: 'SORO KARNA PRI CI', username: 'SORO123', password: 'SORO123@2026' },
+  { fullName: 'SORO ZANA FRANCOIS', username: 'SORO124', password: 'SORO124@2026' },
+  { fullName: 'YEO YARDJOUMA', username: 'YEO123', password: 'YEO123@2026' },
+  { fullName: 'ZRAN GUE FABRICE', username: 'ZRAN123', password: 'ZRAN123@2026' },
+];
 const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS || 60_000);
 const API_RATE_MAX = Number(process.env.API_RATE_MAX || 600);
 const AUTH_RATE_WINDOW_MS = Number(process.env.AUTH_RATE_WINDOW_MS || 15 * 60_000);
@@ -2975,6 +3008,32 @@ async function initDb() {
     jobTitle: 'Gestionnaire de Stock Songon',
     createdBy: 'admin',
   });
+
+  for (const profile of STANDARD_EMPLOYEE_PROFILES) {
+    const standardEmployee = await get('SELECT id FROM users WHERE username = ?', [profile.username]);
+    const standardEmployeePassword = await bcrypt.hash(profile.password, 10);
+    if (!standardEmployee) {
+      const nextUserId = await getNextUserId();
+      await run(
+        'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+        [nextUserId, profile.username, standardEmployeePassword, 'employe_standard', new Date().toISOString()]
+      );
+      console.log(`Utilisateur ${profile.username} cree avec role employe_standard`);
+    } else {
+      await run(
+        'UPDATE users SET password = ?, role = ? WHERE username = ?',
+        [standardEmployeePassword, 'employe_standard', profile.username]
+      );
+      console.log(`Utilisateur ${profile.username} mis a jour avec role employe_standard`);
+    }
+
+    await ensureHrEmployeeProfile({
+      username: profile.username,
+      fullName: profile.fullName,
+      jobTitle: 'Employe standard',
+      createdBy: profile.username,
+    });
+  }
 
   // Supprimer les profils retires du lien public et de Railway.
   const removedPublicProfiles = await run(
