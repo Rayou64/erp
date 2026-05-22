@@ -3596,7 +3596,7 @@ async function getSongonCanonicalScope({ includeSiteNumber = false } = {}) {
     FROM custom_warehouses
     WHERE LOWER(COALESCE(linkedZoneName, prefecture, name, '')) LIKE '%songon%'
        OR LOWER(COALESCE(linkedProjectName, '')) LIKE '%songon%'
-    ORDER BY datetime(updatedAt) DESC, datetime(createdAt) DESC, id ASC
+    ORDER BY COALESCE(updatedAt, createdAt) DESC, id ASC
     LIMIT 1
   `);
 
@@ -4259,7 +4259,16 @@ app.post('/api/project-catalog', async (req, res) => {
 });
 
 app.get('/api/project-catalog', async (_req, res) => {
-  const rows = await all('SELECT * FROM project_catalog WHERE isHidden = 0 ORDER BY id DESC');
+  let rows;
+  try {
+    rows = await all('SELECT * FROM project_catalog WHERE isHidden = 0 ORDER BY id DESC');
+  } catch (error) {
+    if (String(error?.message || '').includes('isHidden')) {
+      rows = await all('SELECT * FROM project_catalog ORDER BY id DESC');
+    } else {
+      throw error;
+    }
+  }
   const role = String(_req.user?.role || '').trim();
   if (role === 'gestionnaire_stock_songon') {
     return res.json(rows.filter(row => isInSongonZoneScope(row)));
@@ -4314,7 +4323,16 @@ app.post('/api/project-folders', async (req, res) => {
 });
 
 app.get('/api/project-folders', async (_req, res) => {
-  const rows = await all('SELECT pf.*, pc.typeProjet FROM project_folders pf LEFT JOIN project_catalog pc ON pc.id = pf.projectId WHERE pf.isHidden = 0 ORDER BY pf.id DESC');
+  let rows;
+  try {
+    rows = await all('SELECT pf.*, pc.typeProjet FROM project_folders pf LEFT JOIN project_catalog pc ON pc.id = pf.projectId WHERE pf.isHidden = 0 ORDER BY pf.id DESC');
+  } catch (error) {
+    if (String(error?.message || '').includes('isHidden')) {
+      rows = await all('SELECT pf.*, pc.typeProjet FROM project_folders pf LEFT JOIN project_catalog pc ON pc.id = pf.projectId ORDER BY pf.id DESC');
+    } else {
+      throw error;
+    }
+  }
   const role = String(_req.user?.role || '').trim();
   if (role === 'gestionnaire_stock_songon') {
     return res.json(rows.filter(row => isInSongonZoneScope(row)));
@@ -4583,7 +4601,16 @@ app.post('/api/projects/bulk', async (req, res) => {
 });
 
 app.get('/api/projects', async (req, res) => {
-  const rows = await all('SELECT * FROM projects WHERE isHidden = 0 ORDER BY id DESC');
+  let rows;
+  try {
+    rows = await all('SELECT * FROM projects WHERE isHidden = 0 ORDER BY id DESC');
+  } catch (error) {
+    if (String(error?.message || '').includes('isHidden')) {
+      rows = await all('SELECT * FROM projects ORDER BY id DESC');
+    } else {
+      throw error;
+    }
+  }
   const role = String(req.user?.role || '').trim();
   if (role === 'chef_chantier_site') {
     return res.json(rows.filter(row => isInUserProjectScope(req.user, row)));
