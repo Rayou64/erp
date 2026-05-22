@@ -4683,6 +4683,43 @@
           </div>
         </div>
 
+        <div id="users" class="module">
+          <div class="page-header">
+            <h1>Utilisateurs</h1>
+            <p>Profils, liaison employe et statut de premiere connexion</p>
+          </div>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+              <div>
+                <h3 style="margin:0;">Liste des profils</h3>
+                <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Vue admin des comptes lies aux employes RH.</p>
+              </div>
+              <button type="button" class="button button-secondary button-small" onclick="loadUsersModule()">Actualiser</button>
+            </div>
+            <p id="users-summary" style="font-size:12px; color:#475569; margin-bottom:10px;">Chargement...</p>
+            <div style="overflow-x:auto;">
+              <table class="table" style="min-width:980px;">
+                <thead>
+                  <tr>
+                    <th>Profil</th>
+                    <th>Role</th>
+                    <th>Employe lie</th>
+                    <th>Mot de passe initial</th>
+                    <th>Premiere connexion</th>
+                    <th>Derniere connexion</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <tr>
+                    <td colspan="7" style="text-align:center; color:#64748b;">Aucune donnee</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div id="database" class="module">
           <div class="page-header">
             <h1>Base de donnée</h1>
@@ -5121,6 +5158,7 @@
     let hrAttendanceCache = [];
     let hrLeaveRequestsCache = [];
     let hrSignatureRequestsCache = [];
+    let usersAdminCache = [];
     let projectProgressCache = [];
     let projectProgressSearchTerm = '';
     let selectedProjectProgressProjectId = null;
@@ -6679,6 +6717,93 @@
       const timePart = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
       return `${dayPart} à ${timePart}`;
     }
+
+    function renderUsersModuleTable() {
+      const tbody = document.getElementById('users-table-body');
+      const summary = document.getElementById('users-summary');
+      if (!tbody) return;
+
+      const rows = Array.isArray(usersAdminCache) ? usersAdminCache.slice() : [];
+      rows.sort((a, b) => String(a?.username || '').localeCompare(String(b?.username || ''), 'fr', { sensitivity: 'base' }));
+
+      const linkedCount = rows.filter(row => String(row?.linkedEmployeeName || '').trim()).length;
+      const firstLoginDoneCount = rows.filter(row => Boolean(row?.hasLoggedIn)).length;
+      if (summary) {
+        summary.textContent = `${rows.length} profil(s) | ${linkedCount} lie(s) RH | ${firstLoginDoneCount} premiere(s) connexion(s) detectee(s)`;
+      }
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">Aucun utilisateur</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(row => {
+        const hasLoggedIn = Boolean(row?.hasLoggedIn);
+        const firstLoginAt = String(row?.firstLoginAt || '').trim();
+        const lastLoginAt = String(row?.lastLoginAt || '').trim();
+        const loginLabel = hasLoggedIn
+          ? `➤ <span style="color:#16a34a; font-weight:700;">Connecte</span>${firstLoginAt ? ` (${escapeHtml(formatDateWithTime(firstLoginAt))})` : ''}`
+          : '➤ <span style="color:#94a3b8; font-weight:700;">Jamais connecte</span>';
+
+        return `
+          <tr>
+            <td>${escapeHtml(String(row?.username || '-'))}</td>
+            <td>${escapeHtml(getRoleDisplayLabel(row?.role || ''))}</td>
+            <td>${escapeHtml(String(row?.linkedEmployeeName || '').trim() || 'Non lie')}</td>
+            <td>${escapeHtml(String(row?.initialPasswordHint || '').trim() || '-')}</td>
+            <td>${loginLabel}</td>
+            <td>${lastLoginAt ? escapeHtml(formatDateWithTime(lastLoginAt)) : '-'}</td>
+            <td>
+              <div class="action-buttons" style="justify-content:flex-end;">
+                ${isAdmin() ? `<button type="button" class="button button-small button-secondary" onclick="resetUserLoginState(${Number(row?.id || 0)})">Reinitialiser</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadUsersModule() {
+      const tbody = document.getElementById('users-table-body');
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">Chargement...</td></tr>';
+      }
+
+      try {
+        const users = await fetchJson('/api/users');
+        usersAdminCache = Array.isArray(users) ? users : [];
+        renderUsersModuleTable();
+      } catch (err) {
+        usersAdminCache = [];
+        if (tbody) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#b91c1c;">Erreur de chargement des utilisateurs</td></tr>';
+        }
+      }
+    }
+
+    window.resetUserLoginState = async function resetUserLoginState(userId) {
+      const id = Number(userId || 0);
+      if (!Number.isInteger(id) || id <= 0) {
+        showMessage('Utilisateur invalide', 'error');
+        return;
+      }
+
+      if (!isAdmin()) {
+        showMessage('Acces refuse: admin uniquement', 'error');
+        return;
+      }
+
+      const confirmed = window.confirm('Reinitialiser le statut de premiere connexion pour ce profil ?');
+      if (!confirmed) return;
+
+      try {
+        await fetchJson(`/api/users/${id}/reset-login-state`, { method: 'PATCH' });
+        showMessage('Statut de connexion reinitialise');
+        await loadUsersModule();
+      } catch (err) {
+        showMessage('Impossible de reinitialiser: ' + err.message, 'error');
+      }
+    };
 
     function formatDateForInput(value) {
       const date = value ? new Date(value) : new Date();
@@ -20509,6 +20634,8 @@
         else if (resolvedModule === 'database') {
           loadProjects();
           loadDatabaseDocuments();
+        } else if (resolvedModule === 'users') {
+          loadUsersModule();
         } else if (resolvedModule === 'trash') {
           loadTrashModule();
         } else if (resolvedModule === 'audit-log') {

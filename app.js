@@ -194,6 +194,40 @@ const STANDARD_EMPLOYEE_PROFILES = [
   { fullName: 'YEO YARDJOUMA', jobTitle: 'CHEF CHANTIER', username: 'YEO123', password: 'YEO123@2026' },
   { fullName: 'ZRAN GUE FABRICE', jobTitle: 'CHEF CHANTIER', username: 'ZRAN123', password: 'ZRAN123@2026' },
 ];
+const STANDARD_EMPLOYEE_PASSWORD_BY_USERNAME = new Map(
+  STANDARD_EMPLOYEE_PROFILES.map(profile => [String(profile.username || '').trim().toLowerCase(), String(profile.password || '').trim()])
+);
+const INITIAL_PASSWORD_HINT_BY_USERNAME = new Map([
+  ['admin', 'admin123'],
+  [String(COMMIS_STOCK_USERNAME || '').trim().toLowerCase(), String(COMMIS_STOCK_PASSWORD || '').trim()],
+  [String(GEST_STOCK_USERNAME || '').trim().toLowerCase(), String(GEST_STOCK_PASSWORD || '').trim()],
+  [String(EXECUTIVE_USERNAME || '').trim().toLowerCase(), String(EXECUTIVE_PASSWORD || '').trim()],
+  [String(HR_DIRECTOR_USERNAME || '').trim().toLowerCase(), String(HR_DIRECTOR_PASSWORD || '').trim()],
+  [String(PROCUREMENT_REVIEWER_USERNAME || '').trim().toLowerCase(), String(PROCUREMENT_REVIEWER_PASSWORD || '').trim()],
+  [String(ACHAT_USERNAME || '').trim().toLowerCase(), String(ACHAT_PASSWORD || '').trim()],
+  [String(KOKAN_USERNAME || '').trim().toLowerCase(), String(KOKAN_PASSWORD || '').trim()],
+  [String(CONDUCTEUR_TRAVAUX_USERNAME || '').trim().toLowerCase(), String(CONDUCTEUR_TRAVAUX_PASSWORD || '').trim()],
+  ['chef_chantier_sk', String(process.env.CHEF_SITE15_PASSWORD || 'chefsite15@123').trim()],
+  ['achat_user', String(ACHAT_PASSWORD || '').trim()],
+  ['commis.stock', String(COMMIS_STOCK_PASSWORD || '').trim()],
+]);
+
+function resolveInitialPasswordHint(userRow) {
+  const username = String(userRow?.username || '').trim().toLowerCase();
+  const role = String(userRow?.role || '').trim().toLowerCase();
+  if (!username) return '';
+
+  if (INITIAL_PASSWORD_HINT_BY_USERNAME.has(username)) {
+    return String(INITIAL_PASSWORD_HINT_BY_USERNAME.get(username) || '').trim();
+  }
+  if (STANDARD_EMPLOYEE_PASSWORD_BY_USERNAME.has(username)) {
+    return String(STANDARD_EMPLOYEE_PASSWORD_BY_USERNAME.get(username) || '').trim();
+  }
+  if (role === 'employe_standard') {
+    return `${String(userRow?.username || '').trim()}@2026`;
+  }
+  return '';
+}
 const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS || 60_000);
 const API_RATE_MAX = Number(process.env.API_RATE_MAX || 600);
 const AUTH_RATE_WINDOW_MS = Number(process.env.AUTH_RATE_WINDOW_MS || 15 * 60_000);
@@ -1882,6 +1916,15 @@ async function initDb() {
     role TEXT NOT NULL,
     createdAt TEXT NOT NULL
   )`);
+  try {
+    await run('ALTER TABLE users ADD COLUMN firstLoginAt TEXT');
+  } catch (e) {}
+  try {
+    await run('ALTER TABLE users ADD COLUMN lastLoginAt TEXT');
+  } catch (e) {}
+  try {
+    await run('ALTER TABLE users ADD COLUMN loginCount INTEGER NOT NULL DEFAULT 0');
+  } catch (e) {}
 
   await run(`CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY,
@@ -3116,9 +3159,9 @@ async function initDb() {
 }
 
 initDb().then(() => {
-  server = app.listen(PORT, () => {
+  server = app.listen(PORT, '0.0.0.0', () => {
     isReady = true;
-    console.log(`API Construction & Logistique démarrée sur http://localhost:${PORT}`);
+    console.log(`API Construction & Logistique démarrée sur http://0.0.0.0:${PORT}`);
 
     if (LOCALHOST_FALLBACK_PORT > 0 && LOCALHOST_FALLBACK_PORT !== PORT) {
       localhostFallbackServer = app.listen(LOCALHOST_FALLBACK_PORT, () => {
@@ -3919,6 +3962,17 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
     return res.status(401).json({ error: 'Utilisateur ou mot de passe invalide' });
   }
 
+  const loginAt = new Date().toISOString();
+  await run(
+    `UPDATE users
+     SET
+       firstLoginAt = COALESCE(firstLoginAt, ?),
+       lastLoginAt = ?,
+       loginCount = COALESCE(loginCount, 0) + 1
+     WHERE id = ?`,
+    [loginAt, loginAt, Number(user.id)]
+  );
+
   const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, {
     expiresIn: '6h'
   });
@@ -4279,10 +4333,104 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
 
 app.get('/api/users', async (_req, res) => {
   const rows = await all(`
-    SELECT id, username, role FROM users 
-    ORDER BY username
+    SELECT
+      u.id,
+      u.username,
+      u.role,
+      u.createdAt,
+      u.firstLoginAt,
+      u.lastLoginAt,
+      COALESCE(u.loginCount, 0) AS loginCount,
+      (
+        SELECT he.fullName
+        FROM hr_employees he
+        WHERE LOWER(TRIM(COALESCE(he.username, ''))) = LOWER(TRIM(COALESCE(u.username, '')))
+        ORDER BY he.updatedAt DESC, he.id DESC
+        LIMIT 1
+      ) AS linkedEmployeeName
+    FROM users u
+    ORDER BY u.username
   `);
-  res.json(rows);
+
+  const payload = (rows || []).map(row => {
+    const initialPasswordHint = resolveInitialPasswordHint(row);
+    const loginCount = Number(row?.loginCount || 0);
+    const firstLoginAt = String(row?.firstLoginAt || '').trim();
+    return {
+      id: Number(row?.id || 0),
+      username: String(row?.username || '').trim(),
+      role: String(row?.role || '').trim(),
+      linkedEmployeeName: String(row?.linkedEmployeeName || '').trim(),
+      initialPasswordHint,
+      createdAt: String(row?.createdAt || '').trim(),
+      firstLoginAt,
+      lastLoginAt: String(row?.lastLoginAt || '').trim(),
+      loginCount,
+      hasLoggedIn: Boolean(firstLoginAt) || loginCount > 0,
+    };
+  });
+
+  res.json(payload);
+});
+
+app.patch('/api/users/:id/reset-login-state', async (req, res) => {
+  if (String(req.user?.role || '').trim() !== 'admin') {
+    return res.status(403).json({ error: 'Acces refuse: admin uniquement' });
+  }
+
+  const id = Number(req.params.id || 0);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'Utilisateur invalide' });
+  }
+
+  const existing = await get('SELECT id FROM users WHERE id = ?', [id]);
+  if (!existing) {
+    return res.status(404).json({ error: 'Utilisateur introuvable' });
+  }
+
+  await run(
+    'UPDATE users SET firstLoginAt = NULL, lastLoginAt = NULL, loginCount = 0 WHERE id = ?',
+    [id]
+  );
+
+  const row = await get(
+    `SELECT
+      u.id,
+      u.username,
+      u.role,
+      u.createdAt,
+      u.firstLoginAt,
+      u.lastLoginAt,
+      COALESCE(u.loginCount, 0) AS loginCount,
+      (
+        SELECT he.fullName
+        FROM hr_employees he
+        WHERE LOWER(TRIM(COALESCE(he.username, ''))) = LOWER(TRIM(COALESCE(u.username, '')))
+        ORDER BY he.updatedAt DESC, he.id DESC
+        LIMIT 1
+      ) AS linkedEmployeeName
+    FROM users u
+    WHERE u.id = ?`,
+    [id]
+  );
+
+  if (!row) {
+    return res.status(404).json({ error: 'Utilisateur introuvable' });
+  }
+
+  const initialPasswordHint = resolveInitialPasswordHint(row);
+  return res.json({
+    id: Number(row?.id || 0),
+    username: String(row?.username || '').trim(),
+    role: String(row?.role || '').trim(),
+    linkedEmployeeName: String(row?.linkedEmployeeName || '').trim(),
+    initialPasswordHint,
+    createdAt: String(row?.createdAt || '').trim(),
+    firstLoginAt: String(row?.firstLoginAt || '').trim(),
+    lastLoginAt: String(row?.lastLoginAt || '').trim(),
+    loginCount: Number(row?.loginCount || 0),
+    hasLoggedIn: false,
+  });
 });
 
 app.post('/api/project-catalog', async (req, res) => {
