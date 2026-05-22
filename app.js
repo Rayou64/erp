@@ -102,12 +102,24 @@ app.use((req, res, next) => {
 app.get('/api/warehouses', async (req, res) => {
   try {
     const rows = await all(`SELECT id, nomProjet, prefecture FROM projects WHERE UPPER(typeMaison) = 'ZONE_STOCK' ORDER BY prefecture ASC, nomProjet ASC`);
-    const warehouses = rows.map(row => ({
-      id: row.id,
-      name: row.prefecture || row.nomProjet,
-      project: row.nomProjet,
-      prefecture: row.prefecture
-    }));
+    let warehouses = (rows || [])
+      .filter(row => isSongonProjectLike(row))
+      .map(row => ({
+        id: row.id,
+        name: row.prefecture || row.nomProjet,
+        project: row.nomProjet,
+        prefecture: row.prefecture,
+      }));
+
+    if (!warehouses.length) {
+      warehouses = [{
+        id: 'entrepot-songon-1',
+        name: 'Songon',
+        project: 'Songon Kassemble',
+        prefecture: 'Songon',
+      }];
+    }
+
     res.json({ warehouses });
   } catch (e) {
     res.status(500).json({ error: 'Erreur chargement entrepôts', details: String(e) });
@@ -3653,6 +3665,28 @@ function isProcurementReviewerRole(user) {
   return role === 'controle_achat' || role === 'controle_achat_global';
 }
 
+function isSongonRestrictedRole(user) {
+  const role = String(user?.role || '').trim();
+  return (
+    role === 'controle_achat_global'
+    || role === 'chef_chantier_site'
+    || role === 'gestionnaire_stock_songon'
+    || role === 'dirigeant'
+    || role === 'directeur_rh'
+  );
+}
+
+function isSongonWarehouseId(value) {
+  return normalizeScopeText(value).includes('songon');
+}
+
+function isSongonProjectLike(row) {
+  if (isInSongonZoneScope(row)) return true;
+  if (isSongonWarehouseId(row?.warehouseId)) return true;
+  if (isSongonWarehouseId(row?.id)) return true;
+  return false;
+}
+
 function isHrPersonalScopedRole(user) {
   const role = String(user?.role || '').trim();
   return isProcurementReviewerRole(user) || role === 'gestionnaire_stock_songon' || role === 'employe_standard';
@@ -4270,7 +4304,7 @@ app.get('/api/project-catalog', async (_req, res) => {
     }
   }
   const role = String(_req.user?.role || '').trim();
-  if (role === 'gestionnaire_stock_songon') {
+  if (role === 'gestionnaire_stock_songon' || isSongonRestrictedRole(_req.user)) {
     return res.json(rows.filter(row => isInSongonZoneScope(row)));
   }
   res.json(rows);
@@ -4334,7 +4368,7 @@ app.get('/api/project-folders', async (_req, res) => {
     }
   }
   const role = String(_req.user?.role || '').trim();
-  if (role === 'gestionnaire_stock_songon') {
+  if (role === 'gestionnaire_stock_songon' || isSongonRestrictedRole(_req.user)) {
     return res.json(rows.filter(row => isInSongonZoneScope(row)));
   }
   res.json(rows);
@@ -4614,6 +4648,9 @@ app.get('/api/projects', async (req, res) => {
   const role = String(req.user?.role || '').trim();
   if (role === 'chef_chantier_site') {
     return res.json(rows.filter(row => isInUserProjectScope(req.user, row)));
+  }
+  if (isSongonRestrictedRole(req.user)) {
+    return res.json(rows.filter(row => isSongonProjectLike(row)));
   }
   res.json(rows);
 });
@@ -5625,6 +5662,9 @@ app.get('/api/stock-management/orders', async (req, res) => {
   const selectPoEtape = purchaseOrderColumns.has('etapeApprovisionnement')
     ? 'po.etapeApprovisionnement AS poEtape'
     : 'NULL AS poEtape';
+  const validatedStatusPredicate = purchaseOrderColumns.has('statutValidation')
+    ? "UPPER(COALESCE(po.statutValidation, po.statut, '')) IN ('VALIDEE', 'LIVREE')"
+    : "UPPER(COALESCE(po.statut, '')) IN ('VALIDEE', 'LIVREE')";
 
   const rows = await all(`
     SELECT
@@ -5651,7 +5691,7 @@ app.get('/api/stock-management/orders', async (req, res) => {
     LEFT JOIN purchase_order_items poi ON poi.purchaseOrderId = po.id
     LEFT JOIN material_requests mr ON mr.id = poi.materialRequestId
     LEFT JOIN projects p ON p.id = mr.projetId
-    WHERE UPPER(COALESCE(po.statutValidation, po.statut, '')) IN ('VALIDEE', 'LIVREE')
+    WHERE ${validatedStatusPredicate}
     ORDER BY po.dateCommande DESC, po.id DESC, poi.id ASC
   `);
 
@@ -5713,6 +5753,14 @@ app.get('/api/stock-management/orders', async (req, res) => {
       nomSite: order.nomSiteManuel,
       nomProjet: order.nomProjet,
       zoneName: order.zoneName,
+    }));
+  } else if (isSongonRestrictedRole(req.user)) {
+    result = result.filter(order => isSongonProjectLike({
+      nomProjet: order.nomProjet,
+      zoneName: order.zoneName,
+      prefecture: order.zoneName,
+      warehouseId: order.warehouseId,
+      id: order.warehouseId,
     }));
   }
 
@@ -9779,6 +9827,13 @@ app.get('/api/material-catalog', async (req, res) => {
   const rows = folder
     ? await all('SELECT * FROM building_material_catalog WHERE projectFolder = ? ORDER BY materialName ASC', [folder])
     : await all('SELECT * FROM building_material_catalog ORDER BY projectFolder ASC, materialName ASC');
+  if (isSongonRestrictedRole(req.user)) {
+    const scopedRows = (rows || []).filter(row => isInSongonZoneScope({
+      nomProjet: row?.projectFolder,
+      zoneName: row?.projectFolder,
+    }));
+    return res.json(scopedRows);
+  }
   res.json(rows);
 });
 
