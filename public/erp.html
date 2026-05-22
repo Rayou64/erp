@@ -4694,7 +4694,10 @@
                 <h3 style="margin:0;">Liste des profils</h3>
                 <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Vue admin des comptes lies aux employes RH.</p>
               </div>
-              <button type="button" class="button button-secondary button-small" onclick="loadUsersModule()">Actualiser</button>
+              <div class="action-buttons" style="gap:8px;">
+                <button type="button" class="button button-secondary button-small" onclick="loadUsersModule()">Actualiser</button>
+                <button type="button" id="users-reset-all-login-state" class="button button-small" onclick="resetAllUsersLoginState()">Reinitialiser tous les profils</button>
+              </div>
             </div>
             <p id="users-summary" style="font-size:12px; color:#475569; margin-bottom:10px;">Chargement...</p>
             <div style="overflow-x:auto;">
@@ -6765,6 +6768,10 @@
 
     async function loadUsersModule() {
       const tbody = document.getElementById('users-table-body');
+      const resetAllButton = document.getElementById('users-reset-all-login-state');
+      if (resetAllButton) {
+        resetAllButton.style.display = isAdmin() ? 'inline-flex' : 'none';
+      }
       if (tbody) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">Chargement...</td></tr>';
       }
@@ -6802,6 +6809,26 @@
         await loadUsersModule();
       } catch (err) {
         showMessage('Impossible de reinitialiser: ' + err.message, 'error');
+      }
+    };
+
+    window.resetAllUsersLoginState = async function resetAllUsersLoginState() {
+      if (!isAdmin()) {
+        showMessage('Acces refuse: admin uniquement', 'error');
+        return;
+      }
+
+      const confirmed = window.confirm('Reinitialiser la premiere connexion pour tous les profils ?');
+      if (!confirmed) return;
+
+      try {
+        const result = await fetchJson('/api/users/reset-login-state/all', { method: 'PATCH' });
+        const resetUsers = Number(result?.resetUsers || 0);
+        const connectedUsers = Number(result?.previouslyConnectedUsers || 0);
+        showMessage(`Reinitialisation globale effectuee: ${resetUsers} profil(s), dont ${connectedUsers} deja connecte(s)`);
+        await loadUsersModule();
+      } catch (err) {
+        showMessage('Impossible de reinitialiser tous les profils: ' + err.message, 'error');
       }
     };
 

@@ -4433,6 +4433,36 @@ app.patch('/api/users/:id/reset-login-state', async (req, res) => {
   });
 });
 
+app.patch('/api/users/reset-login-state/all', async (req, res) => {
+  if (String(req.user?.role || '').trim() !== 'admin') {
+    return res.status(403).json({ error: 'Acces refuse: admin uniquement' });
+  }
+
+  const stats = await get(
+    `SELECT
+      COUNT(*) AS totalUsers,
+      SUM(CASE
+        WHEN COALESCE(NULLIF(TRIM(firstLoginAt), ''), '') <> '' OR COALESCE(loginCount, 0) > 0
+        THEN 1
+        ELSE 0
+      END) AS connectedUsers
+    FROM users`
+  );
+
+  const totalUsers = Number(stats?.totalUsers || 0);
+  const connectedUsers = Number(stats?.connectedUsers || 0);
+
+  await run('UPDATE users SET firstLoginAt = NULL, lastLoginAt = NULL, loginCount = 0');
+
+  return res.json({
+    success: true,
+    totalUsers,
+    resetUsers: totalUsers,
+    previouslyConnectedUsers: connectedUsers,
+    hasLoggedIn: false,
+  });
+});
+
 app.post('/api/project-catalog', async (req, res) => {
   const { nomProjet, typeProjet = '', description = '' } = req.body;
   const projectName = normalizeCanonicalProjectName(nomProjet);
