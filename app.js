@@ -15,6 +15,7 @@ const jwt = require('jsonwebtoken');
 const PDFDocument = require('pdfkit');
 const { PDFDocument: PdfLibDocument, StandardFonts: PdfLibStandardFonts, rgb: pdfRgb } = require('pdf-lib');
 const helmet = require('helmet');
+const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
@@ -23,6 +24,43 @@ const { createDbClient } = require('./db/client');
 const app = express();
 app.set('trust proxy', 1);
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
+
+const ALLOWED_CORS_ORIGINS = new Set([
+  'http://localhost',
+  'http://127.0.0.1',
+  'capacitor://localhost',
+  'ionic://localhost',
+  'https://ryanerp-hn5zd.ondigitalocean.app',
+]);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    const normalizedOrigin = String(origin || '').trim();
+    if (ALLOWED_CORS_ORIGINS.has(normalizedOrigin)) {
+      callback(null, true);
+      return;
+    }
+
+    if (/^https:\/\/[a-z0-9-]+\.ondigitalocean\.app$/i.test(normalizedOrigin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(null, false);
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
