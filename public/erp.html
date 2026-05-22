@@ -5043,6 +5043,14 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const mobileAuthToken = String(urlParams.get('mobileAuth') || '').trim();
+    if (mobileAuthToken) {
+      localStorage.setItem('erp_token', mobileAuthToken);
+      // Remove token from URL after handoff to reduce exposure in history/shares.
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     const token = localStorage.getItem('erp_token');
     if (!token) {
       window.location.href = 'index.html';
