@@ -5219,6 +5219,39 @@
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash']);
     const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database']);
     const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures']);
+    const STANDARD_EMPLOYEE_USERNAMES = new Set([
+      'agbodjro123',
+      'appia123',
+      'atta123',
+      'bado123',
+      'balma123',
+      'beaka123',
+      'bossio123',
+      'coulibaly123',
+      'dabie123',
+      'dje123',
+      'doudou123',
+      'doumbia123',
+      'gnekpo123',
+      'kendrebeogo123',
+      'koaussi123',
+      'koffi123',
+      'kone123',
+      'kone124',
+      'kouame123',
+      'kouame124',
+      'kouassi123',
+      'kpankoun123',
+      'mme123',
+      'ndjie123',
+      'nguessan123',
+      'oulai123',
+      'sai123',
+      'soro123',
+      'soro124',
+      'yeo123',
+      'zran123',
+    ]);
     const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog']);
     const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash']);
     const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'expenses', 'revenues', 'reports', 'maps']);
@@ -5276,7 +5309,8 @@
     }
 
     function isStandardEmployeeProfileRole() {
-      return currentUserRole === 'employe_standard';
+      const username = normalizeText(String(currentUserUsername || '').trim());
+      return currentUserRole === 'employe_standard' || STANDARD_EMPLOYEE_USERNAMES.has(username);
     }
 
     function isHrPersonalProfileMode() {
@@ -5629,7 +5663,7 @@
     }
 
     function isRestrictedRole() {
-      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive() || isAchat() || isHrDirector();
+      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive() || isAchat() || isHrDirector() || isStandardEmployeeProfileRole();
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
@@ -21472,6 +21506,13 @@
         showModule('purchase-orders');
         loadProjects();
         loadPurchaseOrders();
+        return;
+      }
+
+      if (isStandardEmployeeProfileRole()) {
+        showModule('hr-employees');
+        loadHrEmployeesModule();
+        loadHrAttendanceModule();
         return;
       }
 
