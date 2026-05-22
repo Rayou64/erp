@@ -2941,6 +2941,25 @@ async function initDb() {
     console.log(`Utilisateur ${COMMIS_STOCK_USERNAME} mis a jour avec role commis`);
   }
 
+  // Compatibilite legacy: certains environnements historiques utilisent "commis.stock".
+  // On garantit ce compte pour conserver une parite stricte des profils entre local et cloud.
+  const legacyCommisUsername = 'commis.stock';
+  const legacyCommis = await get('SELECT id FROM users WHERE username = ?', [legacyCommisUsername]);
+  if (!legacyCommis) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, legacyCommisUsername, commisHashedPassword, 'commis', new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${legacyCommisUsername} cree avec role commis`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [commisHashedPassword, 'commis', legacyCommisUsername]
+    );
+    console.log(`Utilisateur ${legacyCommisUsername} mis a jour avec role commis`);
+  }
+
   // Garantir le compte chef de chantier SK (local + Railway)
   const siteChiefUsername = 'Chef_chantier_SK';
   const legacySiteChiefUsername = 'chef_chantier_site15';
@@ -4308,6 +4327,63 @@ app.get('/api/project-catalog', async (_req, res) => {
     return res.json(rows.filter(row => isInSongonZoneScope(row)));
   }
   res.json(rows);
+});
+
+app.delete('/api/project-catalog/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'Identifiant de projet invalide' });
+  }
+
+  const catalog = await get('SELECT * FROM project_catalog WHERE id = ?', [id]);
+  if (!catalog) {
+    return res.status(404).json({ error: 'Projet introuvable' });
+  }
+
+  const projectName = String(catalog.nomProjet || '').trim();
+  const linkedProjects = await all(
+    'SELECT id FROM projects WHERE LOWER(nomProjet) = LOWER(?)',
+    [projectName]
+  );
+  const linkedProjectIds = Array.from(
+    new Set(
+      (linkedProjects || [])
+        .map(row => Number(row.id))
+        .filter(value => Number.isInteger(value) && value > 0)
+    )
+  );
+
+  if (linkedProjectIds.length) {
+    const placeholders = linkedProjectIds.map(() => '?').join(',');
+    await run(`DELETE FROM project_assignments WHERE projectId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM material_requests WHERE projetId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM project_progress_updates WHERE projectId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM revenues WHERE projetId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM expenses WHERE projetId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM stock_issues WHERE projetId IN (${placeholders})`, linkedProjectIds);
+    await run(`DELETE FROM purchase_orders WHERE projetId IN (${placeholders}) OR siteId IN (${placeholders})`, [...linkedProjectIds, ...linkedProjectIds]);
+  }
+
+  const foldersDeleted = await run(
+    'DELETE FROM project_folders WHERE LOWER(nomProjet) = LOWER(?)',
+    [projectName]
+  );
+  const projectsDeleted = await run(
+    'DELETE FROM projects WHERE LOWER(nomProjet) = LOWER(?)',
+    [projectName]
+  );
+  const catalogDeleted = await run('DELETE FROM project_catalog WHERE id = ?', [id]);
+
+  if (catalogDeleted.changes === 0) {
+    return res.status(404).json({ error: 'Projet introuvable' });
+  }
+
+  res.json({
+    message: 'Projet supprimé avec succès',
+    deletedCatalogId: id,
+    deletedFolders: Number(foldersDeleted?.changes || 0),
+    deletedProjects: Number(projectsDeleted?.changes || 0),
+  });
 });
 
 app.post('/api/project-folders', async (req, res) => {
