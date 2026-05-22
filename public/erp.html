@@ -7,6 +7,19 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap" />
   <style>
+    :root {
+      --bg-page: #e6ebf3;
+      --bg-surface: #f8fafc;
+      --bg-soft: #f3f6fb;
+      --text-main: #1f2937;
+      --text-muted: #64748b;
+      --border-soft: #e3e8f2;
+      --brand-500: #6366f1;
+      --brand-600: #4f46e5;
+      --brand-700: #4338ca;
+      --shadow-soft: 0 10px 30px rgba(99, 102, 241, 0.14);
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -15,8 +28,8 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background-color: #d7dce3;
-      color: #333;
+      background: linear-gradient(180deg, #edf1f7 0%, var(--bg-page) 100%);
+      color: var(--text-main);
     }
 
     .erp-container {
@@ -26,10 +39,10 @@
 
     .sidebar {
       width: 280px;
-      background: linear-gradient(180deg, #0d153d 0%, #1e245e 100%);
+      background: linear-gradient(180deg, #17224f 0%, #28346d 100%);
       color: white;
       overflow-y: auto;
-      box-shadow: 4px 0 12px rgba(0,0,0,0.3);
+      box-shadow: 4px 0 12px rgba(0,0,0,0.24);
     }
 
     .sidebar-header {
@@ -116,13 +129,13 @@
     }
 
     .topbar {
-      background: linear-gradient(90deg, #ffffff 0%, #f8f9fa 100%);
+      background: linear-gradient(90deg, #ffffff 0%, #f7f9fd 100%);
       padding: 18px 30px;
-      border-bottom: 2px solid #6270f4;
+      border-bottom: 2px solid #8d98f7;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.07);
     }
 
     .topbar-left h2 {
@@ -164,14 +177,14 @@
     }
 
     .button-primary {
-      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      background: linear-gradient(135deg, var(--brand-500) 0%, var(--brand-600) 100%);
       color: white;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.32);
     }
 
     .button-primary:hover {
-      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+      background: linear-gradient(135deg, var(--brand-600) 0%, var(--brand-700) 100%);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
       transform: translateY(-2px);
     }
 
@@ -300,10 +313,10 @@
     }
 
     .hr-employee-dossiers {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-      gap: 22px;
-      align-items: start;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: stretch;
     }
 
     .hr-employee-kanban-column {
@@ -320,6 +333,7 @@
       position: relative;
       display: flex;
       flex-direction: column;
+      width: 100%;
     }
 
     .hr-employee-kanban-header {
@@ -369,9 +383,10 @@
 
     .hr-employee-kanban-cards {
       display: grid;
-      gap: 14px;
-      max-height: 74vh;
-      overflow-y: auto;
+      gap: 18px;
+      max-height: none;
+      overflow-y: visible;
+      overflow-x: visible;
       padding-right: 6px;
       padding-bottom: 2px;
     }
@@ -424,6 +439,8 @@
       color: #0f172a;
       font-size: 16px;
       letter-spacing: 0.01em;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .hr-employee-card-role {
@@ -517,12 +534,12 @@
 
     @media (max-width: 900px) {
       .hr-employee-dossiers {
-        grid-template-columns: 1fr;
         gap: 16px;
       }
 
       .hr-employee-kanban-cards {
         max-height: none;
+        overflow-y: visible;
       }
 
       .hr-employee-kanban-header {
@@ -557,13 +574,37 @@
 
     .hr-employee-modal-card {
       max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: #94a3b8 #e2e8f0;
+    }
+
+    .hr-employee-modal-card::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .hr-employee-modal-card::-webkit-scrollbar-track {
+      background: #e2e8f0;
+      border-radius: 999px;
+    }
+
+    .hr-employee-modal-card::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+      border-radius: 999px;
+      border: 2px solid #e2e8f0;
+    }
+
+    .hr-employee-modal-card::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #64748b 0%, #475569 100%);
     }
 
     .content-area {
       flex: 1;
       overflow-y: auto;
       padding: 30px;
-      background: #d7dce3;
+      background: #dfe4ed;
     }
 
     .module {
@@ -805,17 +846,17 @@
     .esw-risk-icon { font-size: 14px; }
 
     .card {
-      background: #f8fafc;
+      background: var(--bg-surface);
       border-radius: 14px;
       padding: 22px;
       box-shadow: 0 1px 6px rgba(15,23,42,0.08);
-      border: 1px solid #e3e8f2;
+      border: 1px solid var(--border-soft);
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .card:hover {
-      box-shadow: 0 12px 28px rgba(99, 102, 241, 0.14);
-      border-color: #a5b4fc;
+      box-shadow: var(--shadow-soft);
+      border-color: #b7c1fb;
       transform: translateY(-3px);
     }
 
@@ -850,7 +891,7 @@
     }
 
     .form-card {
-      max-width: 500px;
+      max-width: 520px;
       margin-bottom: 20px;
     }
 
@@ -877,7 +918,7 @@
       font-size: 13px;
       font-family: inherit;
       transition: all 0.3s;
-      background-color: #f9f9f9;
+      background-color: #ffffff;
     }
 
     .form-group input:focus,
@@ -887,6 +928,56 @@
       border-color: #6366f1;
       box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
       background-color: white;
+    }
+
+    #journal-chantier .form-card {
+      max-width: 760px;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5fb 100%);
+      border: 1px solid #dfe6f3;
+      box-shadow: 0 10px 28px rgba(99, 102, 241, 0.12);
+    }
+
+    #journal-chantier #journal-progress-toggle {
+      width: 56px;
+      height: 56px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #4f7cf6, #5f68f3);
+      color: #ffffff;
+      font-size: 34px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(95, 104, 243, 0.3);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    #journal-chantier #journal-progress-toggle:hover {
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 16px 34px rgba(95, 104, 243, 0.36);
+    }
+
+    #journal-chantier #journal-progress-toggle.is-open {
+      background: linear-gradient(135deg, #14b8a6, #0f766e);
+      box-shadow: 0 16px 34px rgba(20, 184, 166, 0.3);
+    }
+
+    #journal-chantier #journal-progress-content {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #dfe7f5;
+      animation: fadeIn 0.2s ease;
+    }
+
+    #journal-chantier #project-progress-form .form-group label {
+      color: #1f3652;
+      font-weight: 700;
+    }
+
+    #journal-chantier #progress-material-lines .progress-material-line-row {
+      background: #f4f7fd;
+      border: 1px solid #dfe7f4;
+      border-radius: 10px;
+      padding: 8px;
     }
 
     .form-group textarea {
@@ -1551,13 +1642,23 @@
       position: absolute;
       right: 0;
       top: 40px;
-      min-width: 140px;
+      min-width: 220px;
       background: white;
       border: 1px solid #e8e8e8;
       border-radius: 8px;
       box-shadow: 0 8px 16px rgba(0,0,0,0.12);
-      z-index: 20;
+      z-index: 200;
       padding: 6px;
+    }
+
+    .actions-menu.actions-menu-open-up .actions-dropdown {
+      top: auto;
+      bottom: 40px;
+    }
+
+    .actions-menu.actions-menu-open-right .actions-dropdown {
+      right: auto;
+      left: 0;
     }
 
     .actions-dropdown button {
@@ -1572,6 +1673,7 @@
       cursor: pointer;
       font-weight: 500;
       transition: all 0.2s;
+      white-space: nowrap;
     }
 
     .actions-dropdown button:hover {
@@ -2747,6 +2849,25 @@
             </div>
           </div>
 
+          <div id="hr-dashboard-grid" class="dashboard-grid" style="display:none;">
+            <div class="card stat-card">
+              <h3 id="stat-hr-employees">0</h3>
+              <p>Employés (effectif)</p>
+            </div>
+            <div class="card stat-card">
+              <h3 id="stat-hr-present">0</h3>
+              <p>Présents aujourd'hui</p>
+            </div>
+            <div class="card stat-card">
+              <h3 id="stat-hr-absent">0</h3>
+              <p>Absents aujourd'hui</p>
+            </div>
+            <div class="card stat-card">
+              <h3 id="stat-hr-leave">0</h3>
+              <p>En congé aujourd'hui</p>
+            </div>
+          </div>
+
           <!-- ── Résumé opérationnel (visible pour tous sauf dirigeant) ── -->
           <div id="exec-summary-widget" class="exec-summary-widget" style="display:none;">
             <div class="esw-header">
@@ -3069,12 +3190,11 @@
                 aria-expanded="false"
                 aria-controls="journal-progress-content"
                 title="Ajouter un suivi d'étape"
-                style="width:46px; height:46px; border:none; border-radius:999px; background:linear-gradient(135deg,#1d4ed8,#2563eb); color:#ffffff; font-size:28px; line-height:1; cursor:pointer; box-shadow:0 10px 24px rgba(37,99,235,0.28);"
               >
                 <span id="journal-progress-toggle-icon">+</span>
               </button>
             </div>
-            <div id="journal-progress-content" style="display:none; margin-top: 8px;">
+            <div id="journal-progress-content" style="display:none;">
             <h3 style="margin-bottom: 15px;">Ajouter un suivi d'étape</h3>
             <form id="project-progress-form">
               <div class="form-group">
@@ -3206,8 +3326,37 @@
                   <input type="text" id="hr-employee-name" required />
                 </div>
                 <div class="form-group">
+                  <label>Projet</label>
+                  <input type="text" id="hr-employee-projet" placeholder="Ex: SONGON KASSEMBLE, PRICI, PINUT…" />
+                </div>
+                <div class="form-group">
                   <label>Poste *</label>
                   <input type="text" id="hr-employee-job" required placeholder="Ex: Gestionnaire achat" />
+                </div>
+                <div class="form-group">
+                  <label>Date d'embauche *</label>
+                  <input type="date" id="hr-employee-hire-date" required />
+                </div>
+                <div class="form-group">
+                  <label>Sexe *</label>
+                  <select id="hr-employee-sexe" required>
+                    <option value="">Sélectionner</option>
+                    <option value="M">Masculin</option>
+                    <option value="F">Féminin</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Type de contrat *</label>
+                  <select id="hr-employee-contract-type" required>
+                    <option value="">Sélectionner</option>
+                    <option value="CDI">CDI</option>
+                    <option value="CDD">CDD</option>
+                    <option value="Stage">Stage</option>
+                    <option value="Freelance">Freelance</option>
+                    <option value="Intérim">Intérim</option>
+                    <option value="Consultant">Consultant</option>
+                    <option value="Autre">Autre</option>
+                  </select>
                 </div>
                 <div class="form-group">
                   <label>Numéro de téléphone</label>
@@ -5066,10 +5215,12 @@
     const COMMIS_ALLOWED_MODULES = new Set(['stock-management', 'inventory']);
     const GEST_STOCK_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations']);
     const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier']);
+    const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave']);
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash']);
-    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database']);
+    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database']);
+    const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures']);
     const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog']);
-    const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'material-catalog', 'stock-management', 'database', 'trash']);
+    const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash']);
     const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'expenses', 'revenues', 'reports', 'maps']);
       const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash']);
     const AUTO_MAP_REFRESH_MS = 10000;
@@ -5091,8 +5242,25 @@
       return currentUserRole === 'gestionnaire_stock_zone' || currentUserRole === 'gestionnaire_stock_songon';
     }
 
+    function isKokanStockManager() {
+      return currentUserRole === 'gestionnaire_stock_songon';
+    }
+
     function isSiteChief() {
       return currentUserRole === 'chef_chantier_site';
+    }
+
+    function isSongonSiteChiefUsername(username) {
+      const normalized = normalizeText(String(username || '').trim());
+      return normalized === 'chef_chantier_sk' || normalized === 'conducteur_de_travaux';
+    }
+
+    function isSongonScopedSiteChief() {
+      return isSiteChief() && isSongonSiteChiefUsername(currentUserUsername);
+    }
+
+    function canUseSongonCatalogManagerUi() {
+      return isKokanStockManager() || isSongonScopedSiteChief();
     }
 
     function isHrDirector() {
@@ -5104,16 +5272,20 @@
     }
 
     function isProcurementReviewer() {
-      return currentUserRole === 'controle_achat';
+      return currentUserRole === 'controle_achat' || currentUserRole === 'controle_achat_global';
+    }
+
+    function isStandardEmployeeProfileRole() {
+      return currentUserRole === 'employe_standard';
     }
 
     function isHrPersonalProfileMode() {
       const username = String(currentUserUsername || '').trim().toLowerCase();
-      return isProcurementReviewer() || username === 'chef_chantier_site15';
+      return isProcurementReviewer() || isKokanStockManager() || isSongonSiteChiefUsername(username) || isStandardEmployeeProfileRole();
     }
 
     function canUploadHrProfileDocuments() {
-      return isHrDirector() || isProcurementReviewer() || String(currentUserUsername || '').trim().toLowerCase() === 'chef_chantier_site15';
+      return isHrDirector() || isProcurementReviewer() || isKokanStockManager() || isSongonSiteChiefUsername(currentUserUsername);
     }
 
     function isExecutive() {
@@ -5200,11 +5372,13 @@
       const projectIds = Array.isArray(raw.projectIds)
         ? raw.projectIds
         : [];
+      const defaultWarehouseId = isKokanStockManager() ? 'entrepot-songon-1' : 'entrepot-plateau';
+      const defaultZoneName = isKokanStockManager() ? 'Songon' : 'ADZOPE';
 
       return {
         projectIds,
-        warehouseId: String(raw.warehouseId || 'entrepot-plateau').trim(),
-        zoneName: String(raw.zoneName || 'ADZOPE').trim(),
+        warehouseId: String(raw.warehouseId || defaultWarehouseId).trim(),
+        zoneName: String(raw.zoneName || defaultZoneName).trim(),
         siteNumber: null, // Zone manager can see all sites in zone
       };
     }
@@ -5215,18 +5389,37 @@
       const projectIds = Array.isArray(raw.projectIds)
         ? raw.projectIds
         : [];
+      const defaultWarehouseId = isSongonScopedSiteChief() ? 'entrepot-songon-1' : 'entrepot-plateau';
+      const defaultZoneName = isSongonScopedSiteChief() ? 'Songon' : 'ADZOPE';
+      const defaultSiteNumber = isSongonScopedSiteChief() ? '' : '15';
 
       return {
         projectIds,
-        warehouseId: String(raw.warehouseId || 'entrepot-plateau').trim(),
-        zoneName: String(raw.zoneName || 'ADZOPE').trim(),
-        siteNumber: String(raw.siteNumber || '15').trim(),
+        warehouseId: String(raw.warehouseId || defaultWarehouseId).trim(),
+        zoneName: String(raw.zoneName || defaultZoneName).trim(),
+        siteNumber: String(raw.siteNumber || defaultSiteNumber).trim(),
       };
     }
 
     function getSiteChiefScopedProjectIds() {
       const effectiveScope = getEffectiveSiteChiefScope();
       if (!effectiveScope) return null;
+
+      // Chef_chantier_SK and Conducteur_de_travaux follow Songon zone scope (all current and future sites).
+      if (isSongonScopedSiteChief()) {
+        const scopeZoneName = normalizeText(String(effectiveScope.zoneName || '').trim()) || 'songon';
+        const songonIds = (Array.isArray(projectsCache) ? projectsCache : [])
+          .filter(project => String(project?.typeMaison || '').trim().toUpperCase() !== 'ZONE_STOCK')
+          .filter(project => {
+            const projectZone = normalizeText(String(project?.prefecture || '').trim());
+            const projectName = normalizeText(String(project?.nomProjet || '').trim());
+            return projectZone === scopeZoneName || projectName.includes(scopeZoneName);
+          })
+          .map(project => Number(project?.id || 0))
+          .filter(id => Number.isInteger(id) && id > 0);
+        return new Set(songonIds);
+      }
+
       const explicitIds = (Array.isArray(effectiveScope.projectIds) ? effectiveScope.projectIds : [])
         .map(id => Number(id))
         .filter(id => Number.isInteger(id) && id > 0);
@@ -6238,8 +6431,10 @@
     function getAllowedModules() {
       if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
       if (isHrDirector()) return HR_DIRECTOR_ALLOWED_MODULES;
+      if (isStandardEmployeeProfileRole()) return STANDARD_EMPLOYEE_ALLOWED_MODULES;
       if (isExecutive()) return EXECUTIVE_ALLOWED_MODULES;
       if (isProcurementReviewer()) return PROCUREMENT_REVIEWER_ALLOWED_MODULES;
+      if (isKokanStockManager()) return KOKAN_ALLOWED_MODULES;
       if (isOpsReviewer()) return OPS_REVIEWER_ALLOWED_MODULES;
       if (isSiteChief()) return SITE_CHIEF_ALLOWED_MODULES;
       if (isZoneStockManager()) return ZONE_STOCK_MANAGER_ALLOWED_MODULES;
@@ -7633,7 +7828,17 @@
     }
 
     function getProjectGroupKey(project) {
-      return `${normalizeText(project?.nomProjet)}__${normalizeText(project?.prefecture)}`;
+      return `${normalizeText(getCanonicalProjectName(project?.nomProjet))}__${normalizeText(project?.prefecture)}`;
+    }
+
+    function getCanonicalProjectName(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const normalized = normalizeText(raw).replace(/\s+/g, ' ');
+      if (/^songon\s+kassemble(\s*-\s*t[123])?$/.test(normalized)) {
+        return 'Songon Kassemble';
+      }
+      return raw;
     }
 
     function getProjectFolderLabel(project) {
@@ -7719,7 +7924,7 @@
           folders.set(key, {
             key,
             projectId: folder.projectId || null,
-            nomProjet: folder.nomProjet || 'Projet',
+            nomProjet: getCanonicalProjectName(folder.nomProjet || 'Projet') || 'Projet',
             prefecture: folder.prefecture || 'Non renseigne',
             typeProjet: folder.typeProjet || '',
             houses: [],
@@ -7733,7 +7938,7 @@
           folders.set(key, {
             key,
             projectId: project.projectId || null,
-            nomProjet: project.nomProjet || 'Projet',
+            nomProjet: getCanonicalProjectName(project.nomProjet || 'Projet') || 'Projet',
             prefecture: project.prefecture || 'Non renseigne',
             typeProjet: project.typeProjet || '',
             houses: [],
@@ -7762,7 +7967,7 @@
       (Array.isArray(catalog) ? catalog : []).forEach(project => {
         byProject.set(Number(project.id), {
           id: Number(project.id),
-          nomProjet: project.nomProjet || 'Projet',
+          nomProjet: getCanonicalProjectName(project.nomProjet || 'Projet') || 'Projet',
           typeProjet: project.typeProjet || '',
           description: project.description || '',
           zones: [],
@@ -7775,7 +7980,7 @@
           if (!byProject.has(folderProjectId)) {
             byProject.set(folderProjectId, {
               id: folderProjectId,
-              nomProjet: folder.nomProjet || 'Projet',
+              nomProjet: getCanonicalProjectName(folder.nomProjet || 'Projet') || 'Projet',
               typeProjet: folder.typeProjet || '',
               description: '',
               zones: [],
@@ -7786,11 +7991,24 @@
         }
 
         // fallback for legacy folders without projectId
-        const fallbackId = -(Math.abs(hashCode(String(folder.nomProjet || '').toLowerCase())) || 1);
+        const folderNameKey = normalizeText(getCanonicalProjectName(String(folder.nomProjet || '').trim()));
+        const existingProjectEntry = Array.from(byProject.entries()).find(([, project]) => {
+          const projectNameKey = normalizeText(getCanonicalProjectName(String(project?.nomProjet || '').trim()));
+          return projectNameKey && folderNameKey && projectNameKey === folderNameKey;
+        });
+
+        if (existingProjectEntry) {
+          const [existingProjectId] = existingProjectEntry;
+          byProject.get(existingProjectId).zones.push(folder);
+          return;
+        }
+
+        const fallbackProjectName = getCanonicalProjectName(String(folder.nomProjet || '').trim()) || 'Projet';
+        const fallbackId = -(Math.abs(hashCode(String(fallbackProjectName).toLowerCase())) || 1);
         if (!byProject.has(fallbackId)) {
           byProject.set(fallbackId, {
             id: fallbackId,
-            nomProjet: folder.nomProjet || 'Projet',
+            nomProjet: fallbackProjectName,
             typeProjet: '',
             description: '',
             zones: [],
@@ -10137,7 +10355,10 @@
       const selectedSubRaw = String(subSelect.value || '').trim();
       const selectedMain = normalizeStageKey(selectedMainRaw);
 
-      const mainStages = [...new Set(scopedEntries.map(entry => parseCatalogStage(entry).mainStage).filter(Boolean))];
+      const mainStages = mergeMainStagesWithForced(
+        [...new Set(scopedEntries.map(entry => parseCatalogStage(entry).mainStage).filter(Boolean))],
+        folder
+      );
 
       const subStages = [...new Set(
         scopedEntries
@@ -10181,8 +10402,10 @@
       const selectedSubRaw = String(subSelect.value || '').trim();
       const selectedMain = normalizeStageKey(selectedMainRaw);
 
-      const mainStages = [...new Set(scopedEntries.map(entry => parseCatalogStage(entry).mainStage).filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
+      const mainStages = mergeMainStagesWithForced(
+        [...new Set(scopedEntries.map(entry => parseCatalogStage(entry).mainStage).filter(Boolean))],
+        folder
+      );
 
       const subStages = [...new Set(
         scopedEntries
@@ -11591,7 +11814,11 @@
     }
 
     function canManageHrData() {
-      return !isProcurementReviewer() && !isExecutive();
+      return !isProcurementReviewer() && !isExecutive() && !isKokanStockManager() && !isStandardEmployeeProfileRole();
+    }
+
+    function canManageHrAttendance() {
+      return canManageHrData() || isProcurementReviewer() || isKokanStockManager() || isStandardEmployeeProfileRole();
     }
 
     function canDecideHrLeave() {
@@ -11648,9 +11875,12 @@
     }
 
     function populateHrEmployeeSelects() {
+      const profileMode = isHrPersonalProfileMode();
+      const profileEmployee = profileMode ? getCurrentHrProfileEmployee() : null;
+      const calendarEmployees = profileEmployee ? [profileEmployee] : hrEmployeesCache;
       const options = ['<option value="">Tous les employés</option>']
         .concat(
-          hrEmployeesCache.map(employee => `<option value="${employee.id}">${escapeHtml(employee.fullName)}${employee.jobTitle ? ` (${escapeHtml(employee.jobTitle)})` : ''}</option>`)
+          calendarEmployees.map(employee => `<option value="${employee.id}">${escapeHtml(employee.fullName)}${employee.jobTitle ? ` (${escapeHtml(employee.jobTitle)})` : ''}</option>`)
         )
         .join('');
 
@@ -11658,7 +11888,11 @@
       if (calendarFilter) {
         const prev = calendarFilter.value;
         calendarFilter.innerHTML = options;
-        if (prev) calendarFilter.value = prev;
+        if (profileEmployee) {
+          calendarFilter.value = String(profileEmployee.id);
+        } else if (prev) {
+          calendarFilter.value = prev;
+        }
       }
 
       const attendanceSelect = document.getElementById('hr-attendance-employee');
@@ -11801,7 +12035,10 @@
                   </div>
                   <div class="hr-employee-dossier-grid">
                     <div><strong>Poste:</strong> ${escapeHtml(employee.jobTitle || '-')}</div>
-                    <div><strong>Projet:</strong> ${escapeHtml(projectSite.project || '-')}</div>
+                    <div><strong>Date d'embauche:</strong> ${escapeHtml(employee.dateEmbauche || '-')}</div>
+                    <div><strong>Sexe:</strong> ${escapeHtml(employee.sexe || '-')}</div>
+                    <div><strong>Type de contrat:</strong> ${escapeHtml(employee.typeContrat || '-')}</div>
+                    <div><strong>Projet:</strong> ${escapeHtml(employee.projet || projectSite.project || '-')}</div>
                     <div><strong>Site:</strong> ${escapeHtml(projectSite.site || '-')}</div>
                     <div><strong>Téléphone:</strong> ${escapeHtml(employee.phoneNumber || '-')}</div>
                     <div><strong>Adresse:</strong> ${escapeHtml(projectSite.rawAddress || employee.address || '-')}</div>
@@ -12087,11 +12324,14 @@
         achat: 'Achat',
         commis: 'Commis',
         controle_achat: 'Contrôle achat',
+        controle_achat_global: 'Contrôle achat global',
         chef_chantier_site: 'Chef chantier site',
         directeur_rh: 'Directeur RH',
         dirigeant: 'Dirigeant',
+        employe_standard: 'Employe standard',
         gestionnaire_stock: 'Gestionnaire stock',
         gestionnaire_stock_zone: 'Gestionnaire stock zone',
+        gestionnaire_stock_songon: 'Gestionnaire stock Songon',
       };
       return labels[key] || (role || '-');
     }
@@ -12101,7 +12341,7 @@
       const select = document.getElementById('hr-employee-linked-username');
       if (!group || !select) return;
 
-      const shouldShow = isHrDirector() && !isHrPersonalProfileMode();
+      const shouldShow = (isHrDirector() || isAdmin()) && !isHrPersonalProfileMode();
       group.style.display = shouldShow ? '' : 'none';
       if (!shouldShow) {
         select.innerHTML = '<option value="">Aucun profil lié</option>';
@@ -12109,9 +12349,26 @@
         return;
       }
 
+      const requiredProfiles = [
+        { username: 'Kokan_SK', role: 'gestionnaire_stock_songon' },
+        { username: 'Chef_chantier_SK', role: 'chef_chantier_site' },
+        { username: 'Conducteur_de_travaux', role: 'chef_chantier_site' },
+      ];
+      const mergedProfiles = [];
+      const seen = new Set();
+      [...(Array.isArray(hrUserProfilesCache) ? hrUserProfilesCache : []), ...requiredProfiles].forEach(user => {
+        const username = String(user?.username || '').trim();
+        if (!username) return;
+        const key = username.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        mergedProfiles.push({ username, role: String(user?.role || '').trim() });
+      });
+      mergedProfiles.sort((a, b) => a.username.localeCompare(b.username, 'fr', { sensitivity: 'base' }));
+
       const options = ['<option value="">Aucun profil lié</option>']
         .concat(
-          hrUserProfilesCache.map(user => {
+          mergedProfiles.map(user => {
             const username = String(user.username || '').trim();
             const roleLabel = getRoleDisplayLabel(user.role);
             return `<option value="${escapeHtml(username)}">${escapeHtml(username)} (${escapeHtml(roleLabel)})</option>`;
@@ -12119,7 +12376,13 @@
         )
         .join('');
       select.innerHTML = options;
-      select.value = String(selectedUsername || '').trim();
+      const wanted = String(selectedUsername || '').trim();
+      if (!wanted) {
+        select.value = '';
+        return;
+      }
+      const matchedOption = Array.from(select.options).find(option => String(option.value || '').trim().toLowerCase() === wanted.toLowerCase());
+      select.value = matchedOption ? matchedOption.value : '';
     }
 
     function openHrEmployeeFormCreateMode() {
@@ -12143,11 +12406,19 @@
       if (submitButton) submitButton.textContent = 'Enregistrer';
       const nameInput = document.getElementById('hr-employee-name');
       const jobInput = document.getElementById('hr-employee-job');
+      const projetInput = document.getElementById('hr-employee-projet');
       const phoneInput = document.getElementById('hr-employee-phone');
       const addressInput = document.getElementById('hr-employee-address');
       const maritalInput = document.getElementById('hr-employee-marital-status');
+      const hireDateInput = document.getElementById('hr-employee-hire-date');
+      const sexeInput = document.getElementById('hr-employee-sexe');
+      const contractTypeInput = document.getElementById('hr-employee-contract-type');
       if (nameInput) nameInput.value = String(employee.fullName || '').trim();
       if (jobInput) jobInput.value = String(employee.jobTitle || '').trim();
+      if (projetInput) projetInput.value = String(employee.projet || '').trim();
+      if (hireDateInput) hireDateInput.value = String(employee.dateEmbauche || '').trim().slice(0, 10);
+      if (sexeInput) sexeInput.value = String(employee.sexe || '').trim().toUpperCase();
+      if (contractTypeInput) contractTypeInput.value = String(employee.typeContrat || '').trim();
       if (phoneInput) phoneInput.value = String(employee.phoneNumber || '').trim();
       if (addressInput) addressInput.value = String(employee.address || '').trim();
       if (maritalInput) maritalInput.value = String(employee.maritalStatus || '').trim();
@@ -12157,7 +12428,7 @@
 
     async function loadHrEmployeesModule() {
       hrEmployeesCache = await fetchJson('/api/hr/employees').catch(() => []);
-      if (isHrDirector()) {
+      if (isHrDirector() || isAdmin()) {
         const users = await fetchJson('/api/users').catch(() => []);
         hrUserProfilesCache = Array.isArray(users) ? users : [];
       } else {
@@ -12225,7 +12496,7 @@
       }
       const attendanceFormCard = document.getElementById('hr-attendance-form')?.closest('.form-card');
       if (attendanceFormCard) {
-        attendanceFormCard.style.display = canManageHrData() ? '' : 'none';
+        attendanceFormCard.style.display = canManageHrAttendance() ? '' : 'none';
       }
       const selectedDate = document.getElementById('hr-attendance-date')?.value || formatDateForInput();
       hrAttendanceCache = await fetchJson(`/api/hr/attendance?date=${encodeURIComponent(selectedDate)}`).catch(() => []);
@@ -12532,7 +12803,11 @@
         monthInput.value = new Date().toISOString().slice(0, 7);
       }
 
-      const employeeFilter = document.getElementById('hr-calendar-employee-filter')?.value || '';
+      const profileMode = isHrPersonalProfileMode();
+      const profileEmployee = profileMode ? getCurrentHrProfileEmployee() : null;
+      const employeeFilter = profileEmployee
+        ? String(profileEmployee.id)
+        : (document.getElementById('hr-calendar-employee-filter')?.value || '');
       const monthValue = monthInput?.value || new Date().toISOString().slice(0, 7);
       const query = employeeFilter
         ? `month=${encodeURIComponent(monthValue)}&employeeId=${encodeURIComponent(employeeFilter)}`
@@ -13143,6 +13418,51 @@
 
     async function loadDashboard() {
       try {
+        const classicGrid = document.querySelector('#dashboard .dashboard-grid');
+        const hrGrid = document.getElementById('hr-dashboard-grid');
+        const executiveContainer = document.getElementById('executive-dashboard');
+        const summaryWidget = document.getElementById('exec-summary-widget');
+
+        if (isHrDirector()) {
+          if (classicGrid) {
+            classicGrid.style.display = 'none';
+          }
+          if (summaryWidget) {
+            summaryWidget.style.display = 'none';
+          }
+          if (executiveContainer) {
+            executiveContainer.style.display = 'none';
+          }
+          if (hrGrid) {
+            hrGrid.style.display = '';
+          }
+
+          const summary = await fetchJson('/api/hr/dashboard-summary').catch(() => ({
+            totalEmployees: 0,
+            present: 0,
+            absent: 0,
+            onLeave: 0,
+          }));
+          const totalEmployees = Number(summary?.totalEmployees || 0);
+          const present = Number(summary?.present || 0);
+          const absent = Number(summary?.absent || 0);
+          const onLeave = Number(summary?.onLeave || 0);
+
+          const hrEmployeesStat = document.getElementById('stat-hr-employees');
+          const hrPresentStat = document.getElementById('stat-hr-present');
+          const hrAbsentStat = document.getElementById('stat-hr-absent');
+          const hrLeaveStat = document.getElementById('stat-hr-leave');
+          if (hrEmployeesStat) hrEmployeesStat.textContent = String(totalEmployees);
+          if (hrPresentStat) hrPresentStat.textContent = String(present);
+          if (hrAbsentStat) hrAbsentStat.textContent = String(absent);
+          if (hrLeaveStat) hrLeaveStat.textContent = String(onLeave);
+          return;
+        }
+
+        if (hrGrid) {
+          hrGrid.style.display = 'none';
+        }
+
         const projectCatalog = await fetchJson('/api/project-catalog').catch(() => []);
         const projects = await fetchJson('/api/projects').catch(() => []);
         const materialRequests = await fetchJson('/api/material-requests').catch(() => []);
@@ -13203,9 +13523,6 @@
         document.getElementById('stat-revenues').textContent = `${totalRevenues.toFixed(2)} FCFA`;
         document.getElementById('stat-profit').textContent = `${(totalRevenues - totalExpenses).toFixed(2)} FCFA`;
 
-        const classicGrid = document.querySelector('#dashboard .dashboard-grid');
-        const executiveContainer = document.getElementById('executive-dashboard');
-        const summaryWidget = document.getElementById('exec-summary-widget');
         if (isExecutive()) {
           if (classicGrid) {
             classicGrid.style.display = 'none';
@@ -13328,7 +13645,7 @@
         const modeSelector = document.getElementById('material-mode-selector');
         const materialForm = document.getElementById('material-form');
         const readonlyNote = document.getElementById('material-readonly-note');
-        const isAdminOrStockManager = isAdmin() || isGestStock() || isZoneStockManager();
+        const isAdminOrStockManager = isAdmin() || isGestStock() || isZoneStockManager() || isSongonScopedSiteChief();
         if (modeSelector) {
           modeSelector.style.display = isAdminOrStockManager ? 'grid' : 'none';
         }
@@ -15027,6 +15344,32 @@
       return String(document.getElementById('mc-document-stage-name')?.value || mcActiveDocumentStage || '').trim();
     }
 
+    function isSongonKassembleT1Folder(folder) {
+      const value = normalizeText(String(folder || '').trim());
+      if (!value) return false;
+      if (!value.includes('songon kassemble')) return false;
+      return /(?:\s|-|^)t1(?:\s|$)/i.test(value) || /villa\s*t1/i.test(value);
+    }
+
+    function getForcedMainStagesForCatalogFolder(folder) {
+      return isSongonKassembleT1Folder(folder) ? ['Fondation'] : [];
+    }
+
+    function mergeMainStagesWithForced(mainStages, folder) {
+      const merged = [];
+      const seen = new Set();
+      [...(Array.isArray(mainStages) ? mainStages : []), ...getForcedMainStagesForCatalogFolder(folder)]
+        .map(stage => String(stage || '').trim())
+        .filter(Boolean)
+        .forEach(stage => {
+          const key = normalizeStageKey(stage) || normalizeText(stage);
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          merged.push(stage);
+        });
+      return merged.sort((a, b) => a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' }));
+    }
+
     function formatMcMoney(value) {
       const numeric = Number(value || 0);
       if (!Number.isFinite(numeric) || numeric <= 0) return '0 FCFA';
@@ -15034,11 +15377,12 @@
     }
 
     function getMcDocumentStages(folder) {
-      return [...new Set(
+      const fromEntries = [...new Set(
         getMcEntriesForFolder(folder)
           .map(entry => String(parseCatalogStage(entry).mainStage || '').trim())
           .filter(Boolean)
-      )].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' }));
+      )];
+      return mergeMainStagesWithForced(fromEntries, folder);
     }
 
     function syncMcEditorStageInputs() {
@@ -15318,7 +15662,7 @@
 
       // Show editor only for roles that can edit
       const editorCard = document.getElementById('mc-editor-card');
-      if (editorCard && !isSiteChief() && !isPurchaseReadOnlyRole()) {
+      if (editorCard && (!isSiteChief() || isSongonScopedSiteChief()) && !isPurchaseReadOnlyRole()) {
         editorCard.style.display = '';
         setMcEditorCollapsed(false);
         const stageDocuments = getMcDocumentStages(folder);
@@ -18327,17 +18671,13 @@
         const inheritedSiteType = villaType;
 
         for (const siteNumber of generatedSiteNumbers) {
-          // Rattachement automatique au catalogue Songon Kassemblé - T1/T2/T3
+          // Keep Songon project name canonical to avoid duplicate project cards.
           let nomProjet = String(selectedFolder.nomProjet || '').trim();
-          let projectFolder = nomProjet;
-          if (nomProjet === 'Songon Kassemblé' && ['T1','T2','T3'].includes(inheritedSiteType)) {
-            projectFolder = `Songon Kassemblé - ${inheritedSiteType}`;
-          }
           const response = await fetchJson('/api/projects', {
             method: 'POST',
             body: JSON.stringify({
               projectId: selectedFolder.projectId,
-              nomProjet: projectFolder,
+              nomProjet,
               prefecture: String(selectedFolder.prefecture || '').trim() || 'Non renseigne',
               nomSite: siteNumber,
               numeroMaison: siteNumber,
@@ -18468,7 +18808,7 @@
       hrEmployeeLinkedUsername.addEventListener('change', () => {
         const selectedUsername = String(hrEmployeeLinkedUsername.value || '').trim();
         if (!selectedUsername) return;
-        const selectedUser = hrUserProfilesCache.find(user => String(user.username || '').trim() === selectedUsername);
+        const selectedUser = hrUserProfilesCache.find(user => String(user.username || '').trim().toLowerCase() === selectedUsername.toLowerCase());
         if (!selectedUser) return;
 
         const nameInput = document.getElementById('hr-employee-name');
@@ -18492,12 +18832,16 @@
         try {
           const fullName = document.getElementById('hr-employee-name').value.trim();
           const jobTitle = document.getElementById('hr-employee-job').value.trim();
+          const projet = (document.getElementById('hr-employee-projet')?.value || '').trim();
+          const dateEmbauche = document.getElementById('hr-employee-hire-date').value.trim();
+          const sexe = document.getElementById('hr-employee-sexe').value.trim();
+          const typeContrat = document.getElementById('hr-employee-contract-type').value.trim();
           const phoneNumber = document.getElementById('hr-employee-phone').value.trim();
           const address = document.getElementById('hr-employee-address').value.trim();
           const maritalStatus = document.getElementById('hr-employee-marital-status').value.trim();
           const linkedUsername = String(document.getElementById('hr-employee-linked-username')?.value || '').trim();
-          if (!fullName || !jobTitle) {
-            showMessage('Nom et poste sont obligatoires', 'error');
+          if (!fullName || !jobTitle || !dateEmbauche || !sexe || !typeContrat) {
+            showMessage('Nom, poste, date d\'embauche, sexe et type de contrat sont obligatoires', 'error');
             return;
           }
 
@@ -18505,12 +18849,12 @@
           if (isEditMode) {
             await fetchJson(`/api/hr/employees/${hrEmployeeEditingId}`, {
               method: 'PATCH',
-              body: JSON.stringify({ fullName, jobTitle, phoneNumber, address, maritalStatus, username: linkedUsername }),
+              body: JSON.stringify({ fullName, jobTitle, projet, dateEmbauche, sexe, typeContrat, phoneNumber, address, maritalStatus, username: linkedUsername }),
             });
           } else {
             await fetchJson('/api/hr/employees', {
               method: 'POST',
-              body: JSON.stringify({ fullName, jobTitle, phoneNumber, address, maritalStatus, username: linkedUsername }),
+              body: JSON.stringify({ fullName, jobTitle, projet, dateEmbauche, sexe, typeContrat, phoneNumber, address, maritalStatus, username: linkedUsername }),
             });
           }
           e.target.reset();
@@ -18528,7 +18872,7 @@
     if (hrAttendanceForm) {
       hrAttendanceForm.addEventListener('submit', async e => {
         e.preventDefault();
-        if (!canManageHrData()) {
+        if (!canManageHrAttendance()) {
           showMessage('Action non autorisée pour ce profil', 'error');
           return;
         }
@@ -18672,10 +19016,8 @@
       const setOpen = isOpen => {
         content.style.display = isOpen ? 'block' : 'none';
         toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        toggleBtn.classList.toggle('is-open', isOpen);
         toggleIcon.textContent = '+';
-        toggleBtn.style.background = isOpen
-          ? 'linear-gradient(135deg,#0ea5a4,#0f766e)'
-          : 'linear-gradient(135deg,#1d4ed8,#2563eb)';
       };
 
       window.setJournalProgressOpen = setOpen;
@@ -20946,6 +21288,56 @@
         }
       });
 
+      const measureActionsMenuContainerRect = detailsEl => {
+        const scopedCards = detailsEl.closest('.hr-employee-kanban-cards');
+        if (scopedCards) return scopedCards.getBoundingClientRect();
+        return {
+          top: 0,
+          left: 0,
+          right: window.innerWidth,
+          bottom: window.innerHeight
+        };
+      };
+
+      const repositionActionsMenu = detailsEl => {
+        if (!detailsEl || !detailsEl.open) return;
+        const dropdown = detailsEl.querySelector('.actions-dropdown');
+        if (!dropdown) return;
+
+        detailsEl.classList.remove('actions-menu-open-up', 'actions-menu-open-right');
+        const containerRect = measureActionsMenuContainerRect(detailsEl);
+        const triggerRect = detailsEl.getBoundingClientRect();
+        const dropdownRect = dropdown.getBoundingClientRect();
+        const padding = 8;
+
+        const availableBelow = containerRect.bottom - triggerRect.bottom;
+        const availableAbove = triggerRect.top - containerRect.top;
+        if (availableBelow < dropdownRect.height + padding && availableAbove > availableBelow) {
+          detailsEl.classList.add('actions-menu-open-up');
+        }
+
+        const availableLeft = triggerRect.right - containerRect.left;
+        if (availableLeft < dropdownRect.width + padding) {
+          detailsEl.classList.add('actions-menu-open-right');
+        }
+      };
+
+      document.addEventListener('toggle', e => {
+        const detailsEl = e.target;
+        if (!(detailsEl instanceof HTMLDetailsElement) || !detailsEl.classList.contains('actions-menu')) return;
+        if (detailsEl.open) {
+          requestAnimationFrame(() => repositionActionsMenu(detailsEl));
+        } else {
+          detailsEl.classList.remove('actions-menu-open-up', 'actions-menu-open-right');
+        }
+      }, true);
+
+      window.addEventListener('resize', () => {
+        document.querySelectorAll('.actions-menu[open]').forEach(detailsEl => {
+          repositionActionsMenu(detailsEl);
+        });
+      });
+
       const notifBell = document.getElementById('notif-bell-btn');
       if (notifBell) {
         notifBell.addEventListener('click', () => {
@@ -21025,7 +21417,7 @@
       loadDatabaseTrashFromStorage();
       loadDatabaseHiddenIdsFromStorage();
       loadDemoWarehouseAssignments();
-      loadCustomStockWarehouses();
+      await loadCustomStockWarehouses();
 
       document.getElementById('material-date').value = formatDateForInput();
       document.getElementById('progress-date').value = formatDateForInput();

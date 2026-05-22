@@ -28,7 +28,8 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "chokidar-cli": "^3.0.0"
+    "chokidar-cli": "^3.0.0",
+    "xlsx": "^0.18.5"
   },
   "dependencies": {
     "@fontsource/great-vibes": "^5.2.8",

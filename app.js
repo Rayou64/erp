@@ -108,6 +108,8 @@ const ACHAT_USERNAME = process.env.ACHAT_USERNAME || 'achat';
 const ACHAT_PASSWORD = process.env.ACHAT_PASSWORD || 'achat123';
 const KOKAN_USERNAME = process.env.KOKAN_USERNAME || 'Kokan_SK';
 const KOKAN_PASSWORD = process.env.KOKAN_PASSWORD || 'Stock_SK123';
+const CONDUCTEUR_TRAVAUX_USERNAME = process.env.CONDUCTEUR_TRAVAUX_USERNAME || 'Conducteur_de_travaux';
+const CONDUCTEUR_TRAVAUX_PASSWORD = process.env.CONDUCTEUR_TRAVAUX_PASSWORD || 'Yaofoffie_SK';
 const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS || 60_000);
 const API_RATE_MAX = Number(process.env.API_RATE_MAX || 600);
 const AUTH_RATE_WINDOW_MS = Number(process.env.AUTH_RATE_WINDOW_MS || 15 * 60_000);
@@ -2453,6 +2455,7 @@ async function initDb() {
   try { await run("ALTER TABLE hr_employees ADD COLUMN address TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN maritalStatus TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN username TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN projet TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN createdBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
@@ -2662,7 +2665,43 @@ async function initDb() {
     updatedAt TEXT
   )`);
 
+  // Canonicalize legacy Songon naming/warehouse ids to keep one project and one warehouse scope.
   try {
+    await run(
+      `UPDATE projects
+       SET nomProjet = 'Songon Kassemble'
+       WHERE LOWER(TRIM(nomProjet)) LIKE 'songon kassembl%'
+         AND LOWER(TRIM(nomProjet)) <> 'songon kassemble'`
+    );
+    await run(
+      `UPDATE project_catalog
+       SET nomProjet = 'Songon Kassemble'
+       WHERE LOWER(TRIM(nomProjet)) LIKE 'songon kassembl%'
+         AND LOWER(TRIM(nomProjet)) <> 'songon kassemble'`
+    );
+    await run(
+      `UPDATE project_folders
+       SET nomProjet = 'Songon Kassemble'
+       WHERE LOWER(TRIM(nomProjet)) LIKE 'songon kassembl%'
+         AND LOWER(TRIM(nomProjet)) <> 'songon kassemble'`
+    );
+
+    await run(`UPDATE material_requests SET warehouseId = 'entrepot-songon-1' WHERE warehouseId = 'entrepot-songon-2'`);
+    await run(`UPDATE purchase_orders SET warehouseId = 'entrepot-songon-1' WHERE warehouseId = 'entrepot-songon-2'`);
+    await run(`UPDATE stock_issue_authorizations SET warehouseId = 'entrepot-songon-1' WHERE warehouseId = 'entrepot-songon-2'`);
+  } catch (e) {
+    console.warn('Songon canonical migration warning:', e.message);
+  }
+
+  try {
+  await run(
+    `DELETE FROM hr_attendance
+     WHERE id NOT IN (
+       SELECT MAX(id)
+       FROM hr_attendance
+       GROUP BY employeeId, COALESCE(NULLIF(attendanceDate, ''), dayDate)
+     )`
+  );
   await run('CREATE INDEX IF NOT EXISTS idx_projects_site_house ON projects(nomSite, numeroMaison)');
   await run('CREATE UNIQUE INDEX IF NOT EXISTS idx_project_folders_name_prefecture ON project_folders(nomProjet, prefecture)');
   await run('CREATE UNIQUE INDEX IF NOT EXISTS idx_project_catalog_name ON project_catalog(nomProjet)');
@@ -2677,6 +2716,8 @@ async function initDb() {
   await run('CREATE INDEX IF NOT EXISTS idx_hr_employee_documents_employee ON hr_employee_documents(employeeId, updatedAt DESC)');
   await run('CREATE INDEX IF NOT EXISTS idx_hr_attendance_employee_date ON hr_attendance(employeeId, attendanceDate)');
   await run('CREATE INDEX IF NOT EXISTS idx_hr_attendance_daydate ON hr_attendance(dayDate)');
+  await run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_hr_attendance_employee_effective_date
+    ON hr_attendance(employeeId, COALESCE(NULLIF(attendanceDate, ''), dayDate))`);
   await run('CREATE INDEX IF NOT EXISTS idx_hr_leave_employee_dates ON hr_leave_requests(employeeId, startDate, endDate)');
   await run('CREATE INDEX IF NOT EXISTS idx_hr_leave_status ON hr_leave_requests(status)');
   await run('CREATE INDEX IF NOT EXISTS idx_project_progress_project_date ON project_progress_updates(projectId, createdAt DESC)');
@@ -2700,7 +2741,7 @@ async function initDb() {
     const now = new Date().toISOString();
     if (existing) {
       await run(
-        'UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, maritalStatus = ?, createdBy = COALESCE(NULLIF(?, ""), createdBy), updatedAt = ? WHERE id = ?',
+        "UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, maritalStatus = ?, createdBy = COALESCE(NULLIF(?, ''), createdBy), updatedAt = ? WHERE id = ?",
         [
           String(fullName || usernameValue).trim(),
           String(jobTitle || '').trim(),
@@ -2816,13 +2857,25 @@ async function initDb() {
     console.log(`Utilisateur ${COMMIS_STOCK_USERNAME} mis a jour avec role commis`);
   }
 
-  // Garantir le compte chef de chantier site 15 (local + Railway)
-  const siteChiefUsername = 'chef_chantier_site15';
+  // Garantir le compte chef de chantier SK (local + Railway)
+  const siteChiefUsername = 'Chef_chantier_SK';
+  const legacySiteChiefUsername = 'chef_chantier_site15';
   const siteChiefRole = 'chef_chantier_site';
   const siteChiefPassword = process.env.CHEF_SITE15_PASSWORD || 'chefsite15@123';
   const siteChief = await get('SELECT id FROM users WHERE username = ?', [siteChiefUsername]);
+  const legacySiteChief = !siteChief ? await get('SELECT id FROM users WHERE username = ?', [legacySiteChiefUsername]) : null;
   const siteChiefHashedPassword = await bcrypt.hash(siteChiefPassword, 10);
-  if (!siteChief) {
+  if (!siteChief && legacySiteChief) {
+    await run(
+      'UPDATE users SET username = ?, password = ?, role = ? WHERE username = ?',
+      [siteChiefUsername, siteChiefHashedPassword, siteChiefRole, legacySiteChiefUsername]
+    );
+    await run(
+      'UPDATE hr_employees SET username = ?, createdBy = ? WHERE LOWER(TRIM(COALESCE(username, createdBy, fullName))) = LOWER(TRIM(?))',
+      [siteChiefUsername, siteChiefUsername, legacySiteChiefUsername]
+    );
+    console.log(`Utilisateur ${legacySiteChiefUsername} renomme en ${siteChiefUsername}`);
+  } else if (!siteChief) {
     const nextUserId = await getNextUserId();
     await run(
       'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
@@ -2835,6 +2888,24 @@ async function initDb() {
       [siteChiefHashedPassword, siteChiefRole, siteChiefUsername]
     );
     console.log(`Utilisateur ${siteChiefUsername} mis a jour avec role ${siteChiefRole}`);
+  }
+
+  // Dupliquer le profil Chef chantier site pour Conducteur_de_travaux
+  const conducteurTravaux = await get('SELECT id FROM users WHERE username = ?', [CONDUCTEUR_TRAVAUX_USERNAME]);
+  const conducteurTravauxHashedPassword = await bcrypt.hash(CONDUCTEUR_TRAVAUX_PASSWORD, 10);
+  if (!conducteurTravaux) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, CONDUCTEUR_TRAVAUX_USERNAME, conducteurTravauxHashedPassword, siteChiefRole, new Date().toISOString()]
+    );
+    console.log(`Utilisateur ${CONDUCTEUR_TRAVAUX_USERNAME} cree avec role ${siteChiefRole}`);
+  } else {
+    await run(
+      'UPDATE users SET password = ?, role = ? WHERE username = ?',
+      [conducteurTravauxHashedPassword, siteChiefRole, CONDUCTEUR_TRAVAUX_USERNAME]
+    );
+    console.log(`Utilisateur ${CONDUCTEUR_TRAVAUX_USERNAME} mis a jour avec role ${siteChiefRole}`);
   }
 
   // Garantir le compte contrôle achat (local + Railway)
@@ -2872,6 +2943,12 @@ async function initDb() {
     fullName: 'Chef chantier site 15',
     jobTitle: 'Chef chantier site',
     createdBy: siteChiefUsername,
+  });
+  await ensureHrEmployeeProfile({
+    username: CONDUCTEUR_TRAVAUX_USERNAME,
+    fullName: 'Conducteur_de_travaux',
+    jobTitle: 'Chef chantier site',
+    createdBy: CONDUCTEUR_TRAVAUX_USERNAME,
   });
 
   // Garantir le profil KOKAN (gestionnaire stock Songon)
@@ -3019,6 +3096,7 @@ function authorizeRoleAccess(req, res, next) {
     && role !== 'gestionnaire_stock'
     && role !== 'gestionnaire_stock_songon'
     && role !== 'chef_chantier_site'
+    && role !== 'employe_standard'
     && role !== 'directeur_rh'
     && role !== 'dirigeant'
     && role !== 'achat'
@@ -3083,6 +3161,9 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET',   pattern: /^\/database-documents$/ },
     { method: 'GET',   pattern: /^\/database-documents\/\d+\/download$/ },
     { method: 'GET',   pattern: /^\/hr\/employees$/ },
+    { method: 'POST',  pattern: /^\/hr\/attendance$/ },
+    { method: 'POST',  pattern: /^\/hr\/leave-requests$/ },
+    { method: 'POST',  pattern: /^\/hr\/signature-requests\/\d+\/sign$/ },
     // Gestion de stock: memes capacites qu'admin sur ce module
     { method: 'GET',   pattern: /^\/stock-management\/orders$/ },
     { method: 'PATCH', pattern: /^\/stock-management\/orders\/\d+\/arrive$/ },
@@ -3148,6 +3229,9 @@ function authorizeRoleAccess(req, res, next) {
   const hrDirectorRules = [
     { method: 'GET', pattern: /^\/auth\/me$/ },
     { method: 'GET', pattern: /^\/users$/ },
+    { method: 'GET', pattern: /^\/projects$/ },
+    { method: 'GET', pattern: /^\/project-folders$/ },
+    { method: 'GET', pattern: /^\/project-catalog$/ },
     { method: 'GET', pattern: /^\/hr\/employees$/ },
     { method: 'POST', pattern: /^\/hr\/employees$/ },
     { method: 'PATCH', pattern: /^\/hr\/employees\/[^/]+\/?$/ },
@@ -3163,6 +3247,7 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
     { method: 'PATCH', pattern: /^\/hr\/leave-requests\/\d+\/status$/ },
     { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
+    { method: 'GET', pattern: /^\/hr\/dashboard-summary$/ },
     { method: 'GET', pattern: /^\/(?:api\/)?hr\/signature-requests\/?$/ },
     { method: 'POST', pattern: /^\/(?:api\/)?hr\/signature-requests\/?$/ },
     { method: 'GET', pattern: /^\/(?:api\/)?hr\/employee-profile\/pending-signatures\/?$/ },
@@ -3174,6 +3259,23 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/database-documents\/\d+\/download$/ },
     { method: 'POST', pattern: /^\/database-documents\/upload$/ },
     { method: 'DELETE', pattern: /^\/database-documents\/\d+$/ },
+  ];
+
+  const standardEmployeeRules = [
+    { method: 'GET', pattern: /^\/auth\/me$/ },
+    { method: 'GET', pattern: /^\/hr\/employees$/ },
+    { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+    { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/hr\/attendance$/ },
+    { method: 'POST', pattern: /^\/hr\/attendance$/ },
+    { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
+    { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
+    { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
+    { method: 'GET', pattern: /^\/hr\/signature-requests$/ },
+    { method: 'GET', pattern: /^\/hr\/employee-profile\/pending-signatures$/ },
+    { method: 'POST', pattern: /^\/hr\/signature-requests\/\d+\/sign$/ },
+    { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/hr\/document-signatures\/\d+$/ },
   ];
 
   const executiveRules = [
@@ -3220,11 +3322,11 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
     { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
     { method: 'GET', pattern: /^\/hr\/attendance$/ },
+    { method: 'POST', pattern: /^\/hr\/attendance$/ },
     { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
     { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
     { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
     { method: 'GET', pattern: /^\/hr\/signature-requests$/ },
-    { method: 'POST', pattern: /^\/hr\/signature-requests$/ },
     { method: 'GET', pattern: /^\/hr\/employee-profile\/pending-signatures$/ },
     { method: 'POST', pattern: /^\/hr\/signature-requests\/\d+\/sign$/ },
     { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
@@ -3299,6 +3401,8 @@ function authorizeRoleAccess(req, res, next) {
       ? gestStockSongonRules
     : role === 'chef_chantier_site'
       ? siteChiefRules
+      : role === 'employe_standard'
+        ? standardEmployeeRules
       : role === 'directeur_rh'
         ? hrDirectorRules
         : role === 'controle_achat' || role === 'controle_achat_global'
@@ -3359,8 +3463,56 @@ function normalizeScopeText(value) {
     .trim();
 }
 
+function normalizeCanonicalProjectName(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const normalized = normalizeScopeText(raw).replace(/\s+/g, ' ');
+  if (/^songon\s+kassemble(\s*-\s*t[123])?$/.test(normalized)) {
+    return 'Songon Kassemble';
+  }
+  return raw;
+}
+
 function isSongonStockManagerRole(user) {
   return String(user?.role || '').trim() === 'gestionnaire_stock_songon';
+}
+
+function isSongonScopedSiteChief(user) {
+  const role = String(user?.role || '').trim();
+  if (role !== 'chef_chantier_site') return false;
+  const username = normalizeScopeText(user?.username);
+  return username === 'chef_chantier_sk' || username === 'conducteur_de_travaux';
+}
+
+async function getSongonCanonicalScope({ includeSiteNumber = false } = {}) {
+  const warehouseRow = await get(`
+    SELECT id, linkedProjectId, linkedProjectName, linkedZoneName, prefecture
+    FROM custom_warehouses
+    WHERE LOWER(COALESCE(linkedZoneName, prefecture, name, '')) LIKE '%songon%'
+       OR LOWER(COALESCE(linkedProjectName, '')) LIKE '%songon%'
+    ORDER BY datetime(updatedAt) DESC, datetime(createdAt) DESC, id ASC
+    LIMIT 1
+  `);
+
+  const linkedProjectId = Number(warehouseRow?.linkedProjectId || 0);
+  const projectRow = linkedProjectId > 0
+    ? await get('SELECT id, nomProjet, prefecture, numeroMaison FROM projects WHERE id = ? LIMIT 1', [linkedProjectId])
+    : await get(`
+        SELECT id, nomProjet, prefecture, numeroMaison
+        FROM projects
+        WHERE LOWER(COALESCE(nomProjet, '')) LIKE '%songon%'
+           OR LOWER(COALESCE(prefecture, '')) LIKE '%songon%'
+        ORDER BY id ASC
+        LIMIT 1
+      `);
+
+  const projectId = Number(projectRow?.id || linkedProjectId || 0);
+  return {
+    projectIds: projectId > 0 ? [projectId] : [],
+    warehouseId: String(warehouseRow?.id || 'entrepot-songon-1').trim(),
+    zoneName: String(projectRow?.prefecture || warehouseRow?.linkedZoneName || warehouseRow?.prefecture || 'Songon').trim(),
+    siteNumber: includeSiteNumber ? String(projectRow?.numeroMaison || '193').trim() : '',
+  };
 }
 
 function isInSongonZoneScope(projectLikeRow) {
@@ -3378,6 +3530,9 @@ function isInSongonZoneScope(projectLikeRow) {
 }
 
 function isInUserProjectScope(user, projectLikeRow) {
+  if (isSongonScopedSiteChief(user)) {
+    return isInSongonZoneScope(projectLikeRow);
+  }
   if (String(user?.role || '').trim() === 'chef_chantier_site') {
     return isInChefSiteScope(user, projectLikeRow);
   }
@@ -3392,8 +3547,16 @@ function isProcurementReviewerRole(user) {
   return role === 'controle_achat' || role === 'controle_achat_global';
 }
 
+function isHrPersonalScopedRole(user) {
+  const role = String(user?.role || '').trim();
+  return isProcurementReviewerRole(user) || role === 'gestionnaire_stock_songon' || role === 'employe_standard';
+}
+
 async function getHrScopedEmployeeIdsForUser(user) {
-  if (!isProcurementReviewerRole(user)) return null;
+  const role = String(user?.role || '').trim();
+  if (role === 'admin' || role === 'directeur_rh') return null;
+
+  if (!isHrPersonalScopedRole(user)) return null;
 
   const username = String(user?.username || '').trim();
   if (!username) return [];
@@ -3606,13 +3769,14 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
 
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   const role = String(req.user?.role || '').trim();
-  const scope = role === 'gestionnaire_stock_songon'
-    ? {
-        warehouseId: 'entrepot-songon-2',
-        zoneName: 'Songon',
-        siteNumber: '',
-      }
-    : null;
+  let scope = null;
+
+  if (role === 'gestionnaire_stock_songon') {
+    scope = await getSongonCanonicalScope();
+  } else if (isSongonScopedSiteChief(req.user)) {
+    // Chef_chantier_SK and Conducteur_de_travaux are zone-scoped on Songon and must see all current/future sites.
+    scope = await getSongonCanonicalScope({ includeSiteNumber: false });
+  }
 
   res.json({ username: req.user.username, role: req.user.role, scope });
 });
@@ -3957,7 +4121,6 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
 app.get('/api/users', async (_req, res) => {
   const rows = await all(`
     SELECT id, username, role FROM users 
-    WHERE username IN ('directeur_rh', 'controle_achat_global', 'chef_chantier_site15', 'dirigeant')
     ORDER BY username
   `);
   res.json(rows);
@@ -3965,7 +4128,7 @@ app.get('/api/users', async (_req, res) => {
 
 app.post('/api/project-catalog', async (req, res) => {
   const { nomProjet, typeProjet = '', description = '' } = req.body;
-  const projectName = String(nomProjet || '').trim();
+  const projectName = normalizeCanonicalProjectName(nomProjet);
   if (!projectName) {
     return res.status(400).json({ error: 'Le nom du projet est obligatoire' });
   }
@@ -4001,14 +4164,14 @@ app.get('/api/project-catalog', async (_req, res) => {
 app.post('/api/project-folders', async (req, res) => {
   const { projectId, nomProjet, prefecture = 'Non renseigne', description = '' } = req.body;
 
-  let projectName = String(nomProjet || '').trim();
+  let projectName = normalizeCanonicalProjectName(nomProjet);
   const projectIdValue = Number(projectId);
   if (Number.isInteger(projectIdValue) && projectIdValue > 0) {
     const parent = await get('SELECT id, nomProjet FROM project_catalog WHERE id = ?', [projectIdValue]);
     if (!parent) {
       return res.status(400).json({ error: 'Projet introuvable pour cette zone' });
     }
-    projectName = String(parent.nomProjet || '').trim();
+    projectName = normalizeCanonicalProjectName(parent.nomProjet);
   }
 
   const prefectureName = String(prefecture || '').trim() || 'Non renseigne';
@@ -4215,7 +4378,7 @@ app.post('/api/projects/bulk', async (req, res) => {
     statutConstruction = ''
   } = req.body;
 
-  const projectName = String(nomProjet || '').trim();
+  const projectName = normalizeCanonicalProjectName(nomProjet);
   const prefectureName = String(prefecture || '').trim() || 'Non renseigne';
   const firstSiteName = String(nomSite || '').trim();
   const buildingType = normalizeVillaTypeShortLabel(typeMaison);
@@ -4340,7 +4503,7 @@ app.patch('/api/projects/:id', async (req, res) => {
     return res.status(404).json({ error: 'Projet non trouve' });
   }
 
-  const projectName = String(nomProjet ?? existingProject.nomProjet ?? '').trim();
+  const projectName = normalizeCanonicalProjectName(nomProjet ?? existingProject.nomProjet ?? '');
   const prefectureName = String(prefecture ?? existingProject.prefecture ?? 'Non renseigne').trim() || 'Non renseigne';
   const siteName = String(nomSite ?? existingProject.nomSite ?? '').trim();
   const siteType = normalizeVillaTypeShortLabel(typeMaison ?? existingProject.typeMaison ?? '');
@@ -7178,6 +7341,194 @@ function listDatesInRange(startDate, endDate) {
   return dates;
 }
 
+async function generateOrUpdateHrDailyPresenceAndLeaveSnapshot(targetDate) {
+  const effectiveDate = String(targetDate || '').trim().slice(0, 10);
+  if (!isValidIsoDate(effectiveDate)) return null;
+
+  const attendanceRows = await all(
+    `SELECT a.id, a.employeeId,
+            e.fullName,
+            e.jobTitle,
+            COALESCE(NULLIF(a.attendanceDate, ''), a.dayDate) AS dayDate,
+            COALESCE(NULLIF(a.statusCode, ''), NULLIF(a.status, ''), 'P') AS statusCode,
+            a.checkInTime,
+            a.checkOutTime,
+            a.note,
+            a.updatedAt
+     FROM hr_attendance a
+     JOIN hr_employees e ON e.id = a.employeeId
+     WHERE COALESCE(NULLIF(a.attendanceDate, ''), a.dayDate) = ?
+     ORDER BY e.fullName ASC, a.id ASC`,
+    [effectiveDate]
+  );
+
+  const leaveRows = await all(
+    `SELECT lr.id, lr.employeeId,
+            e.fullName,
+            e.jobTitle,
+            lr.leaveType,
+            lr.startDate,
+            lr.endDate,
+            lr.status,
+            lr.reason,
+            lr.decisionNote,
+            lr.createdBy,
+            lr.decidedBy,
+            lr.updatedAt
+     FROM hr_leave_requests lr
+     JOIN hr_employees e ON e.id = lr.employeeId
+     WHERE lr.startDate <= ?
+       AND lr.endDate >= ?
+     ORDER BY e.fullName ASC, lr.id ASC`,
+    [effectiveDate, effectiveDate]
+  );
+
+  const leaveEvents = await all(
+    `SELECT lr.id, lr.employeeId,
+            e.fullName,
+            lr.leaveType,
+            lr.status,
+            lr.startDate,
+            lr.endDate,
+            lr.createdAt,
+            lr.decidedAt
+     FROM hr_leave_requests lr
+     JOIN hr_employees e ON e.id = lr.employeeId
+     WHERE SUBSTR(COALESCE(lr.createdAt, ''), 1, 10) = ?
+        OR SUBSTR(COALESCE(lr.decidedAt, ''), 1, 10) = ?
+     ORDER BY lr.id ASC`,
+    [effectiveDate, effectiveDate]
+  );
+
+  const normalizedAttendanceRows = (Array.isArray(attendanceRows) ? attendanceRows : []).map(row => ({
+    id: Number(row.id || 0),
+    employeeId: Number(row.employeeId || 0),
+    fullName: String(row.fullName || '').trim(),
+    jobTitle: String(row.jobTitle || '').trim(),
+    dayDate: String(row.dayDate || '').trim(),
+    statusCode: normalizeHrCode(row.statusCode),
+    checkInTime: String(row.checkInTime || '').trim(),
+    checkOutTime: String(row.checkOutTime || '').trim(),
+    note: String(row.note || '').trim(),
+    updatedAt: String(row.updatedAt || '').trim(),
+  }));
+
+  const normalizedLeaveRows = (Array.isArray(leaveRows) ? leaveRows : []).map(row => ({
+    id: Number(row.id || 0),
+    employeeId: Number(row.employeeId || 0),
+    fullName: String(row.fullName || '').trim(),
+    jobTitle: String(row.jobTitle || '').trim(),
+    leaveType: String(row.leaveType || '').trim(),
+    leaveCode: normalizeLeaveTypeCode(row.leaveType),
+    startDate: String(row.startDate || '').trim(),
+    endDate: String(row.endDate || '').trim(),
+    status: String(row.status || '').trim().toUpperCase(),
+    reason: String(row.reason || '').trim(),
+    decisionNote: String(row.decisionNote || '').trim(),
+    createdBy: String(row.createdBy || '').trim(),
+    decidedBy: String(row.decidedBy || '').trim(),
+    updatedAt: String(row.updatedAt || '').trim(),
+  }));
+
+  const payload = {
+    version: 1,
+    kind: 'hr_daily_presence_leave',
+    date: effectiveDate,
+    generatedAt: new Date().toISOString(),
+    summary: {
+      attendanceCount: normalizedAttendanceRows.length,
+      leaveCoveringCount: normalizedLeaveRows.length,
+      leaveEventsCount: Array.isArray(leaveEvents) ? leaveEvents.length : 0,
+      lateCount: normalizedAttendanceRows.filter(row => row.statusCode === 'R').length,
+      absenceCount: normalizedAttendanceRows.filter(row => row.statusCode === 'A').length,
+    },
+    attendance: normalizedAttendanceRows,
+    leavesCoveringDate: normalizedLeaveRows,
+    leaveEventsOfDay: Array.isArray(leaveEvents) ? leaveEvents : [],
+  };
+
+  const fileName = sanitizeFileName(`journal-rh-${effectiveDate}.json`);
+  const relativePath = path.join('construction', 'hr-journalier', fileName);
+  const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  await fs.promises.writeFile(absolutePath, JSON.stringify(payload, null, 2), 'utf8');
+
+  const nowIso = new Date().toISOString();
+  const dayId = Number(effectiveDate.replace(/-/g, '')) || 0;
+  const title = `Journal RH quotidien ${effectiveDate}`;
+
+  const existing = await get(
+    `SELECT id, relativePath
+     FROM generated_documents
+     WHERE sectionCode = ?
+       AND entityType = ?
+       AND entityId = ?
+     ORDER BY id DESC
+     LIMIT 1`,
+    ['hr_presence', 'hr_daily_presence_leave', dayId]
+  );
+
+  if (existing?.relativePath) {
+    const oldAbsolutePath = path.join(ARCHIVE_ROOT, String(existing.relativePath));
+    if (oldAbsolutePath !== absolutePath && fs.existsSync(oldAbsolutePath)) {
+      try {
+        await fs.promises.unlink(oldAbsolutePath);
+      } catch (unlinkError) {
+        console.warn('Unable to remove previous HR daily journal:', unlinkError.message);
+      }
+    }
+  }
+
+  if (existing?.id) {
+    await run(
+      `UPDATE generated_documents
+       SET sectionLabel = ?, title = ?, fileName = ?, relativePath = ?, updatedAt = ?
+       WHERE id = ?`,
+      ['Presence RH', title, fileName, relativePath, nowIso, Number(existing.id)]
+    );
+  } else {
+    const nextDocumentId = await getNextTableId('generated_documents');
+    await run(
+      `INSERT INTO generated_documents
+        (id, sectionCode, sectionLabel, entityType, entityId, title, fileName, relativePath, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        nextDocumentId,
+        'hr_presence',
+        'Presence RH',
+        'hr_daily_presence_leave',
+        dayId,
+        title,
+        fileName,
+        relativePath,
+        nowIso,
+        nowIso,
+      ]
+    );
+  }
+
+  return { title, fileName, relativePath, sectionCode: 'hr_presence' };
+}
+
+async function refreshHrDailyPresenceAndLeaveSnapshots(startDate, endDate) {
+  const startValue = String(startDate || '').trim().slice(0, 10);
+  const endValue = String(endDate || '').trim().slice(0, 10);
+  if (!isValidIsoDate(startValue) || !isValidIsoDate(endValue)) return;
+
+  const orderedStart = startValue <= endValue ? startValue : endValue;
+  const orderedEnd = startValue <= endValue ? endValue : startValue;
+  const allDates = listDatesInRange(orderedStart, orderedEnd);
+  if (!allDates.length) return;
+
+  // Prevent long leave windows from generating too many files at once.
+  const candidateDates = allDates.length > 120 ? [orderedStart, orderedEnd] : allDates;
+  const uniqueDates = Array.from(new Set(candidateDates));
+
+  for (const dateValue of uniqueDates) {
+    await generateOrUpdateHrDailyPresenceAndLeaveSnapshot(dateValue);
+  }
+}
+
 function getHrAttendanceStatusLabel(code, isWeekend, leaveTypeLabel = '') {
   const normalizedCode = normalizeHrCode(code);
   if (['MS', 'CA', 'CM', 'CP'].includes(normalizedCode)) {
@@ -7480,6 +7831,7 @@ app.get('/api/hr/employees', async (_req, res) => {
             COALESCE(NULLIF(sexe, ''), 'Neant') AS sexe,
             COALESCE(NULLIF(typeContrat, ''), 'Neant') AS typeContrat,
             COALESCE(NULLIF(dateEmbauche, ''), SUBSTR(createdAt, 1, 10)) AS dateEmbauche,
+            COALESCE(NULLIF(projet, ''), '') AS projet,
             phoneNumber, address, maritalStatus, COALESCE(username, createdBy, '') AS username, createdBy, createdAt, updatedAt
      FROM hr_employees
      ${whereClause}
@@ -7535,7 +7887,7 @@ function normalizeHrHireDate(value) {
 }
 
 app.post('/api/hr/employees', async (req, res) => {
-  const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', username = '' } = req.body || {};
+  const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', username = '', projet = '' } = req.body || {};
   const nameValue = String(fullName || '').trim();
   const hireDateValue = normalizeHrHireDate(dateEmbauche);
   if (!nameValue) {
@@ -7548,8 +7900,8 @@ app.post('/api/hr/employees', async (req, res) => {
   const now = new Date().toISOString();
   const nextId = await getNextTableId('hr_employees');
   await run(
-    `INSERT INTO hr_employees (id, fullName, jobTitle, sexe, typeContrat, dateEmbauche, phoneNumber, address, maritalStatus, username, createdBy, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO hr_employees (id, fullName, jobTitle, sexe, typeContrat, dateEmbauche, phoneNumber, address, maritalStatus, username, projet, createdBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       nextId,
       nameValue,
@@ -7561,6 +7913,7 @@ app.post('/api/hr/employees', async (req, res) => {
       String(address || '').trim(),
       String(maritalStatus || '').trim(),
       String(username || '').trim(),
+      String(projet || '').trim(),
       String(req.user?.username || 'admin').trim() || 'admin',
       now,
       now,
@@ -7687,7 +8040,7 @@ app.get('/api/hr/employees/documents/:docId/download', async (req, res) => {
 
 app.patch('/api/hr/employees/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', username = '' } = req.body || {};
+  const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', username = '', projet = '' } = req.body || {};
   const nameValue = String(fullName || '').trim();
   const hireDateValue = normalizeHrHireDate(dateEmbauche);
   if (!id || !nameValue) {
@@ -7698,7 +8051,7 @@ app.patch('/api/hr/employees/:id', async (req, res) => {
   }
 
   const result = await run(
-    'UPDATE hr_employees SET fullName = ?, jobTitle = ?, sexe = ?, typeContrat = ?, dateEmbauche = ?, phoneNumber = ?, address = ?, maritalStatus = ?, username = ?, updatedAt = ? WHERE id = ?',
+    'UPDATE hr_employees SET fullName = ?, jobTitle = ?, sexe = ?, typeContrat = ?, dateEmbauche = ?, phoneNumber = ?, address = ?, maritalStatus = ?, username = ?, projet = ?, updatedAt = ? WHERE id = ?',
     [
       nameValue,
       String(jobTitle || '').trim(),
@@ -7709,6 +8062,7 @@ app.patch('/api/hr/employees/:id', async (req, res) => {
       String(address || '').trim(),
       String(maritalStatus || '').trim(),
       String(username || '').trim(),
+      String(projet || '').trim(),
       new Date().toISOString(),
       id,
     ]
@@ -7843,8 +8197,9 @@ app.post('/api/hr/attendance', async (req, res) => {
     const row = await get('SELECT * FROM hr_attendance WHERE id = ?', [Number(existing.id)]);
     try {
       await generateOrUpdateHrAttendanceSheet(numericEmployeeId, String(effectiveDate).slice(0, 7));
+      await generateOrUpdateHrDailyPresenceAndLeaveSnapshot(effectiveDate);
     } catch (sheetError) {
-      console.error('Error generating HR attendance sheet:', sheetError);
+      console.error('Error generating HR attendance archives:', sheetError);
     }
     return res.json(row);
   }
@@ -7873,8 +8228,9 @@ app.post('/api/hr/attendance', async (req, res) => {
   const row = await get('SELECT * FROM hr_attendance WHERE id = ?', [nextId]);
   try {
     await generateOrUpdateHrAttendanceSheet(numericEmployeeId, String(effectiveDate).slice(0, 7));
+    await generateOrUpdateHrDailyPresenceAndLeaveSnapshot(effectiveDate);
   } catch (sheetError) {
-    console.error('Error generating HR attendance sheet:', sheetError);
+    console.error('Error generating HR attendance archives:', sheetError);
   }
   res.status(201).json(row);
 });
@@ -7915,12 +8271,16 @@ app.patch('/api/hr/attendance/:id', async (req, res) => {
 
   const row = await get('SELECT * FROM hr_attendance WHERE id = ?', [id]);
   try {
+    const dayValue = String(row?.attendanceDate || row?.dayDate || '').slice(0, 10);
     const rowDate = String(row?.attendanceDate || row?.dayDate || '').slice(0, 7);
     if (rowDate) {
       await generateOrUpdateHrAttendanceSheet(Number(row.employeeId || 0), rowDate);
     }
+    if (dayValue) {
+      await generateOrUpdateHrDailyPresenceAndLeaveSnapshot(dayValue);
+    }
   } catch (sheetError) {
-    console.error('Error generating HR attendance sheet:', sheetError);
+    console.error('Error generating HR attendance archives:', sheetError);
   }
   res.json(row);
 });
@@ -7996,6 +8356,11 @@ app.post('/api/hr/leave-requests', async (req, res) => {
   );
 
   const row = await get('SELECT * FROM hr_leave_requests WHERE id = ?', [nextId]);
+  try {
+    await refreshHrDailyPresenceAndLeaveSnapshots(startDateValue, endDateValue);
+  } catch (archiveError) {
+    console.error('Error generating HR leave daily archives:', archiveError);
+  }
   res.status(201).json(row);
 });
 
@@ -8023,6 +8388,11 @@ app.patch('/api/hr/leave-requests/:id/status', async (req, res) => {
   }
 
   const row = await get('SELECT * FROM hr_leave_requests WHERE id = ?', [id]);
+  try {
+    await refreshHrDailyPresenceAndLeaveSnapshots(row?.startDate, row?.endDate);
+  } catch (archiveError) {
+    console.error('Error generating HR leave daily archives:', archiveError);
+  }
   res.json(row);
 });
 
@@ -8159,6 +8529,89 @@ app.get('/api/hr/leave-calendar', async (req, res) => {
       CP: 'Conge paternite',
     },
     employees: payloadEmployees,
+  });
+});
+
+app.get('/api/hr/dashboard-summary', async (req, res) => {
+  const dateValue = String(req.query.date || '').trim();
+  const effectiveDate = isValidIsoDate(dateValue) ? dateValue : new Date().toISOString().slice(0, 10);
+  const scopedEmployeeIds = await getHrScopedEmployeeIdsForUser(req.user);
+
+  if (scopedEmployeeIds && !scopedEmployeeIds.length) {
+    return res.json({
+      date: effectiveDate,
+      totalEmployees: 0,
+      present: 0,
+      absent: 0,
+      onLeave: 0,
+    });
+  }
+
+  const whereEmployees = scopedEmployeeIds
+    ? `WHERE id IN (${scopedEmployeeIds.map(() => '?').join(', ')})`
+    : '';
+  const employeeParams = scopedEmployeeIds ? [...scopedEmployeeIds] : [];
+
+  const totalRow = await get(
+    `SELECT COUNT(*) AS totalEmployees
+     FROM hr_employees
+     ${whereEmployees}`,
+    employeeParams
+  );
+
+  const presentCodes = ['P', 'R'];
+  let attendanceCondition = '';
+  const attendanceParams = [effectiveDate];
+  if (scopedEmployeeIds) {
+    attendanceCondition = `AND a.employeeId IN (${scopedEmployeeIds.map(() => '?').join(', ')})`;
+    attendanceParams.push(...scopedEmployeeIds);
+  }
+
+  const attendanceRows = await all(
+    `SELECT a.employeeId,
+            UPPER(COALESCE(NULLIF(a.statusCode, ''), NULLIF(a.status, ''), 'P')) AS code
+     FROM hr_attendance a
+     WHERE COALESCE(NULLIF(a.attendanceDate, ''), a.dayDate) = ?
+       ${attendanceCondition}`,
+    attendanceParams
+  );
+
+  let leaveCondition = '';
+  const leaveParams = [effectiveDate, effectiveDate];
+  if (scopedEmployeeIds) {
+    leaveCondition = `AND lr.employeeId IN (${scopedEmployeeIds.map(() => '?').join(', ')})`;
+    leaveParams.push(...scopedEmployeeIds);
+  }
+  const leaveRows = await all(
+    `SELECT DISTINCT lr.employeeId
+     FROM hr_leave_requests lr
+     WHERE lr.status = 'APPROUVEE'
+       AND lr.startDate <= ?
+       AND lr.endDate >= ?
+       ${leaveCondition}`,
+    leaveParams
+  );
+
+  const onLeaveSet = new Set((leaveRows || []).map(row => Number(row.employeeId || 0)).filter(id => id > 0));
+  let present = 0;
+  let absent = 0;
+  for (const row of (attendanceRows || [])) {
+    const employeeId = Number(row.employeeId || 0);
+    const code = String(row.code || '').trim().toUpperCase();
+    if (!employeeId) continue;
+    if (presentCodes.includes(code) && !onLeaveSet.has(employeeId)) {
+      present += 1;
+    } else if (code === 'A' && !onLeaveSet.has(employeeId)) {
+      absent += 1;
+    }
+  }
+
+  res.json({
+    date: effectiveDate,
+    totalEmployees: Number(totalRow?.totalEmployees || 0),
+    present,
+    absent,
+    onLeave: onLeaveSet.size,
   });
 });
 
