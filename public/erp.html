@@ -1749,11 +1749,173 @@
       align-items: center;
     }
 
+    .mobile-home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: 0;
+      padding: 8px 12px;
+    }
+
+    .mobile-launcher {
+      display: none;
+    }
+
+    .mobile-launcher.active {
+      display: block;
+    }
+
+    .mobile-launcher-hero {
+      padding: 14px;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(255,255,255,0.25), transparent 48%),
+        linear-gradient(135deg, #6a5bff 0%, #5f68f3 44%, #2f7ee6 100%);
+      color: #f8faff;
+      margin-bottom: 14px;
+      box-shadow: 0 14px 32px rgba(79, 70, 229, 0.28);
+    }
+
+    .mobile-launcher-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.9;
+      margin-bottom: 5px;
+    }
+
+    .mobile-launcher-title {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+
+    .mobile-launcher-subtitle {
+      font-size: 13px;
+      opacity: 0.92;
+    }
+
+    .mobile-launcher-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .mobile-launcher-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #dbe4ff;
+      background: #ffffff;
+      color: #374151;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .mobile-launcher-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mobile-launcher-tile {
+      border: 0;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 116px;
+      color: #0f172a;
+      background: var(--tile-bg, linear-gradient(150deg, #ffffff 0%, #eef2ff 100%));
+      border: 1px solid var(--tile-border, #dbe4ff);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .mobile-launcher-tile-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .mobile-launcher-tile-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(37, 99, 235, 0.25);
+      background: rgba(255, 255, 255, 0.76);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      line-height: 1;
+      box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    .mobile-launcher-badge {
+      min-width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      padding: 0 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #1d4ed8;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      box-shadow: 0 6px 12px rgba(29, 78, 216, 0.25);
+    }
+
+    .mobile-launcher-tile:active {
+      transform: scale(0.98);
+    }
+
+    .mobile-launcher-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 26px rgba(59, 130, 246, 0.2);
+    }
+
+    .mobile-launcher-tile-title {
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #111827;
+    }
+
+    .mobile-launcher-tile-meta {
+      font-size: 11px;
+      color: #4b5563;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+
     @media (max-width: 900px) {
       .erp-container {
         flex-direction: column;
         height: auto;
         min-height: 100vh;
+      }
+
+      .erp-container.mobile-launcher-mode .sidebar {
+        display: none;
       }
 
       .sidebar {
@@ -1811,8 +1973,20 @@
         justify-content: space-between;
       }
 
+      .mobile-home-btn {
+        display: inline-flex;
+      }
+
       .content-area {
         padding: 12px;
+      }
+
+      .erp-container.mobile-launcher-mode .content-area {
+        background: linear-gradient(180deg, #e8edf6 0%, #dce3ef 100%);
+      }
+
+      .mobile-launcher-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .page-header {
@@ -2791,6 +2965,7 @@
             </div>
           </div>
           <button id="theme-toggle" class="button button-secondary button-small" title="Basculer mode sombre/clair">🌙</button>
+          <button id="mobile-home-btn" class="button button-secondary button-small mobile-home-btn" title="Accueil mobile">⬛ Accueil</button>
           <div class="user-info">
             <span id="username">Admin</span>
           </div>
@@ -2800,6 +2975,8 @@
 
       <!-- Content Area -->
       <div class="content-area">
+        <div id="mobile-launcher" class="mobile-launcher"></div>
+
         <!-- Dashboard Module -->
         <div id="dashboard" class="module active">
           <div class="page-header">
@@ -13100,7 +13277,417 @@
       showMessage(`Import terminé: ${imported} ajoutée(s), ${skipped} ignorée(s)`);
     }
 
+    const MOBILE_LAUNCHER_SECTIONS = [
+      {
+        id: 'sales',
+        label: 'Ventes & CRM',
+        emoji: '📊',
+        tone: 'linear-gradient(145deg, #e9f2ff 0%, #dbeafe 100%)',
+        border: '#bfdbfe',
+        modules: ['dashboard'],
+      },
+      {
+        id: 'construction',
+        label: 'Construction',
+        emoji: '🏗️',
+        tone: 'linear-gradient(145deg, #ecfeff 0%, #cffafe 100%)',
+        border: '#99f6e4',
+        modules: ['projects', 'project-progress', 'journal-chantier', 'assignments'],
+      },
+      {
+        id: 'procurement',
+        label: 'Approvisionnement',
+        emoji: '📦',
+        tone: 'linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%)',
+        border: '#bbf7d0',
+        modules: ['materials', 'inventory', 'stock-management', 'sortie-autorisations'],
+      },
+      {
+        id: 'purchases',
+        label: 'Achats',
+        emoji: '🛒',
+        tone: 'linear-gradient(145deg, #fff7ed 0%, #ffedd5 100%)',
+        border: '#fed7aa',
+        modules: ['purchase-orders', 'material-catalog'],
+      },
+      {
+        id: 'fleet',
+        label: 'Parc Auto',
+        emoji: '🛠️',
+        tone: 'linear-gradient(145deg, #eef2ff 0%, #e0e7ff 100%)',
+        border: '#c7d2fe',
+        modules: ['parc-auto-maintenance', 'parc-auto-transport', 'maps'],
+      },
+      {
+        id: 'finance',
+        label: 'Comptabilite',
+        emoji: '💰',
+        tone: 'linear-gradient(145deg, #fdf4ff 0%, #fae8ff 100%)',
+        border: '#f5d0fe',
+        modules: ['expenses', 'revenues', 'reports'],
+      },
+      {
+        id: 'hr',
+        label: 'Ressources humaines',
+        emoji: '👥',
+        tone: 'linear-gradient(145deg, #fefce8 0%, #fef9c3 100%)',
+        border: '#fde68a',
+        modules: ['hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures'],
+      },
+      {
+        id: 'admin',
+        label: 'Admin',
+        emoji: '⚙️',
+        tone: 'linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%)',
+        border: '#cbd5e1',
+        modules: ['database', 'trash', 'users', 'settings', 'audit-log'],
+      },
+    ];
+
+    const mobileLauncherState = {
+      sectionId: null,
+      badges: {},
+      badgesLoading: false,
+      badgesLastUpdatedAt: 0,
+    };
+
+    const MOBILE_SECTION_ICON_BY_ID = {
+      sales: '◫',
+      construction: '◧',
+      procurement: '◪',
+      purchases: '◩',
+      fleet: '◨',
+      finance: '◬',
+      hr: '◭',
+      admin: '◮',
+    };
+
+    const MOBILE_MODULE_LABEL_OVERRIDES = {
+      dashboard: 'Tableau de bord',
+      projects: 'Projets',
+      'project-progress': 'Suivi des projets',
+      'journal-chantier': 'Journal de chantier',
+      assignments: 'Assignations',
+      materials: 'Demandes materiaux',
+      inventory: 'Inventaire',
+      'stock-management': 'Gestion de stock',
+      'sortie-autorisations': 'Autorisations sortie',
+      'purchase-orders': 'Bons de commande',
+      'material-catalog': 'Catalogue materiaux',
+      'parc-auto-maintenance': 'Maintenance auto',
+      'parc-auto-transport': 'Transport auto',
+      maps: 'Maps',
+      expenses: 'Depenses',
+      revenues: 'Revenus',
+      reports: 'Rapports',
+      'hr-employees': 'Liste employes',
+      'hr-attendance': 'Pointage',
+      'hr-calendar': 'Calendrier RH',
+      'hr-leave': 'Conges',
+      'hr-signatures': 'Signatures RH',
+      database: 'Base de donnee',
+      trash: 'Corbeille',
+      users: 'Utilisateurs',
+      settings: 'Parametres',
+      'audit-log': 'Historique actions',
+    };
+
+    function isMobileViewport() {
+      return window.matchMedia('(max-width: 900px)').matches;
+    }
+
+    function setMobileLauncherMode(enabled) {
+      const root = document.querySelector('.erp-container');
+      if (root) {
+        root.classList.toggle('mobile-launcher-mode', Boolean(enabled));
+      }
+    }
+
+    function getVisibleMenuModuleSet() {
+      const visible = new Set();
+      document.querySelectorAll('.menu-item').forEach(item => {
+        if (item.style.display === 'none') return;
+        const module = String(item.dataset.module || '').trim();
+        if (module) visible.add(module);
+      });
+      return visible;
+    }
+
+    function getLauncherSections() {
+      const visibleModules = getVisibleMenuModuleSet();
+      return MOBILE_LAUNCHER_SECTIONS
+        .map(section => {
+          const modules = section.modules.filter(module => visibleModules.has(module));
+          return { ...section, modules };
+        })
+        .filter(section => section.modules.length > 0);
+    }
+
+    function formatMobileBadgeValue(value) {
+      const count = Number(value || 0);
+      if (!Number.isFinite(count) || count <= 0) return '';
+      if (count > 99) return '99+';
+      return String(Math.floor(count));
+    }
+
+    function getMobileModuleBadge(module) {
+      const value = formatMobileBadgeValue(mobileLauncherState.badges[module]);
+      if (!value) return '';
+      return `<span class="mobile-launcher-badge">${value}</span>`;
+    }
+
+    function getMobileModuleLabel(module) {
+      if (MOBILE_MODULE_LABEL_OVERRIDES[module]) {
+        return MOBILE_MODULE_LABEL_OVERRIDES[module];
+      }
+      const menuItem = document.querySelector(`.menu-item[data-module="${module}"]`);
+      const rawLabel = String(menuItem?.textContent || module).trim();
+      const normalized = rawLabel.replace(/^\S+\s*/, '').trim();
+      return normalized || rawLabel;
+    }
+
+    function summarizeUnreadNotificationsByModule() {
+      if (!Array.isArray(notifications)) return {};
+      return notifications
+        .filter(item => item?.unread)
+        .reduce((acc, item) => {
+          const key = String(item?.module || '').trim();
+          if (!key) return acc;
+          acc[key] = Number(acc[key] || 0) + 1;
+          return acc;
+        }, {});
+    }
+
+    async function refreshMobileLauncherBadges(force = false) {
+      const now = Date.now();
+      if (!force && (now - mobileLauncherState.badgesLastUpdatedAt < 20000 || mobileLauncherState.badgesLoading)) {
+        return;
+      }
+
+      mobileLauncherState.badgesLoading = true;
+      try {
+        const [projects, purchaseOrders, stockAuths, pendingSignatures, users] = await Promise.all([
+          fetchJson('/api/projects').catch(() => []),
+          fetchJson('/api/purchase-orders').catch(() => []),
+          fetchJson('/api/stock-issue-authorizations').catch(() => []),
+          fetchJson('/api/hr/employee-profile/pending-signatures').catch(() => []),
+          fetchJson('/api/users').catch(() => []),
+        ]);
+
+        const pendingPo = Array.isArray(purchaseOrders)
+          ? purchaseOrders.filter(o => String(o?.statut || '').toLowerCase().includes('attente')).length
+          : 0;
+        const pendingAuth = Array.isArray(stockAuths)
+          ? stockAuths.filter(a => {
+            const status = String(a?.status || a?.statut || '').toLowerCase();
+            return status.includes('pending') || status.includes('attente');
+          }).length
+          : 0;
+
+        const unreadByModule = summarizeUnreadNotificationsByModule();
+        const nextBadges = {
+          dashboard: pendingPo + pendingAuth,
+          projects: Array.isArray(projects) ? projects.length : 0,
+          'purchase-orders': pendingPo,
+          'sortie-autorisations': pendingAuth,
+          'hr-signatures': Array.isArray(pendingSignatures) ? pendingSignatures.length : 0,
+          users: Array.isArray(users) ? users.length : 0,
+        };
+
+        Object.keys(unreadByModule).forEach(module => {
+          nextBadges[module] = Number(nextBadges[module] || 0) + Number(unreadByModule[module] || 0);
+        });
+
+        mobileLauncherState.badges = nextBadges;
+        mobileLauncherState.badgesLastUpdatedAt = now;
+      } finally {
+        mobileLauncherState.badgesLoading = false;
+      }
+
+      if (currentModule === 'mobile-home') {
+        renderMobileLauncher();
+      }
+    }
+
+    function renderMobileLauncher() {
+      const host = document.getElementById('mobile-launcher');
+      if (!host) return;
+
+      const sections = getLauncherSections();
+      const selectedSection = sections.find(section => section.id === mobileLauncherState.sectionId) || null;
+
+      if (!sections.length) {
+        host.innerHTML = '<div class="card" style="text-align:center; color:#64748b;">Aucun module disponible pour ce profil.</div>';
+        return;
+      }
+
+      if (!selectedSection) {
+        host.innerHTML = `
+          <div class="mobile-launcher-hero">
+            <div class="mobile-launcher-kicker">Ryan ERP Mobile</div>
+            <div class="mobile-launcher-title">Choisissez un domaine</div>
+            <div class="mobile-launcher-subtitle">Interface carrée style ERP, pensée pour un usage mobile rapide.</div>
+          </div>
+          <div class="mobile-launcher-grid">
+            ${sections.map(section => `
+              <button type="button" class="mobile-launcher-tile" style="--tile-bg:${section.tone};--tile-border:${section.border};" onclick="openMobileSection('${section.id}')">
+                <div class="mobile-launcher-tile-top">
+                  <span class="mobile-launcher-tile-icon">${MOBILE_SECTION_ICON_BY_ID[section.id] || section.emoji}</span>
+                </div>
+                <div class="mobile-launcher-tile-title">${escapeHtml(section.label)}</div>
+                <div class="mobile-launcher-tile-meta">${section.modules.length} module(s)</div>
+              </button>
+            `).join('')}
+          </div>
+        `;
+        return;
+      }
+
+      host.innerHTML = `
+        <div class="mobile-launcher-header">
+          <button type="button" class="mobile-launcher-back" onclick="openMobileHome()">⬅ Retour</button>
+          <div class="mobile-launcher-subtitle">${escapeHtml(selectedSection.label)}</div>
+        </div>
+        <div class="mobile-launcher-grid">
+          ${selectedSection.modules.map(module => {
+            const moduleLabel = getMobileModuleLabel(module);
+            const moduleIcon = MOBILE_SECTION_ICON_BY_ID[selectedSection.id] || selectedSection.emoji;
+            return `
+              <button type="button" class="mobile-launcher-tile" style="--tile-bg:${selectedSection.tone};--tile-border:${selectedSection.border};" onclick="openMobileModule('${module}')">
+                <div class="mobile-launcher-tile-top">
+                  <span class="mobile-launcher-tile-icon">${moduleIcon}</span>
+                  ${getMobileModuleBadge(module)}
+                </div>
+                <div class="mobile-launcher-tile-title">${escapeHtml(moduleLabel)}</div>
+                <div class="mobile-launcher-tile-meta">Ouvrir le module</div>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function showMobileLauncher() {
+      const host = document.getElementById('mobile-launcher');
+      if (!host) return;
+      document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+      document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+      host.classList.add('active');
+      currentModule = 'mobile-home';
+      setMobileLauncherMode(true);
+      document.getElementById('page-title').textContent = 'Accueil mobile';
+      document.getElementById('page-subtitle').textContent = 'Choisissez un bloc, puis un module';
+      renderMobileLauncher();
+      refreshMobileLauncherBadges();
+      syncAutoMapLiveRefresh();
+      syncAutoDashboardRefresh();
+    }
+
+    window.openMobileHome = function openMobileHome() {
+      mobileLauncherState.sectionId = null;
+      showMobileLauncher();
+    };
+
+    window.openMobileSection = function openMobileSection(sectionId) {
+      mobileLauncherState.sectionId = String(sectionId || '').trim();
+      renderMobileLauncher();
+    };
+
+    function runModuleLoaders(resolvedModule, module) {
+      if (resolvedModule === 'dashboard') loadDashboard();
+      else if (resolvedModule === 'projects') {
+        selectedProjectGroupKey = null;
+        selectedProjectId = null;
+        selectedProjectCreationFolderKey = '';
+        showProjectFolderChooser();
+        loadProjects();
+      }
+      else if (resolvedModule === 'project-progress') {
+        loadProjectProgress();
+      }
+      else if (resolvedModule === 'journal-chantier') {
+        loadProjectProgress();
+        loadJournalChantier();
+      }
+      else if (resolvedModule === 'hr-employees') {
+        loadHrEmployeesModule();
+      }
+      else if (resolvedModule === 'hr-attendance') {
+        loadHrAttendanceModule();
+      }
+      else if (resolvedModule === 'assignments') {
+        loadProjects();
+        loadAssignments();
+      }
+      else if (resolvedModule === 'hr-calendar') {
+        loadHrCalendarModule();
+      }
+      else if (resolvedModule === 'hr-leave') {
+        loadHrLeaveModule();
+      }
+      else if (resolvedModule === 'hr-signatures') {
+        loadHrSignaturesModule();
+      }
+      else if (resolvedModule === 'materials') {
+        selectedMaterialRequestProjectId = null;
+        selectedMaterialRequestFolderKey = '';
+        loadProjects();
+        loadMaterials();
+        if (canLoadMaterialCatalogForCurrentRole()) {
+          loadMaterialCatalog();
+        }
+      }
+      else if (resolvedModule === 'inventory') loadInventory();
+      else if (resolvedModule === 'sortie-autorisations') loadStockIssueAuthorizations();
+      else if (resolvedModule === 'stock-management') {
+        selectedStockWarehouseId = isSiteChief() ? getSiteChiefWarehouseId() : '';
+        showStockWarehouseChooser();
+        loadStockManagement();
+      }
+      else if (resolvedModule === 'purchase-orders') loadPurchaseOrders();
+      else if (resolvedModule === 'material-catalog') loadMaterialCatalog();
+      else if (resolvedModule === 'parc-auto') loadParcAuto();
+      else if (resolvedModule === 'maps') loadMapsModule();
+      else if (resolvedModule === 'expenses') loadExpenses();
+      else if (resolvedModule === 'revenues') loadRevenues();
+      else if (resolvedModule === 'reports') loadReports();
+      else if (resolvedModule === 'database') {
+        loadProjects();
+        loadDatabaseDocuments();
+      } else if (resolvedModule === 'users') {
+        loadUsersModule();
+      } else if (resolvedModule === 'trash') {
+        loadTrashModule();
+      } else if (resolvedModule === 'audit-log') {
+        renderAuditLog();
+      }
+
+      window.setTimeout(() => {
+        applyModuleFiltersAndPagination(resolvedModule);
+      }, 0);
+
+      if (module === 'parc-auto-maintenance' || module === 'parc-auto-transport') {
+        setTimeout(() => {
+          const sectionId = module === 'parc-auto-maintenance'
+            ? 'parc-auto-maintenance-section'
+            : 'parc-auto-transport-section';
+          document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 0);
+      }
+    }
+
+    window.openMobileModule = function openMobileModule(module) {
+      const rawModule = String(module || '').trim();
+      const isParcAutoSubmenu = rawModule === 'parc-auto-maintenance' || rawModule === 'parc-auto-transport';
+      const resolvedModule = isParcAutoSubmenu ? 'parc-auto' : rawModule;
+      showModule(resolvedModule);
+      runModuleLoaders(resolvedModule, rawModule);
+    };
+
     function showModule(moduleName) {
+      const launcher = document.getElementById('mobile-launcher');
+      if (launcher) launcher.classList.remove('active');
+      setMobileLauncherMode(false);
       document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
       const activeModuleEl = document.getElementById(moduleName);
       activeModuleEl?.classList.add('active');
@@ -13147,6 +13734,7 @@
         'audit-log': ['Historique des actions', 'Traçabilité des opérations ERP'],
         users: ['Utilisateurs', 'Gestion des comptes'],
         settings: ['Paramètres', 'Configuration du système'],
+        'mobile-home': ['Accueil mobile', 'Choisissez un bloc, puis un module'],
       };
 
       const [title, subtitle] = titles[moduleName] || ['Module', 'Détails'];
@@ -20600,87 +21188,7 @@
 
         showModule(resolvedModule);
         item.classList.add('active');
-
-        if (resolvedModule === 'dashboard') loadDashboard();
-        else if (resolvedModule === 'projects') {
-          selectedProjectGroupKey = null;
-          selectedProjectId = null;
-          selectedProjectCreationFolderKey = '';
-          showProjectFolderChooser();
-          loadProjects();
-        }
-        else if (resolvedModule === 'project-progress') {
-          loadProjectProgress();
-        }
-        else if (resolvedModule === 'journal-chantier') {
-          loadProjectProgress();
-          loadJournalChantier();
-        }
-        else if (resolvedModule === 'hr-employees') {
-          loadHrEmployeesModule();
-        }
-        else if (resolvedModule === 'hr-attendance') {
-          loadHrAttendanceModule();
-        }
-        else if (resolvedModule === 'assignments') {
-          loadProjects();
-          loadAssignments();
-        }
-        else if (resolvedModule === 'hr-calendar') {
-          loadHrCalendarModule();
-        }
-        else if (resolvedModule === 'hr-leave') {
-          loadHrLeaveModule();
-        }
-        else if (resolvedModule === 'hr-signatures') {
-          loadHrSignaturesModule();
-        }
-        else if (resolvedModule === 'materials') {
-          selectedMaterialRequestProjectId = null;
-          selectedMaterialRequestFolderKey = '';
-          loadProjects();
-          loadMaterials();
-          if (canLoadMaterialCatalogForCurrentRole()) {
-            loadMaterialCatalog();
-          }
-        }
-        else if (resolvedModule === 'inventory') loadInventory();
-        else if (resolvedModule === 'sortie-autorisations') loadStockIssueAuthorizations();
-        else if (resolvedModule === 'stock-management') {
-          selectedStockWarehouseId = isSiteChief() ? getSiteChiefWarehouseId() : '';
-          showStockWarehouseChooser();
-          loadStockManagement();
-        }
-        else if (resolvedModule === 'purchase-orders') loadPurchaseOrders();
-        else if (resolvedModule === 'material-catalog') loadMaterialCatalog();
-        else if (resolvedModule === 'parc-auto') loadParcAuto();
-        else if (resolvedModule === 'maps') loadMapsModule();
-        else if (resolvedModule === 'expenses') loadExpenses();
-        else if (resolvedModule === 'revenues') loadRevenues();
-        else if (resolvedModule === 'reports') loadReports();
-        else if (resolvedModule === 'database') {
-          loadProjects();
-          loadDatabaseDocuments();
-        } else if (resolvedModule === 'users') {
-          loadUsersModule();
-        } else if (resolvedModule === 'trash') {
-          loadTrashModule();
-        } else if (resolvedModule === 'audit-log') {
-          renderAuditLog();
-        }
-
-        window.setTimeout(() => {
-          applyModuleFiltersAndPagination(resolvedModule);
-        }, 0);
-
-        if (module === 'parc-auto-maintenance' || module === 'parc-auto-transport') {
-          setTimeout(() => {
-            const sectionId = module === 'parc-auto-maintenance'
-              ? 'parc-auto-maintenance-section'
-              : 'parc-auto-transport-section';
-            document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 0);
-        }
+        runModuleLoaders(resolvedModule, module);
       });
     });
 
@@ -21289,6 +21797,7 @@
           updateNotificationsUI();
           if (module) {
             showModule(module);
+            runModuleLoaders(module, module);
           }
         });
       });
@@ -21324,6 +21833,8 @@
         sessionStorage.setItem('erp_last_signature_pending', String(signaturePending));
       } catch (_) {
         // Ignore transient polling errors.
+      } finally {
+        refreshMobileLauncherBadges();
       }
     }
 
@@ -21532,6 +22043,14 @@
         document.querySelectorAll('.actions-menu[open]').forEach(detailsEl => {
           repositionActionsMenu(detailsEl);
         });
+
+        if (!isMobileViewport()) {
+          mobileLauncherState.sectionId = null;
+          document.getElementById('mobile-launcher')?.classList.remove('active');
+          setMobileLauncherMode(false);
+        } else if (currentModule === 'mobile-home') {
+          showMobileLauncher();
+        }
       });
 
       const notifBell = document.getElementById('notif-bell-btn');
@@ -21546,6 +22065,13 @@
           notifications = [];
           saveNotificationsToStorage();
           updateNotificationsUI();
+        });
+      }
+
+      const mobileHomeBtn = document.getElementById('mobile-home-btn');
+      if (mobileHomeBtn) {
+        mobileHomeBtn.addEventListener('click', () => {
+          openMobileHome();
         });
       }
 
@@ -21675,6 +22201,11 @@
         showModule('hr-employees');
         loadHrEmployeesModule();
         loadHrAttendanceModule();
+        return;
+      }
+
+      if (isMobileViewport()) {
+        openMobileHome();
         return;
       }
 
