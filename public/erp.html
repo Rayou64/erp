@@ -649,112 +649,6 @@
       margin-bottom: 28px;
     }
 
-    .mobile-odoo-launcher {
-      display: none;
-      margin-bottom: 18px;
-      border-radius: 18px;
-      border: 1px solid #d7deef;
-      background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
-      box-shadow: 0 14px 34px rgba(34, 62, 121, 0.12);
-    }
-
-    .mobile-odoo-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .mobile-odoo-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #162447;
-    }
-
-    .mobile-odoo-subtitle {
-      font-size: 12px;
-      color: #64748b;
-    }
-
-    .mobile-odoo-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .mobile-odoo-tile {
-      border: 1px solid #d8dfef;
-      border-radius: 14px;
-      background: #ffffff;
-      aspect-ratio: 1 / 1;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: flex-start;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
-    }
-
-    .mobile-odoo-tile:active {
-      transform: scale(0.97);
-    }
-
-    .mobile-odoo-tile:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 18px rgba(37, 99, 235, 0.18);
-      border-color: #9ab8ff;
-    }
-
-    .mobile-odoo-tile-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      background: #ecf2ff;
-      color: #1d4ed8;
-    }
-
-    .mobile-odoo-tile-label {
-      font-size: 12px;
-      line-height: 1.2;
-      font-weight: 700;
-      color: #0f172a;
-    }
-
-    .mobile-odoo-modules {
-      margin-top: 10px;
-    }
-
-    .mobile-odoo-modules-head {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .mobile-odoo-back {
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      background: #ffffff;
-      color: #334155;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 8px 10px;
-      cursor: pointer;
-    }
-
-    .mobile-odoo-modules-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #1e293b;
-    }
-
     /* ──────────────────────────────────────────────────────
        EXEC SUMMARY WIDGET  (résumé sous le dashboard classique)
     ────────────────────────────────────────────────────── */
@@ -1934,30 +1828,6 @@
         gap: 12px;
       }
 
-      .mobile-odoo-launcher {
-        display: block;
-      }
-
-      .mobile-odoo-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-      }
-
-      .mobile-odoo-tile {
-        border-radius: 12px;
-        padding: 8px;
-      }
-
-      .mobile-odoo-tile-icon {
-        width: 34px;
-        height: 34px;
-        font-size: 18px;
-      }
-
-      .mobile-odoo-tile-label {
-        font-size: 11px;
-      }
-
       .grid-2 {
         grid-template-columns: 1fr;
         gap: 12px;
@@ -2936,24 +2806,6 @@
             <h1>Tableau de bord</h1>
             <p>Vue d'ensemble des activités et finances</p>
           </div>
-
-          <div id="mobile-odoo-launcher" class="card mobile-odoo-launcher">
-            <div class="mobile-odoo-head">
-              <div>
-                <div class="mobile-odoo-title">Accueil Mobile</div>
-                <div class="mobile-odoo-subtitle">Style application: ouvre un domaine puis choisis ton module.</div>
-              </div>
-            </div>
-            <div id="mobile-odoo-categories" class="mobile-odoo-grid"></div>
-            <div id="mobile-odoo-modules" class="mobile-odoo-modules" style="display:none;">
-              <div class="mobile-odoo-modules-head">
-                <button type="button" id="mobile-odoo-back" class="mobile-odoo-back">← Domaines</button>
-                <div id="mobile-odoo-modules-title" class="mobile-odoo-modules-title">Modules</div>
-              </div>
-              <div id="mobile-odoo-module-grid" class="mobile-odoo-grid"></div>
-            </div>
-          </div>
-
           <div class="dashboard-grid">
             <div class="card stat-card">
               <h3 id="stat-projects">0</h3>
@@ -8823,6 +8675,173 @@
           selectProjectForZoneCreation(projectId, { focus: true, scroll: true });
         });
       });
+    }
+
+    function isProjectTreeProjectExpanded(project, searchValue = normalizeText(projectSearchTerm.trim())) {
+      if (searchValue) return true;
+      return Number(expandedProjectTreeProjectId) === Number(project.id);
+    }
+
+    function isProjectTreeZoneExpanded(zone, searchValue = normalizeText(projectSearchTerm.trim())) {
+      if (searchValue) return true;
+      return expandedProjectTreeZoneKey === zone.key;
+    }
+
+    function buildProjectSiteInlineDetails(site, zone) {
+      if (Number(selectedProjectId) !== Number(site.id)) {
+        return '';
+      }
+
+      const siteLifecycle = getSiteLifecycleStatus(site);
+      const statusClass = siteLifecycle.code === 'CONSTRUIT'
+        ? 'status-built'
+        : (siteLifecycle.code === 'EN_CONSTRUCTION' ? 'status-active' : 'status-not-started');
+
+      return `
+        <div class="card" style="margin:8px 0 0 0; background:#f8fafc; border:1px solid #cbd5e1; box-shadow:none;">
+          <h4 style="margin-bottom: 8px;">Dossier projet</h4>
+          <p style="margin-bottom: 6px;"><strong>Projet:</strong> ${escapeHtml(zone.nomProjet || 'Projet')}</p>
+          <p style="margin-bottom: 6px;"><strong>Préfecture:</strong> ${escapeHtml(zone.prefecture || 'Non renseigne')}</p>
+          <p style="margin-bottom: 6px;"><strong>Site sélectionné:</strong> ${escapeHtml(site.nomSite || '-')} ${site.numeroMaison ? `• Réf ${escapeHtml(site.numeroMaison)}` : ''}</p>
+          <p style="margin-bottom: 6px;"><strong>Statut:</strong> <span class="project-status-pill ${statusClass}">${escapeHtml(siteLifecycle.label)}</span></p>
+          <p style="margin-bottom: 6px;"><strong>Type de villa:</strong> ${getProjectVillaTypeLabel(site, zone) || 'Non renseigné'}</p>
+          <p style="margin-bottom: 8px;"><strong>Type de projet:</strong> ${escapeHtml(zone.typeProjet || 'Construction de Villa')}</p>
+        </div>
+      `;
+    }
+
+    function normalizeProjectConstructionStatus(rawValue) {
+      const value = normalizeText(rawValue || '');
+      if (!value) return '';
+      if (value.includes('construit') || value.includes('termine') || value.includes('acheve') || value.includes('livre')) {
+        return 'CONSTRUIT';
+      }
+      if (value.includes('construction') || value.includes('cours') || value.includes('demarre')) {
+        return 'EN_CONSTRUCTION';
+      }
+      if (value.includes('pas') || value.includes('debut')) {
+        return 'PAS_DEMARRE';
+      }
+      return '';
+    }
+
+    function buildStartedSiteIdSet(materials = materialRequestsCache, orders = purchaseOrdersCache) {
+      const ids = new Set();
+      (Array.isArray(materials) ? materials : []).forEach(row => {
+        const projectId = Number(row?.projetId || row?.projectId || 0);
+        if (projectId) ids.add(projectId);
+      });
+      (Array.isArray(orders) ? orders : []).forEach(row => {
+        const projectId = Number(row?.siteId || row?.projetId || row?.projectId || 0);
+        if (projectId) ids.add(projectId);
+      });
+      return ids;
+    }
+
+    function getSiteLifecycleStatus(site, startedSiteIds = buildStartedSiteIdSet()) {
+      const statusCode = normalizeProjectConstructionStatus(site?.statutConstruction);
+      if (statusCode === 'CONSTRUIT') {
+        return { code: 'CONSTRUIT', label: 'Déjà construit' };
+      }
+      const siteId = Number(site?.id || 0);
+      if (siteId && startedSiteIds.has(siteId)) {
+        return { code: 'EN_CONSTRUCTION', label: 'En construction' };
+      }
+      return { code: 'PAS_DEMARRE', label: 'Pas encore débuté' };
+    }
+
+    function renderProjectHierarchyList() {
+      const list = document.getElementById('projects-list');
+      const listTitle = document.getElementById('projects-list-title');
+      if (!list) return;
+
+      const searchValue = normalizeText(projectSearchTerm.trim());
+      const hierarchy = getFilteredProjectHierarchy(projectSearchTerm, projectsCache, projectFoldersCache, projectCatalogCache);
+      const startedSiteIds = buildStartedSiteIdSet();
+      const isSearchActive = Boolean(searchValue);
+
+      if (listTitle) {
+        listTitle.textContent = isSearchActive ? 'Résultats Projet > Zone > Sites' : 'Navigation Projet > Zone > Sites';
+      }
+
+      list.innerHTML = hierarchy.length
+        ? hierarchy.map(project => {
+            const isProjectExpanded = isProjectTreeProjectExpanded(project, searchValue);
+            const siteCount = project.zones.reduce((sum, zone) => sum + (Array.isArray(zone.houses) ? zone.houses.length : 0), 0);
+            return `
+              <li class="list-item" style="display:block; padding:12px;">
+                <button
+                  type="button"
+                  onclick="toggleProjectTreeProject(${Number(project.id)})"
+                  style="width:100%; border:none; background:#f8fafc; border-radius:10px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:12px; cursor:pointer; text-align:left;"
+                >
+                  <span>
+                    <span style="display:block; font-weight:700; color:#0f172a;">📁 ${escapeHtml(project.nomProjet || 'Projet')}</span>
+                    <span style="display:block; font-size:12px; color:#475569; margin-top:4px;">${escapeHtml(project.typeProjet || 'Type non renseigné')} • ${project.zones.length} zone${project.zones.length > 1 ? 's' : ''} • ${siteCount} site${siteCount > 1 ? 's' : ''}</span>
+                  </span>
+                  <span style="font-size:18px; color:#475569;">${isProjectExpanded ? '▾' : '▸'}</span>
+                </button>
+                ${isProjectExpanded
+                  ? `<div style="display:grid; gap:10px; margin-top:10px; padding-left:10px; border-left:3px solid #e2e8f0;">
+                      ${project.zones.length
+                        ? project.zones.map(zone => {
+                            const isZoneExpanded = isProjectTreeZoneExpanded(zone, searchValue);
+                            return `
+                              <div class="card" style="margin:0; background:#ffffff; border:1px solid #e2e8f0; box-shadow:none;">
+                                <button
+                                  type="button"
+                                  onclick="toggleProjectTreeZone('${encodeURIComponent(zone.key)}', ${Number(project.id)})"
+                                  style="width:100%; border:none; background:transparent; padding:4px 0; display:flex; justify-content:space-between; align-items:center; gap:12px; cursor:pointer; text-align:left;"
+                                >
+                                  <span>
+                                    <span style="display:block; font-weight:700; color:#1e293b;">📍 ${escapeHtml(getProjectZoneDisplayName(zone))}</span>
+                                    <span style="display:block; font-size:12px; color:#64748b; margin-top:4px;">${zone.houses.length} site${zone.houses.length > 1 ? 's' : ''}</span>
+                                  </span>
+                                  <span style="font-size:18px; color:#475569;">${isZoneExpanded ? '▾' : '▸'}</span>
+                                </button>
+                                ${isZoneExpanded
+                                  ? `<div style="display:grid; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">
+                                      ${zone.houses.length
+                                        ? zone.houses.map(site => {
+                                            const siteLifecycle = getSiteLifecycleStatus(site, startedSiteIds);
+                                            const statusClass = siteLifecycle.code === 'CONSTRUIT'
+                                              ? 'status-built'
+                                              : (siteLifecycle.code === 'EN_CONSTRUCTION' ? 'status-active' : 'status-not-started');
+                                            return `
+                                            <div class="list-item" style="margin:0;">
+                                              <div class="list-item-content project-item-clickable ${selectedProjectId === site.id ? 'project-item-selected' : ''}" onclick="viewProject(${Number(site.id)})">
+                                                <div class="list-item-title">${escapeHtml(site.nomSite || 'Site')}</div>
+                                                <div class="list-item-meta">${escapeHtml(getProjectVillaTypeLabel(site, zone) || 'Type non renseigné')}${site.numeroMaison ? ` • Réf ${escapeHtml(site.numeroMaison)}` : ''}<span class="project-status-pill ${statusClass}">${escapeHtml(siteLifecycle.label)}</span></div>
+                                              </div>
+                                              ${isPurchaseReadOnlyRole() ? '' : `<div class="action-buttons">
+                                                <details class="actions-menu">
+                                                  <summary aria-label="Actions projet">&#8942;</summary>
+                                                  <div class="actions-dropdown">
+                                                    <button type="button" onclick="toggleProjectBuiltStatus(${Number(site.id)}, ${siteLifecycle.code !== 'CONSTRUIT'})">${siteLifecycle.code === 'CONSTRUIT' ? 'Marquer en construction' : 'Marquer déjà construit'}</button>
+                                                    <button type="button" onclick="editProject(${Number(site.id)})">Modifier</button>
+                                                    <button type="button" onclick="deleteProject(${Number(site.id)})">Mettre en corbeille</button>
+                                                  </div>
+                                                </details>
+                                              </div>`}
+                                            </div>
+                                            ${buildProjectSiteInlineDetails(site, zone)}
+                                          `;
+                                        }).join('')
+                                        : '<div class="empty-state"><p>Aucun site dans cette zone</p></div>'}
+                                    </div>`
+                                  : ''}
+                              </div>
+                            `;
+                          }).join('')
+                        : '<div class="empty-state"><p>Aucune zone créée pour ce projet</p></div>'}
+                    </div>`
+                  : ''}
+              </li>
+            `;
+          }).join('')
+        : ((projectCatalogCache || []).length
+            ? '<div class="empty-state"><p>Aucun résultat pour la recherche</p></div>'
+            : '<div class="empty-state"><p>Aucun projet créé</p></div>');
     }
 
     async function selectProjectFolderAndOpen(folderKey) {
@@ -20568,249 +20587,100 @@
       });
     });
 
-    const MOBILE_ODOO_GROUPS = [
-      { key: 'construction', label: 'Construction', icon: '🏗️', modules: ['projects', 'project-progress', 'journal-chantier', 'assignments'] },
-      { key: 'appro', label: 'Approvisionnement', icon: '📦', modules: ['materials', 'inventory', 'stock-management', 'sortie-autorisations'] },
-      { key: 'achats', label: 'Achats', icon: '🛒', modules: ['purchase-orders', 'material-catalog'] },
-      { key: 'auto', label: 'Parc Auto', icon: '🚚', modules: ['parc-auto-maintenance', 'parc-auto-transport', 'maps'] },
-      { key: 'finance', label: 'Comptabilite', icon: '💹', modules: ['expenses', 'revenues', 'reports'] },
-      { key: 'rh', label: 'Ressources humaines', icon: '👥', modules: ['hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures'] },
-      { key: 'admin', label: 'Admin', icon: '⚙️', modules: ['database', 'trash', 'users', 'settings', 'audit-log'] },
-    ];
-
-    const MOBILE_ODOO_MODULE_LABELS = {
-      dashboard: 'Tableau de bord',
-      projects: 'Projets',
-      'project-progress': 'Suivi projets',
-      'journal-chantier': 'Journal chantier',
-      assignments: 'Assignations',
-      materials: 'Demandes materiel',
-      inventory: 'Inventaire',
-      'stock-management': 'Gestion stock',
-      'sortie-autorisations': 'Autorisations sortie',
-      'purchase-orders': 'Bons de commande',
-      'material-catalog': 'Catalogue materiaux',
-      'parc-auto-maintenance': 'Maintenance',
-      'parc-auto-transport': 'Transports',
-      maps: 'Maps',
-      expenses: 'Depenses',
-      revenues: 'Revenus',
-      reports: 'Rapports',
-      'hr-employees': 'Employes',
-      'hr-attendance': 'Pointage',
-      'hr-calendar': 'Calendrier',
-      'hr-leave': 'Conges',
-      'hr-signatures': 'Signatures',
-      database: 'Base de donnees',
-      trash: 'Corbeille',
-      users: 'Utilisateurs',
-      settings: 'Parametres',
-      'audit-log': 'Historique',
-    };
-
-    let mobileOdooCurrentGroup = null;
-
-    function getVisibleMenuModules() {
-      const modules = new Set();
-      document.querySelectorAll('.menu-item[data-module]').forEach(item => {
-        if (item.style.display === 'none') return;
-        const module = String(item.dataset.module || '').trim();
-        if (module) modules.add(module);
-      });
-      return modules;
-    }
-
-    function closeMobileOdooGroup() {
-      const modulesPanel = document.getElementById('mobile-odoo-modules');
-      if (modulesPanel) modulesPanel.style.display = 'none';
-      mobileOdooCurrentGroup = null;
-    }
-
-    function openMobileOdooGroup(groupKey) {
-      const group = MOBILE_ODOO_GROUPS.find(entry => entry.key === groupKey);
-      const modulesPanel = document.getElementById('mobile-odoo-modules');
-      const moduleGrid = document.getElementById('mobile-odoo-module-grid');
-      const title = document.getElementById('mobile-odoo-modules-title');
-      if (!group || !modulesPanel || !moduleGrid || !title) return;
-
-      const visibleModules = getVisibleMenuModules();
-      const modules = group.modules.filter(module => visibleModules.has(module));
-      if (!modules.length) {
-        moduleGrid.innerHTML = '<div style="grid-column:1/-1; font-size:12px; color:#64748b;">Aucun module disponible pour ce domaine.</div>';
-      } else {
-        moduleGrid.innerHTML = modules.map(module => {
-          const menuNode = document.querySelector(`.menu-item[data-module="${module}"]`);
-          const rawText = String(menuNode?.textContent || '').trim();
-          const icon = rawText.split(/\s+/)[0] || '📌';
-          const label = MOBILE_ODOO_MODULE_LABELS[module] || rawText.replace(/^\S+\s*/, '') || module;
-          return `
-            <button type="button" class="mobile-odoo-tile" data-odoo-module="${module}">
-              <span class="mobile-odoo-tile-icon">${icon}</span>
-              <span class="mobile-odoo-tile-label">${escapeHtml(label)}</span>
-            </button>
-          `;
-        }).join('');
-      }
-
-      moduleGrid.querySelectorAll('[data-odoo-module]').forEach(button => {
-        button.addEventListener('click', () => {
-          const moduleName = button.getAttribute('data-odoo-module');
-          if (moduleName) openModuleFromNavigation(moduleName);
-        });
-      });
-
-      title.textContent = `${group.icon} ${group.label}`;
-      modulesPanel.style.display = 'block';
-      mobileOdooCurrentGroup = group.key;
-    }
-
-    function renderMobileOdooLauncher() {
-      const container = document.getElementById('mobile-odoo-categories');
-      if (!container) return;
-      const visibleModules = getVisibleMenuModules();
-      const groups = MOBILE_ODOO_GROUPS.filter(group => group.modules.some(module => visibleModules.has(module)));
-
-      if (!groups.length) {
-        container.innerHTML = '<div style="grid-column:1/-1; font-size:12px; color:#64748b;">Aucun domaine disponible.</div>';
-        closeMobileOdooGroup();
-        return;
-      }
-
-      container.innerHTML = groups.map(group => `
-        <button type="button" class="mobile-odoo-tile" data-odoo-group="${group.key}">
-          <span class="mobile-odoo-tile-icon">${group.icon}</span>
-          <span class="mobile-odoo-tile-label">${escapeHtml(group.label)}</span>
-        </button>
-      `).join('');
-
-      container.querySelectorAll('[data-odoo-group]').forEach(button => {
-        button.addEventListener('click', () => {
-          const groupKey = button.getAttribute('data-odoo-group');
-          if (groupKey) openMobileOdooGroup(groupKey);
-        });
-      });
-
-      if (mobileOdooCurrentGroup && groups.some(group => group.key === mobileOdooCurrentGroup)) {
-        openMobileOdooGroup(mobileOdooCurrentGroup);
-      } else {
-        closeMobileOdooGroup();
-      }
-    }
-
-    function initMobileOdooLauncher() {
-      const launcher = document.getElementById('mobile-odoo-launcher');
-      if (!launcher) return;
-      const backButton = document.getElementById('mobile-odoo-back');
-      if (backButton && !backButton.dataset.bound) {
-        backButton.dataset.bound = '1';
-        backButton.addEventListener('click', closeMobileOdooGroup);
-      }
-      renderMobileOdooLauncher();
-    }
-
-    function openModuleFromNavigation(module) {
-      const requestedModule = String(module || '').trim();
-      if (!requestedModule) return;
-
-      const isParcAutoSubmenu = requestedModule === 'parc-auto-maintenance' || requestedModule === 'parc-auto-transport';
-      const resolvedModule = isParcAutoSubmenu ? 'parc-auto' : requestedModule;
-
-      if (isRestrictedRole() && !getAllowedModules().has(requestedModule)) {
-        showMessage('Acces refuse pour ce profil', 'error');
-        return;
-      }
-
-      showModule(resolvedModule);
-      const selectedMenuItem = document.querySelector(`.menu-item[data-module="${requestedModule}"]`) || document.querySelector(`.menu-item[data-module="${resolvedModule}"]`);
-      if (selectedMenuItem) selectedMenuItem.classList.add('active');
-      closeMobileOdooGroup();
-
-      if (resolvedModule === 'dashboard') loadDashboard();
-      else if (resolvedModule === 'projects') {
-        selectedProjectGroupKey = null;
-        selectedProjectId = null;
-        selectedProjectCreationFolderKey = '';
-        showProjectFolderChooser();
-        loadProjects();
-      }
-      else if (resolvedModule === 'project-progress') {
-        loadProjectProgress();
-      }
-      else if (resolvedModule === 'journal-chantier') {
-        loadProjectProgress();
-        loadJournalChantier();
-      }
-      else if (resolvedModule === 'hr-employees') {
-        loadHrEmployeesModule();
-      }
-      else if (resolvedModule === 'hr-attendance') {
-        loadHrAttendanceModule();
-      }
-      else if (resolvedModule === 'assignments') {
-        loadProjects();
-        loadAssignments();
-      }
-      else if (resolvedModule === 'hr-calendar') {
-        loadHrCalendarModule();
-      }
-      else if (resolvedModule === 'hr-leave') {
-        loadHrLeaveModule();
-      }
-      else if (resolvedModule === 'hr-signatures') {
-        loadHrSignaturesModule();
-      }
-      else if (resolvedModule === 'materials') {
-        selectedMaterialRequestProjectId = null;
-        selectedMaterialRequestFolderKey = '';
-        loadProjects();
-        loadMaterials();
-        if (canLoadMaterialCatalogForCurrentRole()) {
-          loadMaterialCatalog();
-        }
-      }
-      else if (resolvedModule === 'inventory') loadInventory();
-      else if (resolvedModule === 'sortie-autorisations') loadStockIssueAuthorizations();
-      else if (resolvedModule === 'stock-management') {
-        selectedStockWarehouseId = isSiteChief() ? getSiteChiefWarehouseId() : '';
-        showStockWarehouseChooser();
-        loadStockManagement();
-      }
-      else if (resolvedModule === 'purchase-orders') loadPurchaseOrders();
-      else if (resolvedModule === 'material-catalog') loadMaterialCatalog();
-      else if (resolvedModule === 'parc-auto') loadParcAuto();
-      else if (resolvedModule === 'maps') loadMapsModule();
-      else if (resolvedModule === 'expenses') loadExpenses();
-      else if (resolvedModule === 'revenues') loadRevenues();
-      else if (resolvedModule === 'reports') loadReports();
-      else if (resolvedModule === 'database') {
-        loadProjects();
-        loadDatabaseDocuments();
-      } else if (resolvedModule === 'users') {
-        loadUsersModule();
-      } else if (resolvedModule === 'trash') {
-        loadTrashModule();
-      } else if (resolvedModule === 'audit-log') {
-        renderAuditLog();
-      }
-
-      window.setTimeout(() => {
-        applyModuleFiltersAndPagination(resolvedModule);
-      }, 0);
-
-      if (requestedModule === 'parc-auto-maintenance' || requestedModule === 'parc-auto-transport') {
-        setTimeout(() => {
-          const sectionId = requestedModule === 'parc-auto-maintenance'
-            ? 'parc-auto-maintenance-section'
-            : 'parc-auto-transport-section';
-          document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 0);
-      }
-    }
-
     document.querySelectorAll('.menu-item').forEach(item => {
       item.addEventListener('click', () => {
         const module = item.dataset.module;
-        openModuleFromNavigation(module);
+        const isParcAutoSubmenu = module === 'parc-auto-maintenance' || module === 'parc-auto-transport';
+        const resolvedModule = isParcAutoSubmenu ? 'parc-auto' : module;
+
+        if (isRestrictedRole() && !getAllowedModules().has(module)) {
+          showMessage('Acces refuse pour ce profil', 'error');
+          return;
+        }
+
+        showModule(resolvedModule);
+        item.classList.add('active');
+
+        if (resolvedModule === 'dashboard') loadDashboard();
+        else if (resolvedModule === 'projects') {
+          selectedProjectGroupKey = null;
+          selectedProjectId = null;
+          selectedProjectCreationFolderKey = '';
+          showProjectFolderChooser();
+          loadProjects();
+        }
+        else if (resolvedModule === 'project-progress') {
+          loadProjectProgress();
+        }
+        else if (resolvedModule === 'journal-chantier') {
+          loadProjectProgress();
+          loadJournalChantier();
+        }
+        else if (resolvedModule === 'hr-employees') {
+          loadHrEmployeesModule();
+        }
+        else if (resolvedModule === 'hr-attendance') {
+          loadHrAttendanceModule();
+        }
+        else if (resolvedModule === 'assignments') {
+          loadProjects();
+          loadAssignments();
+        }
+        else if (resolvedModule === 'hr-calendar') {
+          loadHrCalendarModule();
+        }
+        else if (resolvedModule === 'hr-leave') {
+          loadHrLeaveModule();
+        }
+        else if (resolvedModule === 'hr-signatures') {
+          loadHrSignaturesModule();
+        }
+        else if (resolvedModule === 'materials') {
+          selectedMaterialRequestProjectId = null;
+          selectedMaterialRequestFolderKey = '';
+          loadProjects();
+          loadMaterials();
+          if (canLoadMaterialCatalogForCurrentRole()) {
+            loadMaterialCatalog();
+          }
+        }
+        else if (resolvedModule === 'inventory') loadInventory();
+        else if (resolvedModule === 'sortie-autorisations') loadStockIssueAuthorizations();
+        else if (resolvedModule === 'stock-management') {
+          selectedStockWarehouseId = isSiteChief() ? getSiteChiefWarehouseId() : '';
+          showStockWarehouseChooser();
+          loadStockManagement();
+        }
+        else if (resolvedModule === 'purchase-orders') loadPurchaseOrders();
+        else if (resolvedModule === 'material-catalog') loadMaterialCatalog();
+        else if (resolvedModule === 'parc-auto') loadParcAuto();
+        else if (resolvedModule === 'maps') loadMapsModule();
+        else if (resolvedModule === 'expenses') loadExpenses();
+        else if (resolvedModule === 'revenues') loadRevenues();
+        else if (resolvedModule === 'reports') loadReports();
+        else if (resolvedModule === 'database') {
+          loadProjects();
+          loadDatabaseDocuments();
+        } else if (resolvedModule === 'users') {
+          loadUsersModule();
+        } else if (resolvedModule === 'trash') {
+          loadTrashModule();
+        } else if (resolvedModule === 'audit-log') {
+          renderAuditLog();
+        }
+
+        window.setTimeout(() => {
+          applyModuleFiltersAndPagination(resolvedModule);
+        }, 0);
+
+        if (module === 'parc-auto-maintenance' || module === 'parc-auto-transport') {
+          setTimeout(() => {
+            const sectionId = module === 'parc-auto-maintenance'
+              ? 'parc-auto-maintenance-section'
+              : 'parc-auto-transport-section';
+            document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 0);
+        }
       });
     });
 
@@ -21739,7 +21609,6 @@
       await loadUserInfo();
       initEnhancements();
       applyRoleAccess();
-      initMobileOdooLauncher();
       loadTrashItemsFromStorage();
       loadDatabaseTrashFromStorage();
       loadDatabaseHiddenIdsFromStorage();
