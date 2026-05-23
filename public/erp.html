@@ -3265,6 +3265,34 @@
     .topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 20px; }
     .topbar-right { gap: 10px; }
 
+    .home-nav-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 0;
+    }
+
+    .home-nav-btn:hover {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    [data-theme="dark"] .home-nav-btn {
+      background: #1e293b;
+      border-color: #334155;
+      color: #94a3b8;
+    }
+
     /* ═══════════════════════════════════════════════════
        EXPORT BUTTON
     ═══════════════════════════════════════════════════ */
@@ -3396,6 +3424,7 @@
           </div>
         </div>
         <div class="topbar-right">
+          <button type="button" id="home-nav-btn" class="home-nav-btn" aria-label="Accueil">☰</button>
           <div class="notif-btn-wrap">
             <button id="notif-bell-btn" title="Notifications">🔔</button>
             <span id="notif-badge" class="notif-badge">0</span>
@@ -3431,7 +3460,6 @@
               </div>
               <div class="mph-actions">
                 <button type="button" class="mph-icon-btn" id="mph-notif-btn" aria-label="Notifications">🔔</button>
-                <button type="button" class="mph-icon-btn" id="mph-menu-btn" aria-label="Menu">☰</button>
                 <div class="mph-profile-chip">
                   <div class="mph-avatar" id="mph-avatar">AD</div>
                   <div class="mph-profile-text">
@@ -5931,7 +5959,7 @@
     const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave']);
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash']);
     const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database']);
-    const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave']);
+    const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave']);
     const STANDARD_EMPLOYEE_USERNAMES = new Set([
       'agbodjro123',
       'appia123',
@@ -21403,6 +21431,15 @@
       }
     }
 
+    function returnToHomeScreen() {
+      closeMobilePremiumPanel();
+      showModule('dashboard');
+      loadDashboard();
+      if (window.innerWidth <= 900) {
+        setSidebarCollapsed(true);
+      }
+    }
+
     function closeMobilePremiumPanel() {
       const panel = document.getElementById('mph-panel');
       if (panel) panel.classList.remove('open');
@@ -21512,18 +21549,6 @@
       syncMobilePremiumNotifications();
       renderMobilePremiumHome();
 
-      const menuBtn = document.getElementById('mph-menu-btn');
-      if (menuBtn && !menuBtn.dataset.bound) {
-        menuBtn.dataset.bound = '1';
-        menuBtn.addEventListener('click', () => {
-          const sidebar = document.querySelector('.sidebar');
-          const isOpen = window.innerWidth <= 900
-            ? sidebar?.classList.contains('mobile-open')
-            : !sidebar?.classList.contains('collapsed');
-          setSidebarCollapsed(isOpen);
-        });
-      }
-
       const notifBtn = document.getElementById('mph-notif-btn');
       if (notifBtn && !notifBtn.dataset.bound) {
         notifBtn.dataset.bound = '1';
@@ -21546,6 +21571,14 @@
         logoutBtn.dataset.bound = '1';
         logoutBtn.addEventListener('click', () => {
           document.getElementById('logout-button')?.click();
+        });
+      }
+
+      const homeNavBtn = document.getElementById('home-nav-btn');
+      if (homeNavBtn && !homeNavBtn.dataset.bound) {
+        homeNavBtn.dataset.bound = '1';
+        homeNavBtn.addEventListener('click', () => {
+          returnToHomeScreen();
         });
       }
     }
@@ -22621,56 +22654,10 @@
         document.getElementById('hr-leave-end').value = formatDateForInput();
       }
 
-      if (isGestStock()) {
-        showModule('stock-management');
-        loadStockManagement();
-        return;
-      }
-
-      if (isCommis()) {
-        showModule('stock-management');
-        loadStockManagement();
-        return;
-      }
-
-      if (isSiteChief()) {
-        showModule('materials');
-        loadProjects();
-        loadMaterials();
-        return;
-      }
-
-      if (isZoneStockManager()) {
-        loadProjects();
-        showModule('stock-management');
-        loadStockManagement();
-        return;
-      }
-
-      if (isOpsReviewer()) {
-        showModule('purchase-orders');
-        loadProjects();
-        loadPurchaseOrders();
-        return;
-      }
-
-      if (isProcurementReviewer()) {
-        showModule('purchase-orders');
-        loadProjects();
-        loadPurchaseOrders();
-        return;
-      }
-
-      if (isStandardEmployeeProfileRole()) {
-        showModule('hr-employees');
-        loadHrEmployeesModule();
-        loadHrAttendanceModule();
-        return;
-      }
-
       loadProjects();
       addPoItemRow();
       updatePoOrderTotal();
+      showModule('dashboard');
       loadDashboard();
     })();
   </script>
