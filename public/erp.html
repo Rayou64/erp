@@ -3285,7 +3285,6 @@
   <div class="erp-container">
     <!-- Sidebar -->
     <div class="sidebar">
-      <button id="sidebar-collapse-btn" title="Réduire le menu">◀</button>
       <div class="sidebar-header">
         <div class="sidebar-logo">🏗️ RyanERP</div>
       </div>
@@ -3411,6 +3410,7 @@
               </div>
               <div class="mph-actions">
                 <button type="button" class="mph-icon-btn" id="mph-notif-btn" aria-label="Notifications">🔔</button>
+                <button type="button" class="mph-icon-btn" id="mph-menu-btn" aria-label="Menu">☰</button>
                 <div class="mph-profile-chip">
                   <div class="mph-avatar" id="mph-avatar">AD</div>
                   <div class="mph-profile-text">
@@ -21523,6 +21523,16 @@
           }
         });
       });
+
+      const menuBtn = document.getElementById('mph-menu-btn');
+      if (menuBtn && !menuBtn.dataset.bound) {
+        menuBtn.dataset.bound = '1';
+        menuBtn.addEventListener('click', () => {
+          const sidebar = document.querySelector('.sidebar');
+          const collapsed = sidebar?.classList.contains('collapsed');
+          setSidebarCollapsed(!collapsed);
+        });
+      }
 
       const notifBtn = document.getElementById('mph-notif-btn');
       if (notifBtn && !notifBtn.dataset.bound) {
