@@ -51,6 +51,23 @@
       border-right: 1px solid rgba(191, 219, 254, 0.28);
     }
 
+    .mobile-sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 18, 45, 0.46);
+      backdrop-filter: blur(2px);
+      z-index: 1300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s ease;
+    }
+
+    .mobile-sidebar-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
     .sidebar-header {
       padding: 25px 20px;
       background: linear-gradient(135deg, rgba(125, 211, 252, 0.26) 0%, rgba(147, 197, 253, 0.16) 100%);
@@ -2291,7 +2308,7 @@
         inset: 0 auto 0 0;
         width: min(88vw, 370px);
         max-width: 370px;
-        transform: translateX(0);
+        transform: translateX(-105%);
         transition: transform 0.28s ease, box-shadow 0.28s ease;
         box-shadow: 14px 0 42px rgba(8, 25, 63, 0.45);
         border-right: 1px solid rgba(191, 219, 254, 0.34);
@@ -2301,10 +2318,13 @@
         backdrop-filter: blur(8px);
       }
 
-      .sidebar.collapsed {
+      .sidebar.mobile-open {
         width: min(88vw, 370px);
-        transform: translateX(-105%);
-        box-shadow: none;
+        transform: translateX(0);
+      }
+
+      .mobile-sidebar-backdrop {
+        display: block;
       }
 
       .sidebar-header {
@@ -3388,6 +3408,8 @@
         </div>
       </div>
     </div>
+
+    <div id="mobile-sidebar-backdrop" class="mobile-sidebar-backdrop" aria-hidden="true"></div>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -21559,8 +21581,10 @@
         menuBtn.dataset.bound = '1';
         menuBtn.addEventListener('click', () => {
           const sidebar = document.querySelector('.sidebar');
-          const collapsed = sidebar?.classList.contains('collapsed');
-          setSidebarCollapsed(!collapsed);
+          const isOpen = window.innerWidth <= 900
+            ? sidebar?.classList.contains('mobile-open')
+            : !sidebar?.classList.contains('collapsed');
+          setSidebarCollapsed(isOpen);
         });
       }
 
@@ -22358,6 +22382,19 @@
     function setSidebarCollapsed(collapsed) {
       const sidebar = document.querySelector('.sidebar');
       if (!sidebar) return;
+      const backdrop = document.getElementById('mobile-sidebar-backdrop');
+
+      if (window.innerWidth <= 900) {
+        const shouldOpen = !collapsed;
+        sidebar.classList.remove('collapsed');
+        sidebar.classList.toggle('mobile-open', shouldOpen);
+        if (backdrop) backdrop.classList.toggle('open', shouldOpen);
+        localStorage.setItem(ERP_SIDEBAR_COLLAPSED_KEY, '1');
+        return;
+      }
+
+      sidebar.classList.remove('mobile-open');
+      if (backdrop) backdrop.classList.remove('open');
       sidebar.classList.toggle('collapsed', collapsed);
       localStorage.setItem(ERP_SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0');
     }
@@ -22463,6 +22500,13 @@
           const sidebar = document.querySelector('.sidebar');
           const collapsed = !sidebar?.classList.contains('collapsed');
           setSidebarCollapsed(collapsed);
+        });
+      }
+
+      const sidebarBackdrop = document.getElementById('mobile-sidebar-backdrop');
+      if (sidebarBackdrop) {
+        sidebarBackdrop.addEventListener('click', () => {
+          setSidebarCollapsed(true);
         });
       }
 
