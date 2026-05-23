@@ -27,7 +27,9 @@ app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 
 const ALLOWED_CORS_ORIGINS = new Set([
   'http://localhost',
+  'https://localhost',
   'http://127.0.0.1',
+  'https://127.0.0.1',
   'capacitor://localhost',
   'ionic://localhost',
   'null',
