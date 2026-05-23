@@ -21451,6 +21451,17 @@
       });
     }
 
+    function openFirstVisibleModuleInGroup(groupKey) {
+      const group = MOBILE_PREMIUM_GROUPS.find(entry => entry.key === groupKey);
+      if (!group) return false;
+      const visibleModules = getVisibleMenuModules();
+      const targetModule = group.modules.find(module => visibleModules.has(module));
+      if (!targetModule) return false;
+      closeMobilePremiumPanel();
+      openMobilePremiumModule(targetModule);
+      return true;
+    }
+
     function renderMobilePremiumHome() {
       const grid = document.getElementById('mph-grid');
       if (!grid) return;
@@ -21477,19 +21488,13 @@
         button.addEventListener('click', () => {
           const groupKey = button.getAttribute('data-mph-group');
           if (!groupKey) return;
-          if (mobilePremiumCurrentGroupKey === groupKey) {
-            closeMobilePremiumPanel();
-            return;
+          if (!openFirstVisibleModuleInGroup(groupKey)) {
+            showMessage('Aucun module disponible pour ce bloc', 'error');
           }
-          openMobilePremiumGroup(groupKey);
         });
       });
 
-      if (!groups.some(group => group.key === mobilePremiumCurrentGroupKey)) {
-        closeMobilePremiumPanel();
-      } else if (mobilePremiumCurrentGroupKey) {
-        openMobilePremiumGroup(mobilePremiumCurrentGroupKey);
-      }
+      closeMobilePremiumPanel();
     }
 
     function initMobilePremiumHome() {
