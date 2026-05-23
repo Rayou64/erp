@@ -745,9 +745,6 @@
 
     .mph-icon-btn,
     .mph-profile-chip,
-    .mph-search,
-    .mph-tool,
-    .mph-pill,
     .mph-panel,
     .mph-module-btn,
     .mph-logout-btn {
@@ -858,70 +855,6 @@
       line-height: 1.02;
       font-weight: 800;
       margin-bottom: 16px;
-    }
-
-    .mph-search {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.16);
-      padding: 14px 16px;
-      color: rgba(248, 250, 252, 0.94);
-      font-size: 14px;
-      margin-bottom: 14px;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    }
-
-    .mph-tools {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .mph-tool {
-      min-height: 72px;
-      border-radius: 18px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(13, 42, 109, 0.18);
-      padding: 12px 14px;
-    }
-
-    .mph-tool strong {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-
-    .mph-tool span {
-      display: block;
-      font-size: 12px;
-      line-height: 1.3;
-      color: rgba(239, 246, 255, 0.84);
-    }
-
-    .mph-quick-pills {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .mph-pill {
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.14);
-      color: #ffffff;
-      font-size: 11px;
-      line-height: 1.2;
-      padding: 12px 8px;
-      text-align: center;
-      font-weight: 600;
-    }
-
-    .mph-pill.active {
-      background: rgba(255, 255, 255, 0.25);
     }
 
     .mph-section-head {
@@ -2483,14 +2416,8 @@
         flex: 1;
       }
 
-      .mph-tools,
-      .mph-quick-pills,
       .mph-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .mph-quick-pills .mph-pill:last-child {
-        grid-column: 1 / -1;
       }
 
       .mph-panel-toolbar {
@@ -3092,6 +3019,48 @@
     .sidebar.collapsed #sidebar-collapse-btn { transform: translateY(-50%) rotate(180deg); }
     [data-theme="dark"] #sidebar-collapse-btn { border-color: #1e293b; }
 
+    @media (max-width: 900px) {
+      .erp-container {
+        width: 100vw;
+        overflow-x: hidden;
+      }
+
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: min(88vw, 370px);
+        max-width: 370px;
+        transform: translateX(-105%);
+        transition: transform 0.28s ease, box-shadow 0.28s ease;
+        box-shadow: 14px 0 42px rgba(8, 25, 63, 0.45);
+        border-right: 1px solid rgba(191, 219, 254, 0.34);
+        border-bottom: 0;
+        z-index: 1400;
+        overflow-y: auto;
+        backdrop-filter: blur(8px);
+        flex-shrink: 0;
+      }
+
+      .sidebar.mobile-open {
+        width: min(88vw, 370px);
+        transform: translateX(0);
+      }
+
+      .sidebar.collapsed {
+        width: min(88vw, 370px);
+      }
+
+      .main-content {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .content-area {
+        min-width: 0;
+        width: 100%;
+      }
+    }
+
     /* ═══════════════════════════════════════════════════
        LOADING SKELETONS
     ═══════════════════════════════════════════════════ */
@@ -3475,17 +3444,7 @@
             </div>
             <div class="mph-hero">
               <div class="mph-hero-copy">Accueil premium, rapide et oriente metier</div>
-              <div class="mph-hero-title">Blocs visibles, menu elegant,<br />modules a portee du pouce.</div>
-              <button type="button" class="mph-search" id="mph-search-btn">🔎 Rechercher un module, un projet ou une action...</button>
-              <div class="mph-tools">
-                <div class="mph-tool"><strong>Accueil</strong><span>Raccourcis essentiels et vue globale</span></div>
-                <div class="mph-tool"><strong>Profil</strong><span>Compte, role, menu et deconnexion</span></div>
-              </div>
-              <div class="mph-quick-pills">
-                <button type="button" class="mph-pill active" data-mph-action="dashboard">Accueil</button>
-                <button type="button" class="mph-pill" data-mph-action="favorites">Favoris</button>
-                <button type="button" class="mph-pill" data-mph-action="profile">Profil</button>
-              </div>
+              <div class="mph-hero-title">Blocs visibles, menu elegant.</div>
             </div>
             <div class="mph-section-head">
               <h3>Blocs interactifs</h3>
@@ -21553,29 +21512,6 @@
       syncMobilePremiumNotifications();
       renderMobilePremiumHome();
 
-      document.querySelectorAll('[data-mph-action]').forEach(button => {
-        if (button.dataset.bound) return;
-        button.dataset.bound = '1';
-        button.addEventListener('click', () => {
-          const action = button.getAttribute('data-mph-action');
-          if (action === 'dashboard') {
-            closeMobilePremiumPanel();
-            showModule('dashboard');
-            loadDashboard();
-            return;
-          }
-          if (action === 'profile') {
-            const settingsItem = document.querySelector('.menu-item[data-module="settings"]') || document.querySelector('.menu-item[data-module="users"]');
-            settingsItem?.click();
-            return;
-          }
-          if (action === 'favorites') {
-            const firstFavorite = document.querySelector('.menu-item[data-module="projects"]') || document.querySelector('.menu-item[data-module="purchase-orders"]');
-            firstFavorite?.click();
-          }
-        });
-      });
-
       const menuBtn = document.getElementById('mph-menu-btn');
       if (menuBtn && !menuBtn.dataset.bound) {
         menuBtn.dataset.bound = '1';
@@ -21610,14 +21546,6 @@
         logoutBtn.dataset.bound = '1';
         logoutBtn.addEventListener('click', () => {
           document.getElementById('logout-button')?.click();
-        });
-      }
-
-      const searchBtn = document.getElementById('mph-search-btn');
-      if (searchBtn && !searchBtn.dataset.bound) {
-        searchBtn.dataset.bound = '1';
-        searchBtn.addEventListener('click', () => {
-          document.getElementById('global-search')?.focus();
         });
       }
     }

@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RyanERP Mobile Concept</title>
+  <style>
+    :root {
+      --bg-top: #0f2f78;
+      --bg-mid: #1d4ed8;
+      --bg-bottom: #dbeafe;
+      --panel: rgba(255,255,255,0.16);
+      --panel-strong: rgba(255,255,255,0.26);
+      --text: #f8fbff;
+      --muted: rgba(232, 241, 255, 0.8);
+      --shadow: 0 18px 40px rgba(9, 30, 77, 0.22);
+      --shadow-strong: 0 26px 56px rgba(8, 26, 64, 0.34);
+      --radius: 20px;
+      --navy-1: #12398b;
+      --navy-2: #1d4ed8;
+      --navy-3: #60a5fa;
+      --soft-blue: #eaf3ff;
+      --ink: #0f172a;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at top left, rgba(147,197,253,0.28), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(255,255,255,0.38), transparent 24%),
+        linear-gradient(180deg, var(--bg-top), var(--bg-mid) 48%, var(--bg-bottom));
+      font-family: "Aptos", "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+    }
+
+    .phone {
+      width: 390px;
+      min-height: 920px;
+      border-radius: 34px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.18), transparent 38%),
+        linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      box-shadow: 0 22px 60px rgba(13, 34, 84, 0.35);
+      border: 1px solid rgba(255,255,255,0.24);
+      position: relative;
+      backdrop-filter: blur(10px);
+    }
+
+    .statusbar {
+      display: flex;
+      justify-content: space-between;
+      padding: 14px 18px 8px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 18px 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      background: linear-gradient(145deg, #eff6ff, #bfdbfe);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow);
+      font-size: 21px;
+      color: #1e40af;
+    }
+
+    .brand small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .brand strong {
+      font-size: 21px;
+      letter-spacing: 0.01em;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn, .profile-chip {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .icon-stack {
+      display: flex;
+      gap: 10px;
+    }
+
+    .profile-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 18px;
+      padding: 8px 12px 8px 8px;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      color: #8a5a00;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .profile-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .profile-meta span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .profile-meta strong {
+      font-size: 14px;
+    }
+
+    .profile-caret {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .hero {
+      margin: 0 18px;
+      padding: 18px 18px 18px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08));
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: var(--shadow-strong);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .entry-card {
+      margin: 0 18px 14px;
+      padding: 16px;
+      border-radius: 26px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: var(--shadow-strong);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .entry-card::after {
+      content: "";
+      position: absolute;
+      inset: -24px -18px auto auto;
+      width: 120px;
+      height: 120px;
+      border-radius: 32px;
+      background: linear-gradient(145deg, rgba(191,219,254,0.22), rgba(96,165,250,0.05));
+      transform: rotate(16deg);
+      pointer-events: none;
+    }
+
+    .entry-kicker {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.9);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .entry-title {
+      position: relative;
+      z-index: 1;
+      margin: 12px 0 6px;
+      font-size: 24px;
+      line-height: 1.05;
+    }
+
+    .entry-text {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      top: -40px;
+      right: -20px;
+      width: 140px;
+      height: 140px;
+      border-radius: 36px;
+      background: linear-gradient(145deg, rgba(191,219,254,0.3), rgba(96,165,250,0.05));
+      transform: rotate(18deg);
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h1 {
+      margin: 8px 0 16px;
+      font-size: 26px;
+      line-height: 1.02;
+      position: relative;
+      z-index: 1;
+    }
+
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.9);
+      font-size: 15px;
+      position: relative;
+      z-index: 1;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+    }
+
+    .hero-tools {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-tool {
+      flex: 1;
+      padding: 12px 12px;
+      border-radius: 16px;
+      background: rgba(13, 42, 109, 0.24);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-size: 12px;
+      min-height: 68px;
+    }
+
+    .hero-tool strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .section {
+      padding: 18px 18px 342px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .section-head span {
+      color: rgba(234, 243, 255, 0.84);
+      font-size: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .tile {
+      aspect-ratio: 1 / 1;
+      border-radius: 24px;
+      padding: 14px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-strong);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .tile::after {
+      content: "";
+      position: absolute;
+      inset: auto -18px -18px auto;
+      width: 72px;
+      height: 72px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.14);
+      transform: rotate(18deg);
+    }
+
+    .tile::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.16), transparent 58%);
+    }
+
+    .tile .emoji {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.22);
+      font-size: 22px;
+      z-index: 1;
+    }
+
+    .tile-topline {
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .tile-badge {
+      z-index: 1;
+      font-size: 11px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.16);
+      color: rgba(255,255,255,0.88);
+    }
+
+    .tile strong {
+      z-index: 1;
+      font-size: 15px;
+      line-height: 1.15;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .tile small {
+      z-index: 1;
+      color: rgba(255,255,255,0.84);
+      font-size: 11px;
+      line-height: 1.35;
+      display: block;
+    }
+
+    .construction { background: linear-gradient(145deg, #1d4ed8, #1e3a8a); }
+    .stock { background: linear-gradient(145deg, #2563eb, #0f766e); }
+    .achats { background: linear-gradient(145deg, #1e40af, #3b82f6); }
+    .finance { background: linear-gradient(145deg, #334155, #2563eb); }
+    .rh { background: linear-gradient(145deg, #0f766e, #2563eb); }
+    .admin { background: linear-gradient(145deg, #312e81, #2563eb); }
+
+    .tile.active {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 24px 52px rgba(7, 24, 64, 0.42);
+    }
+
+    .drawer {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 18px;
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(14, 38, 95, 0.96), rgba(18, 29, 63, 0.96));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 24px 50px rgba(6, 20, 49, 0.48);
+      padding: 16px 18px 18px;
+    }
+
+    .drawer-handle {
+      width: 54px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.3);
+      margin: 0 auto 16px;
+    }
+
+    .drawer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 14px;
+    }
+
+    .drawer-title strong {
+      display: block;
+      font-size: 19px;
+      margin-bottom: 6px;
+    }
+
+    .drawer-title span {
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      line-height: 1.45;
+      display: block;
+    }
+
+    .drawer-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      margin-bottom: 14px;
+
+    @media (max-width: 480px) {
+      body {
+        display: block;
+        background: linear-gradient(180deg, var(--bg-top), var(--bg-mid) 52%, var(--bg-bottom));
+      }
+
+      .phone {
+        width: 100vw;
+        min-height: 100vh;
+        border-radius: 0;
+        border: 0;
+        box-shadow: none;
+      }
+
+      .section {
+        padding-bottom: 300px;
+      }
+
+      .drawer {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+      }
+    }
+
+    .chip {
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .drawer-toolbar-left {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .drawer-chip {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 11px;
+      line-height: 1.25;
+      color: rgba(255,255,255,0.8);
+      text-align: center;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logout-btn {
+      flex: 0 0 auto;
+      padding: 11px 14px;
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(239,68,68,0.24), rgba(220,38,38,0.18));
+      border: 1px solid rgba(248,113,113,0.28);
+      color: #fee2e2;
+      font-size: 11px;
+      line-height: 1.2;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .module-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .module {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      gap: 12px;
+    }
+
+    .module-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .module-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, rgba(191,219,254,0.22), rgba(96,165,250,0.16));
+      font-size: 18px;
+    }
+
+    .module b {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+
+    .module span {
+      color: rgba(255,255,255,0.68);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .module-arrow {
+      color: rgba(255,255,255,0.8);
+      font-size: 20px;
+      flex: 0 0 auto;
+    }
+
+    .quick-strip {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .quick-pill {
+      flex: 1;
+      text-align: center;
+      padding: 12px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 11px;
+      line-height: 1.2;
+      color: rgba(255,255,255,0.94);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .quick-pill.active {
+      background: rgba(255,255,255,0.26);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="statusbar">
+      <span>LTE</span>
+      <span>9:42</span>
+      <span>88%</span>
+    </div>
+
+    <div class="entry-card">
+      <div class="entry-kicker">Entrée accueil</div>
+      <div class="entry-title">Ouvrir Ryan ERP<br>depuis l’accueil du téléphone.</div>
+      <p class="entry-text">L’utilisateur voit d’abord l’écran principal avant d’entrer dans l’ERP.</p>
+    </div>
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-badge">⬢</div>
+        <div>
+          <small>Ryan ERP Mobile</small>
+          <strong>Accueil</strong>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="icon-stack">
+          <div class="icon-btn">🔔</div>
+          <div class="icon-btn">☰</div>
+        </div>
+        <div class="profile-chip">
+          <div class="avatar">RK</div>
+          <div class="profile-meta">
+            <span>Profil actif</span>
+            <strong>Rayane</strong>
+          </div>
+          <div class="profile-caret">▾</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero">
+      <p>Accueil premium, rapide et oriente metier</p>
+      <h1>Blocs visibles, menu elegant,<br />modules a portee du pouce.</h1>
+      <div class="search">🔎 Rechercher un module, un projet ou une action...</div>
+      <div class="hero-tools">
+        <div class="hero-tool"><strong>Accueil</strong>Raccourcis essentiels</div>
+        <div class="hero-tool"><strong>Profil</strong>Compte, role, logout</div>
+      </div>
+      <div class="quick-strip">
+        <div class="quick-pill active">Accueil</div>
+        <div class="quick-pill">Favoris</div>
+        <div class="quick-pill">Profil</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Blocs interactifs</h2>
+        <span>Tout reste visible sur l'accueil</span>
+      </div>
+      <div class="grid">
+        <div class="tile construction active">
+          <div class="tile-topline">
+            <div class="emoji">🏗️</div>
+            <div class="tile-badge">4 modules</div>
+          </div>
+          <div>
+            <strong>Construction</strong>
+            <small>Projets, suivi, journal, assignations</small>
+          </div>
+        </div>
+        <div class="tile stock">
+          <div class="tile-topline">
+            <div class="emoji">📦</div>
+            <div class="tile-badge">4 modules</div>
+          </div>
+          <div>
+            <strong>Stock</strong>
+            <small>Demandes, inventaire, sorties</small>
+          </div>
+        </div>
+        <div class="tile achats">
+          <div class="tile-topline">
+            <div class="emoji">🛒</div>
+            <div class="tile-badge">2 modules</div>
+          </div>
+          <div>
+            <strong>Achats</strong>
+            <small>Commandes et catalogue</small>
+          </div>
+        </div>
+        <div class="tile finance">
+          <div class="tile-topline">
+            <div class="emoji">💰</div>
+            <div class="tile-badge">3 modules</div>
+          </div>
+          <div>
+            <strong>Finance</strong>
+            <small>Depenses, revenus, rapports</small>
+          </div>
+        </div>
+        <div class="tile rh">
+          <div class="tile-topline">
+            <div class="emoji">👥</div>
+            <div class="tile-badge">5 modules</div>
+          </div>
+          <div>
+            <strong>RH</strong>
+            <small>Employes, conges, signatures</small>
+          </div>
+        </div>
+        <div class="tile admin">
+          <div class="tile-topline">
+            <div class="emoji">⚙️</div>
+            <div class="tile-badge">5 modules</div>
+          </div>
+          <div>
+            <strong>Admin</strong>
+            <small>Users, parametres, historique</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer">
+      <div class="drawer-handle"></div>
+      <div class="drawer-head">
+        <div class="drawer-title">
+          <strong>Construction</strong>
+          <span>Quand on clique sur un bloc, ce panneau premium remonte avec les modules du bloc.</span>
+        </div>
+        <div class="chip">4 modules</div>
+      </div>
+      <div class="drawer-toolbar">
+        <div class="drawer-toolbar-left">
+          <div class="drawer-chip">Accueil intelligent</div>
+          <div class="drawer-chip">Favoris rapides</div>
+        </div>
+        <div class="logout-btn">Deconnexion<br />securisee</div>
+      </div>
+      <div class="module-list">
+        <div class="module">
+          <div class="module-left">
+            <div class="module-icon">🏗️</div>
+            <div>
+              <b>Projets</b>
+              <span>Sites, zones, dossiers</span>
+            </div>
+          </div>
+          <div class="module-arrow">›</div>
+        </div>
+        <div class="module">
+          <div class="module-left">
+            <div class="module-icon">🧭</div>
+            <div>
+              <b>Suivi des projets</b>
+              <span>Progression et etapes</span>
+            </div>
+          </div>
+          <div class="module-arrow">›</div>
+        </div>
+        <div class="module">
+          <div class="module-left">
+            <div class="module-icon">📒</div>
+            <div>
+              <b>Journal de chantier</b>
+              <span>Notes terrain et rapports</span>
+            </div>
+          </div>
+          <div class="module-arrow">›</div>
+        </div>
+        <div class="module">
+          <div class="module-left">
+            <div class="module-icon">👥</div>
+            <div>
+              <b>Assignations</b>
+              <span>Equipes et responsabilites</span>
+            </div>
+          </div>
+          <div class="module-arrow">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
