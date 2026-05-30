@@ -21514,17 +21514,6 @@
       });
     }
 
-    function openFirstVisibleModuleInGroup(groupKey) {
-      const group = MOBILE_PREMIUM_GROUPS.find(entry => entry.key === groupKey);
-      if (!group) return false;
-      const authorizedModules = getAuthorizedHomeModules();
-      const targetModule = group.modules.find(module => authorizedModules.has(module));
-      if (!targetModule) return false;
-      closeMobilePremiumPanel();
-      openMobilePremiumModule(targetModule);
-      return true;
-    }
-
     function renderMobilePremiumHome() {
       const grid = document.getElementById('mph-grid');
       if (!grid) return;
@@ -21551,7 +21540,13 @@
         button.addEventListener('click', () => {
           const groupKey = button.getAttribute('data-mph-group');
           if (!groupKey) return;
-          if (!openFirstVisibleModuleInGroup(groupKey)) {
+          const group = MOBILE_PREMIUM_GROUPS.find(entry => entry.key === groupKey);
+          if (!group) return;
+          const authorizedModules = getAuthorizedHomeModules();
+          const hasAuthorizedModule = group.modules.some(module => authorizedModules.has(module));
+          if (hasAuthorizedModule) {
+            openMobilePremiumGroup(groupKey);
+          } else {
             showMessage('Aucun module disponible pour ce bloc', 'error');
           }
         });
