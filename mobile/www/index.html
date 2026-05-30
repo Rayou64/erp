@@ -153,7 +153,8 @@
   <script>
     (function () {
       const API_BASE = 'https://ryanerp-hn5zd.ondigitalocean.app';
-      const ERP_URL = 'https://ryanerp-hn5zd.ondigitalocean.app/erp.html';
+      const ERP_BUILD_TAG = '20260530-1';
+      const ERP_URL = `https://ryanerp-hn5zd.ondigitalocean.app/erp.html?v=${ERP_BUILD_TAG}`;
       const LOGIN_KEY = 'ryanerp_mobile_auth';
       const ERP_TOKEN_KEY = 'erp_token';
       const ERP_USER_KEY = 'erp_username';
@@ -209,7 +210,7 @@
 
       function redirectToApp(authToken) {
         const dest = authToken
-          ? ERP_URL + '?mobileAuth=' + encodeURIComponent(authToken)
+          ? `${ERP_URL}&mobileAuth=${encodeURIComponent(authToken)}`
           : ERP_URL;
         window.location.replace(dest);
       }
