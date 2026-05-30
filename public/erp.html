@@ -21409,6 +21409,22 @@
       button.textContent = unread > 0 ? `🔔 ${unread}` : '🔔';
     }
 
+    function getAuthorizedHomeModules() {
+      const allowed = getAllowedModules();
+      const modules = new Set();
+      document.querySelectorAll('.menu-item[data-module]').forEach(item => {
+        const module = String(item.dataset.module || '').trim();
+        if (!module) return;
+        if (!allowed || allowed.has(module)) {
+          modules.add(module);
+        }
+      });
+      if (allowed && allowed.size) {
+        allowed.forEach(module => modules.add(module));
+      }
+      return modules;
+    }
+
     function getVisibleMenuModules() {
       const modules = new Set();
       document.querySelectorAll('.menu-item[data-module]').forEach(item => {
@@ -21456,8 +21472,8 @@
       const badge = document.getElementById('mph-panel-badge');
       if (!group || !list || !panel || !title || !subtitle || !badge) return;
 
-      const visibleModules = getVisibleMenuModules();
-      const modules = group.modules.filter(module => visibleModules.has(module));
+      const authorizedModules = getAuthorizedHomeModules();
+      const modules = group.modules.filter(module => authorizedModules.has(module));
       title.textContent = group.label;
       subtitle.textContent = group.subtitle;
       badge.textContent = `${modules.length} module${modules.length > 1 ? 's' : ''}`;
@@ -21501,8 +21517,8 @@
     function openFirstVisibleModuleInGroup(groupKey) {
       const group = MOBILE_PREMIUM_GROUPS.find(entry => entry.key === groupKey);
       if (!group) return false;
-      const visibleModules = getVisibleMenuModules();
-      const targetModule = group.modules.find(module => visibleModules.has(module));
+      const authorizedModules = getAuthorizedHomeModules();
+      const targetModule = group.modules.find(module => authorizedModules.has(module));
       if (!targetModule) return false;
       closeMobilePremiumPanel();
       openMobilePremiumModule(targetModule);
@@ -21512,11 +21528,11 @@
     function renderMobilePremiumHome() {
       const grid = document.getElementById('mph-grid');
       if (!grid) return;
-      const visibleModules = getVisibleMenuModules();
-      const groups = MOBILE_PREMIUM_GROUPS.filter(group => group.modules.some(module => visibleModules.has(module)));
+      const authorizedModules = getAuthorizedHomeModules();
+      const groups = MOBILE_PREMIUM_GROUPS.filter(group => group.modules.some(module => authorizedModules.has(module)));
 
       grid.innerHTML = groups.map(group => {
-        const visibleCount = group.modules.filter(module => visibleModules.has(module)).length;
+        const visibleCount = group.modules.filter(module => authorizedModules.has(module)).length;
         return `
           <button type="button" class="mph-tile mph-tile--${group.tone}" data-mph-group="${group.key}">
             <span class="mph-tile-top">
