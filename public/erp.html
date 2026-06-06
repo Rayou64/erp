@@ -700,6 +700,26 @@
       margin-top: 8px;
     }
 
+    .mobile-module-back-btn {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(29, 78, 216, 0.22);
+      border-radius: 999px;
+      background: linear-gradient(145deg, #1d4ed8, #1e40af);
+      color: #eff6ff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 14px;
+      margin: 0 0 12px;
+      box-shadow: 0 10px 24px rgba(29, 78, 216, 0.28);
+      cursor: pointer;
+    }
+
+    .mobile-module-back-btn.hidden {
+      display: none !important;
+    }
+
     .mph-topbar {
       display: flex;
       justify-content: space-between;
@@ -2344,22 +2364,19 @@
       }
 
       .topbar {
-        padding: 12px;
-        flex-wrap: wrap;
-        gap: 10px;
+        display: none;
       }
 
-      .topbar-left h2 {
-        font-size: 18px;
-      }
-
-      .topbar-right {
-        width: 100%;
-        justify-content: space-between;
+      .menu-item[data-module="dashboard"] {
+        display: none !important;
       }
 
       .content-area {
         padding: 12px;
+      }
+
+      .mobile-module-back-btn {
+        display: inline-flex;
       }
 
       .page-header {
@@ -3476,6 +3493,7 @@
 
       <!-- Content Area -->
       <div class="content-area">
+        <button type="button" id="mobile-module-back-btn" class="mobile-module-back-btn hidden" aria-label="Retour à la sélection des blocs">← Retour aux blocs</button>
         <!-- Dashboard Module -->
         <div id="dashboard" class="module active">
           <div class="page-header" style="display:none;">
@@ -13880,6 +13898,14 @@
       const [title, subtitle] = titles[moduleName] || ['Module', 'Détails'];
       document.getElementById('page-title').textContent = title;
       document.getElementById('page-subtitle').textContent = subtitle;
+      syncMobileModuleBackButton();
+    }
+
+    function syncMobileModuleBackButton() {
+      const backBtn = document.getElementById('mobile-module-back-btn');
+      if (!backBtn) return;
+      const shouldShow = window.innerWidth <= 900 && currentModule !== 'dashboard';
+      backBtn.classList.toggle('hidden', !shouldShow);
     }
 
     function shouldAutoRefreshMaps() {
@@ -21495,6 +21521,7 @@
       if (window.innerWidth <= 900) {
         setSidebarCollapsed(true);
       }
+      syncMobileModuleBackButton();
     }
 
     function closeMobilePremiumPanel() {
@@ -21643,6 +21670,21 @@
           returnToHomeScreen();
         });
       }
+
+      const moduleBackBtn = document.getElementById('mobile-module-back-btn');
+      if (moduleBackBtn && !moduleBackBtn.dataset.bound) {
+        moduleBackBtn.dataset.bound = '1';
+        moduleBackBtn.addEventListener('click', () => {
+          returnToHomeScreen();
+        });
+      }
+
+      if (!window.__erpMobileBackSyncBound) {
+        window.__erpMobileBackSyncBound = true;
+        window.addEventListener('resize', () => syncMobileModuleBackButton());
+      }
+
+      syncMobileModuleBackButton();
     }
 
     document.querySelectorAll('.menu-item').forEach(item => {
@@ -22719,8 +22761,7 @@
       loadProjects();
       addPoItemRow();
       updatePoOrderTotal();
-      showModule('dashboard');
-      loadDashboard();
+      returnToHomeScreen();
     })();
   </script>
 </body>
