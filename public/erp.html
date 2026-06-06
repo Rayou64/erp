@@ -689,6 +689,17 @@
       padding: 18px;
     }
 
+    .mobile-premium-home.modules-interface-active .mph-hero,
+    .mobile-premium-home.modules-interface-active .mph-section-head,
+    .mobile-premium-home.modules-interface-active .mph-grid {
+      display: none;
+    }
+
+    .mobile-premium-home.modules-interface-active .mph-panel {
+      display: block;
+      margin-top: 8px;
+    }
+
     .mph-topbar {
       display: flex;
       justify-content: space-between;
@@ -1005,6 +1016,28 @@
       gap: 12px;
       align-items: flex-start;
       margin-bottom: 12px;
+    }
+
+    .mph-panel-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .mph-back-btn {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.10);
+      color: #e2e8f0;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .mph-back-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
     }
 
     .mph-panel-head strong {
@@ -3445,7 +3478,7 @@
       <div class="content-area">
         <!-- Dashboard Module -->
         <div id="dashboard" class="module active">
-          <div class="page-header">
+          <div class="page-header" style="display:none;">
             <h1>Tableau de bord</h1>
             <p>Vue d'ensemble des activités et finances</p>
           </div>
@@ -3476,7 +3509,7 @@
             </div>
             <div class="mph-section-head">
               <h3>Blocs interactifs</h3>
-              <span>Tout reste visible sur l'accueil</span>
+              <span>Choisis un bloc pour ouvrir l'interface des modules</span>
             </div>
             <div id="mph-grid" class="mph-grid"></div>
             <div id="mph-panel" class="mph-panel">
@@ -3484,9 +3517,12 @@
               <div class="mph-panel-head">
                 <div>
                   <strong id="mph-panel-title">Construction</strong>
-                  <span id="mph-panel-subtitle">Quand on clique sur un bloc, ce panneau premium remonte avec les modules du bloc.</span>
+                  <span id="mph-panel-subtitle">Interface modules du bloc sélectionné.</span>
                 </div>
-                <div id="mph-panel-badge" class="mph-panel-badge">0 module</div>
+                <div class="mph-panel-head-actions">
+                  <button type="button" id="mph-back-btn" class="mph-back-btn" aria-label="Retour aux blocs">← Blocs</button>
+                  <div id="mph-panel-badge" class="mph-panel-badge">0 module</div>
+                </div>
               </div>
               <div class="mph-panel-toolbar">
                 <div class="mph-panel-tools">
@@ -3498,7 +3534,7 @@
               <div id="mph-module-list" class="mph-module-list"></div>
             </div>
           </div>
-          <div class="dashboard-grid">
+          <div id="dashboard-classic-grid" class="dashboard-grid" style="display:none;">
             <div class="card stat-card">
               <h3 id="stat-projects">0</h3>
               <p>Projets en cours</p>
@@ -21366,6 +21402,12 @@
 
     let mobilePremiumCurrentGroupKey = null;
 
+    function setMobilePremiumInterface(mode = 'home') {
+      const home = document.getElementById('mobile-premium-home');
+      if (!home) return;
+      home.classList.toggle('modules-interface-active', mode === 'modules');
+    }
+
     function getFriendlyRoleLabel(role = currentUserRole) {
       const labels = {
         admin: 'Profil actif',
@@ -21436,6 +21478,7 @@
     }
 
     function openMobilePremiumModule(moduleName) {
+      setMobilePremiumInterface('home');
       const menuItem = document.querySelector(`.menu-item[data-module="${moduleName}"]`);
       if (menuItem) {
         menuItem.click();
@@ -21443,14 +21486,12 @@
       }
       if (moduleName === 'dashboard') {
         showModule('dashboard');
-        loadDashboard();
       }
     }
 
     function returnToHomeScreen() {
       closeMobilePremiumPanel();
       showModule('dashboard');
-      loadDashboard();
       if (window.innerWidth <= 900) {
         setSidebarCollapsed(true);
       }
@@ -21459,6 +21500,7 @@
     function closeMobilePremiumPanel() {
       const panel = document.getElementById('mph-panel');
       if (panel) panel.classList.remove('open');
+      setMobilePremiumInterface('home');
       mobilePremiumCurrentGroupKey = null;
       document.querySelectorAll('.mph-tile').forEach(tile => tile.classList.remove('active'));
     }
@@ -21508,6 +21550,7 @@
       });
 
       panel.classList.add('open');
+      setMobilePremiumInterface('modules');
       mobilePremiumCurrentGroupKey = groupKey;
       document.querySelectorAll('.mph-tile').forEach(tile => {
         tile.classList.toggle('active', tile.getAttribute('data-mph-group') === groupKey);
@@ -21582,6 +21625,14 @@
         logoutBtn.dataset.bound = '1';
         logoutBtn.addEventListener('click', () => {
           document.getElementById('logout-button')?.click();
+        });
+      }
+
+      const backBtn = document.getElementById('mph-back-btn');
+      if (backBtn && !backBtn.dataset.bound) {
+        backBtn.dataset.bound = '1';
+        backBtn.addEventListener('click', () => {
+          closeMobilePremiumPanel();
         });
       }
 
