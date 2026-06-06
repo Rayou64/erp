@@ -2364,7 +2364,135 @@
       }
 
       .topbar {
-        display: none;
+        display: flex;
+        position: sticky;
+        top: 10px;
+        z-index: 30;
+        margin: 0 0 12px;
+        padding: 8px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(4, 18, 44, 0.76);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 12px 34px rgba(2, 6, 23, 0.6);
+      }
+
+      .topbar-left,
+      .topbar-center,
+      #theme-toggle,
+      .user-info {
+        display: none !important;
+      }
+
+      .topbar-right {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .topbar-right .notif-btn-wrap {
+        position: relative;
+      }
+
+      .topbar-right .home-nav-btn,
+      .topbar-right #mobile-search-dock-btn,
+      .topbar-right #notif-bell-btn,
+      .topbar-right #logout-button {
+        width: 100%;
+        min-height: 56px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        background: transparent;
+        color: #eaf2ff;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 4px;
+        line-height: 1.15;
+      }
+
+      .topbar-right .home-nav-btn::before {
+        content: '⌂';
+        font-size: 18px;
+      }
+
+      .topbar-right #mobile-search-dock-btn::before {
+        content: '⌕';
+        font-size: 18px;
+      }
+
+      .topbar-right #notif-bell-btn {
+        font-size: 0;
+      }
+
+      .topbar-right #notif-bell-btn::before {
+        content: '⍾';
+        font-size: 18px;
+      }
+
+      .topbar-right #logout-button {
+        font-size: 0;
+      }
+
+      .topbar-right #logout-button::before {
+        content: '⇥';
+        font-size: 18px;
+      }
+
+      .topbar-right .home-nav-btn::after {
+        content: 'Accueil';
+      }
+
+      .topbar-right #mobile-search-dock-btn::after {
+        content: 'Recherche';
+      }
+
+      .topbar-right #notif-bell-btn::after {
+        content: 'Notifications';
+        font-size: 11px;
+      }
+
+      .topbar-right #logout-button::after {
+        content: 'Déconnexion';
+        font-size: 11px;
+      }
+
+      .topbar-right .home-nav-btn.active,
+      .topbar-right #mobile-search-dock-btn.active,
+      .topbar-right #notif-bell-btn.active,
+      .topbar-right #logout-button.active {
+        background: rgba(110, 196, 255, 0.2);
+        border-color: rgba(110, 196, 255, 0.5);
+      }
+
+      .topbar-right .notif-badge {
+        top: 4px;
+        right: 18px;
+      }
+
+      .topbar.mobile-search-open .topbar-center {
+        display: block !important;
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        top: calc(100% + 8px);
+        z-index: 40;
+      }
+
+      .topbar.mobile-search-open .global-search-wrap {
+        border: 1px solid rgba(191, 219, 254, 0.34);
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.96);
+        box-shadow: 0 14px 32px rgba(2, 6, 23, 0.48);
+      }
+
+      .topbar.mobile-search-open .global-search-input {
+        color: #e2e8f0;
       }
 
       .menu-item[data-module="dashboard"] {
@@ -3475,6 +3603,7 @@
         </div>
         <div class="topbar-right">
           <button type="button" id="home-nav-btn" class="home-nav-btn" aria-label="Accueil">☰</button>
+          <button type="button" id="mobile-search-dock-btn" class="button button-secondary button-small" aria-label="Recherche">🔍</button>
           <div class="notif-btn-wrap">
             <button id="notif-bell-btn" title="Notifications">🔔</button>
             <span id="notif-badge" class="notif-badge">0</span>
@@ -3493,7 +3622,7 @@
 
       <!-- Content Area -->
       <div class="content-area">
-        <button type="button" id="mobile-module-back-btn" class="mobile-module-back-btn hidden" aria-label="Retour à la sélection des blocs">← Retour aux blocs</button>
+        <button type="button" id="mobile-module-back-btn" class="mobile-module-back-btn hidden" aria-label="Retour à la sélection des modules">← Retour à la sélection des modules</button>
         <!-- Dashboard Module -->
         <div id="dashboard" class="module active">
           <div class="page-header" style="display:none;">
@@ -3538,7 +3667,7 @@
                   <span id="mph-panel-subtitle">Interface modules du bloc sélectionné.</span>
                 </div>
                 <div class="mph-panel-head-actions">
-                  <button type="button" id="mph-back-btn" class="mph-back-btn" aria-label="Retour aux blocs">← Blocs</button>
+                  <button type="button" id="mph-back-btn" class="mph-back-btn" aria-label="Retour à la sélection des modules">← Modules</button>
                   <div id="mph-panel-badge" class="mph-panel-badge">0 module</div>
                 </div>
               </div>
@@ -21524,6 +21653,29 @@
       syncMobileModuleBackButton();
     }
 
+    function returnToModuleSelection() {
+      showModule('dashboard');
+      if (window.innerWidth <= 900) {
+        setSidebarCollapsed(true);
+      }
+
+      if (mobilePremiumCurrentGroupKey) {
+        requestAnimationFrame(() => openMobilePremiumGroup(mobilePremiumCurrentGroupKey));
+      } else {
+        requestAnimationFrame(() => {
+          const firstGroupBtn = document.querySelector('.mph-tile[data-mph-group]');
+          const firstGroupKey = firstGroupBtn?.getAttribute('data-mph-group');
+          if (firstGroupKey) {
+            openMobilePremiumGroup(firstGroupKey);
+          } else {
+            setMobilePremiumInterface('home');
+          }
+        });
+      }
+
+      syncMobileModuleBackButton();
+    }
+
     function closeMobilePremiumPanel() {
       const panel = document.getElementById('mph-panel');
       if (panel) panel.classList.remove('open');
@@ -21659,7 +21811,24 @@
       if (backBtn && !backBtn.dataset.bound) {
         backBtn.dataset.bound = '1';
         backBtn.addEventListener('click', () => {
-          closeMobilePremiumPanel();
+          returnToModuleSelection();
+        });
+      }
+
+      const mobileSearchBtn = document.getElementById('mobile-search-dock-btn');
+      if (mobileSearchBtn && !mobileSearchBtn.dataset.bound) {
+        mobileSearchBtn.dataset.bound = '1';
+        mobileSearchBtn.addEventListener('click', () => {
+          const topbar = document.querySelector('.topbar');
+          if (!topbar) return;
+          const isOpen = topbar.classList.toggle('mobile-search-open');
+          mobileSearchBtn.classList.toggle('active', isOpen);
+          if (isOpen) {
+            const input = document.getElementById('global-search');
+            if (input) {
+              requestAnimationFrame(() => input.focus());
+            }
+          }
         });
       }
 
@@ -21675,7 +21844,7 @@
       if (moduleBackBtn && !moduleBackBtn.dataset.bound) {
         moduleBackBtn.dataset.bound = '1';
         moduleBackBtn.addEventListener('click', () => {
-          returnToHomeScreen();
+          returnToModuleSelection();
         });
       }
 
