@@ -75,6 +75,11 @@ app.use(express.static(path.join(__dirname, 'public'), {
     const lower = String(filePath || '').toLowerCase();
     if (lower.endsWith('.html')) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      // Force fresh HTML on mobile browsers after deploys.
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
       return;
     }
     if (lower.endsWith('.js')) {
@@ -95,6 +100,10 @@ app.use(express.static(path.join(__dirname, 'public'), {
 app.use((req, res, next) => {
   if (req.path.endsWith('.html')) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
   }
   next();
 });
