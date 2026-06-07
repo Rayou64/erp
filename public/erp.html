@@ -689,6 +689,107 @@
       padding: 18px;
     }
 
+    .mobile-dock-toggle {
+      display: none;
+      position: fixed;
+      left: 12px;
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      z-index: 90;
+      border: 1px solid rgba(191, 219, 254, 0.28);
+      border-radius: 16px;
+      background: rgba(9, 29, 74, 0.66);
+      backdrop-filter: blur(10px);
+      color: #f8fbff;
+      box-shadow: 0 14px 34px rgba(2, 6, 23, 0.36);
+      min-width: 52px;
+      min-height: 52px;
+      padding: 0 12px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .mobile-dock-toggle span {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .mobile-dock-toggle em {
+      font-style: normal;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .mobile-dock-sheet {
+      display: none;
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      top: calc(env(safe-area-inset-top, 0px) + 70px);
+      z-index: 85;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 20px;
+      background: rgba(9, 29, 74, 0.76);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 42px rgba(2, 6, 23, 0.52);
+      padding: 8px;
+    }
+
+    .mobile-dock-sheet.open {
+      display: block;
+    }
+
+    .mobile-dock-sheet .dock-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .mobile-dock-sheet .dock-item {
+      border: 1px solid transparent;
+      border-radius: 14px;
+      background: transparent;
+      color: #eaf2ff;
+      min-height: 56px;
+      padding: 8px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      position: relative;
+    }
+
+    .mobile-dock-sheet .dock-item.active {
+      background: rgba(110, 196, 255, 0.22);
+      border-color: rgba(110, 196, 255, 0.52);
+    }
+
+    .mobile-dock-sheet .dock-item .ico {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .mobile-dock-sheet .dock-item .badge {
+      position: absolute;
+      top: 5px;
+      right: 16px;
+      min-width: 17px;
+      height: 17px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      color: #fff;
+      background: #ef4444;
+      font-weight: 700;
+    }
+
     .mobile-premium-home.modules-interface-active .mph-hero,
     .mobile-premium-home.modules-interface-active .mph-section-head,
     .mobile-premium-home.modules-interface-active .mph-grid {
@@ -2477,6 +2578,10 @@
         background: transparent;
       }
 
+      .mobile-dock-toggle {
+        display: inline-flex;
+      }
+
       .module:not(#dashboard) {
         padding: 12px;
       }
@@ -2491,6 +2596,51 @@
 
       .page-header h1 {
         font-size: 22px;
+        color: #f8fbff;
+      }
+
+      .page-header p {
+        color: rgba(239, 246, 255, 0.88);
+      }
+
+      .card,
+      .stat-card,
+      .executive-dashboard,
+      .exec-card,
+      .modal-card,
+      .card h3,
+      .card p,
+      .stat-card h3,
+      .stat-card p,
+      .module h1,
+      .module h2,
+      .module h3,
+      .module h4,
+      .module p,
+      .module li,
+      .module label,
+      .module span {
+        color: #f8fbff;
+      }
+
+      .card,
+      .stat-card,
+      .exec-card,
+      .modal-card {
+        background: rgba(9, 29, 74, 0.42);
+        border-color: rgba(191, 219, 254, 0.24);
+      }
+
+      .button,
+      .button-primary,
+      .button-secondary,
+      .button-small {
+        color: #f8fbff;
+      }
+
+      .button-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.16);
       }
 
       .dashboard-grid {
@@ -3572,6 +3722,15 @@
 
     <!-- Main Content -->
     <div class="main-content">
+      <button type="button" id="mobile-dock-toggle" class="mobile-dock-toggle" aria-label="Ouvrir le menu mobile"><span>☰</span><em>Menu</em></button>
+      <div id="mobile-dock-sheet" class="mobile-dock-sheet" aria-hidden="true">
+        <div class="dock-grid">
+          <button type="button" id="dock-home-btn" class="dock-item active" aria-label="Accueil"><span class="ico">⌂</span>Accueil</button>
+          <button type="button" id="dock-search-btn" class="dock-item" aria-label="Recherche"><span class="ico">⌕</span>Recherche</button>
+          <button type="button" id="dock-notif-btn" class="dock-item" aria-label="Notifications"><span class="badge" id="dock-notif-badge">0</span><span class="ico">⍾</span>Notifications</button>
+          <button type="button" id="dock-logout-btn" class="dock-item" aria-label="Déconnexion"><span class="ico">⇥</span>Déconnexion</button>
+        </div>
+      </div>
       <!-- Topbar -->
       <div class="topbar">
         <div class="topbar-left">
@@ -13968,6 +14127,7 @@
     function showModule(moduleName) {
       if (moduleName !== 'dashboard') {
         document.body.classList.remove('mobile-search-open');
+        document.body.classList.remove('mobile-dock-open');
       }
       document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
       const activeModuleEl = document.getElementById(moduleName);
@@ -14021,6 +14181,7 @@
       document.getElementById('page-title').textContent = title;
       document.getElementById('page-subtitle').textContent = subtitle;
       syncMobileModuleBackButton();
+      syncMobileDockVisibility();
     }
 
     function syncMobileModuleBackButton() {
@@ -14028,6 +14189,26 @@
       if (!backBtn) return;
       const shouldShow = window.innerWidth <= 900 && currentModule !== 'dashboard';
       backBtn.classList.toggle('hidden', !shouldShow);
+    }
+
+    function syncMobileDockVisibility() {
+      const toggle = document.getElementById('mobile-dock-toggle');
+      const sheet = document.getElementById('mobile-dock-sheet');
+      const homeMode = currentModule === 'dashboard';
+      const mobileMode = window.innerWidth <= 900;
+      if (!toggle || !sheet) return;
+
+      const shouldShow = mobileMode && !homeMode;
+      toggle.style.display = shouldShow ? 'inline-flex' : 'none';
+      sheet.classList.toggle('open', shouldShow && document.body.classList.contains('mobile-dock-open'));
+      sheet.setAttribute('aria-hidden', shouldShow && document.body.classList.contains('mobile-dock-open') ? 'false' : 'true');
+      if (!shouldShow) {
+        document.body.classList.remove('mobile-dock-open');
+      }
+      const dockHomeBtn = document.getElementById('dock-home-btn');
+      if (dockHomeBtn) {
+        dockHomeBtn.classList.toggle('active', homeMode);
+      }
     }
 
     function shouldAutoRefreshMaps() {
@@ -21644,12 +21825,14 @@
 
     function returnToHomeScreen() {
       document.body.classList.remove('mobile-search-open');
+      document.body.classList.remove('mobile-dock-open');
       closeMobilePremiumPanel();
       showModule('dashboard');
       if (window.innerWidth <= 900) {
         setSidebarCollapsed(true);
       }
       syncMobileModuleBackButton();
+      syncMobileDockVisibility();
     }
 
     function returnToModuleSelection() {
@@ -21829,6 +22012,50 @@
         });
       }
 
+      const dockToggle = document.getElementById('mobile-dock-toggle');
+      if (dockToggle && !dockToggle.dataset.bound) {
+        dockToggle.dataset.bound = '1';
+        dockToggle.addEventListener('click', () => {
+          const isOpen = document.body.classList.toggle('mobile-dock-open');
+          const sheet = document.getElementById('mobile-dock-sheet');
+          if (sheet) {
+            sheet.classList.toggle('open', isOpen);
+            sheet.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+          }
+        });
+      }
+
+      const dockHomeBtn = document.getElementById('dock-home-btn');
+      if (dockHomeBtn && !dockHomeBtn.dataset.bound) {
+        dockHomeBtn.dataset.bound = '1';
+        dockHomeBtn.addEventListener('click', () => returnToHomeScreen());
+      }
+
+      const dockSearchBtn = document.getElementById('dock-search-btn');
+      if (dockSearchBtn && !dockSearchBtn.dataset.bound) {
+        dockSearchBtn.dataset.bound = '1';
+        dockSearchBtn.addEventListener('click', () => {
+          const searchBtn = document.getElementById('mobile-search-dock-btn');
+          searchBtn?.click();
+        });
+      }
+
+      const dockNotifBtn = document.getElementById('dock-notif-btn');
+      if (dockNotifBtn && !dockNotifBtn.dataset.bound) {
+        dockNotifBtn.dataset.bound = '1';
+        dockNotifBtn.addEventListener('click', () => {
+          document.getElementById('notif-bell-btn')?.click();
+        });
+      }
+
+      const dockLogoutBtn = document.getElementById('dock-logout-btn');
+      if (dockLogoutBtn && !dockLogoutBtn.dataset.bound) {
+        dockLogoutBtn.dataset.bound = '1';
+        dockLogoutBtn.addEventListener('click', () => {
+          document.getElementById('logout-button')?.click();
+        });
+      }
+
       const fusionHomeBtn = document.getElementById('mph-nav-home');
       if (fusionHomeBtn && !fusionHomeBtn.dataset.bound) {
         fusionHomeBtn.dataset.bound = '1';
@@ -21888,10 +22115,14 @@
 
       if (!window.__erpMobileBackSyncBound) {
         window.__erpMobileBackSyncBound = true;
-        window.addEventListener('resize', () => syncMobileModuleBackButton());
+        window.addEventListener('resize', () => {
+          syncMobileModuleBackButton();
+          syncMobileDockVisibility();
+        });
       }
 
       syncMobileModuleBackButton();
+      syncMobileDockVisibility();
     }
 
     document.querySelectorAll('.menu-item').forEach(item => {
