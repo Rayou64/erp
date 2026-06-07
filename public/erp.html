@@ -2742,6 +2742,43 @@
         border-color: #dfe7ff;
       }
 
+      #hr-employees .hr-employee-card-role,
+      #hr-employees .hr-employee-card-role *,
+      #hr-employees .hr-employee-dossier-card *,
+      #hr-employees .hr-employee-doc-section *,
+      #hr-employees .hr-employee-doc-list,
+      #hr-employees .hr-employee-doc-list *,
+      #hr-employees .actions-dropdown button,
+      #hr-employees .actions-menu summary,
+      #hr-employees input,
+      #hr-employees select,
+      #hr-employees textarea,
+      #hr-employees input::placeholder,
+      #hr-employees textarea::placeholder,
+      #hr-employees label,
+      #hr-employees small {
+        color: #0f172a !important;
+      }
+
+      #hr-employees .hr-employee-card-role,
+      #hr-employees .hr-employee-doc-section,
+      #hr-employees .hr-employee-doc-list,
+      #hr-employees .actions-menu summary,
+      #hr-employees .actions-dropdown,
+      #hr-employees .actions-dropdown button,
+      #hr-employees input,
+      #hr-employees select,
+      #hr-employees textarea {
+        background: #ffffff !important;
+        border-color: #dbe4f5 !important;
+      }
+
+      #hr-employees .button:not(.button-primary),
+      #hr-employees .button-secondary,
+      #hr-employees .button-small {
+        color: #0f172a !important;
+      }
+
       #hr-employees .button,
       #hr-employees .button-primary {
         color: #ffffff !important;
@@ -6381,6 +6418,7 @@
     const ERP_NOTIF_KEY = 'erp_notifs_v1';
     const DEFAULT_PAGE_SIZE = 10;
     let notifications = [];
+    let lastNotifToggleAt = 0;
     let pushSetupStarted = false;
     let pushSetupReady = false;
     let auditLogEntries = [];
@@ -22101,8 +22139,11 @@
       const notifBtn = document.getElementById('mph-notif-btn');
       if (notifBtn && !notifBtn.dataset.bound) {
         notifBtn.dataset.bound = '1';
-        notifBtn.addEventListener('click', () => {
-          document.getElementById('notif-bell-btn')?.click();
+        notifBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          lastNotifToggleAt = Date.now();
+          toggleNotificationsPanel();
+          setupPushNotifications({ requestPermission: true }).catch(() => {});
         });
       }
 
@@ -22178,8 +22219,11 @@
       const dockNotifBtn = document.getElementById('dock-notif-btn');
       if (dockNotifBtn && !dockNotifBtn.dataset.bound) {
         dockNotifBtn.dataset.bound = '1';
-        dockNotifBtn.addEventListener('click', () => {
-          document.getElementById('notif-bell-btn')?.click();
+        dockNotifBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          lastNotifToggleAt = Date.now();
+          toggleNotificationsPanel();
+          setupPushNotifications({ requestPermission: true }).catch(() => {});
         });
       }
 
@@ -22220,8 +22264,11 @@
       const fusionNotifBtn = document.getElementById('mph-nav-notif');
       if (fusionNotifBtn && !fusionNotifBtn.dataset.bound) {
         fusionNotifBtn.dataset.bound = '1';
-        fusionNotifBtn.addEventListener('click', () => {
-          document.getElementById('notif-bell-btn')?.click();
+        fusionNotifBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          lastNotifToggleAt = Date.now();
+          toggleNotificationsPanel();
+          setupPushNotifications({ requestPermission: true }).catch(() => {});
         });
       }
 
@@ -23300,11 +23347,15 @@
       document.addEventListener('click', e => {
         const searchWrap = document.querySelector('.global-search-wrap');
         const notifWrap = document.querySelector('.notif-btn-wrap');
+        const notifExternalTrigger = e.target && e.target.closest
+          ? e.target.closest('#mph-notif-btn, #dock-notif-btn, #mph-nav-notif')
+          : null;
+        const isToggleGuardWindow = (Date.now() - Number(lastNotifToggleAt || 0)) < 300;
         if (searchWrap && !searchWrap.contains(e.target)) {
           const dropdown = document.getElementById('search-results-dropdown');
           if (dropdown) dropdown.classList.remove('open');
         }
-        if (notifWrap && !notifWrap.contains(e.target)) {
+        if (!isToggleGuardWindow && !notifExternalTrigger && notifWrap && !notifWrap.contains(e.target)) {
           closeNotificationsPanel();
         }
       });
@@ -23361,7 +23412,9 @@
 
       const notifBell = document.getElementById('notif-bell-btn');
       if (notifBell) {
-        notifBell.addEventListener('click', () => {
+        notifBell.addEventListener('click', e => {
+          e.stopPropagation();
+          lastNotifToggleAt = Date.now();
           toggleNotificationsPanel();
           setupPushNotifications({ requestPermission: true }).catch(() => {});
         });
