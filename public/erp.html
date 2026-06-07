@@ -888,6 +888,62 @@
       margin-bottom: 16px;
     }
 
+    .mph-fusion-nav {
+      margin-top: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 18px;
+      background: rgba(9, 29, 74, 0.44);
+      backdrop-filter: blur(10px);
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+      padding: 7px;
+      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.45);
+    }
+
+    .mph-fusion-btn {
+      border: 1px solid transparent;
+      border-radius: 13px;
+      min-height: 56px;
+      background: transparent;
+      color: #eaf2ff;
+      padding: 8px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.12;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .mph-fusion-btn.active {
+      border-color: rgba(110, 196, 255, 0.56);
+      background: rgba(110, 196, 255, 0.22);
+    }
+
+    .mph-fusion-btn .icon {
+      font-size: 18px;
+    }
+
+    .mph-fusion-badge {
+      position: absolute;
+      top: 5px;
+      right: 16px;
+      min-width: 17px;
+      height: 17px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      color: #fff;
+      background: #ef4444;
+      font-weight: 700;
+    }
+
     .mph-section-head {
       display: flex;
       justify-content: space-between;
@@ -2286,7 +2342,8 @@
     @media (max-width: 900px) {
       .erp-container {
         position: relative;
-        min-height: 100vh;
+        height: 100svh;
+        min-height: 100svh;
       }
 
       .sidebar {
@@ -2364,21 +2421,14 @@
       }
 
       .main-content {
-        padding-top: calc(env(safe-area-inset-top, 0px) + 6px);
+        padding-top: 0;
+        background:
+          radial-gradient(circle at top right, rgba(191, 219, 254, 0.22), transparent 30%),
+          linear-gradient(180deg, #12398b 0%, #1d4ed8 42%, #184095 100%);
       }
 
       .topbar {
-        display: flex;
-        position: sticky;
-        top: calc(env(safe-area-inset-top, 0px) + 10px);
-        z-index: 30;
-        margin: 0 0 14px;
-        padding: 8px;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        background: rgba(4, 18, 44, 0.76);
-        backdrop-filter: blur(12px);
-        box-shadow: 0 12px 34px rgba(2, 6, 23, 0.6);
+        display: none;
       }
 
       .topbar-left,
@@ -2388,114 +2438,33 @@
         display: none !important;
       }
 
-      .topbar-right {
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 6px;
-      }
-
-      .topbar-right .notif-btn-wrap {
-        position: relative;
-      }
-
-      .topbar-right .home-nav-btn,
-      .topbar-right #mobile-search-dock-btn,
-      .topbar-right #notif-bell-btn,
-      .topbar-right #logout-button {
-        width: 100%;
-        min-height: 56px;
-        border-radius: 14px;
-        border: 1px solid transparent;
+      body.mobile-search-open .topbar {
+        display: block;
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: calc(env(safe-area-inset-top, 0px) + 8px);
+        z-index: 80;
+        margin: 0;
+        padding: 0;
+        border: 0;
         background: transparent;
-        color: #eaf2ff;
-        font-size: 11px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        gap: 4px;
-        padding: 8px 4px;
-        line-height: 1.15;
+        box-shadow: none;
       }
 
-      .topbar-right .home-nav-btn::before {
-        content: '⌂';
-        font-size: 18px;
-      }
-
-      .topbar-right #mobile-search-dock-btn::before {
-        content: '⌕';
-        font-size: 18px;
-      }
-
-      .topbar-right #notif-bell-btn {
-        font-size: 0;
-      }
-
-      .topbar-right #notif-bell-btn::before {
-        content: '⍾';
-        font-size: 18px;
-      }
-
-      .topbar-right #logout-button {
-        font-size: 0;
-      }
-
-      .topbar-right #logout-button::before {
-        content: '⇥';
-        font-size: 18px;
-      }
-
-      .topbar-right .home-nav-btn::after {
-        content: 'Accueil';
-      }
-
-      .topbar-right #mobile-search-dock-btn::after {
-        content: 'Recherche';
-      }
-
-      .topbar-right #notif-bell-btn::after {
-        content: 'Notifications';
-        font-size: 11px;
-      }
-
-      .topbar-right #logout-button::after {
-        content: 'Déconnexion';
-        font-size: 11px;
-      }
-
-      .topbar-right .home-nav-btn.active,
-      .topbar-right #mobile-search-dock-btn.active,
-      .topbar-right #notif-bell-btn.active,
-      .topbar-right #logout-button.active {
-        background: rgba(110, 196, 255, 0.2);
-        border-color: rgba(110, 196, 255, 0.5);
-      }
-
-      .topbar-right .notif-badge {
-        top: 4px;
-        right: 18px;
-      }
-
-      .topbar.mobile-search-open .topbar-center {
+      body.mobile-search-open .topbar-center {
         display: block !important;
-        position: absolute;
-        left: 8px;
-        right: 8px;
-        top: calc(100% + 8px);
-        z-index: 40;
+        position: static;
       }
 
-      .topbar.mobile-search-open .global-search-wrap {
+      body.mobile-search-open .global-search-wrap {
         border: 1px solid rgba(191, 219, 254, 0.34);
         border-radius: 14px;
         background: rgba(15, 23, 42, 0.96);
         box-shadow: 0 14px 32px rgba(2, 6, 23, 0.48);
       }
 
-      .topbar.mobile-search-open .global-search-input {
+      body.mobile-search-open .global-search-input {
         color: #e2e8f0;
       }
 
@@ -2504,7 +2473,12 @@
       }
 
       .content-area {
-        padding: 14px 12px 12px;
+        padding: 0;
+        background: transparent;
+      }
+
+      .module:not(#dashboard) {
+        padding: 12px;
       }
 
       .mobile-module-back-btn {
@@ -2526,6 +2500,12 @@
 
       .mobile-premium-home {
         display: block;
+        margin: 0;
+        border-radius: 0;
+        border: 0;
+        box-shadow: none;
+        min-height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+        padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 14px);
       }
 
       .mph-topbar {
@@ -3657,6 +3637,12 @@
             <div class="mph-hero">
               <div class="mph-hero-copy">Accueil premium, rapide et oriente metier</div>
               <div class="mph-hero-title">Blocs visibles, menu elegant.</div>
+              <div class="mph-fusion-nav" aria-label="Navigation fusionnee accueil">
+                <button type="button" id="mph-nav-home" class="mph-fusion-btn active" aria-label="Accueil"><span class="icon">⌂</span>Accueil</button>
+                <button type="button" id="mph-nav-search" class="mph-fusion-btn" aria-label="Recherche"><span class="icon">⌕</span>Recherche</button>
+                <button type="button" id="mph-nav-notif" class="mph-fusion-btn" aria-label="Notifications"><span class="mph-fusion-badge" id="mph-nav-notif-badge">0</span><span class="icon">⍾</span>Notifications</button>
+                <button type="button" id="mph-nav-logout" class="mph-fusion-btn" aria-label="Deconnexion"><span class="icon">⇥</span>Deconnexion</button>
+              </div>
             </div>
             <div class="mph-section-head">
               <h3>Blocs interactifs</h3>
@@ -13980,6 +13966,9 @@
     }
 
     function showModule(moduleName) {
+      if (moduleName !== 'dashboard') {
+        document.body.classList.remove('mobile-search-open');
+      }
       document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
       const activeModuleEl = document.getElementById(moduleName);
       activeModuleEl?.classList.add('active');
@@ -21605,9 +21594,14 @@
 
     function syncMobilePremiumNotifications() {
       const button = document.getElementById('mph-notif-btn');
+      const navBadge = document.getElementById('mph-nav-notif-badge');
       if (!button) return;
       const unread = notifications.filter(n => n.unread).length;
       button.textContent = unread > 0 ? `🔔 ${unread}` : '🔔';
+      if (navBadge) {
+        navBadge.textContent = String(unread);
+        navBadge.style.display = unread > 0 ? 'grid' : 'none';
+      }
     }
 
     function getAuthorizedHomeModules() {
@@ -21649,6 +21643,7 @@
     }
 
     function returnToHomeScreen() {
+      document.body.classList.remove('mobile-search-open');
       closeMobilePremiumPanel();
       showModule('dashboard');
       if (window.innerWidth <= 900) {
@@ -21823,9 +21818,7 @@
       if (mobileSearchBtn && !mobileSearchBtn.dataset.bound) {
         mobileSearchBtn.dataset.bound = '1';
         mobileSearchBtn.addEventListener('click', () => {
-          const topbar = document.querySelector('.topbar');
-          if (!topbar) return;
-          const isOpen = topbar.classList.toggle('mobile-search-open');
+          const isOpen = document.body.classList.toggle('mobile-search-open');
           mobileSearchBtn.classList.toggle('active', isOpen);
           if (isOpen) {
             const input = document.getElementById('global-search');
@@ -21833,6 +21826,47 @@
               requestAnimationFrame(() => input.focus());
             }
           }
+        });
+      }
+
+      const fusionHomeBtn = document.getElementById('mph-nav-home');
+      if (fusionHomeBtn && !fusionHomeBtn.dataset.bound) {
+        fusionHomeBtn.dataset.bound = '1';
+        fusionHomeBtn.addEventListener('click', () => returnToHomeScreen());
+      }
+
+      const fusionSearchBtn = document.getElementById('mph-nav-search');
+      if (fusionSearchBtn && !fusionSearchBtn.dataset.bound) {
+        fusionSearchBtn.dataset.bound = '1';
+        fusionSearchBtn.addEventListener('click', () => {
+          const isOpen = document.body.classList.toggle('mobile-search-open');
+          fusionSearchBtn.classList.toggle('active', isOpen);
+          const searchDockBtn = document.getElementById('mobile-search-dock-btn');
+          if (searchDockBtn) {
+            searchDockBtn.classList.toggle('active', isOpen);
+          }
+          if (isOpen) {
+            const input = document.getElementById('global-search');
+            if (input) {
+              requestAnimationFrame(() => input.focus());
+            }
+          }
+        });
+      }
+
+      const fusionNotifBtn = document.getElementById('mph-nav-notif');
+      if (fusionNotifBtn && !fusionNotifBtn.dataset.bound) {
+        fusionNotifBtn.dataset.bound = '1';
+        fusionNotifBtn.addEventListener('click', () => {
+          document.getElementById('notif-bell-btn')?.click();
+        });
+      }
+
+      const fusionLogoutBtn = document.getElementById('mph-nav-logout');
+      if (fusionLogoutBtn && !fusionLogoutBtn.dataset.bound) {
+        fusionLogoutBtn.dataset.bound = '1';
+        fusionLogoutBtn.addEventListener('click', () => {
+          document.getElementById('logout-button')?.click();
         });
       }
 
