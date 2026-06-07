@@ -2611,47 +2611,73 @@
         color: rgba(239, 246, 255, 0.88);
       }
 
-      .module:not(#dashboard) .card,
-      .module:not(#dashboard) .form-card,
-      .module:not(#dashboard) .stat-card,
-      .module:not(#dashboard) .executive-dashboard,
-      .module:not(#dashboard) .exec-card,
-      .module:not(#dashboard) .modal-card,
-      .module:not(#dashboard) .list-item,
-      .module:not(#dashboard) table,
-      .module:not(#dashboard) .table th,
-      .module:not(#dashboard) .table td,
-      .module:not(#dashboard) input,
-      .module:not(#dashboard) select,
-      .module:not(#dashboard) textarea {
-        background: rgba(8, 28, 72, 0.48) !important;
-        border-color: rgba(191, 219, 254, 0.3) !important;
-        color: #f3f8ff !important;
-        box-shadow: 0 10px 26px rgba(2, 6, 23, 0.28);
-        backdrop-filter: blur(8px);
+      .card,
+      .stat-card,
+      .executive-dashboard,
+      .exec-card,
+      .modal-card,
+      .card h3,
+      .card p,
+      .stat-card h3,
+      .stat-card p,
+      .module h1,
+      .module h2,
+      .module h3,
+      .module h4,
+      .module p,
+      .module li,
+      .module label,
+      .module span {
+        color: #f8fbff;
       }
 
-      .module:not(#dashboard) .table th {
-        background: rgba(12, 38, 92, 0.62) !important;
+      .card,
+      .stat-card,
+      .exec-card,
+      .modal-card {
+        background: rgba(9, 29, 74, 0.42);
+        border-color: rgba(191, 219, 254, 0.24);
       }
 
-      .module:not(#dashboard) h1,
-      .module:not(#dashboard) h2,
-      .module:not(#dashboard) h3,
-      .module:not(#dashboard) h4,
-      .module:not(#dashboard) p,
-      .module:not(#dashboard) li,
-      .module:not(#dashboard) label,
-      .module:not(#dashboard) span,
-      .module:not(#dashboard) strong,
-      .module:not(#dashboard) td,
-      .module:not(#dashboard) th,
-      .module:not(#dashboard) a {
-        color: #f3f8ff !important;
+      #hr-employees .page-header h1,
+      #hr-employees .page-header p,
+      #hr-employees .hr-employee-toolbar-label,
+      #hr-employees .hr-employee-kanban-title,
+      #hr-employees .hr-employee-card-title,
+      #hr-employees .hr-employee-doc-title,
+      #hr-employees .hr-employee-card-created,
+      #hr-employees .hr-employee-search-count,
+      #hr-employees .list-item,
+      #hr-employees .list-item span,
+      #hr-employees .list-item strong,
+      #hr-employees .list-item p,
+      #hr-employees .button-secondary,
+      #hr-employees .button-small {
+        color: #0f172a;
       }
 
-      .module:not(#dashboard) ::placeholder {
-        color: rgba(219, 234, 254, 0.86) !important;
+      #hr-employees .hr-employee-search-count {
+        background: #eef2ff;
+        border-color: #c7d2fe;
+      }
+
+      #hr-employees .hr-employee-kanban-column {
+        background: radial-gradient(120% 120% at 0% 0%, #ffffff 0%, #f5f8ff 56%, #edf2ff 100%);
+        border-color: #d9e4ff;
+      }
+
+      #hr-employees .hr-employee-dossier-card {
+        background: linear-gradient(155deg, #ffffff 0%, #f7faff 68%, #f0f6ff 100%);
+        border-color: #d6e2ff;
+      }
+
+      #hr-employees .hr-employee-dossier-grid,
+      #hr-employees .hr-employee-dossier-grid *,
+      #hr-employees .hr-employee-doc-list .list-item,
+      #hr-employees .hr-employee-doc-list .list-item * {
+        background: #ffffff;
+        border-color: #dfe7ff;
+        color: #0f172a !important;
       }
 
       .button,
