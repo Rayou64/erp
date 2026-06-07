@@ -19,6 +19,7 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
+const webpush = require('web-push');
 const { createDbClient } = require('./db/client');
 
 const app = express();
@@ -246,6 +247,11 @@ const AUTH_RATE_MAX = Number(process.env.AUTH_RATE_MAX || 25);
 const AUTO_BACKUP_ENABLED = String(process.env.AUTO_BACKUP_ENABLED || '1').trim() !== '0';
 const AUTO_BACKUP_ON_MUTATION = String(process.env.AUTO_BACKUP_ON_MUTATION || '1').trim() !== '0';
 const AUTO_BACKUP_DEBOUNCE_MS = Number(process.env.AUTO_BACKUP_DEBOUNCE_MS || 10_000);
+const PUSH_NOTIFICATION_POLL_MS = Number(process.env.PUSH_NOTIFICATION_POLL_MS || 30_000);
+const PUSH_SUBSCRIPTIONS_FILE = path.join(APP_DATA_DIR, 'push-subscriptions.json');
+const PUSH_VAPID_KEYS_FILE = path.join(APP_DATA_DIR, 'push-vapid-keys.json');
+const PUSH_CONTACT_EMAIL = String(process.env.PUSH_CONTACT_EMAIL || 'admin@ryanerp.local').trim();
+const PUSH_PUBLIC_URL = String(process.env.PUSH_PUBLIC_URL || 'https://ryanerp-hn5zd.ondigitalocean.app/erp.html').trim();
 
 let isReady = false;
 let isShuttingDown = false;
@@ -254,6 +260,10 @@ let localhostFallbackServer = null;
 let autoBackupTimer = null;
 let autoBackupInProgress = false;
 let autoBackupPending = false;
+let pushSubscriptions = [];
+let pushVapidKeys = null;
+let serverNotificationPollTimer = null;
+let serverNotificationSnapshot = null;
 
 fs.mkdirSync(ARCHIVE_ROOT, { recursive: true });
 app.use('/archives', express.static(ARCHIVE_ROOT));
@@ -403,6 +413,193 @@ const dbClient = createDbClient({
 });
 const { run, get, all } = dbClient;
 const DB_DRIVER = dbClient.driver;
+
+function readJsonFileSafe(filePath, fallbackValue) {
+  try {
+    if (!fs.existsSync(filePath)) return fallbackValue;
+    const raw = fs.readFileSync(filePath, 'utf8');
+    if (!raw || !raw.trim()) return fallbackValue;
+    return JSON.parse(raw);
+  } catch (_) {
+    return fallbackValue;
+  }
+}
+
+function writeJsonFileSafe(filePath, value) {
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(value, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Erreur sauvegarde fichier JSON:', filePath, error.message || error);
+  }
+}
+
+function normalizePushSubscription(input, username = '') {
+  const endpoint = String(input?.endpoint || '').trim();
+  const p256dh = String(input?.keys?.p256dh || '').trim();
+  const auth = String(input?.keys?.auth || '').trim();
+  if (!endpoint || !p256dh || !auth) {
+    return null;
+  }
+  return {
+    endpoint,
+    expirationTime: input?.expirationTime || null,
+    keys: { p256dh, auth },
+    username: String(username || '').trim(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function loadPushSubscriptions() {
+  const rows = readJsonFileSafe(PUSH_SUBSCRIPTIONS_FILE, []);
+  if (!Array.isArray(rows)) {
+    pushSubscriptions = [];
+    return;
+  }
+  pushSubscriptions = rows
+    .map(row => normalizePushSubscription(row, row?.username || ''))
+    .filter(Boolean)
+    .slice(0, 2_000);
+}
+
+function savePushSubscriptions() {
+  writeJsonFileSafe(PUSH_SUBSCRIPTIONS_FILE, pushSubscriptions);
+}
+
+function getOrCreateVapidKeys() {
+  if (pushVapidKeys) return pushVapidKeys;
+
+  const envPublic = String(process.env.VAPID_PUBLIC_KEY || '').trim();
+  const envPrivate = String(process.env.VAPID_PRIVATE_KEY || '').trim();
+  if (envPublic && envPrivate) {
+    pushVapidKeys = { publicKey: envPublic, privateKey: envPrivate };
+    return pushVapidKeys;
+  }
+
+  const fileKeys = readJsonFileSafe(PUSH_VAPID_KEYS_FILE, null);
+  if (fileKeys && fileKeys.publicKey && fileKeys.privateKey) {
+    pushVapidKeys = {
+      publicKey: String(fileKeys.publicKey).trim(),
+      privateKey: String(fileKeys.privateKey).trim(),
+    };
+    return pushVapidKeys;
+  }
+
+  const generated = webpush.generateVAPIDKeys();
+  pushVapidKeys = {
+    publicKey: String(generated.publicKey || '').trim(),
+    privateKey: String(generated.privateKey || '').trim(),
+  };
+  writeJsonFileSafe(PUSH_VAPID_KEYS_FILE, pushVapidKeys);
+  return pushVapidKeys;
+}
+
+function configureWebPush() {
+  const keys = getOrCreateVapidKeys();
+  webpush.setVapidDetails(`mailto:${PUSH_CONTACT_EMAIL}`, keys.publicKey, keys.privateKey);
+}
+
+async function sendWebPushNotification(payload, options = {}) {
+  if (!payload || !payload.title) return;
+  const username = String(options.username || '').trim();
+  const targets = pushSubscriptions.filter(sub => {
+    if (!sub || !sub.endpoint) return false;
+    if (!username) return true;
+    return String(sub.username || '').trim() === username;
+  });
+  if (!targets.length) return;
+
+  const body = JSON.stringify(payload);
+  const staleEndpoints = new Set();
+
+  await Promise.all(targets.map(async sub => {
+    try {
+      await webpush.sendNotification(sub, body, {
+        TTL: 60,
+        urgency: 'normal',
+      });
+    } catch (error) {
+      const statusCode = Number(error?.statusCode || 0);
+      if (statusCode === 404 || statusCode === 410) {
+        staleEndpoints.add(String(sub.endpoint));
+      } else {
+        console.warn('Push non envoye:', statusCode || 'n/a', error?.message || error);
+      }
+    }
+  }));
+
+  if (staleEndpoints.size > 0) {
+    pushSubscriptions = pushSubscriptions.filter(sub => !staleEndpoints.has(String(sub.endpoint || '')));
+    savePushSubscriptions();
+  }
+}
+
+async function getServerPendingCounts() {
+  const poRow = await get(
+    `SELECT COUNT(*) AS count FROM purchase_orders WHERE LOWER(TRIM(COALESCE(statut, ''))) LIKE ?`,
+    ['%attente%']
+  );
+  const authRow = await get(
+    `SELECT COUNT(*) AS count
+     FROM stock_issue_authorizations
+     WHERE LOWER(TRIM(COALESCE(status, statut, ''))) LIKE ?
+        OR LOWER(TRIM(COALESCE(status, statut, ''))) LIKE ?`,
+    ['%pending%', '%attente%']
+  );
+  const signatureRow = await get(
+    `SELECT COUNT(*) AS count
+     FROM hr_signature_requests
+     WHERE LOWER(TRIM(COALESCE(status, statut, ''))) LIKE ?`,
+    ['%attente%']
+  );
+
+  return {
+    poPending: Number(poRow?.count || poRow?.COUNT || 0),
+    authPending: Number(authRow?.count || authRow?.COUNT || 0),
+    signaturePending: Number(signatureRow?.count || signatureRow?.COUNT || 0),
+  };
+}
+
+async function pollAndBroadcastServerNotifications() {
+  try {
+    const counts = await getServerPendingCounts();
+    if (!serverNotificationSnapshot) {
+      serverNotificationSnapshot = counts;
+      return;
+    }
+
+    if (counts.poPending > serverNotificationSnapshot.poPending) {
+      await sendWebPushNotification({
+        title: 'Nouveaux bons en attente',
+        message: `${counts.poPending} bon(s) necessitent une action`,
+        module: 'purchase-orders',
+        url: `${PUSH_PUBLIC_URL}?openModule=purchase-orders`,
+      });
+    }
+    if (counts.authPending > serverNotificationSnapshot.authPending) {
+      await sendWebPushNotification({
+        title: 'Autorisations en attente',
+        message: `${counts.authPending} autorisation(s) de sortie a traiter`,
+        module: 'sortie-autorisations',
+        url: `${PUSH_PUBLIC_URL}?openModule=sortie-autorisations`,
+      });
+    }
+    if (counts.signaturePending > serverNotificationSnapshot.signaturePending) {
+      await sendWebPushNotification({
+        title: 'Signatures en attente',
+        message: `${counts.signaturePending} document(s) a signer`,
+        module: 'hr-signatures',
+        url: `${PUSH_PUBLIC_URL}?openModule=hr-signatures`,
+      });
+    }
+
+    serverNotificationSnapshot = counts;
+  } catch (error) {
+    console.warn('Polling notifications push ignore (transient):', error?.message || error);
+  }
+}
+
+loadPushSubscriptions();
+configureWebPush();
 
 if (DB_DRIVER === 'postgres') {
   console.log('Mode base de donnees: PostgreSQL');
@@ -3195,6 +3392,20 @@ initDb().then(() => {
         console.error('Erreur reconciliation archives:', err);
       });
     });
+
+    setImmediate(() => {
+      pollAndBroadcastServerNotifications().catch(err => {
+        console.error('Erreur polling notifications push:', err);
+      });
+    });
+
+    if (PUSH_NOTIFICATION_POLL_MS > 0) {
+      serverNotificationPollTimer = setInterval(() => {
+        pollAndBroadcastServerNotifications().catch(err => {
+          console.error('Erreur polling notifications push:', err);
+        });
+      }, PUSH_NOTIFICATION_POLL_MS);
+    }
   });
 }).catch(error => {
   isReady = false;
@@ -3212,6 +3423,11 @@ async function shutdown(signal) {
   console.log(`Signal ${signal} recu. Arret en cours...`);
 
   try {
+    if (serverNotificationPollTimer) {
+      clearInterval(serverNotificationPollTimer);
+      serverNotificationPollTimer = null;
+    }
+
     if (localhostFallbackServer) {
       await new Promise(resolve => localhostFallbackServer.close(resolve));
       localhostFallbackServer = null;
@@ -3300,6 +3516,12 @@ function authorizeRoleAccess(req, res, next) {
   const method = String(req.method || '').toUpperCase();
   const pathName = String(req.path || '');
   const originalUrl = String(req.originalUrl || '');
+
+  if ((method === 'GET' && pathName === '/push/public-key')
+    || ((method === 'POST' || method === 'DELETE') && pathName === '/push/subscribe')
+    || (method === 'POST' && pathName === '/push/test')) {
+    return next();
+  }
 
   if (role === 'gestionnaire_stock_songon' && method === 'GET') {
     return next();
@@ -4081,6 +4303,67 @@ app.post('/api/gps/ingest', async (req, res) => {
 });
 
 app.use('/api', authenticateToken, authorizeRoleAccess);
+
+app.get('/api/push/public-key', (_req, res) => {
+  const keys = getOrCreateVapidKeys();
+  res.json({
+    publicKey: keys.publicKey,
+    enabled: true,
+  });
+});
+
+app.post('/api/push/subscribe', async (req, res) => {
+  const username = String(req.user?.username || '').trim();
+  const input = req.body?.subscription || req.body;
+  const normalized = normalizePushSubscription(input, username);
+  if (!normalized) {
+    return res.status(400).json({ error: 'Abonnement push invalide' });
+  }
+
+  const idx = pushSubscriptions.findIndex(sub => String(sub.endpoint || '') === normalized.endpoint);
+  if (idx >= 0) {
+    const createdAt = pushSubscriptions[idx]?.createdAt || new Date().toISOString();
+    pushSubscriptions[idx] = { ...pushSubscriptions[idx], ...normalized, createdAt };
+  } else {
+    pushSubscriptions.unshift({ ...normalized, createdAt: new Date().toISOString() });
+    if (pushSubscriptions.length > 2_000) {
+      pushSubscriptions = pushSubscriptions.slice(0, 2_000);
+    }
+  }
+
+  savePushSubscriptions();
+  res.status(201).json({ ok: true });
+});
+
+app.delete('/api/push/subscribe', async (req, res) => {
+  const username = String(req.user?.username || '').trim();
+  const endpoint = String(req.body?.endpoint || req.body?.subscription?.endpoint || '').trim();
+  if (!endpoint) {
+    return res.status(400).json({ error: 'endpoint obligatoire' });
+  }
+
+  const before = pushSubscriptions.length;
+  pushSubscriptions = pushSubscriptions.filter(sub => {
+    if (String(sub.endpoint || '') !== endpoint) return true;
+    if (!username) return false;
+    return String(sub.username || '') !== username;
+  });
+  if (pushSubscriptions.length !== before) {
+    savePushSubscriptions();
+  }
+  res.json({ ok: true, removed: before - pushSubscriptions.length });
+});
+
+app.post('/api/push/test', async (req, res) => {
+  const username = String(req.user?.username || '').trim();
+  await sendWebPushNotification({
+    title: 'Test notification ERP',
+    message: 'Les notifications systeme sont actives sur cet appareil.',
+    module: 'dashboard',
+    url: `${PUSH_PUBLIC_URL}?openModule=dashboard`,
+  }, { username });
+  res.json({ ok: true });
+});
 
 app.post('/api/material-requests/auto-stage', async (req, res) => {
   const {
