@@ -835,6 +835,50 @@
       flex: 0 0 auto;
     }
 
+    .mph-quick-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .mph-quick-action-btn {
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-size: 18px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .mph-quick-action-btn.active {
+      background: rgba(255, 255, 255, 0.24);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .mph-quick-action-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 3px;
+    }
+
     .mph-icon-btn,
     .mph-profile-chip,
     .mph-panel,
@@ -947,6 +991,18 @@
       line-height: 1.02;
       font-weight: 800;
       margin-bottom: 16px;
+    }
+
+    .mph-hero-logout-btn {
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      border-radius: 12px;
+      background: rgba(9, 29, 74, 0.36);
+      color: #eff6ff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
     }
 
     .mph-fusion-nav {
@@ -2911,13 +2967,28 @@
         color: #7c2d12;
       }
 
-      .mph-icon-btn {
+      .mph-quick-action-btn {
         border-color: rgba(31, 41, 55, 0.12);
         background: rgba(255, 255, 255, 0.88);
         color: #1f2937;
         box-shadow: 0 10px 20px rgba(31, 41, 55, 0.12);
       }
 
+
+      .mph-icon-btn {
+        width: 42px;
+        height: 42px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        font-size: 18px;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+        position: relative;
+        cursor: pointer;
+      }
       .mph-avatar {
         background: linear-gradient(145deg, #ffd166, #ff9f43);
         color: #7c2d12;
@@ -4103,6 +4174,10 @@
                 </div>
               </div>
               <div class="mph-actions">
+                <div class="mph-quick-actions">
+                  <button type="button" class="mph-quick-action-btn" id="mph-top-search-btn" aria-label="Recherche">🔍</button>
+                  <button type="button" class="mph-quick-action-btn" id="mph-top-notif-btn" aria-label="Notifications">🔔<span id="mph-top-notif-badge" class="mph-quick-action-badge">0</span></button>
+                </div>
                 <div class="mph-profile-chip">
                   <div class="mph-avatar" id="mph-avatar">AD</div>
                   <div class="mph-profile-text">
@@ -4116,6 +4191,7 @@
             <div class="mph-hero">
               <div class="mph-hero-copy">Accueil premium, rapide et oriente metier</div>
               <div class="mph-hero-title">Blocs visibles, menu elegant.</div>
+              <button type="button" id="mph-hero-logout-btn" class="mph-hero-logout-btn">Déconnexion</button>
               <div class="mph-fusion-nav" aria-label="Navigation fusionnee accueil">
               </div>
             </div>
@@ -22074,15 +22150,19 @@
       if (avatarNode) avatarNode.textContent = buildMobilePremiumAvatar();
     }
 
+    function performLogout() {
+      localStorage.removeItem('erp_token');
+      window.location.href = 'index.html';
+    }
+
     function syncMobilePremiumNotifications() {
-      const button = document.getElementById('mph-notif-btn');
-      const navBadge = document.getElementById('mph-nav-notif-badge');
+      const button = document.getElementById('mph-top-notif-btn');
+      const navBadge = document.getElementById('mph-top-notif-badge');
       if (!button) return;
       const unread = notifications.filter(n => n.unread).length;
-      button.textContent = unread > 0 ? `🔔 ${unread}` : '🔔';
       if (navBadge) {
         navBadge.textContent = String(unread);
-        navBadge.style.display = unread > 0 ? 'grid' : 'none';
+        navBadge.style.display = unread > 0 ? 'flex' : 'none';
       }
     }
 
@@ -22262,14 +22342,30 @@
       syncMobilePremiumNotifications();
       renderMobilePremiumHome();
 
-      const notifBtn = document.getElementById('mph-notif-btn');
-      if (notifBtn && !notifBtn.dataset.bound) {
-        notifBtn.dataset.bound = '1';
-        notifBtn.addEventListener('click', e => {
+      const topNotifBtn = document.getElementById('mph-top-notif-btn');
+      if (topNotifBtn && !topNotifBtn.dataset.bound) {
+        topNotifBtn.dataset.bound = '1';
+        topNotifBtn.addEventListener('click', e => {
           e.stopPropagation();
           lastNotifToggleAt = Date.now();
           toggleNotificationsPanel();
           setupPushNotifications({ requestPermission: true }).catch(() => {});
+        });
+      }
+
+      const topSearchBtn = document.getElementById('mph-top-search-btn');
+      if (topSearchBtn && !topSearchBtn.dataset.bound) {
+        topSearchBtn.dataset.bound = '1';
+        topSearchBtn.addEventListener('click', () => {
+          document.body.classList.remove('mobile-notif-open');
+          const isOpen = document.body.classList.toggle('mobile-search-open');
+          topSearchBtn.classList.toggle('active', isOpen);
+          if (isOpen) {
+            const input = document.getElementById('global-search');
+            if (input) {
+              requestAnimationFrame(() => input.focus());
+            }
+          }
         });
       }
 
@@ -22286,7 +22382,15 @@
       if (logoutBtn && !logoutBtn.dataset.bound) {
         logoutBtn.dataset.bound = '1';
         logoutBtn.addEventListener('click', () => {
-          document.getElementById('logout-button')?.click();
+          performLogout();
+        });
+      }
+
+      const heroLogoutBtn = document.getElementById('mph-hero-logout-btn');
+      if (heroLogoutBtn && !heroLogoutBtn.dataset.bound) {
+        heroLogoutBtn.dataset.bound = '1';
+        heroLogoutBtn.addEventListener('click', () => {
+          performLogout();
         });
       }
 
@@ -23423,7 +23527,7 @@
         const searchWrap = document.querySelector('.global-search-wrap');
         const notifWrap = document.querySelector('.notif-btn-wrap');
         const notifExternalTrigger = e.target && e.target.closest
-          ? e.target.closest('#mph-notif-btn, #dock-notif-btn, #mph-nav-notif')
+          ? e.target.closest('#mph-top-notif-btn, #dock-notif-btn')
           : null;
         const isToggleGuardWindow = (Date.now() - Number(lastNotifToggleAt || 0)) < 300;
         if (searchWrap && !searchWrap.contains(e.target)) {
