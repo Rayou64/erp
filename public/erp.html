@@ -2843,7 +2843,7 @@
       }
 
       .mobile-premium-home {
-        display: block;
+        display: none !important;
         margin: 0;
         border-radius: 0;
         border: 0;
@@ -4172,7 +4172,6 @@
 
     <!-- Main Content -->
     <div class="main-content">
-      <button type="button" id="mobile-dock-toggle" class="mobile-dock-toggle" aria-label="Ouvrir le menu mobile"><span>☰</span><em>Menu</em></button>
       <div id="mobile-dock-sheet" class="mobile-dock-sheet" aria-hidden="true">
         <div class="dock-grid">
           <button type="button" id="dock-home-btn" class="dock-item active" aria-label="Accueil"><span class="ico">🏠</span></button>
@@ -14651,21 +14650,19 @@
       const shouldShow = window.innerWidth <= 900 && currentModule !== 'dashboard';
       backBtn.classList.toggle('hidden', !shouldShow);
       if (menuBtn) {
-        menuBtn.classList.toggle('hidden', !shouldShow);
+        menuBtn.classList.add('hidden');
       }
     }
 
     function syncMobileDockVisibility() {
-      const toggle = document.getElementById('mobile-dock-toggle');
       const sheet = document.getElementById('mobile-dock-sheet');
       const homeMode = currentModule === 'dashboard';
       const mobileMode = window.innerWidth <= 900;
-      if (!toggle || !sheet) return;
+      if (!sheet) return;
 
       const shouldShow = mobileMode && !homeMode;
-      toggle.style.display = shouldShow ? 'inline-flex' : 'none';
-      sheet.classList.toggle('open', shouldShow && document.body.classList.contains('mobile-dock-open'));
-      sheet.setAttribute('aria-hidden', shouldShow && document.body.classList.contains('mobile-dock-open') ? 'false' : 'true');
+      sheet.classList.toggle('open', shouldShow);
+      sheet.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
       if (!shouldShow) {
         document.body.classList.remove('mobile-dock-open');
       }
@@ -22477,19 +22474,6 @@
             if (input) {
               requestAnimationFrame(() => input.focus());
             }
-          }
-        });
-      }
-
-      const dockToggle = document.getElementById('mobile-dock-toggle');
-      if (dockToggle && !dockToggle.dataset.bound) {
-        dockToggle.dataset.bound = '1';
-        dockToggle.addEventListener('click', () => {
-          const isOpen = document.body.classList.toggle('mobile-dock-open');
-          const sheet = document.getElementById('mobile-dock-sheet');
-          if (sheet) {
-            sheet.classList.toggle('open', isOpen);
-            sheet.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
           }
         });
       }
