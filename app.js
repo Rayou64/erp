@@ -8160,32 +8160,30 @@ async function generateOrUpdateHrDailyPresenceAndLeaveSnapshot(targetDate) {
     updatedAt: String(row.updatedAt || '').trim(),
   }));
 
-  const payload = {
-    version: 1,
-    kind: 'hr_daily_presence_leave',
-    date: effectiveDate,
-    generatedAt: new Date().toISOString(),
-    summary: {
-      attendanceCount: normalizedAttendanceRows.length,
-      leaveCoveringCount: normalizedLeaveRows.length,
-      leaveEventsCount: Array.isArray(leaveEvents) ? leaveEvents.length : 0,
-      lateCount: normalizedAttendanceRows.filter(row => row.statusCode === 'R').length,
-      absenceCount: normalizedAttendanceRows.filter(row => row.statusCode === 'A').length,
-    },
-    attendance: normalizedAttendanceRows,
-    leavesCoveringDate: normalizedLeaveRows,
-    leaveEventsOfDay: Array.isArray(leaveEvents) ? leaveEvents : [],
+  const summary = {
+    attendanceCount: normalizedAttendanceRows.length,
+    leaveCoveringCount: normalizedLeaveRows.length,
+    leaveEventsCount: Array.isArray(leaveEvents) ? leaveEvents.length : 0,
+    lateCount: normalizedAttendanceRows.filter(row => row.statusCode === 'R').length,
+    absenceCount: normalizedAttendanceRows.filter(row => row.statusCode === 'A').length,
   };
 
-  const fileName = sanitizeFileName(`journal-rh-${effectiveDate}.json`);
+  const fileName = sanitizeFileName(`presence-rh-${effectiveDate}.pdf`);
   const relativePath = path.join('construction', 'hr-journalier', fileName);
   const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
   fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
-  await fs.promises.writeFile(absolutePath, JSON.stringify(payload, null, 2), 'utf8');
+  const pdfBuffer = await generateHrDailyPresencePdfBuffer({
+    effectiveDate,
+    attendanceRows: normalizedAttendanceRows,
+    leaveRows: normalizedLeaveRows,
+    leaveEvents: Array.isArray(leaveEvents) ? leaveEvents : [],
+    summary,
+  });
+  await fs.promises.writeFile(absolutePath, pdfBuffer);
 
   const nowIso = new Date().toISOString();
   const dayId = Number(effectiveDate.replace(/-/g, '')) || 0;
-  const title = `Journal RH quotidien ${effectiveDate}`;
+  const title = `Feuille de presence RH - ${effectiveDate}`;
 
   const existing = await get(
     `SELECT id, relativePath
@@ -8268,6 +8266,108 @@ function getHrAttendanceStatusLabel(code, isWeekend, leaveTypeLabel = '') {
   if (normalizedCode === 'P') return 'Present';
   if (normalizedCode === 'A') return 'Absent';
   return isWeekend ? 'Weekend' : 'Absent';
+}
+
+async function generateHrDailyPresencePdfBuffer({ effectiveDate, attendanceRows = [], leaveRows = [], leaveEvents = [], summary = {} }) {
+  return await new Promise((resolve, reject) => {
+    const chunks = [];
+    const doc = new PDFDocument({ size: 'A4', margin: 36 });
+    doc.on('data', chunk => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const dateLabel = String(effectiveDate || '').trim() || '-';
+    const generatedAt = new Date().toLocaleString('fr-FR');
+    const rows = Array.isArray(attendanceRows) ? attendanceRows : [];
+
+    doc.font('Helvetica-Bold').fontSize(16).fillColor('#0f172a').text('Feuille de presence RH journaliere', { align: 'center' });
+    doc.moveDown(0.4);
+    doc.font('Helvetica').fontSize(10).fillColor('#334155');
+    doc.text(`Date: ${dateLabel}`);
+    doc.text(`Genere le: ${generatedAt}`);
+    doc.text(`Pointages: ${Number(summary.attendanceCount || 0)} | Retards: ${Number(summary.lateCount || 0)} | Absences: ${Number(summary.absenceCount || 0)}`);
+    doc.moveDown(0.6);
+
+    const headers = ['Employe', 'Poste', 'Code', 'Entree', 'Sortie', 'Note'];
+    const colWidths = [150, 100, 42, 56, 56, 124];
+    const rowHeight = 19;
+    const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+    const startX = doc.page.margins.left;
+    const bottomLimit = doc.page.height - doc.page.margins.bottom - 20;
+
+    const drawTableHeader = y => {
+      doc.save();
+      doc.rect(startX, y, tableWidth, rowHeight).fill('#e2e8f0');
+      doc.restore();
+      let cursorX = startX;
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#0f172a');
+      headers.forEach((header, index) => {
+        doc.text(header, cursorX + 4, y + 5, { width: colWidths[index] - 8, align: 'left' });
+        cursorX += colWidths[index];
+      });
+    };
+
+    const drawTableRow = (y, row, isOdd) => {
+      if (isOdd) {
+        doc.save();
+        doc.rect(startX, y, tableWidth, rowHeight).fill('#f8fafc');
+        doc.restore();
+      }
+      const values = [
+        String(row?.fullName || '-'),
+        String(row?.jobTitle || '-'),
+        String(normalizeHrCode(row?.statusCode || 'P')),
+        String(row?.checkInTime || '-'),
+        String(row?.checkOutTime || '-'),
+        String(row?.note || '-'),
+      ];
+      let cursorX = startX;
+      doc.font('Helvetica').fontSize(8.5).fillColor('#1e293b');
+      values.forEach((value, index) => {
+        doc.text(value, cursorX + 4, y + 5, { width: colWidths[index] - 8, align: 'left' });
+        cursorX += colWidths[index];
+      });
+      doc.save();
+      doc.moveTo(startX, y + rowHeight).lineTo(startX + tableWidth, y + rowHeight).lineWidth(0.5).strokeColor('#cbd5e1').stroke();
+      doc.restore();
+    };
+
+    let y = doc.y;
+    drawTableHeader(y);
+    y += rowHeight;
+
+    if (!rows.length) {
+      drawTableRow(y, { fullName: 'Aucun pointage enregistre pour cette date', jobTitle: '-', statusCode: '-', checkInTime: '-', checkOutTime: '-', note: '-' }, false);
+      y += rowHeight;
+    } else {
+      rows.forEach((row, index) => {
+        if (y + rowHeight > bottomLimit) {
+          doc.addPage();
+          y = doc.page.margins.top;
+          drawTableHeader(y);
+          y += rowHeight;
+        }
+        drawTableRow(y, row, index % 2 === 1);
+        y += rowHeight;
+      });
+    }
+
+    const leaveCovering = Array.isArray(leaveRows) ? leaveRows : [];
+    const leaveChanges = Array.isArray(leaveEvents) ? leaveEvents : [];
+    if (leaveCovering.length || leaveChanges.length) {
+      if (y + 60 > bottomLimit) {
+        doc.addPage();
+        y = doc.page.margins.top;
+      }
+      doc.moveDown(0.8);
+      doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f172a').text('Conges lies a cette journee');
+      doc.font('Helvetica').fontSize(9).fillColor('#334155');
+      doc.text(`Conges couvrant la date: ${leaveCovering.length}`);
+      doc.text(`Evenements de conge du jour: ${leaveChanges.length}`);
+    }
+
+    doc.end();
+  });
 }
 
 async function generateHrAttendanceSheetPdfBuffer({ employee, range, rows, monthLabel }) {
@@ -8926,7 +9026,6 @@ app.post('/api/hr/attendance', async (req, res) => {
     );
     const row = await get('SELECT * FROM hr_attendance WHERE id = ?', [Number(existing.id)]);
     try {
-      await generateOrUpdateHrAttendanceSheet(numericEmployeeId, String(effectiveDate).slice(0, 7));
       await generateOrUpdateHrDailyPresenceAndLeaveSnapshot(effectiveDate);
     } catch (sheetError) {
       console.error('Error generating HR attendance archives:', sheetError);
@@ -8957,7 +9056,6 @@ app.post('/api/hr/attendance', async (req, res) => {
 
   const row = await get('SELECT * FROM hr_attendance WHERE id = ?', [nextId]);
   try {
-    await generateOrUpdateHrAttendanceSheet(numericEmployeeId, String(effectiveDate).slice(0, 7));
     await generateOrUpdateHrDailyPresenceAndLeaveSnapshot(effectiveDate);
   } catch (sheetError) {
     console.error('Error generating HR attendance archives:', sheetError);
@@ -9002,10 +9100,6 @@ app.patch('/api/hr/attendance/:id', async (req, res) => {
   const row = await get('SELECT * FROM hr_attendance WHERE id = ?', [id]);
   try {
     const dayValue = String(row?.attendanceDate || row?.dayDate || '').slice(0, 10);
-    const rowDate = String(row?.attendanceDate || row?.dayDate || '').slice(0, 7);
-    if (rowDate) {
-      await generateOrUpdateHrAttendanceSheet(Number(row.employeeId || 0), rowDate);
-    }
     if (dayValue) {
       await generateOrUpdateHrDailyPresenceAndLeaveSnapshot(dayValue);
     }
