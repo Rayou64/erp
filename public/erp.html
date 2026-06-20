@@ -744,7 +744,7 @@
 
     .mobile-dock-sheet .dock-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 6px;
     }
 
@@ -759,8 +759,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0;
-      font-size: 0;
+      gap: 4px;
+      font-size: 11px;
       font-weight: 700;
       position: relative;
     }
@@ -771,7 +771,7 @@
     }
 
     .mobile-dock-sheet .dock-item .ico {
-      font-size: 24px;
+      font-size: 18px;
       line-height: 1;
     }
 
@@ -1028,7 +1028,7 @@
       background: rgba(9, 29, 74, 0.44);
       backdrop-filter: blur(10px);
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 6px;
       padding: 7px;
       box-shadow: 0 12px 28px rgba(2, 6, 23, 0.45);
@@ -1045,8 +1045,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0;
-      font-size: 0;
+      gap: 4px;
+      font-size: 11px;
       font-weight: 700;
       line-height: 1.12;
       position: relative;
@@ -1059,7 +1059,7 @@
     }
 
     .mph-fusion-btn .icon {
-      font-size: 24px;
+      font-size: 18px;
     }
 
     .mph-fusion-badge {
@@ -2624,10 +2624,6 @@
         display: none !important;
       }
 
-      .home-nav-btn {
-        display: none !important;
-      }
-
       body.mobile-notif-open .notif-btn-wrap {
         display: inline-flex !important;
       }
@@ -2847,7 +2843,7 @@
       }
 
       .mobile-premium-home {
-        display: none !important;
+        display: block;
         margin: 0;
         border-radius: 0;
         border: 0;
@@ -4176,11 +4172,13 @@
 
     <!-- Main Content -->
     <div class="main-content">
+      <button type="button" id="mobile-dock-toggle" class="mobile-dock-toggle" aria-label="Ouvrir le menu mobile"><span>☰</span><em>Menu</em></button>
       <div id="mobile-dock-sheet" class="mobile-dock-sheet" aria-hidden="true">
         <div class="dock-grid">
-          <button type="button" id="dock-home-btn" class="dock-item active" aria-label="Accueil"><span class="ico">🏠</span></button>
-          <button type="button" id="dock-search-btn" class="dock-item" aria-label="Recherche"><span class="ico">🔎</span></button>
-          <button type="button" id="dock-notif-btn" class="dock-item" aria-label="Notifications"><span class="badge" id="dock-notif-badge">0</span><span class="ico">🔔</span></button>
+          <button type="button" id="dock-home-btn" class="dock-item active" aria-label="Accueil"><span class="ico">⌂</span>Accueil</button>
+          <button type="button" id="dock-search-btn" class="dock-item" aria-label="Recherche"><span class="ico">⌕</span>Recherche</button>
+          <button type="button" id="dock-notif-btn" class="dock-item" aria-label="Notifications"><span class="badge" id="dock-notif-badge">0</span><span class="ico">⍾</span>Notifications</button>
+          <button type="button" id="dock-logout-btn" class="dock-item" aria-label="Déconnexion"><span class="ico">⇥</span>Déconnexion</button>
         </div>
       </div>
       <!-- Topbar -->
@@ -4250,9 +4248,10 @@
               <div class="mph-hero-copy">Accueil premium, rapide et oriente metier</div>
               <div class="mph-hero-title">Blocs visibles, menu elegant.</div>
               <div class="mph-fusion-nav" aria-label="Navigation fusionnee accueil">
-                <button type="button" id="mph-nav-home" class="mph-fusion-btn active" aria-label="Accueil"><span class="icon">🏠</span></button>
-                <button type="button" id="mph-nav-search" class="mph-fusion-btn" aria-label="Recherche"><span class="icon">🔎</span></button>
-                <button type="button" id="mph-nav-notif" class="mph-fusion-btn" aria-label="Notifications"><span class="mph-fusion-badge" id="mph-nav-notif-badge">0</span><span class="icon">🔔</span></button>
+                <button type="button" id="mph-nav-home" class="mph-fusion-btn active" aria-label="Accueil"><span class="icon">⌂</span>Accueil</button>
+                <button type="button" id="mph-nav-search" class="mph-fusion-btn" aria-label="Recherche"><span class="icon">⌕</span>Recherche</button>
+                <button type="button" id="mph-nav-notif" class="mph-fusion-btn" aria-label="Notifications"><span class="mph-fusion-badge" id="mph-nav-notif-badge">0</span><span class="icon">⍾</span>Notifications</button>
+                <button type="button" id="mph-nav-logout" class="mph-fusion-btn" aria-label="Deconnexion"><span class="icon">⇥</span>Deconnexion</button>
               </div>
             </div>
             <div class="mph-section-head">
@@ -4282,7 +4281,7 @@
               <div id="mph-module-list" class="mph-module-list"></div>
             </div>
           </div>
-          <div id="dashboard-classic-grid" class="dashboard-grid">
+          <div id="dashboard-classic-grid" class="dashboard-grid" style="display:none;">
             <div class="card stat-card">
               <h3 id="stat-projects">0</h3>
               <p>Projets en cours</p>
@@ -14654,19 +14653,21 @@
       const shouldShow = window.innerWidth <= 900 && currentModule !== 'dashboard';
       backBtn.classList.toggle('hidden', !shouldShow);
       if (menuBtn) {
-        menuBtn.classList.add('hidden');
+        menuBtn.classList.toggle('hidden', !shouldShow);
       }
     }
 
     function syncMobileDockVisibility() {
+      const toggle = document.getElementById('mobile-dock-toggle');
       const sheet = document.getElementById('mobile-dock-sheet');
       const homeMode = currentModule === 'dashboard';
       const mobileMode = window.innerWidth <= 900;
-      if (!sheet) return;
+      if (!toggle || !sheet) return;
 
-      const shouldShow = mobileMode;
-      sheet.classList.toggle('open', shouldShow);
-      sheet.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+      const shouldShow = mobileMode && !homeMode;
+      toggle.style.display = shouldShow ? 'inline-flex' : 'none';
+      sheet.classList.toggle('open', shouldShow && document.body.classList.contains('mobile-dock-open'));
+      sheet.setAttribute('aria-hidden', shouldShow && document.body.classList.contains('mobile-dock-open') ? 'false' : 'true');
       if (!shouldShow) {
         document.body.classList.remove('mobile-dock-open');
       }
@@ -15267,10 +15268,6 @@
         }
       } catch (err) {
         console.error('Erreur dashboard:', err);
-        const classicGrid = document.getElementById('dashboard-classic-grid');
-        if (classicGrid && !isHrDirector() && !isExecutive()) {
-          classicGrid.style.display = '';
-        }
       }
     }
 
@@ -22486,6 +22483,19 @@
         });
       }
 
+      const dockToggle = document.getElementById('mobile-dock-toggle');
+      if (dockToggle && !dockToggle.dataset.bound) {
+        dockToggle.dataset.bound = '1';
+        dockToggle.addEventListener('click', () => {
+          const isOpen = document.body.classList.toggle('mobile-dock-open');
+          const sheet = document.getElementById('mobile-dock-sheet');
+          if (sheet) {
+            sheet.classList.toggle('open', isOpen);
+            sheet.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+          }
+        });
+      }
+
       const dockHomeBtn = document.getElementById('dock-home-btn');
       if (dockHomeBtn && !dockHomeBtn.dataset.bound) {
         dockHomeBtn.dataset.bound = '1';
@@ -22509,6 +22519,14 @@
           lastNotifToggleAt = Date.now();
           toggleNotificationsPanel();
           setupPushNotifications({ requestPermission: true }).catch(() => {});
+        });
+      }
+
+      const dockLogoutBtn = document.getElementById('dock-logout-btn');
+      if (dockLogoutBtn && !dockLogoutBtn.dataset.bound) {
+        dockLogoutBtn.dataset.bound = '1';
+        dockLogoutBtn.addEventListener('click', () => {
+          document.getElementById('logout-button')?.click();
         });
       }
 
@@ -22546,6 +22564,14 @@
           lastNotifToggleAt = Date.now();
           toggleNotificationsPanel();
           setupPushNotifications({ requestPermission: true }).catch(() => {});
+        });
+      }
+
+      const fusionLogoutBtn = document.getElementById('mph-nav-logout');
+      if (fusionLogoutBtn && !fusionLogoutBtn.dataset.bound) {
+        fusionLogoutBtn.dataset.bound = '1';
+        fusionLogoutBtn.addEventListener('click', () => {
+          document.getElementById('logout-button')?.click();
         });
       }
 
