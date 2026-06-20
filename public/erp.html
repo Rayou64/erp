@@ -2674,10 +2674,10 @@
       .topbar-right {
         display: flex !important;
         position: fixed;
-        left: 12px;
+        right: 78px;
         top: calc(env(safe-area-inset-top, 0px) + 10px);
         z-index: 90;
-        gap: 8px;
+        gap: 6px;
         background: none !important;
         border: none !important;
         padding: 0 !important;
@@ -2688,13 +2688,16 @@
         pointer-events: auto;
       }
 
-      /* Hide all elements in topbar-right except home-nav-btn */
+      /* Keep only Accueil + cloche on mobile top-right */
       .topbar-right #mobile-search-dock-btn,
-      .topbar-right .notif-btn-wrap,
       .topbar-right #theme-toggle,
       .topbar-right .user-info,
       .topbar-right #logout-button {
         display: none !important;
+      }
+
+      .topbar-right .notif-btn-wrap {
+        display: inline-flex !important;
       }
 
       .home-nav-btn {
