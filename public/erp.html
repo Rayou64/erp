@@ -2675,13 +2675,11 @@
       }
 
       .mobile-dock-toggle {
-        display: inline-flex;
-        position: fixed;
-        right: 12px;
-        top: calc(env(safe-area-inset-top, 0px) + 74px);
-        z-index: 91;
         width: 52px;
         height: 52px;
+         display: inline-flex !important;
+         position: static !important;
+         z-index: 91 !important;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
@@ -2764,24 +2762,26 @@
       }
 
       .back-nav-btn {
-        position: fixed;
-        left: 12px;
-        top: calc(env(safe-area-inset-top, 0px) + 10px);
+        position: fixed !important;
+        left: 12px !important;
+        top: calc(env(safe-area-inset-top, 0px) + 10px) !important;
         width: 52px;
         min-width: 52px;
         height: 52px;
         padding: 0 !important;
         border-radius: 50%;
-        border: 1px solid rgba(28, 63, 119, 0.15);
-        background: linear-gradient(145deg, #e8f0f7 0%, #d4e4f2 100%);
+        border: 1px solid rgba(28, 63, 119, 0.15) !important;
+        background: linear-gradient(145deg, #e8f0f7 0%, #d4e4f2 100%) !important;
         color: #1c3f77;
-        display: inline-flex;
+        display: inline-flex !important;
         align-items: center;
         justify-content: center;
         font-size: 24px;
         box-shadow: 0 10px 24px rgba(11, 19, 36, 0.14);
         transition: transform 140ms ease, box-shadow 140ms ease;
-        z-index: 89;
+        z-index: 89 !important;
+        margin: 0 !important;
+        cursor: pointer;
       }
 
       .back-nav-btn:hover {
@@ -4343,7 +4343,6 @@
 
     <!-- Main Content -->
     <div class="main-content">
-      <button type="button" id="mobile-dock-toggle" class="mobile-dock-toggle" aria-label="Ouvrir le menu mobile"><span>☰</span><em>Modules</em></button>
       <div id="mobile-dock-sheet" class="mobile-dock-sheet" aria-hidden="true">
         <div class="dock-grid">
           <button type="button" id="dock-home-btn" class="dock-item active" aria-label="Accueil"><span class="ico">⌂</span>Accueil</button>
@@ -4352,6 +4351,9 @@
           <button type="button" id="dock-logout-btn" class="dock-item" aria-label="Déconnexion"><span class="ico">⇥</span>Déconnexion</button>
         </div>
       </div>
+      <!-- Back button positioned fixed left -->
+      <button type="button" id="back-nav-btn" class="back-nav-btn" aria-label="Retour"><span class="icon">←</span><span class="sr-only">Retour à l'interface précédente</span></button>
+      
       <!-- Topbar -->
       <div class="topbar">
         <div class="topbar-left">
@@ -4366,11 +4368,11 @@
           </div>
         </div>
         <div class="topbar-right">
-          <button type="button" id="back-nav-btn" class="back-nav-btn" aria-label="Retour"><span class="icon">←</span><span class="sr-only">Retour à l'interface précédente</span></button>
           <button type="button" id="home-nav-btn" class="home-nav-btn" aria-label="Accueil">
             <span class="icon">⌂</span>
             <span class="label">Accueil</span>
           </button>
+           <button type="button" id="mobile-dock-toggle" class="mobile-dock-toggle" aria-label="Menu"><span>☰</span><span class="sr-only">Menu</span></button>
           <button type="button" id="mobile-search-dock-btn" class="button button-secondary button-small" aria-label="Recherche">🔍</button>
           <div class="notif-btn-wrap">
             <button id="notif-bell-btn" title="Notifications">🔔</button>
