@@ -2561,7 +2561,20 @@
       }
 
       .topbar {
-        display: none;
+        display: block !important;
+        position: fixed;
+        width: 100%;
+        height: auto;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        z-index: 85;
+        pointer-events: none;
       }
 
       .topbar-left,
@@ -2665,11 +2678,14 @@
         top: calc(env(safe-area-inset-top, 0px) + 10px);
         z-index: 90;
         gap: 8px;
-        background: none;
-        border: none;
-        padding: 0;
+        background: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
         align-items: center;
         width: auto;
+        height: auto;
+        pointer-events: auto;
       }
 
       /* Hide all elements in topbar-right except home-nav-btn */
@@ -2684,7 +2700,8 @@
       .home-nav-btn {
         position: static !important;
         height: 38px;
-        margin: 0;
+        margin: 0 !important;
+        pointer-events: auto;
       }
 
       .module:not(#dashboard) {
