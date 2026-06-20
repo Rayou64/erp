@@ -2654,7 +2654,7 @@
         position: fixed;
         right: 12px;
         top: calc(env(safe-area-inset-top, 0px) + 10px);
-        z-index: 90;
+        z-index: 91;
       }
 
       /* Show home-nav-btn on mobile, positioned to the left of the menu toggle */
@@ -2668,15 +2668,23 @@
         background: none;
         border: none;
         padding: 0;
+        align-items: center;
+        width: auto;
       }
 
-      .topbar-right > :not(#home-nav-btn) {
+      /* Hide all elements in topbar-right except home-nav-btn */
+      .topbar-right #mobile-search-dock-btn,
+      .topbar-right .notif-btn-wrap,
+      .topbar-right #theme-toggle,
+      .topbar-right .user-info,
+      .topbar-right #logout-button {
         display: none !important;
       }
 
       .home-nav-btn {
         position: static !important;
         height: 38px;
+        margin: 0;
       }
 
       .module:not(#dashboard) {
