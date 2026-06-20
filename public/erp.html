@@ -2624,6 +2624,10 @@
         display: none !important;
       }
 
+      .home-nav-btn {
+        display: none !important;
+      }
+
       body.mobile-notif-open .notif-btn-wrap {
         display: inline-flex !important;
       }
@@ -4278,7 +4282,7 @@
               <div id="mph-module-list" class="mph-module-list"></div>
             </div>
           </div>
-          <div id="dashboard-classic-grid" class="dashboard-grid" style="display:none;">
+          <div id="dashboard-classic-grid" class="dashboard-grid">
             <div class="card stat-card">
               <h3 id="stat-projects">0</h3>
               <p>Projets en cours</p>
@@ -14660,7 +14664,7 @@
       const mobileMode = window.innerWidth <= 900;
       if (!sheet) return;
 
-      const shouldShow = mobileMode && !homeMode;
+      const shouldShow = mobileMode;
       sheet.classList.toggle('open', shouldShow);
       sheet.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
       if (!shouldShow) {
@@ -15263,6 +15267,10 @@
         }
       } catch (err) {
         console.error('Erreur dashboard:', err);
+        const classicGrid = document.getElementById('dashboard-classic-grid');
+        if (classicGrid && !isHrDirector() && !isExecutive()) {
+          classicGrid.style.display = '';
+        }
       }
     }
 
