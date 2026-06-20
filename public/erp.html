@@ -701,39 +701,6 @@
       padding: 18px;
     }
 
-    .mobile-dock-toggle {
-      display: none;
-      position: fixed;
-      right: 12px;
-      top: calc(env(safe-area-inset-top, 0px) + 10px);
-      z-index: 90;
-      border: 1px solid rgba(191, 219, 254, 0.28);
-      border-radius: 16px;
-      background: rgba(9, 29, 74, 0.66);
-      backdrop-filter: blur(10px);
-      color: #f8fbff;
-      box-shadow: 0 14px 34px rgba(2, 6, 23, 0.36);
-      min-width: 52px;
-      min-height: 52px;
-      padding: 0 12px;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .mobile-dock-toggle span {
-      font-size: 18px;
-      line-height: 1;
-    }
-
-    .mobile-dock-toggle em {
-      font-style: normal;
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
 
     .mobile-dock-sheet {
       display: none;
@@ -813,57 +780,6 @@
       margin-top: 8px;
     }
 
-    .mobile-module-back-btn {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border: 1px solid rgba(191, 219, 254, 0.9);
-      border-radius: 999px;
-      background: linear-gradient(145deg, rgba(12, 44, 112, 0.96), rgba(29, 78, 216, 0.96));
-      color: #eff6ff;
-      font-size: 13px;
-      font-weight: 800;
-      min-height: 46px;
-      padding: 11px 14px;
-      margin: 0;
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.34);
-      cursor: pointer;
-      position: fixed;
-      left: 12px;
-      top: calc(env(safe-area-inset-top, 0px) + 10px);
-      z-index: 90;
-      max-width: calc(100vw - 90px);
-    }
-
-    .mobile-module-menu-btn {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(191, 219, 254, 0.9);
-      border-radius: 999px;
-      background: linear-gradient(145deg, rgba(12, 44, 112, 0.96), rgba(29, 78, 216, 0.96));
-      color: #eff6ff;
-      font-size: 20px;
-      font-weight: 800;
-      width: 46px;
-      height: 46px;
-      margin: 0;
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.34);
-      cursor: pointer;
-      position: fixed;
-      right: 12px;
-      top: calc(env(safe-area-inset-top, 0px) + 10px);
-      z-index: 90;
-    }
-
-    .mobile-module-menu-btn.hidden {
-      display: none !important;
-    }
-
-    .mobile-module-back-btn.hidden {
-      display: none !important;
-    }
 
     .mph-topbar {
       display: flex;
@@ -2674,152 +2590,12 @@
         background: transparent;
       }
 
-      .mobile-dock-toggle {
-        width: 52px;
-        height: 52px;
-         display: inline-flex !important;
-         position: static !important;
-         z-index: 91 !important;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        border: 1px solid rgba(18, 36, 66, 0.25);
-        background: linear-gradient(145deg, #1c3f77 0%, #2a5aa1 100%);
-        color: #f4f8ff;
-        box-shadow: 0 10px 24px rgba(11, 19, 36, 0.14);
-        transition: transform 140ms ease, box-shadow 140ms ease;
-      }
-
-      .mobile-dock-toggle:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 14px 30px rgba(11, 19, 36, 0.18);
-      }
-
-      .mobile-dock-toggle:focus-visible {
-        outline: 3px solid #0ea5e9;
-        outline-offset: 2px;
-      }
-
-      /* Mobile: show only Home icon + Menu icon, aligned to the right */
-      .topbar-right {
-        display: flex !important;
-        position: fixed;
-        right: 12px;
-        top: calc(env(safe-area-inset-top, 0px) + 10px);
-        z-index: 90;
-        gap: 8px;
-        background: none !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        align-items: center;
-        width: auto;
-        height: auto;
-        pointer-events: auto;
-      }
-
-      /* Keep only home button in topbar-right on mobile */
-      .topbar-right #mobile-search-dock-btn,
-      .topbar-right .notif-btn-wrap,
-      .topbar-right #theme-toggle,
-      .topbar-right .user-info,
-      .topbar-right #logout-button {
-        display: none !important;
-      }
-
-      .home-nav-btn {
-        position: static !important;
-        width: 52px;
-        min-width: 52px;
-        height: 52px;
-        padding: 0 !important;
-        border-radius: 50%;
-        margin: 0 !important;
-        pointer-events: auto;
-        gap: 0;
-        background: linear-gradient(145deg, #ffd08a 0%, #f0ab3d 100%) !important;
-        box-shadow: 0 10px 24px rgba(11, 19, 36, 0.14);
-        border: 1px solid rgba(139, 85, 11, 0.22) !important;
-        transition: transform 140ms ease, box-shadow 140ms ease;
-      }
-
-      .home-nav-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 14px 30px rgba(11, 19, 36, 0.18);
-      }
-
-      .home-nav-btn:focus-visible {
-        outline: 3px solid #0ea5e9;
-        outline-offset: 2px;
-      }
-
-      .home-nav-btn .label {
-        display: none !important;
-      }
-
-      .home-nav-btn .icon {
-        font-size: 18px;
-      }
-
-      .back-nav-btn {
-        position: fixed !important;
-        left: 12px !important;
-        top: calc(env(safe-area-inset-top, 0px) + 10px) !important;
-        width: 52px;
-        min-width: 52px;
-        height: 52px;
-        padding: 0 !important;
-        border-radius: 50%;
-        border: 1px solid rgba(28, 63, 119, 0.15) !important;
-        background: linear-gradient(145deg, #e8f0f7 0%, #d4e4f2 100%) !important;
-        color: #1c3f77;
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        box-shadow: 0 10px 24px rgba(11, 19, 36, 0.14);
-        transition: transform 140ms ease, box-shadow 140ms ease;
-        z-index: 89 !important;
-        margin: 0 !important;
-        cursor: pointer;
-      }
-
-      .back-nav-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 14px 30px rgba(11, 19, 36, 0.18);
-      }
-
-      .back-nav-btn:focus-visible {
-        outline: 3px solid #0ea5e9;
-        outline-offset: 2px;
-      }
-
-      .mobile-dock-toggle {
-        min-width: 52px;
-        min-height: 52px;
-        padding: 0;
-      }
-
-      .mobile-dock-toggle em {
-        display: none !important;
-      }
-
-      .mobile-dock-toggle span {
-        font-size: 20px;
-      }
 
       .module:not(#dashboard) {
         padding: 12px;
         padding-top: calc(env(safe-area-inset-top, 0px) + 72px);
       }
 
-      .mobile-module-back-btn {
-        display: inline-flex;
-      }
-
-      .mobile-module-menu-btn {
-        display: inline-flex;
-      }
 
       .page-header {
         margin-bottom: 16px;
@@ -3097,13 +2873,6 @@
         background: linear-gradient(90deg, rgba(255, 107, 107, 0.16), rgba(46, 196, 182, 0.16));
       }
 
-      .mobile-dock-toggle {
-        border-color: rgba(31, 41, 55, 0.14);
-        background: rgba(255, 255, 255, 0.92);
-        color: #1f2937;
-        box-shadow: 0 12px 28px rgba(31, 41, 55, 0.16);
-      }
-
       .mobile-dock-sheet {
         border-color: rgba(31, 41, 55, 0.14);
         background: rgba(255, 255, 255, 0.95);
@@ -3118,21 +2887,6 @@
         background: linear-gradient(145deg, #5f6af2, #4f46e5);
         border-color: transparent;
         color: #ffffff;
-      }
-
-      .mobile-module-back-btn,
-      .mobile-module-menu-btn {
-        border-color: rgba(31, 41, 55, 0.14);
-        background: rgba(255, 255, 255, 0.94);
-        color: #1f2937;
-        box-shadow: 0 12px 28px rgba(31, 41, 55, 0.16);
-      }
-
-      .mobile-module-back-btn {
-        border-color: rgba(173, 109, 14, 0.26);
-        background: linear-gradient(135deg, #f3b24b 0%, #e19a2d 100%);
-        color: #3b2508;
-        box-shadow: 0 12px 28px rgba(191, 122, 15, 0.28);
       }
 
       .mobile-premium-home {
@@ -4182,50 +3936,6 @@
     .topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 20px; }
     .topbar-right { gap: 10px; }
 
-    .home-nav-btn {
-      min-width: 88px;
-      height: 38px;
-      border-radius: 999px;
-      border: 1px solid rgba(173, 109, 14, 0.3);
-      background: linear-gradient(135deg, #f3b24b 0%, #e19a2d 100%);
-      color: #3b2508;
-      font-size: 13px;
-      font-weight: 800;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-      padding: 0 10px;
-      box-shadow: 0 10px 20px rgba(191, 122, 15, 0.22);
-    }
-
-    .home-nav-btn .icon {
-      font-size: 16px;
-      line-height: 1;
-    }
-
-    .home-nav-btn .label {
-      font-size: 11px;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      line-height: 1;
-    }
-
-    .home-nav-btn:hover {
-      background: linear-gradient(135deg, #e19a2d 0%, #cf881e 100%);
-      color: #2c1703;
-      border-color: rgba(131, 75, 2, 0.42);
-      box-shadow: 0 12px 24px rgba(191, 122, 15, 0.28);
-    }
-
-    [data-theme="dark"] .home-nav-btn {
-      border-color: rgba(173, 109, 14, 0.36);
-      background: linear-gradient(135deg, #f3b24b 0%, #d1902b 100%);
-      color: #2c1703;
-    }
-
     /* ═══════════════════════════════════════════════════
        EXPORT BUTTON
     ═══════════════════════════════════════════════════ */
@@ -4345,15 +4055,11 @@
     <div class="main-content">
       <div id="mobile-dock-sheet" class="mobile-dock-sheet" aria-hidden="true">
         <div class="dock-grid">
-          <button type="button" id="dock-home-btn" class="dock-item active" aria-label="Accueil"><span class="ico">⌂</span>Accueil</button>
           <button type="button" id="dock-search-btn" class="dock-item" aria-label="Recherche"><span class="ico">⌕</span>Recherche</button>
           <button type="button" id="dock-notif-btn" class="dock-item" aria-label="Notifications"><span class="badge" id="dock-notif-badge">0</span><span class="ico">⍾</span>Notifications</button>
           <button type="button" id="dock-logout-btn" class="dock-item" aria-label="Déconnexion"><span class="ico">⇥</span>Déconnexion</button>
         </div>
       </div>
-      <!-- Back button positioned fixed left -->
-      <button type="button" id="back-nav-btn" class="back-nav-btn" aria-label="Retour"><span class="icon">←</span><span class="sr-only">Retour à l'interface précédente</span></button>
-      
       <!-- Topbar -->
       <div class="topbar">
         <div class="topbar-left">
@@ -4368,11 +4074,6 @@
           </div>
         </div>
         <div class="topbar-right">
-          <button type="button" id="home-nav-btn" class="home-nav-btn" aria-label="Accueil">
-            <span class="icon">⌂</span>
-            <span class="label">Accueil</span>
-          </button>
-           <button type="button" id="mobile-dock-toggle" class="mobile-dock-toggle" aria-label="Menu"><span>☰</span><span class="sr-only">Menu</span></button>
           <button type="button" id="mobile-search-dock-btn" class="button button-secondary button-small" aria-label="Recherche">🔍</button>
           <div class="notif-btn-wrap">
             <button id="notif-bell-btn" title="Notifications">🔔</button>
@@ -4392,8 +4093,6 @@
 
       <!-- Content Area -->
       <div class="content-area">
-        <button type="button" id="mobile-module-back-btn" class="mobile-module-back-btn hidden" aria-label="Retour modules">← Retour modules</button>
-        <button type="button" id="mobile-module-menu-btn" class="mobile-module-menu-btn hidden" aria-label="Ouvrir le menu">☰</button>
         <!-- Dashboard Module -->
         <div id="dashboard" class="module active">
           <div class="page-header" style="display:none;">
@@ -4425,7 +4124,6 @@
               <div class="mph-hero-copy">Accueil premium, rapide et oriente metier</div>
               <div class="mph-hero-title">Blocs visibles, menu elegant.</div>
               <div class="mph-fusion-nav" aria-label="Navigation fusionnee accueil">
-                <button type="button" id="mph-nav-home" class="mph-fusion-btn active" aria-label="Accueil"><span class="icon">⌂</span>Accueil</button>
                 <button type="button" id="mph-nav-search" class="mph-fusion-btn" aria-label="Recherche"><span class="icon">⌕</span>Recherche</button>
                 <button type="button" id="mph-nav-notif" class="mph-fusion-btn" aria-label="Notifications"><span class="mph-fusion-badge" id="mph-nav-notif-badge">0</span><span class="icon">⍾</span>Notifications</button>
                 <button type="button" id="mph-nav-logout" class="mph-fusion-btn" aria-label="Deconnexion"><span class="icon">⇥</span>Deconnexion</button>
@@ -14819,47 +14517,6 @@
       const [title, subtitle] = titles[moduleName] || ['Module', 'Détails'];
       document.getElementById('page-title').textContent = title;
       document.getElementById('page-subtitle').textContent = subtitle;
-      syncMobileModuleBackButton();
-      syncMobileDockVisibility();
-    }
-
-    function syncMobileModuleBackButton() {
-      const backBtn = document.getElementById('mobile-module-back-btn');
-      const menuBtn = document.getElementById('mobile-module-menu-btn');
-      if (!backBtn) return;
-      const shouldShow = window.innerWidth <= 900 && currentModule !== 'dashboard';
-      backBtn.classList.toggle('hidden', !shouldShow);
-      if (menuBtn) {
-        menuBtn.classList.toggle('hidden', !shouldShow);
-      }
-    }
-
-    function syncMobileDockVisibility() {
-      const toggle = document.getElementById('mobile-dock-toggle');
-      const sheet = document.getElementById('mobile-dock-sheet');
-      const homeNavBtn = document.getElementById('home-nav-btn');
-      const backNavBtn = document.getElementById('back-nav-btn');
-      const homeMode = currentModule === 'dashboard';
-      const mobileMode = window.innerWidth <= 900;
-      if (!toggle || !sheet) return;
-
-      const shouldShow = mobileMode && !homeMode;
-      if (homeNavBtn) {
-        homeNavBtn.style.display = shouldShow ? 'inline-flex' : 'none';
-      }
-      if (backNavBtn) {
-        backNavBtn.style.display = shouldShow ? 'inline-flex' : 'none';
-      }
-      toggle.style.display = shouldShow ? 'inline-flex' : 'none';
-      sheet.classList.toggle('open', shouldShow && document.body.classList.contains('mobile-dock-open'));
-      sheet.setAttribute('aria-hidden', shouldShow && document.body.classList.contains('mobile-dock-open') ? 'false' : 'true');
-      if (!shouldShow) {
-        document.body.classList.remove('mobile-dock-open');
-      }
-      const dockHomeBtn = document.getElementById('dock-home-btn');
-      if (dockHomeBtn) {
-        dockHomeBtn.classList.toggle('active', homeMode);
-      }
     }
 
     function shouldAutoRefreshMaps() {
@@ -22483,8 +22140,6 @@
       if (window.innerWidth <= 900) {
         setSidebarCollapsed(true);
       }
-      syncMobileModuleBackButton();
-      syncMobileDockVisibility();
     }
 
     function returnToModuleSelection() {
@@ -22506,8 +22161,6 @@
           }
         });
       }
-
-      syncMobileModuleBackButton();
     }
 
     function closeMobilePremiumPanel() {
@@ -22668,25 +22321,6 @@
         });
       }
 
-      const dockToggle = document.getElementById('mobile-dock-toggle');
-      if (dockToggle && !dockToggle.dataset.bound) {
-        dockToggle.dataset.bound = '1';
-        dockToggle.addEventListener('click', () => {
-          const isOpen = document.body.classList.toggle('mobile-dock-open');
-          const sheet = document.getElementById('mobile-dock-sheet');
-          if (sheet) {
-            sheet.classList.toggle('open', isOpen);
-            sheet.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-          }
-        });
-      }
-
-      const dockHomeBtn = document.getElementById('dock-home-btn');
-      if (dockHomeBtn && !dockHomeBtn.dataset.bound) {
-        dockHomeBtn.dataset.bound = '1';
-        dockHomeBtn.addEventListener('click', () => returnToHomeScreen());
-      }
-
       const dockSearchBtn = document.getElementById('dock-search-btn');
       if (dockSearchBtn && !dockSearchBtn.dataset.bound) {
         dockSearchBtn.dataset.bound = '1';
@@ -22713,12 +22347,6 @@
         dockLogoutBtn.addEventListener('click', () => {
           document.getElementById('logout-button')?.click();
         });
-      }
-
-      const fusionHomeBtn = document.getElementById('mph-nav-home');
-      if (fusionHomeBtn && !fusionHomeBtn.dataset.bound) {
-        fusionHomeBtn.dataset.bound = '1';
-        fusionHomeBtn.addEventListener('click', () => returnToHomeScreen());
       }
 
       const fusionSearchBtn = document.getElementById('mph-nav-search');
@@ -22760,50 +22388,6 @@
         });
       }
 
-      const homeNavBtn = document.getElementById('home-nav-btn');
-      if (homeNavBtn && !homeNavBtn.dataset.bound) {
-        homeNavBtn.dataset.bound = '1';
-        homeNavBtn.addEventListener('click', () => {
-          returnToHomeScreen();
-        });
-      }
-
-      const backNavBtn = document.getElementById('back-nav-btn');
-      if (backNavBtn && !backNavBtn.dataset.bound) {
-        backNavBtn.dataset.bound = '1';
-        backNavBtn.addEventListener('click', () => {
-          window.history.back();
-        });
-      }
-
-      const moduleBackBtn = document.getElementById('mobile-module-back-btn');
-      if (moduleBackBtn && !moduleBackBtn.dataset.bound) {
-        moduleBackBtn.dataset.bound = '1';
-        moduleBackBtn.addEventListener('click', () => {
-          returnToModuleSelection();
-        });
-      }
-
-      const moduleMenuBtn = document.getElementById('mobile-module-menu-btn');
-      if (moduleMenuBtn && !moduleMenuBtn.dataset.bound) {
-        moduleMenuBtn.dataset.bound = '1';
-        moduleMenuBtn.addEventListener('click', () => {
-          if (window.innerWidth <= 900) {
-            setSidebarCollapsed(false);
-          }
-        });
-      }
-
-      if (!window.__erpMobileBackSyncBound) {
-        window.__erpMobileBackSyncBound = true;
-        window.addEventListener('resize', () => {
-          syncMobileModuleBackButton();
-          syncMobileDockVisibility();
-        });
-      }
-
-      syncMobileModuleBackButton();
-      syncMobileDockVisibility();
     }
 
     document.querySelectorAll('.menu-item').forEach(item => {
