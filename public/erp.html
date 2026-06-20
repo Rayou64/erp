@@ -744,7 +744,7 @@
 
     .mobile-dock-sheet .dock-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 6px;
     }
 
@@ -759,8 +759,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      font-size: 11px;
+      gap: 0;
+      font-size: 0;
       font-weight: 700;
       position: relative;
     }
@@ -771,7 +771,7 @@
     }
 
     .mobile-dock-sheet .dock-item .ico {
-      font-size: 18px;
+      font-size: 24px;
       line-height: 1;
     }
 
@@ -1028,7 +1028,7 @@
       background: rgba(9, 29, 74, 0.44);
       backdrop-filter: blur(10px);
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 6px;
       padding: 7px;
       box-shadow: 0 12px 28px rgba(2, 6, 23, 0.45);
@@ -1045,8 +1045,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      font-size: 11px;
+      gap: 0;
+      font-size: 0;
       font-weight: 700;
       line-height: 1.12;
       position: relative;
@@ -1059,7 +1059,7 @@
     }
 
     .mph-fusion-btn .icon {
-      font-size: 18px;
+      font-size: 24px;
     }
 
     .mph-fusion-badge {
@@ -4175,10 +4175,9 @@
       <button type="button" id="mobile-dock-toggle" class="mobile-dock-toggle" aria-label="Ouvrir le menu mobile"><span>☰</span><em>Menu</em></button>
       <div id="mobile-dock-sheet" class="mobile-dock-sheet" aria-hidden="true">
         <div class="dock-grid">
-          <button type="button" id="dock-home-btn" class="dock-item active" aria-label="Accueil"><span class="ico">⌂</span>Accueil</button>
-          <button type="button" id="dock-search-btn" class="dock-item" aria-label="Recherche"><span class="ico">⌕</span>Recherche</button>
-          <button type="button" id="dock-notif-btn" class="dock-item" aria-label="Notifications"><span class="badge" id="dock-notif-badge">0</span><span class="ico">⍾</span>Notifications</button>
-          <button type="button" id="dock-logout-btn" class="dock-item" aria-label="Déconnexion"><span class="ico">⇥</span>Déconnexion</button>
+          <button type="button" id="dock-home-btn" class="dock-item active" aria-label="Accueil"><span class="ico">🏠</span></button>
+          <button type="button" id="dock-search-btn" class="dock-item" aria-label="Recherche"><span class="ico">🔎</span></button>
+          <button type="button" id="dock-notif-btn" class="dock-item" aria-label="Notifications"><span class="badge" id="dock-notif-badge">0</span><span class="ico">🔔</span></button>
         </div>
       </div>
       <!-- Topbar -->
@@ -4248,10 +4247,9 @@
               <div class="mph-hero-copy">Accueil premium, rapide et oriente metier</div>
               <div class="mph-hero-title">Blocs visibles, menu elegant.</div>
               <div class="mph-fusion-nav" aria-label="Navigation fusionnee accueil">
-                <button type="button" id="mph-nav-home" class="mph-fusion-btn active" aria-label="Accueil"><span class="icon">⌂</span>Accueil</button>
-                <button type="button" id="mph-nav-search" class="mph-fusion-btn" aria-label="Recherche"><span class="icon">⌕</span>Recherche</button>
-                <button type="button" id="mph-nav-notif" class="mph-fusion-btn" aria-label="Notifications"><span class="mph-fusion-badge" id="mph-nav-notif-badge">0</span><span class="icon">⍾</span>Notifications</button>
-                <button type="button" id="mph-nav-logout" class="mph-fusion-btn" aria-label="Deconnexion"><span class="icon">⇥</span>Deconnexion</button>
+                <button type="button" id="mph-nav-home" class="mph-fusion-btn active" aria-label="Accueil"><span class="icon">🏠</span></button>
+                <button type="button" id="mph-nav-search" class="mph-fusion-btn" aria-label="Recherche"><span class="icon">🔎</span></button>
+                <button type="button" id="mph-nav-notif" class="mph-fusion-btn" aria-label="Notifications"><span class="mph-fusion-badge" id="mph-nav-notif-badge">0</span><span class="icon">🔔</span></button>
               </div>
             </div>
             <div class="mph-section-head">
@@ -22522,14 +22520,6 @@
         });
       }
 
-      const dockLogoutBtn = document.getElementById('dock-logout-btn');
-      if (dockLogoutBtn && !dockLogoutBtn.dataset.bound) {
-        dockLogoutBtn.dataset.bound = '1';
-        dockLogoutBtn.addEventListener('click', () => {
-          document.getElementById('logout-button')?.click();
-        });
-      }
-
       const fusionHomeBtn = document.getElementById('mph-nav-home');
       if (fusionHomeBtn && !fusionHomeBtn.dataset.bound) {
         fusionHomeBtn.dataset.bound = '1';
@@ -22564,14 +22554,6 @@
           lastNotifToggleAt = Date.now();
           toggleNotificationsPanel();
           setupPushNotifications({ requestPermission: true }).catch(() => {});
-        });
-      }
-
-      const fusionLogoutBtn = document.getElementById('mph-nav-logout');
-      if (fusionLogoutBtn && !fusionLogoutBtn.dataset.bound) {
-        fusionLogoutBtn.dataset.bound = '1';
-        fusionLogoutBtn.addEventListener('click', () => {
-          document.getElementById('logout-button')?.click();
         });
       }
 
