@@ -4064,13 +4064,6 @@
 
     <!-- Main Content -->
     <div class="main-content">
-      <div id="mobile-dock-sheet" class="mobile-dock-sheet" aria-hidden="true">
-        <div class="dock-grid">
-          <button type="button" id="dock-search-btn" class="dock-item" aria-label="Recherche"><span class="ico">⌕</span>Recherche</button>
-          <button type="button" id="dock-notif-btn" class="dock-item" aria-label="Notifications"><span class="badge" id="dock-notif-badge">0</span><span class="ico">⍾</span>Notifications</button>
-          <button type="button" id="dock-logout-btn" class="dock-item" aria-label="Déconnexion"><span class="ico">⇥</span>Déconnexion</button>
-        </div>
-      </div>
       <!-- Topbar -->
       <div class="topbar">
         <div class="topbar-left">
@@ -14514,18 +14507,6 @@
       const [title, subtitle] = titles[moduleName] || ['Module', 'Détails'];
       document.getElementById('page-title').textContent = title;
       document.getElementById('page-subtitle').textContent = subtitle;
-      syncHomeDockBandVisibility();
-    }
-
-    function syncHomeDockBandVisibility() {
-      const dockSheet = document.getElementById('mobile-dock-sheet');
-      if (!dockSheet) return;
-      const shouldShow = window.innerWidth <= 900 && currentModule === 'dashboard';
-      dockSheet.classList.toggle('open', shouldShow);
-      dockSheet.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
-      if (!shouldShow) {
-        document.body.classList.remove('mobile-dock-open');
-      }
     }
 
     function shouldAutoRefreshMaps() {
@@ -22399,15 +22380,6 @@
           document.getElementById('logout-button')?.click();
         });
       }
-
-      if (!window.__erpHomeDockResizeBound) {
-        window.__erpHomeDockResizeBound = true;
-        window.addEventListener('resize', () => {
-          syncHomeDockBandVisibility();
-        });
-      }
-
-      syncHomeDockBandVisibility();
 
     }
 
