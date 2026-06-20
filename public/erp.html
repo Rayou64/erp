@@ -2670,7 +2670,7 @@
         z-index: 91;
       }
 
-      /* Show home-nav-btn on mobile, positioned to the left of the menu toggle */
+      /* Mobile: show only Home icon + Menu icon, aligned to the right */
       .topbar-right {
         display: flex !important;
         position: fixed;
@@ -2688,23 +2688,47 @@
         pointer-events: auto;
       }
 
-      /* Keep only Accueil + cloche on mobile top-right */
+      /* Keep only home button in topbar-right on mobile */
       .topbar-right #mobile-search-dock-btn,
+      .topbar-right .notif-btn-wrap,
       .topbar-right #theme-toggle,
       .topbar-right .user-info,
       .topbar-right #logout-button {
         display: none !important;
       }
 
-      .topbar-right .notif-btn-wrap {
-        display: inline-flex !important;
-      }
-
       .home-nav-btn {
         position: static !important;
-        height: 38px;
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        padding: 0 !important;
+        border-radius: 50%;
         margin: 0 !important;
         pointer-events: auto;
+        gap: 0;
+      }
+
+      .home-nav-btn .label {
+        display: none !important;
+      }
+
+      .home-nav-btn .icon {
+        font-size: 18px;
+      }
+
+      .mobile-dock-toggle {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0;
+      }
+
+      .mobile-dock-toggle em {
+        display: none !important;
+      }
+
+      .mobile-dock-toggle span {
+        font-size: 20px;
       }
 
       .module:not(#dashboard) {
