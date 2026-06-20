@@ -14757,11 +14757,15 @@
     function syncMobileDockVisibility() {
       const toggle = document.getElementById('mobile-dock-toggle');
       const sheet = document.getElementById('mobile-dock-sheet');
+      const homeNavBtn = document.getElementById('home-nav-btn');
       const homeMode = currentModule === 'dashboard';
       const mobileMode = window.innerWidth <= 900;
       if (!toggle || !sheet) return;
 
       const shouldShow = mobileMode && !homeMode;
+      if (homeNavBtn) {
+        homeNavBtn.style.display = shouldShow ? 'inline-flex' : 'none';
+      }
       toggle.style.display = shouldShow ? 'inline-flex' : 'none';
       sheet.classList.toggle('open', shouldShow && document.body.classList.contains('mobile-dock-open'));
       sheet.setAttribute('aria-hidden', shouldShow && document.body.classList.contains('mobile-dock-open') ? 'false' : 'true');
