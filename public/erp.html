@@ -1233,6 +1233,25 @@
       background: rgba(255, 255, 255, 0.18);
     }
 
+    .mph-home-btn {
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-size: 18px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .mph-home-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
     .mph-panel-head strong {
       display: block;
       font-size: 20px;
@@ -4210,6 +4229,7 @@
                 <div class="mph-panel-head-actions">
                   <button type="button" id="mph-back-btn" class="mph-back-btn" aria-label="Retour à la sélection des modules">← Modules</button>
                   <div id="mph-panel-badge" class="mph-panel-badge">0 module</div>
+                  <button type="button" id="mph-home-btn" class="mph-home-btn" aria-label="Retour à l'accueil">🏠</button>
                 </div>
               </div>
               <div class="mph-panel-toolbar">
@@ -22399,6 +22419,14 @@
         backBtn.dataset.bound = '1';
         backBtn.addEventListener('click', () => {
           returnToModuleSelection();
+        });
+      }
+
+      const homeBtn = document.getElementById('mph-home-btn');
+      if (homeBtn && !homeBtn.dataset.bound) {
+        homeBtn.dataset.bound = '1';
+        homeBtn.addEventListener('click', () => {
+          returnToHomeScreen();
         });
       }
 
