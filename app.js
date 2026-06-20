@@ -8280,19 +8280,49 @@ async function generateHrDailyPresencePdfBuffer({ effectiveDate, attendanceRows 
     const generatedAt = new Date().toLocaleString('fr-FR');
     const rows = Array.isArray(attendanceRows) ? attendanceRows : [];
 
-    doc.font('Helvetica-Bold').fontSize(16).fillColor('#0f172a').text('Feuille de presence RH journaliere', { align: 'center' });
-    doc.moveDown(0.4);
-    doc.font('Helvetica').fontSize(10).fillColor('#334155');
-    doc.text(`Date: ${dateLabel}`);
-    doc.text(`Genere le: ${generatedAt}`);
-    doc.text(`Pointages: ${Number(summary.attendanceCount || 0)} | Retards: ${Number(summary.lateCount || 0)} | Absences: ${Number(summary.absenceCount || 0)}`);
-    doc.moveDown(0.6);
+    const startX = doc.page.margins.left;
+    const contentWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+
+    doc.save();
+    doc.roundedRect(startX, 32, contentWidth, 84, 12).fill('#fff4e8');
+    doc.restore();
+
+    doc.font('Helvetica-Bold').fontSize(18).fillColor('#7c2d12').text('Feuille de presence RH journaliere', startX + 14, 48, { width: contentWidth - 28, align: 'left' });
+    doc.font('Helvetica').fontSize(9.5).fillColor('#475569');
+    doc.text(`Date: ${dateLabel}`, startX + 14, 75);
+    doc.text(`Genere le: ${generatedAt}`, startX + 14, 89);
+
+    const metaBoxWidth = 176;
+    const metaX = startX + contentWidth - metaBoxWidth - 14;
+    doc.save();
+    doc.roundedRect(metaX, 44, metaBoxWidth, 58, 10).fillAndStroke('#ffffff', '#e2e8f0');
+    doc.restore();
+    doc.font('Helvetica-Bold').fontSize(9).fillColor('#0f172a').text('Reference RH', metaX + 10, 56);
+    doc.font('Helvetica').fontSize(9).fillColor('#334155').text(`RH-${String(dateLabel).replace(/-/g, '')}`, metaX + 10, 70);
+
+    doc.y = 132;
+    const kpi = [
+      { label: 'Pointages', value: Number(summary.attendanceCount || 0), color: '#0f172a' },
+      { label: 'Presents', value: Math.max(0, Number(summary.attendanceCount || 0) - Number(summary.lateCount || 0) - Number(summary.absenceCount || 0)), color: '#166534' },
+      { label: 'Retards', value: Number(summary.lateCount || 0), color: '#c2410c' },
+      { label: 'Absents', value: Number(summary.absenceCount || 0), color: '#b91c1c' },
+    ];
+    const kpiGap = 8;
+    const kpiWidth = (contentWidth - kpiGap * 3) / 4;
+    kpi.forEach((item, idx) => {
+      const x = startX + idx * (kpiWidth + kpiGap);
+      doc.save();
+      doc.roundedRect(x, 132, kpiWidth, 46, 8).fillAndStroke('#ffffff', '#e2e8f0');
+      doc.restore();
+      doc.font('Helvetica').fontSize(8).fillColor('#64748b').text(item.label.toUpperCase(), x + 8, 142, { width: kpiWidth - 16 });
+      doc.font('Helvetica-Bold').fontSize(14).fillColor(item.color).text(String(item.value), x + 8, 155, { width: kpiWidth - 16 });
+    });
+    doc.y = 192;
 
     const headers = ['Employe', 'Poste', 'Code', 'Entree', 'Sortie', 'Note'];
     const colWidths = [150, 100, 42, 56, 56, 124];
     const rowHeight = 19;
     const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
-    const startX = doc.page.margins.left;
     const bottomLimit = doc.page.height - doc.page.margins.bottom - 20;
 
     const drawTableHeader = y => {
@@ -8352,19 +8382,20 @@ async function generateHrDailyPresencePdfBuffer({ effectiveDate, attendanceRows 
       });
     }
 
-    const leaveCovering = Array.isArray(leaveRows) ? leaveRows : [];
-    const leaveChanges = Array.isArray(leaveEvents) ? leaveEvents : [];
-    if (leaveCovering.length || leaveChanges.length) {
-      if (y + 60 > bottomLimit) {
-        doc.addPage();
-        y = doc.page.margins.top;
-      }
-      doc.moveDown(0.8);
-      doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f172a').text('Conges lies a cette journee');
-      doc.font('Helvetica').fontSize(9).fillColor('#334155');
-      doc.text(`Conges couvrant la date: ${leaveCovering.length}`);
-      doc.text(`Evenements de conge du jour: ${leaveChanges.length}`);
+    if (y + 92 > bottomLimit) {
+      doc.addPage();
+      y = doc.page.margins.top;
     }
+
+    const signY = y + 18;
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#334155').text('VISA RH', startX, signY);
+    doc.save();
+    doc.roundedRect(startX, signY + 16, tableWidth * 0.58, 58, 8).dash(2, { space: 2 }).strokeColor('#cbd5e1').stroke();
+    doc.restore();
+    doc.font('Helvetica').fontSize(9).fillColor('#64748b').text('Nom et signature RH', startX + 10, signY + 39);
+
+    const footerY = signY + 84;
+    doc.font('Helvetica').fontSize(8.5).fillColor('#94a3b8').text('Ryan ERP - Document dynamique mis a jour a chaque pointage', startX, footerY, { width: tableWidth, align: 'left' });
 
     doc.end();
   });
