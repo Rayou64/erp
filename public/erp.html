@@ -14514,6 +14514,18 @@
       const [title, subtitle] = titles[moduleName] || ['Module', 'Détails'];
       document.getElementById('page-title').textContent = title;
       document.getElementById('page-subtitle').textContent = subtitle;
+      syncHomeDockBandVisibility();
+    }
+
+    function syncHomeDockBandVisibility() {
+      const dockSheet = document.getElementById('mobile-dock-sheet');
+      if (!dockSheet) return;
+      const shouldShow = window.innerWidth <= 900 && currentModule === 'dashboard';
+      dockSheet.classList.toggle('open', shouldShow);
+      dockSheet.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+      if (!shouldShow) {
+        document.body.classList.remove('mobile-dock-open');
+      }
     }
 
     function shouldAutoRefreshMaps() {
@@ -22384,6 +22396,15 @@
           document.getElementById('logout-button')?.click();
         });
       }
+
+      if (!window.__erpHomeDockResizeBound) {
+        window.__erpHomeDockResizeBound = true;
+        window.addEventListener('resize', () => {
+          syncHomeDockBandVisibility();
+        });
+      }
+
+      syncHomeDockBandVisibility();
 
     }
 
