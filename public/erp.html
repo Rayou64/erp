@@ -21233,10 +21233,13 @@
       }
     });
 
-    document.getElementById('logout-button').addEventListener('click', () => {
-      localStorage.removeItem('erp_token');
-      window.location.href = 'index.html';
-    });
+    const logoutButton = document.getElementById('logout-button');
+    if (logoutButton) {
+      logoutButton.addEventListener('click', () => {
+        localStorage.removeItem('erp_token');
+        window.location.href = 'index.html';
+      });
+    }
 
     document.getElementById('project-search').addEventListener('input', e => {
       projectSearchTerm = e.target.value;
