@@ -4028,31 +4028,47 @@
     .topbar-right { gap: 10px; }
 
     .home-nav-btn {
-      width: 38px;
+      min-width: 88px;
       height: 38px;
-      border-radius: 50%;
-      border: 1.5px solid #e2e8f0;
-      background: #f8fafc;
-      color: #475569;
-      font-size: 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(173, 109, 14, 0.3);
+      background: linear-gradient(135deg, #f3b24b 0%, #e19a2d 100%);
+      color: #3b2508;
+      font-size: 13px;
+      font-weight: 800;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
       cursor: pointer;
       transition: all 0.2s;
-      padding: 0;
+      padding: 0 10px;
+      box-shadow: 0 10px 20px rgba(191, 122, 15, 0.22);
+    }
+
+    .home-nav-btn .icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .home-nav-btn .label {
+      font-size: 11px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      line-height: 1;
     }
 
     .home-nav-btn:hover {
-      background: #2563eb;
-      color: #ffffff;
-      border-color: #2563eb;
+      background: linear-gradient(135deg, #e19a2d 0%, #cf881e 100%);
+      color: #2c1703;
+      border-color: rgba(131, 75, 2, 0.42);
+      box-shadow: 0 12px 24px rgba(191, 122, 15, 0.28);
     }
 
     [data-theme="dark"] .home-nav-btn {
-      background: #1e293b;
-      border-color: #334155;
-      color: #94a3b8;
+      border-color: rgba(173, 109, 14, 0.36);
+      background: linear-gradient(135deg, #f3b24b 0%, #d1902b 100%);
+      color: #2c1703;
     }
 
     /* ═══════════════════════════════════════════════════
@@ -4172,7 +4188,7 @@
 
     <!-- Main Content -->
     <div class="main-content">
-      <button type="button" id="mobile-dock-toggle" class="mobile-dock-toggle" aria-label="Ouvrir le menu mobile"><span>☰</span><em>Menu</em></button>
+      <button type="button" id="mobile-dock-toggle" class="mobile-dock-toggle" aria-label="Ouvrir le menu mobile"><span>☰</span><em>Modules</em></button>
       <div id="mobile-dock-sheet" class="mobile-dock-sheet" aria-hidden="true">
         <div class="dock-grid">
           <button type="button" id="dock-home-btn" class="dock-item active" aria-label="Accueil"><span class="ico">⌂</span>Accueil</button>
@@ -4195,7 +4211,10 @@
           </div>
         </div>
         <div class="topbar-right">
-          <button type="button" id="home-nav-btn" class="home-nav-btn" aria-label="Accueil">☰</button>
+          <button type="button" id="home-nav-btn" class="home-nav-btn" aria-label="Accueil">
+            <span class="icon">⌂</span>
+            <span class="label">Accueil</span>
+          </button>
           <button type="button" id="mobile-search-dock-btn" class="button button-secondary button-small" aria-label="Recherche">🔍</button>
           <div class="notif-btn-wrap">
             <button id="notif-bell-btn" title="Notifications">🔔</button>
