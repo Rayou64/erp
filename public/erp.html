@@ -824,6 +824,31 @@
       max-width: calc(100vw - 90px);
     }
 
+    .mobile-module-menu-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      border-radius: 999px;
+      background: linear-gradient(145deg, rgba(12, 44, 112, 0.96), rgba(29, 78, 216, 0.96));
+      color: #eff6ff;
+      font-size: 20px;
+      font-weight: 800;
+      width: 46px;
+      height: 46px;
+      margin: 0;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.34);
+      cursor: pointer;
+      position: fixed;
+      right: 12px;
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      z-index: 90;
+    }
+
+    .mobile-module-menu-btn.hidden {
+      display: none !important;
+    }
+
     .mobile-module-back-btn.hidden {
       display: none !important;
     }
@@ -2637,6 +2662,10 @@
         display: inline-flex;
       }
 
+      .mobile-module-menu-btn {
+        display: inline-flex;
+      }
+
       .page-header {
         margin-bottom: 16px;
       }
@@ -3926,6 +3955,7 @@
       <!-- Content Area -->
       <div class="content-area">
         <button type="button" id="mobile-module-back-btn" class="mobile-module-back-btn hidden" aria-label="Retour à la sélection des modules">← Retour à la sélection des modules</button>
+        <button type="button" id="mobile-module-menu-btn" class="mobile-module-menu-btn hidden" aria-label="Ouvrir le menu">☰</button>
         <!-- Dashboard Module -->
         <div id="dashboard" class="module active">
           <div class="page-header" style="display:none;">
@@ -14357,9 +14387,13 @@
 
     function syncMobileModuleBackButton() {
       const backBtn = document.getElementById('mobile-module-back-btn');
+      const menuBtn = document.getElementById('mobile-module-menu-btn');
       if (!backBtn) return;
       const shouldShow = window.innerWidth <= 900 && currentModule !== 'dashboard';
       backBtn.classList.toggle('hidden', !shouldShow);
+      if (menuBtn) {
+        menuBtn.classList.toggle('hidden', !shouldShow);
+      }
     }
 
     function syncMobileDockVisibility() {
@@ -22293,6 +22327,16 @@
         moduleBackBtn.dataset.bound = '1';
         moduleBackBtn.addEventListener('click', () => {
           returnToModuleSelection();
+        });
+      }
+
+      const moduleMenuBtn = document.getElementById('mobile-module-menu-btn');
+      if (moduleMenuBtn && !moduleMenuBtn.dataset.bound) {
+        moduleMenuBtn.dataset.bound = '1';
+        moduleMenuBtn.addEventListener('click', () => {
+          if (window.innerWidth <= 900) {
+            setSidebarCollapsed(false);
+          }
         });
       }
 
