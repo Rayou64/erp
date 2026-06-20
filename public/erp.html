@@ -37,6 +37,18 @@
       color: var(--text-main);
     }
 
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     .erp-container {
       display: flex;
       height: 100vh;
@@ -805,50 +817,44 @@
       display: none;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(148, 163, 184, 0.34);
+      gap: 8px;
+      border: 1px solid rgba(191, 219, 254, 0.9);
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.95);
-      color: #0f172a;
-      font-size: 21px;
+      background: linear-gradient(145deg, rgba(12, 44, 112, 0.96), rgba(29, 78, 216, 0.96));
+      color: #eff6ff;
+      font-size: 13px;
       font-weight: 800;
-      width: 46px;
-      height: 46px;
-      padding: 0;
+      min-height: 46px;
+      padding: 11px 14px;
       margin: 0;
-      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.22);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.34);
       cursor: pointer;
       position: fixed;
-      right: 64px;
+      left: 12px;
       top: calc(env(safe-area-inset-top, 0px) + 10px);
-      z-index: 92;
-      max-width: none;
+      z-index: 90;
+      max-width: calc(100vw - 90px);
     }
 
     .mobile-module-menu-btn {
       display: none;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(148, 163, 184, 0.34);
+      border: 1px solid rgba(191, 219, 254, 0.9);
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.95);
-      color: #0f172a;
+      background: linear-gradient(145deg, rgba(12, 44, 112, 0.96), rgba(29, 78, 216, 0.96));
+      color: #eff6ff;
       font-size: 20px;
       font-weight: 800;
       width: 46px;
       height: 46px;
       margin: 0;
-      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.22);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.34);
       cursor: pointer;
       position: fixed;
       right: 12px;
       top: calc(env(safe-area-inset-top, 0px) + 10px);
-      z-index: 92;
-    }
-
-    .mobile-module-back-btn:focus-visible,
-    .mobile-module-menu-btn:focus-visible {
-      outline: 3px solid #0ea5e9;
-      outline-offset: 2px;
+      z-index: 90;
     }
 
     .mobile-module-menu-btn.hidden {
@@ -2672,18 +2678,38 @@
         display: inline-flex;
         position: fixed;
         right: 12px;
-        top: calc(env(safe-area-inset-top, 0px) + 10px);
+        top: calc(env(safe-area-inset-top, 0px) + 74px);
         z-index: 91;
+        width: 52px;
+        height: 52px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: 1px solid rgba(18, 36, 66, 0.25);
+        background: linear-gradient(145deg, #1c3f77 0%, #2a5aa1 100%);
+        color: #f4f8ff;
+        box-shadow: 0 10px 24px rgba(11, 19, 36, 0.14);
+        transition: transform 140ms ease, box-shadow 140ms ease;
+      }
+
+      .mobile-dock-toggle:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 30px rgba(11, 19, 36, 0.18);
+      }
+
+      .mobile-dock-toggle:focus-visible {
+        outline: 3px solid #0ea5e9;
+        outline-offset: 2px;
       }
 
       /* Mobile: show only Home icon + Menu icon, aligned to the right */
       .topbar-right {
         display: flex !important;
         position: fixed;
-        right: 78px;
+        right: 12px;
         top: calc(env(safe-area-inset-top, 0px) + 10px);
         z-index: 90;
-        gap: 6px;
+        gap: 8px;
         background: none !important;
         border: none !important;
         padding: 0 !important;
@@ -2705,14 +2731,28 @@
 
       .home-nav-btn {
         position: static !important;
-        width: 44px;
-        min-width: 44px;
-        height: 44px;
+        width: 52px;
+        min-width: 52px;
+        height: 52px;
         padding: 0 !important;
         border-radius: 50%;
         margin: 0 !important;
         pointer-events: auto;
         gap: 0;
+        background: linear-gradient(145deg, #ffd08a 0%, #f0ab3d 100%) !important;
+        box-shadow: 0 10px 24px rgba(11, 19, 36, 0.14);
+        border: 1px solid rgba(139, 85, 11, 0.22) !important;
+        transition: transform 140ms ease, box-shadow 140ms ease;
+      }
+
+      .home-nav-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 30px rgba(11, 19, 36, 0.18);
+      }
+
+      .home-nav-btn:focus-visible {
+        outline: 3px solid #0ea5e9;
+        outline-offset: 2px;
       }
 
       .home-nav-btn .label {
@@ -2723,9 +2763,40 @@
         font-size: 18px;
       }
 
+      .back-nav-btn {
+        position: fixed;
+        left: 12px;
+        top: calc(env(safe-area-inset-top, 0px) + 10px);
+        width: 52px;
+        min-width: 52px;
+        height: 52px;
+        padding: 0 !important;
+        border-radius: 50%;
+        border: 1px solid rgba(28, 63, 119, 0.15);
+        background: linear-gradient(145deg, #e8f0f7 0%, #d4e4f2 100%);
+        color: #1c3f77;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 10px 24px rgba(11, 19, 36, 0.14);
+        transition: transform 140ms ease, box-shadow 140ms ease;
+        z-index: 89;
+      }
+
+      .back-nav-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 30px rgba(11, 19, 36, 0.18);
+      }
+
+      .back-nav-btn:focus-visible {
+        outline: 3px solid #0ea5e9;
+        outline-offset: 2px;
+      }
+
       .mobile-dock-toggle {
-        min-width: 44px;
-        min-height: 44px;
+        min-width: 52px;
+        min-height: 52px;
         padding: 0;
       }
 
@@ -3051,14 +3122,17 @@
 
       .mobile-module-back-btn,
       .mobile-module-menu-btn {
-        border-color: rgba(31, 41, 55, 0.16);
-        background: rgba(255, 255, 255, 0.96);
+        border-color: rgba(31, 41, 55, 0.14);
+        background: rgba(255, 255, 255, 0.94);
         color: #1f2937;
-        box-shadow: 0 10px 22px rgba(31, 41, 55, 0.18);
+        box-shadow: 0 12px 28px rgba(31, 41, 55, 0.16);
       }
 
       .mobile-module-back-btn {
-        background: linear-gradient(145deg, #f8fbff 0%, #eef4ff 100%);
+        border-color: rgba(173, 109, 14, 0.26);
+        background: linear-gradient(135deg, #f3b24b 0%, #e19a2d 100%);
+        color: #3b2508;
+        box-shadow: 0 12px 28px rgba(191, 122, 15, 0.28);
       }
 
       .mobile-premium-home {
@@ -4292,6 +4366,7 @@
           </div>
         </div>
         <div class="topbar-right">
+          <button type="button" id="back-nav-btn" class="back-nav-btn" aria-label="Retour"><span class="icon">←</span><span class="sr-only">Retour à l'interface précédente</span></button>
           <button type="button" id="home-nav-btn" class="home-nav-btn" aria-label="Accueil">
             <span class="icon">⌂</span>
             <span class="label">Accueil</span>
@@ -4315,7 +4390,7 @@
 
       <!-- Content Area -->
       <div class="content-area">
-        <button type="button" id="mobile-module-back-btn" class="mobile-module-back-btn hidden" aria-label="Retour modules">←</button>
+        <button type="button" id="mobile-module-back-btn" class="mobile-module-back-btn hidden" aria-label="Retour modules">← Retour modules</button>
         <button type="button" id="mobile-module-menu-btn" class="mobile-module-menu-btn hidden" aria-label="Ouvrir le menu">☰</button>
         <!-- Dashboard Module -->
         <div id="dashboard" class="module active">
@@ -14761,6 +14836,7 @@
       const toggle = document.getElementById('mobile-dock-toggle');
       const sheet = document.getElementById('mobile-dock-sheet');
       const homeNavBtn = document.getElementById('home-nav-btn');
+      const backNavBtn = document.getElementById('back-nav-btn');
       const homeMode = currentModule === 'dashboard';
       const mobileMode = window.innerWidth <= 900;
       if (!toggle || !sheet) return;
@@ -14768,6 +14844,9 @@
       const shouldShow = mobileMode && !homeMode;
       if (homeNavBtn) {
         homeNavBtn.style.display = shouldShow ? 'inline-flex' : 'none';
+      }
+      if (backNavBtn) {
+        backNavBtn.style.display = shouldShow ? 'inline-flex' : 'none';
       }
       toggle.style.display = shouldShow ? 'inline-flex' : 'none';
       sheet.classList.toggle('open', shouldShow && document.body.classList.contains('mobile-dock-open'));
@@ -22684,6 +22763,14 @@
         homeNavBtn.dataset.bound = '1';
         homeNavBtn.addEventListener('click', () => {
           returnToHomeScreen();
+        });
+      }
+
+      const backNavBtn = document.getElementById('back-nav-btn');
+      if (backNavBtn && !backNavBtn.dataset.bound) {
+        backNavBtn.dataset.bound = '1';
+        backNavBtn.addEventListener('click', () => {
+          window.history.back();
         });
       }
 
