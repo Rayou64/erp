@@ -805,44 +805,50 @@
       display: none;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      border: 1px solid rgba(191, 219, 254, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.34);
       border-radius: 999px;
-      background: linear-gradient(145deg, rgba(12, 44, 112, 0.96), rgba(29, 78, 216, 0.96));
-      color: #eff6ff;
-      font-size: 13px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #0f172a;
+      font-size: 21px;
       font-weight: 800;
-      min-height: 46px;
-      padding: 11px 14px;
+      width: 46px;
+      height: 46px;
+      padding: 0;
       margin: 0;
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.34);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.22);
       cursor: pointer;
       position: fixed;
-      left: 12px;
+      right: 64px;
       top: calc(env(safe-area-inset-top, 0px) + 10px);
-      z-index: 90;
-      max-width: calc(100vw - 90px);
+      z-index: 92;
+      max-width: none;
     }
 
     .mobile-module-menu-btn {
       display: none;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(191, 219, 254, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.34);
       border-radius: 999px;
-      background: linear-gradient(145deg, rgba(12, 44, 112, 0.96), rgba(29, 78, 216, 0.96));
-      color: #eff6ff;
+      background: rgba(255, 255, 255, 0.95);
+      color: #0f172a;
       font-size: 20px;
       font-weight: 800;
       width: 46px;
       height: 46px;
       margin: 0;
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.34);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.22);
       cursor: pointer;
       position: fixed;
       right: 12px;
       top: calc(env(safe-area-inset-top, 0px) + 10px);
-      z-index: 90;
+      z-index: 92;
+    }
+
+    .mobile-module-back-btn:focus-visible,
+    .mobile-module-menu-btn:focus-visible {
+      outline: 3px solid #0ea5e9;
+      outline-offset: 2px;
     }
 
     .mobile-module-menu-btn.hidden {
@@ -3045,17 +3051,14 @@
 
       .mobile-module-back-btn,
       .mobile-module-menu-btn {
-        border-color: rgba(31, 41, 55, 0.14);
-        background: rgba(255, 255, 255, 0.94);
+        border-color: rgba(31, 41, 55, 0.16);
+        background: rgba(255, 255, 255, 0.96);
         color: #1f2937;
-        box-shadow: 0 12px 28px rgba(31, 41, 55, 0.16);
+        box-shadow: 0 10px 22px rgba(31, 41, 55, 0.18);
       }
 
       .mobile-module-back-btn {
-        border-color: rgba(173, 109, 14, 0.26);
-        background: linear-gradient(135deg, #f3b24b 0%, #e19a2d 100%);
-        color: #3b2508;
-        box-shadow: 0 12px 28px rgba(191, 122, 15, 0.28);
+        background: linear-gradient(145deg, #f8fbff 0%, #eef4ff 100%);
       }
 
       .mobile-premium-home {
@@ -4312,7 +4315,7 @@
 
       <!-- Content Area -->
       <div class="content-area">
-        <button type="button" id="mobile-module-back-btn" class="mobile-module-back-btn hidden" aria-label="Retour modules">← Retour modules</button>
+        <button type="button" id="mobile-module-back-btn" class="mobile-module-back-btn hidden" aria-label="Retour modules">←</button>
         <button type="button" id="mobile-module-menu-btn" class="mobile-module-menu-btn hidden" aria-label="Ouvrir le menu">☰</button>
         <!-- Dashboard Module -->
         <div id="dashboard" class="module active">
