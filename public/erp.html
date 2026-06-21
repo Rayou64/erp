@@ -4851,6 +4851,15 @@
       .module:not(#dashboard) .form-card {
         max-width: none;
         width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+      /* Priorité utilisateur: la première section de création prend toute la largeur */
+      .module .grid-2 > .form-card:first-of-type {
+        grid-column: 1 / -1;
+        max-width: none !important;
+        width: 100% !important;
       }
     }
 
