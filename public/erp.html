@@ -4842,17 +4842,22 @@
       }
     }
 
-    @media (min-width: 901px) and (max-width: 1366px) {
+    @media (min-width: 901px) and (max-width: 1440px) {
       /* Les ajustements de dimension restent prioritairement côté tablette */
       .module:not(#dashboard) .card {
         padding: 16px;
       }
 
       .module:not(#dashboard) .form-card {
-        max-width: none;
-        width: 100%;
+        max-width: none !important;
+        width: 100% !important;
         margin-left: 0;
         margin-right: 0;
+      }
+
+      .module .grid-2 > .form-card {
+        max-width: none !important;
+        width: 100% !important;
       }
 
       /* Priorité utilisateur: la première section de création prend toute la largeur */
@@ -4860,6 +4865,12 @@
         grid-column: 1 / -1;
         max-width: none !important;
         width: 100% !important;
+      }
+
+      /* Cas où la carte création n'est pas la première dans le DOM */
+      .module .grid-2 > .stock-create-card,
+      .module .grid-2 > .maps-create-card {
+        grid-column: 1 / -1;
       }
     }
 
