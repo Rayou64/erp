@@ -4799,6 +4799,12 @@
         gap: 16px !important;
       }
 
+      /* Sur tablette (et petits écrans), la section création ne doit jamais être limitée */
+      .module:not(#dashboard) .form-card {
+        max-width: none !important;
+        width: 100% !important;
+      }
+
       .module:not(#dashboard) .card {
         border-radius: 14px;
       }
