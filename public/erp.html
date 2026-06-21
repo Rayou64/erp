@@ -194,7 +194,7 @@
     }
 
     .layout-mode-wrap {
-      display: inline-flex;
+      display: none;
       align-items: center;
       gap: 6px;
       padding: 4px 8px;
@@ -5643,7 +5643,13 @@
       }
     }
 
-    @media (max-width: 900px) {
+    @media (min-width: 700px) and (max-width: 1366px) {
+      .layout-mode-wrap {
+        display: inline-flex;
+      }
+    }
+
+    @media (max-width: 699px) {
       .layout-mode-wrap {
         display: none;
       }
@@ -25642,27 +25648,60 @@
       const savedTheme = localStorage.getItem(ERP_THEME_KEY) || 'light';
       setTheme(savedTheme);
 
-      const applyLayoutMode = modeValue => {
+      const applyLayoutMode = (modeValue, persist = true) => {
         const mode = modeValue === 'browser' ? 'browser' : 'app';
         document.body.classList.toggle('app-layout-mode', mode === 'app');
         document.body.classList.toggle('browser-layout-mode', mode === 'browser');
-        localStorage.setItem(ERP_LAYOUT_MODE_KEY, mode);
+        if (persist) {
+          localStorage.setItem(ERP_LAYOUT_MODE_KEY, mode);
+        }
         const select = document.getElementById('layout-mode-select');
         if (select && select.value !== mode) {
           select.value = mode;
         }
       };
 
+      const isTabletViewport = () => {
+        const width = Number(window.innerWidth || 0);
+        return width >= 700 && width <= 1366;
+      };
+
+      const isDesktopViewport = () => Number(window.innerWidth || 0) > 1366;
+
+      const syncLayoutModeByViewport = () => {
+        const select = document.getElementById('layout-mode-select');
+        if (isDesktopViewport()) {
+          // Sur ordinateur, conserver le rendu navigateur classique sans sélecteur.
+          applyLayoutMode('browser', false);
+          if (select) select.disabled = true;
+          return;
+        }
+
+        if (isTabletViewport()) {
+          const tabletSavedMode = localStorage.getItem(ERP_LAYOUT_MODE_KEY) || 'app';
+          applyLayoutMode(tabletSavedMode, false);
+          if (select) select.disabled = false;
+          return;
+        }
+
+        // Sur mobile, rester en mode application et masquer le choix.
+        applyLayoutMode('app', false);
+        if (select) select.disabled = true;
+      };
+
       const savedLayoutMode = localStorage.getItem(ERP_LAYOUT_MODE_KEY) || 'app';
-      applyLayoutMode(savedLayoutMode);
+      applyLayoutMode(savedLayoutMode, false);
 
       const layoutModeSelect = document.getElementById('layout-mode-select');
       if (layoutModeSelect) {
         layoutModeSelect.value = savedLayoutMode === 'browser' ? 'browser' : 'app';
         layoutModeSelect.addEventListener('change', e => {
-          applyLayoutMode(String(e.target.value || 'app'));
+          if (!isTabletViewport()) return;
+          applyLayoutMode(String(e.target.value || 'app'), true);
         });
       }
+
+      syncLayoutModeByViewport();
 
       const sidebarStored = localStorage.getItem(ERP_SIDEBAR_COLLAPSED_KEY);
       const sidebarCollapsed = window.innerWidth <= 900 ? true : sidebarStored === '1';
@@ -25779,6 +25818,7 @@
         document.querySelectorAll('.actions-menu[open]').forEach(detailsEl => {
           repositionActionsMenu(detailsEl);
         });
+        syncLayoutModeByViewport();
       });
 
       const notifBell = document.getElementById('notif-bell-btn');
