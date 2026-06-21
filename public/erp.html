@@ -3072,6 +3072,96 @@
       white-space: nowrap;
     }
 
+    .purchase-orders-module .po-suggestion-status.pending,
+    .purchase-orders-module .po-status-pill.pending {
+      color: #92400e;
+      background: #fffbeb;
+      border-color: #fde68a;
+    }
+
+    .purchase-orders-module .po-suggestion-status.done,
+    .purchase-orders-module .po-status-pill.done {
+      color: #0f766e;
+      background: #ecfdf5;
+      border-color: #99f6e4;
+    }
+
+    .purchase-orders-module .po-suggestion-status.rejected,
+    .purchase-orders-module .po-status-pill.rejected {
+      color: #dc2626;
+      background: #fff1f2;
+      border-color: #fecdd3;
+    }
+
+    .purchase-orders-module .po-demand-item {
+      border: 1px solid #cfe2ff;
+      border-radius: 14px;
+      background: linear-gradient(150deg, #ffffff 0%, #eef5ff 100%);
+      padding: 11px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .purchase-orders-module .po-demand-item.is-new {
+      border-color: #99d6ff;
+      box-shadow: 0 0 0 2px rgba(14, 165, 165, 0.12);
+    }
+
+    .purchase-orders-module .po-mock-actions {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    .purchase-orders-module .po-btn {
+      border: 0;
+      border-radius: 11px;
+      min-height: 42px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+      width: 100%;
+    }
+
+    .purchase-orders-module .po-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .purchase-orders-module .po-btn.po-btn-primary {
+      background: linear-gradient(120deg, #0ea5a5, #2563eb);
+      color: #ffffff;
+    }
+
+    .purchase-orders-module .po-btn.po-btn-soft {
+      background: #eaf2ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .purchase-orders-module .po-btn.po-btn-danger {
+      background: #fff1f2;
+      color: #dc2626;
+      border: 1px solid #fecdd3;
+    }
+
+    .purchase-orders-module .po-status-pill {
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
     .purchase-orders-module .po-suggestion-options {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3674,6 +3764,14 @@
       #sortie-autorisations .sia-action-buttons,
       .module .decision-actions {
         grid-template-columns: 1fr;
+      }
+
+      .purchase-orders-module .po-mock-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .purchase-orders-module .po-btn {
+        min-height: 46px;
       }
 
       .purchase-orders-module .badge {
@@ -14039,15 +14137,16 @@
         const totalQty = groupReqs.reduce((sum, r) => sum + Number(r.quantiteRestante || r.quantiteDemandee || 0), 0);
         const latestAt = sortRecent(groupReqs, row => row?.updatedAt || row?.dateDemande || row?.createdAt || row?.id)[0];
         const latestDate = latestAt ? formatDate(latestAt.updatedAt || latestAt.dateDemande || latestAt.createdAt) : 'Date inconnue';
+        const statusClass = 'pending';
         return `
-          <li class="list-item" tabindex="0" aria-label="Demande ${escapeHtml(title)} de ${escapeHtml(demandeur)} sur ${escapeHtml(site)}">
+          <li class="list-item po-demand-item is-new" tabindex="0" aria-label="Demande ${escapeHtml(title)} de ${escapeHtml(demandeur)} sur ${escapeHtml(site)}">
             <div class="list-item-content">
               <div class="po-suggestion-head">
                 <div>
                   <div class="list-item-title">${escapeHtml(title)}</div>
                   <div class="po-suggestion-meta">${escapeHtml(site)} • ${escapeHtml(demandeur)} • Mise à jour: ${escapeHtml(latestDate)}</div>
                 </div>
-                <span class="po-suggestion-status">Nouveau</span>
+                <span class="po-suggestion-status ${statusClass}">En attente</span>
               </div>
               <div class="po-suggestion-options" aria-label="Options déjà proposées pour cette demande">
                 <div class="po-suggestion-option">
@@ -14065,10 +14164,10 @@
               </div>
               <div class="list-item-meta" style="font-size:0.8em;color:#64748b;">${escapeHtml(articlesMeta)}</div>
             </div>
-            ${isOpsReviewer() ? '' : `<div class="action-buttons po-suggestion-actions decision-actions">
-              <button type="button" class="button button-small button-primary" onclick="authorizeTransferGroup(${idsArg})">Autorisation de transfert</button>
-              <button type="button" class="button button-small button-secondary" onclick="prepareGroupFromRequests(${idsArg})">Création de bon de commande</button>
-              <button type="button" class="button button-small button-danger" onclick="rejectGroupForPo(${idsArg})">Rejeter</button>
+            ${isOpsReviewer() ? '' : `<div class="po-mock-actions" aria-label="Actions demande recente">
+              <button type="button" class="po-btn po-btn-primary" onclick="prepareGroupFromRequests(${idsArg})">Creer le bon de commande</button>
+              <button type="button" class="po-btn po-btn-soft" onclick="viewPoRequestGroupDetails(${idsArg})">Voir details</button>
+              <button type="button" class="po-btn po-btn-danger" onclick="rejectGroupForPo(${idsArg})">Rejeter</button>
             </div>`}
           </li>
         `;
@@ -17508,6 +17607,20 @@
       return String(getPurchaseOrderDecisionStatus(order) || '').trim().toUpperCase();
     }
 
+    function getPoStatusLabel(status) {
+      const normalized = String(status || '').trim().toUpperCase();
+      if (normalized === 'VALIDEE' || normalized === 'LIVREE') return 'Valide';
+      if (normalized === 'REJETEE' || normalized === 'ANNULEE') return 'Rejete';
+      return 'En attente';
+    }
+
+    function getPoStatusClass(status) {
+      const normalized = String(status || '').trim().toUpperCase();
+      if (normalized === 'VALIDEE' || normalized === 'LIVREE') return 'done';
+      if (normalized === 'REJETEE' || normalized === 'ANNULEE') return 'rejected';
+      return 'pending';
+    }
+
     function isPoOrderUrgent(order) {
       const status = getPoOrderDecisionStatus(order);
       if (status === 'VALIDEE' || status === 'REJETEE' || status === 'LIVREE') return false;
@@ -17588,15 +17701,9 @@
 
       card.style.display = '';
       const status = getPoOrderDecisionStatus(lastOrder) || 'EN_ATTENTE';
-      badge.textContent = status;
-      badge.classList.remove('badge-green', 'badge-red', 'badge-yellow');
-      if (status === 'VALIDEE' || status === 'LIVREE') {
-        badge.classList.add('badge-green');
-      } else if (status === 'REJETEE') {
-        badge.classList.add('badge-red');
-      } else {
-        badge.classList.add('badge-yellow');
-      }
+      const statusClass = getPoStatusClass(status);
+      badge.textContent = getPoStatusLabel(status);
+      badge.className = `po-status-pill ${statusClass}`;
 
       meta.textContent = `${getPurchaseOrderDisplayName(lastOrder)} • ${lastOrder?.fournisseur || '-'} • ${Number(lastOrder?.montantTotal || 0).toFixed(2)} FCFA`;
 
@@ -17690,10 +17797,10 @@
               <div class="list-item-title">${escapeHtml(title)}</div>
               <div class="list-item-meta">${escapeHtml(site)} • ${countArticles} article${countArticles > 1 ? 's' : ''} • ${Number(row.totalQty || 0).toFixed(2)}</div>
             </div>
-            ${isOpsReviewer() ? '' : `<div class="action-buttons po-suggestion-actions decision-actions">
-              <button type="button" class="button button-small button-secondary" onclick="authorizeTransferGroup(${idsArg})">Autoriser transfert</button>
-              <button type="button" class="button button-small button-primary" onclick="prepareGroupFromRequests(${idsArg})">Créer le bon</button>
-              <button type="button" class="button button-small button-danger" onclick="rejectGroupForPo(${idsArg})">Rejeter</button>
+            ${isOpsReviewer() ? '' : `<div class="po-mock-actions" aria-label="Actions demande recente">
+              <button type="button" class="po-btn po-btn-primary" onclick="prepareGroupFromRequests(${idsArg})">Creer le bon de commande</button>
+              <button type="button" class="po-btn po-btn-soft" onclick="viewPoRequestGroupDetails(${idsArg})">Voir details</button>
+              <button type="button" class="po-btn po-btn-danger" onclick="rejectGroupForPo(${idsArg})">Rejeter</button>
             </div>`}
           </li>
         `;
@@ -17816,18 +17923,15 @@
               const displayedStatus = (isExecutive() || isProcurementReviewer() || isZoneStockManager())
                 ? getPurchaseOrderDecisionStatus(o)
                 : String(o.statut || '').trim().toUpperCase();
-              const badgeClass = displayedStatus === 'VALIDEE' || displayedStatus === 'LIVREE'
-                ? 'badge-green'
-                : displayedStatus === 'REJETEE'
-                  ? 'badge-red'
-                  : 'badge-yellow';
+              const statusLabel = getPoStatusLabel(displayedStatus);
+              const statusClass = getPoStatusClass(displayedStatus);
               const isStatusOnlyView = isZoneStockManager();
               const isLastCreated = Number(poLastCreatedOrderId || 0) === Number(o.id) && Date.now() <= Number(poLastCreatedHighlightUntil || 0);
               return `
               <li class="list-item po-list-item ${isLastCreated ? 'po-list-item-highlight' : ''}" data-po-id="${Number(o.id)}">
                 <div class="list-item-content ${isStatusOnlyView ? '' : 'project-item-clickable'} ${Number(selectedPurchaseOrderId) === Number(o.id) ? 'project-item-selected' : ''}" ${isStatusOnlyView ? '' : `onclick="viewPurchaseOrder(${o.id})"`}>
                   <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(o))}</div>
-                  <div class="list-item-meta">${isStatusOnlyView ? `Statut: ${escapeHtml(displayedStatus)}` : `${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(displayedStatus)}${isExecutive() && o.creePar ? ` • <em>Par ${escapeHtml(o.creePar)}</em>` : ''}`}</div>
+                  <div class="list-item-meta">${isStatusOnlyView ? `Statut: ${escapeHtml(statusLabel)}` : `${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(statusLabel)}${isExecutive() && o.creePar ? ` • <em>Par ${escapeHtml(o.creePar)}</em>` : ''}`}</div>
                 </div>
                 <div class="action-buttons po-action-buttons decision-actions">
                   ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-success" aria-label="Valider le bon de commande ${Number(o.id)}" onclick="validatePurchaseOrder(${o.id})">Valider</button>` : ''}
@@ -17841,7 +17945,7 @@
                     </div>
                   </details>`}
                 </div>
-                <span class="badge ${badgeClass}">${escapeHtml(displayedStatus)}</span>
+                <span class="po-status-pill ${statusClass}">${escapeHtml(statusLabel)}</span>
               </li>
             `;
             }).join('')
@@ -20259,6 +20363,18 @@
         return;
       }
       openMaterialAuthorizationModal(normalizedIds);
+    };
+
+    window.viewPoRequestGroupDetails = (...ids) => {
+      const normalizedIds = normalizeRequestIds(ids);
+      if (!normalizedIds.length) {
+        showMessage('Demande introuvable', 'error');
+        return;
+      }
+      const firstId = Number(normalizedIds[0]);
+      showModule('materials');
+      selectedMaterialRequestId = firstId;
+      loadMaterials();
     };
 
     async function loadExpenses() {
