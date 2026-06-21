@@ -783,9 +783,9 @@
 
     .mph-topbar {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
       margin-bottom: 16px;
     }
 
@@ -793,11 +793,24 @@
       display: none;
     }
 
+    .mobile-module-topbar .mph-brand,
+    .mobile-module-topbar .mph-actions,
+    #mobile-premium-home .mph-brand,
+    #mobile-premium-home .mph-actions {
+      width: 100%;
+    }
+
+    .mobile-module-topbar .mph-actions,
+    #mobile-premium-home .mph-actions {
+      justify-content: flex-end;
+    }
+
     .mph-brand {
       display: flex;
       align-items: center;
       gap: 12px;
       min-width: 0;
+      width: 100%;
     }
 
     .mph-brand-badge {
@@ -853,8 +866,10 @@
     .mph-actions {
       display: flex;
       align-items: center;
+      justify-content: flex-end;
       gap: 10px;
       flex: 0 0 auto;
+      width: 100%;
     }
 
     .mph-quick-actions {
@@ -2656,6 +2671,7 @@
         border-radius: 0;
         background: transparent;
         box-shadow: none;
+        pointer-events: auto;
       }
 
       body.mobile-search-open .mobile-module-topbar,
