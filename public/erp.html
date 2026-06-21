@@ -5649,6 +5649,10 @@
       }
     }
 
+    body.browser-layout-mode .layout-mode-wrap {
+      display: none !important;
+    }
+
     @media (max-width: 699px) {
       .layout-mode-wrap {
         display: none;
@@ -6209,7 +6213,6 @@
             <label for="layout-mode-select">Affichage</label>
             <select id="layout-mode-select" class="layout-mode-select" aria-label="Choix du mode d'affichage">
               <option value="app">Mode application</option>
-              <option value="browser">Mode navigateur</option>
             </select>
           </div>
           <div class="notif-btn-wrap">
@@ -26094,7 +26097,7 @@
 
       const layoutModeSelect = document.getElementById('layout-mode-select');
       if (layoutModeSelect) {
-        layoutModeSelect.value = isMobileViewport() ? 'app' : 'browser';
+        layoutModeSelect.value = 'app';
         layoutModeSelect.addEventListener('change', e => {
           if (isMobileViewport()) return;
           applyLayoutMode('browser', true);
