@@ -3289,6 +3289,26 @@
       }
     }
 
+    @media (min-width: 901px) and (max-width: 1200px) {
+      body.mobile-module-topbar-visible .mobile-module-topbar {
+        display: flex;
+        position: fixed;
+        left: 10px;
+        right: auto;
+        top: calc(env(safe-area-inset-top, 0px) + 8px);
+        z-index: 84;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        pointer-events: auto;
+        width: auto;
+        align-items: flex-end;
+      }
+    }
+
     @media (max-width: 560px) {
       .mph-topbar {
         flex-direction: column;
