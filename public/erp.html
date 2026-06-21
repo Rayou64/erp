@@ -4732,6 +4732,22 @@
         gap: 16px !important;
       }
 
+      /* Keep create-first hierarchy in modules that were list-first on desktop */
+      #stock-management .grid-2 .stock-create-card,
+      #maps .grid-2 .maps-create-card {
+        order: 1;
+      }
+
+      #stock-management .grid-2 .stock-history-card,
+      #maps .grid-2 .maps-history-card {
+        order: 3;
+      }
+
+      #stock-management .grid-2 .erp-section-sep,
+      #maps .grid-2 .erp-section-sep {
+        order: 2;
+      }
+
       /* Show section separator */
       .module .erp-section-sep {
         display: flex;
@@ -5506,6 +5522,7 @@
                 </div>
               </form>
             </div>
+            <div class="erp-section-sep">Historique récent</div>
             <div class="card">
               <h3 id="projects-list-title" style="margin-bottom: 15px;">Liste des projets</h3>
               <div class="form-group" style="margin-bottom: 12px;">
@@ -6294,14 +6311,15 @@
               <button type="button" id="stock-change-warehouse" class="button button-small button-secondary">Changer d'entrepôt</button>
             </div>
             <div class="grid-2">
-            <div class="card">
+            <div class="card stock-history-card">
               <h3 style="margin-bottom: 15px;">Commandes en cours de réception</h3>
               <div class="form-group" style="margin-bottom: 12px;">
                 <input type="text" id="stock-order-search" placeholder="Rechercher une commande (projet, fournisseur, matériel)" />
               </div>
               <ul id="stock-orders-list" class="list"></ul>
             </div>
-            <div class="card form-card">
+            <div class="erp-section-sep">Historique récent</div>
+            <div class="card form-card stock-create-card">
               <h3 style="margin-bottom: 15px;">Sortie de matériel</h3>
               <form id="stock-issue-form">
                 <div class="form-group">
@@ -6804,12 +6822,13 @@
           </div>
 
           <div class="grid-2" style="margin-top: 20px; align-items: start;">
-            <div class="card">
+            <div class="card maps-history-card">
               <h3 id="maps-history-title" style="margin-bottom: 10px;">Historique des positions</h3>
               <ul id="maps-history-list" class="list"></ul>
             </div>
 
-            <div class="card form-card" id="maps-update-panel">
+            <div class="erp-section-sep">Historique récent</div>
+            <div class="card form-card maps-create-card" id="maps-update-panel">
               <h3 style="margin-bottom: 15px;">Mise à jour rapide de position</h3>
               <form id="maps-location-form">
                 <div class="form-group">
