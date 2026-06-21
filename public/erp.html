@@ -2582,13 +2582,6 @@
       align-items: center;
     }
 
-    @media (min-width: 901px) {
-      body.mobile-module-topbar-visible .mobile-module-topbar {
-        left: 10px !important;
-        right: auto !important;
-      }
-    }
-
     @media (max-width: 900px) {
       .erp-container {
         position: relative;
@@ -2708,8 +2701,8 @@
       body.mobile-module-topbar-visible .mobile-module-topbar {
         display: flex;
         position: fixed;
-        left: auto;
-        right: 10px;
+        left: 10px;
+        right: auto;
         top: calc(env(safe-area-inset-top, 0px) + 8px);
         z-index: 84;
         margin: 0;
