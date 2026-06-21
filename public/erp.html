@@ -2872,6 +2872,158 @@
       padding: 10px;
     }
 
+    .purchase-orders-module .po-workflow-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin: 10px 0 14px;
+      padding: 10px;
+      border: 1px solid #d2e4ff;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #f8fbff, #edf4ff);
+    }
+
+    .purchase-orders-module .po-step {
+      border: 1px dashed #bfdbfe;
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #55719b;
+      background: #ffffff;
+    }
+
+    .purchase-orders-module .po-step.po-step-active {
+      border-style: solid;
+      border-color: #14b8a6;
+      color: #0f766e;
+      background: #ecfeff;
+      box-shadow: 0 4px 10px rgba(20, 184, 166, 0.16);
+    }
+
+    .purchase-orders-module .po-new-requests-sticky {
+      position: sticky;
+      top: 10px;
+      z-index: 5;
+      margin-bottom: 12px;
+      border: 1px solid #99f6e4;
+      border-radius: 12px;
+      background: linear-gradient(160deg, #ffffff 0%, #ecfeff 100%);
+      padding: 10px;
+      box-shadow: 0 10px 20px rgba(15, 118, 110, 0.12);
+    }
+
+    .purchase-orders-module .po-sticky-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .purchase-orders-module #po-new-requests-title {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f766e;
+    }
+
+    .purchase-orders-module #po-new-requests-list {
+      max-height: 180px;
+      overflow-y: auto;
+      margin: 0;
+      padding-right: 2px;
+    }
+
+    .purchase-orders-module #po-new-requests-list .list-item {
+      border: 1px solid #ccfbf1;
+      border-left-color: #14b8a6;
+      border-radius: 10px;
+      background: #ffffff;
+      padding: 8px;
+      margin-bottom: 6px;
+    }
+
+    .purchase-orders-module .po-options-board {
+      margin-top: 12px;
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff, #eff6ff);
+      padding: 10px;
+    }
+
+    .purchase-orders-module .po-options-board h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #1d4a83;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    .purchase-orders-module #po-options-list {
+      margin-bottom: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .purchase-orders-module .po-last-created-card {
+      margin-bottom: 12px;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      background: linear-gradient(160deg, #ffffff 0%, #f0fdf4 100%);
+      padding: 10px;
+      box-shadow: 0 8px 18px rgba(22, 163, 74, 0.14);
+    }
+
+    .purchase-orders-module .po-last-created-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      color: #166534;
+    }
+
+    .purchase-orders-module .po-quick-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 6px 0 10px;
+    }
+
+    .purchase-orders-module .po-quick-filter {
+      border: 1px solid #bfdbfe;
+      background: #ffffff;
+      color: #1d4a83;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 36px;
+    }
+
+    .purchase-orders-module .po-quick-filter.active {
+      border-color: #1d4ed8;
+      background: #dbeafe;
+      color: #1e3a8a;
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.2);
+    }
+
+    .purchase-orders-module .po-list-item-highlight {
+      border: 2px solid #16a34a !important;
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.16);
+      animation: poPulseHighlight 0.8s ease-in-out 0s 3;
+    }
+
+    @keyframes poPulseHighlight {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-1px); }
+      100% { transform: translateY(0); }
+    }
+
     .purchase-orders-module .po-recent-requests h4 {
       margin: 0 0 8px;
       font-size: 13px;
@@ -3490,6 +3642,19 @@
 
       .purchase-orders-module .po-suggestion-options {
         grid-template-columns: 1fr;
+      }
+
+      .purchase-orders-module .po-workflow-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .purchase-orders-module .po-new-requests-sticky {
+        top: 6px;
+      }
+
+      .purchase-orders-module .po-quick-filters {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
       }
 
       .purchase-orders-module .action-buttons {
@@ -6691,8 +6856,23 @@
             <p>Achat aux fournisseurs</p>
           </div>
 
+          <div id="po-workflow-strip" class="po-workflow-strip" aria-label="Workflow visuel bon de commande">
+            <div class="po-step po-step-active">Demande reçue</div>
+            <div class="po-step">Option choisie</div>
+            <div class="po-step">Bon créé</div>
+            <div class="po-step">Validation</div>
+          </div>
+
           <div class="grid-2">
             <div class="card form-card po-create-card">
+              <div id="po-new-requests-sticky" class="po-new-requests-sticky" aria-live="polite" aria-label="Nouvelles demandes en attente">
+                <div class="po-sticky-head">
+                  <h4 id="po-new-requests-title">Nouvelles demandes</h4>
+                  <span id="po-new-requests-count" class="badge badge-blue">0 nouvelle</span>
+                </div>
+                <ul id="po-new-requests-list" class="list"></ul>
+              </div>
+
               <h3 class="po-section-title">Créer un bon</h3>
               <form id="po-form">
                 <!-- Sélecteurs projet / site -->
@@ -6781,9 +6961,27 @@
                 <h4 id="po-suggestions-title">Demandes récentes</h4>
                 <ul id="po-suggestions-list" class="list"></ul>
               </div>
+
+              <div class="po-options-board" aria-live="polite" aria-label="Options proposées">
+                <h4 id="po-options-title">Options proposées</h4>
+                <ul id="po-options-list" class="list"></ul>
+              </div>
             </div>
             <div class="po-section-divider" role="separator" aria-label="Séparation des sections">Section suivante</div>
             <div class="card po-recent-card">
+              <div id="po-last-created-card" class="po-last-created-card" style="display:none;" aria-live="polite">
+                <div class="po-last-created-head">
+                  <strong>Dernier bon créé</strong>
+                  <span id="po-last-created-badge" class="badge badge-green">Nouveau</span>
+                </div>
+                <div id="po-last-created-meta" class="list-item-meta">Aucun bon créé récemment.</div>
+                <div class="decision-actions" style="margin-top:8px;">
+                  <button type="button" id="po-last-open" class="button button-small button-primary">Voir</button>
+                  <button type="button" id="po-last-edit" class="button button-small button-secondary">Modifier</button>
+                  <button type="button" id="po-last-pdf" class="button button-small button-secondary">Export PDF</button>
+                </div>
+              </div>
+
               <div id="po-priority-actions" style="display:none;margin-bottom:12px;padding:12px;border:2px solid #0f766e;border-radius:10px;background:linear-gradient(135deg,#ecfeff,#f0fdfa);box-shadow:0 10px 20px rgba(15,118,110,0.12);">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
                   <div>
@@ -6797,6 +6995,14 @@
                 </div>
               </div>
               <h3 id="po-list-title" class="po-section-title">Bons récents</h3>
+              <div id="po-quick-filters" class="po-quick-filters" aria-label="Filtres rapides bon de commande">
+                <button type="button" class="po-quick-filter active" data-po-quick-filter="all">Tous</button>
+                <button type="button" class="po-quick-filter" data-po-quick-filter="new">Nouveau</button>
+                <button type="button" class="po-quick-filter" data-po-quick-filter="pending">En attente</button>
+                <button type="button" class="po-quick-filter" data-po-quick-filter="today">À valider aujourd'hui</button>
+                <button type="button" class="po-quick-filter" data-po-quick-filter="urgent">Urgent</button>
+                <button type="button" class="po-quick-filter" data-po-quick-filter="mine">Mes bons</button>
+              </div>
               <div class="form-group" style="margin-bottom: 12px;">
                 <input type="text" id="po-search" placeholder="Rechercher un bon (site, fournisseur, statut)" />
               </div>
@@ -7955,6 +8161,9 @@
     let pushSetupReady = false;
     let auditLogEntries = [];
     let poCurrentPage = 1;
+    let poQuickFilter = 'all';
+    let poLastCreatedOrderId = null;
+    let poLastCreatedHighlightUntil = 0;
     let expensesCurrentPage = 1;
     let auditCurrentPage = 1;
 
@@ -17295,6 +17504,209 @@
       rejectBtn.onclick = () => openPurchaseOrderValidationModal(Number(order.id), 'ANNULEE');
     }
 
+    function getPoOrderDecisionStatus(order) {
+      return String(getPurchaseOrderDecisionStatus(order) || '').trim().toUpperCase();
+    }
+
+    function isPoOrderUrgent(order) {
+      const status = getPoOrderDecisionStatus(order);
+      if (status === 'VALIDEE' || status === 'REJETEE' || status === 'LIVREE') return false;
+      const date = parseDateValue(order?.dateCommande || order?.updatedAt || order?.createdAt || null);
+      if (!date) return false;
+      const ageMs = Date.now() - date.getTime();
+      return ageMs >= (48 * 60 * 60 * 1000);
+    }
+
+    function applyPoQuickFilter(orders) {
+      const rows = Array.isArray(orders) ? orders : [];
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const todayEnd = new Date(todayStart);
+      todayEnd.setDate(todayEnd.getDate() + 1);
+      const me = normalizeText(String(currentUserUsername || ''));
+
+      if (poQuickFilter === 'new') {
+        return rows.filter(order => getPoOrderDecisionStatus(order) === 'EN_ATTENTE');
+      }
+      if (poQuickFilter === 'pending') {
+        return rows.filter(order => {
+          const status = getPoOrderDecisionStatus(order);
+          return status === 'EN_ATTENTE' || status === 'EN_COURS';
+        });
+      }
+      if (poQuickFilter === 'today') {
+        return rows.filter(order => {
+          const status = getPoOrderDecisionStatus(order);
+          if (status !== 'EN_ATTENTE' && status !== 'EN_COURS') return false;
+          const date = parseDateValue(order?.dateCommande || order?.updatedAt || order?.createdAt || null);
+          return Boolean(date) && date >= todayStart && date < todayEnd;
+        });
+      }
+      if (poQuickFilter === 'urgent') {
+        return rows.filter(order => isPoOrderUrgent(order));
+      }
+      if (poQuickFilter === 'mine') {
+        return rows.filter(order => {
+          const creator = normalizeText(String(order?.creePar || ''));
+          return Boolean(me) && creator === me;
+        });
+      }
+      return rows;
+    }
+
+    function updatePoQuickFilterButtons() {
+      document.querySelectorAll('#po-quick-filters .po-quick-filter').forEach(button => {
+        const active = String(button.dataset.poQuickFilter || 'all') === poQuickFilter;
+        button.classList.toggle('active', active);
+      });
+    }
+
+    function updatePoWorkflowStrip({ hasNewRequests = false, hasOptions = false, hasLastCreated = false, needsValidation = false } = {}) {
+      const strip = document.getElementById('po-workflow-strip');
+      if (!strip) return;
+      const steps = Array.from(strip.querySelectorAll('.po-step'));
+      if (steps.length < 4) return;
+      steps[0].classList.toggle('po-step-active', Boolean(hasNewRequests));
+      steps[1].classList.toggle('po-step-active', Boolean(hasOptions));
+      steps[2].classList.toggle('po-step-active', Boolean(hasLastCreated));
+      steps[3].classList.toggle('po-step-active', Boolean(needsValidation));
+    }
+
+    function updatePoLastCreatedCard(lastOrder) {
+      const card = document.getElementById('po-last-created-card');
+      const badge = document.getElementById('po-last-created-badge');
+      const meta = document.getElementById('po-last-created-meta');
+      const openBtn = document.getElementById('po-last-open');
+      const editBtn = document.getElementById('po-last-edit');
+      const pdfBtn = document.getElementById('po-last-pdf');
+      if (!card || !meta || !badge) return;
+
+      if (!lastOrder) {
+        card.style.display = 'none';
+        return;
+      }
+
+      card.style.display = '';
+      const status = getPoOrderDecisionStatus(lastOrder) || 'EN_ATTENTE';
+      badge.textContent = status;
+      badge.classList.remove('badge-green', 'badge-red', 'badge-yellow');
+      if (status === 'VALIDEE' || status === 'LIVREE') {
+        badge.classList.add('badge-green');
+      } else if (status === 'REJETEE') {
+        badge.classList.add('badge-red');
+      } else {
+        badge.classList.add('badge-yellow');
+      }
+
+      meta.textContent = `${getPurchaseOrderDisplayName(lastOrder)} • ${lastOrder?.fournisseur || '-'} • ${Number(lastOrder?.montantTotal || 0).toFixed(2)} FCFA`;
+
+      if (openBtn) {
+        openBtn.onclick = () => viewPurchaseOrder(Number(lastOrder.id));
+      }
+      if (editBtn) {
+        editBtn.onclick = () => editPurchaseOrder(Number(lastOrder.id));
+      }
+      if (pdfBtn) {
+        pdfBtn.onclick = () => downloadPurchaseOrderPdf(Number(lastOrder.id));
+      }
+    }
+
+    function updatePoBoards(materials, orders) {
+      const stickyList = document.getElementById('po-new-requests-list');
+      const stickyCount = document.getElementById('po-new-requests-count');
+      const optionsList = document.getElementById('po-options-list');
+
+      if (!stickyList || !optionsList) return { groupedCount: 0, optionCount: 0 };
+
+      const linkedRequestIds = getLinkedPurchaseOrderRequestIds(orders);
+      const proposals = (Array.isArray(materials) ? materials : []).filter(req => {
+        const id = Number(req?.id || 0);
+        const status = String(req?.statut || '').trim().toUpperCase();
+        const canBecomePo = status === 'EN_ATTENTE' || status === 'APPROUVEE' || status === 'EN_COURS';
+        return id > 0 && canBecomePo && !linkedRequestIds.has(id);
+      });
+
+      const grouped = groupMaterialRequests(
+        sortRecent(proposals, row => row?.updatedAt || row?.dateDemande || row?.createdAt || row?.id).slice(0, 16)
+      );
+
+      if (!grouped.length) {
+        stickyList.innerHTML = '<div class="empty-state"><p>Aucune nouvelle demande</p></div>';
+        optionsList.innerHTML = '<div class="empty-state"><p>Aucune option proposée</p></div>';
+        if (stickyCount) stickyCount.textContent = '0 nouvelle';
+        return { groupedCount: 0, optionCount: 0 };
+      }
+
+      const rows = grouped
+        .map(groupReqs => {
+          const first = groupReqs[0];
+          const latest = sortRecent(groupReqs, row => row?.updatedAt || row?.dateDemande || row?.createdAt || row?.id)[0] || first;
+          const latestDate = parseDateValue(latest?.updatedAt || latest?.dateDemande || latest?.createdAt || null);
+          const ageDays = latestDate ? Math.floor((Date.now() - latestDate.getTime()) / (24 * 60 * 60 * 1000)) : 0;
+          const totalQty = groupReqs.reduce((sum, req) => sum + Number(req?.quantiteRestante || req?.quantiteDemandee || 0), 0);
+          const urgency = (ageDays >= 2 ? 2 : 0) + (totalQty >= 10 ? 1 : 0);
+          return {
+            groupReqs,
+            first,
+            latest,
+            totalQty,
+            ageDays,
+            urgency,
+          };
+        })
+        .sort((a, b) => {
+          if (b.urgency !== a.urgency) return b.urgency - a.urgency;
+          const bDate = parseDateValue(b.latest?.updatedAt || b.latest?.dateDemande || b.latest?.createdAt || null);
+          const aDate = parseDateValue(a.latest?.updatedAt || a.latest?.dateDemande || a.latest?.createdAt || null);
+          return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+        });
+
+      stickyList.innerHTML = rows.slice(0, 8).map(row => {
+        const idsArg = row.groupReqs.map(req => Number(req.id)).join(',');
+        const title = getMaterialRequestDisplayName(row.first);
+        const urgentLabel = row.urgency >= 2 ? 'Urgent' : 'Nouveau';
+        return `
+          <li class="list-item">
+            <div class="list-item-content">
+              <div class="list-item-title">${escapeHtml(title)}</div>
+              <div class="list-item-meta">${escapeHtml(row.first?.projetNom || '-')} • ${Number(row.totalQty || 0).toFixed(2)} • ${row.ageDays}j</div>
+            </div>
+            <div class="action-buttons" style="display:flex;gap:6px;align-items:center;">
+              <span class="badge ${row.urgency >= 2 ? 'badge-red' : 'badge-blue'}">${urgentLabel}</span>
+              ${isOpsReviewer() ? '' : `<button type="button" class="button button-small button-primary" onclick="prepareGroupFromRequests(${idsArg})">Traiter</button>`}
+            </div>
+          </li>
+        `;
+      }).join('');
+
+      optionsList.innerHTML = rows.slice(0, 8).map(row => {
+        const idsArg = row.groupReqs.map(req => Number(req.id)).join(',');
+        const title = getMaterialRequestDisplayName(row.first);
+        const site = row.first?.projetNom || '-';
+        const countArticles = row.groupReqs.length;
+        return `
+          <li class="list-item">
+            <div class="list-item-content">
+              <div class="list-item-title">${escapeHtml(title)}</div>
+              <div class="list-item-meta">${escapeHtml(site)} • ${countArticles} article${countArticles > 1 ? 's' : ''} • ${Number(row.totalQty || 0).toFixed(2)}</div>
+            </div>
+            ${isOpsReviewer() ? '' : `<div class="action-buttons po-suggestion-actions decision-actions">
+              <button type="button" class="button button-small button-secondary" onclick="authorizeTransferGroup(${idsArg})">Autoriser transfert</button>
+              <button type="button" class="button button-small button-primary" onclick="prepareGroupFromRequests(${idsArg})">Créer le bon</button>
+              <button type="button" class="button button-small button-danger" onclick="rejectGroupForPo(${idsArg})">Rejeter</button>
+            </div>`}
+          </li>
+        `;
+      }).join('');
+
+      if (stickyCount) {
+        const count = rows.length;
+        stickyCount.textContent = `${count} nouvelle${count > 1 ? 's' : ''}`;
+      }
+
+      return { groupedCount: rows.length, optionCount: rows.length };
+    }
+
     async function loadPurchaseOrders() {
       if (!canLoadPurchaseOrdersForCurrentRole()) {
         purchaseOrdersCache = [];
@@ -17302,6 +17714,8 @@
       }
 
       const suggestionsList = document.getElementById('po-suggestions-list');
+      const stickyPanel = document.getElementById('po-new-requests-sticky');
+      const optionsBoard = document.querySelector('#purchase-orders .po-options-board');
       const poFormCard = document.querySelector('#purchase-orders .form-card');
       const suggestionsTitle = document.getElementById('po-suggestions-title');
       const isStatusOnlyView = isZoneStockManager();
@@ -17311,6 +17725,8 @@
           suggestionsList.innerHTML = '';
           suggestionsList.style.display = 'none';
         }
+        if (stickyPanel) stickyPanel.style.display = 'none';
+        if (optionsBoard) optionsBoard.style.display = 'none';
         if (suggestionsTitle) suggestionsTitle.style.display = 'none';
         if (poFormCard) poFormCard.style.display = 'none';
       }
@@ -17332,6 +17748,8 @@
             suggestionsList.innerHTML = '';
             suggestionsList.style.display = 'none';
           }
+          if (stickyPanel) stickyPanel.style.display = 'none';
+          if (optionsBoard) optionsBoard.style.display = 'none';
           if (suggestionsTitle) suggestionsTitle.style.display = 'none';
           // Masquer le formulaire de création pour le dirigeant et le gestionnaire stock zone.
           if (poFormCard) poFormCard.style.display = 'none';
@@ -17340,26 +17758,46 @@
             suggestionsList.style.display = '';
             if (suggestionsTitle) suggestionsTitle.style.display = '';
           }
+          if (stickyPanel) stickyPanel.style.display = '';
+          if (optionsBoard) optionsBoard.style.display = '';
           if (poFormCard) poFormCard.style.display = '';
           renderPoSuggestions(materialRequestsCache, recentOrders);
         }
         const listTitle = document.getElementById('po-list-title');
         const searchValue = normalizeText(purchaseOrderSearchTerm.trim());
         const isSearchActive = Boolean(searchValue);
-        const filteredOrders = searchValue
-          ? recentOrders.filter(o => {
+        const boardState = isExecutive() || isStatusOnlyView
+          ? { groupedCount: 0, optionCount: 0 }
+          : updatePoBoards(materialRequestsCache, recentOrders);
+
+        const quickFilteredOrders = applyPoQuickFilter(recentOrders);
+        const searchedOrders = searchValue
+          ? quickFilteredOrders.filter(o => {
               const totalAmount = Number(o.montantTotal || 0).toFixed(2);
               const siteLabel = String(o.nomSiteManuel || o.nomProjetManuel || o.nomProjet || o.siteId || '').trim();
               const haystack = normalizeText(`${o.nomProjet || ''} ${siteLabel} ${o.fournisseur || ''} ${o.statut || ''} ${o.itemName || ''} ${totalAmount}`);
               return haystack.includes(searchValue);
             })
-          : (isExecutive() ? recentOrders.slice(0, 15) : recentOrders.slice(0, 12));
+          : quickFilteredOrders;
+        const filteredOrders = isSearchActive
+          ? searchedOrders
+          : (isExecutive() ? searchedOrders.slice(0, 15) : searchedOrders.slice(0, 12));
 
         const list = document.getElementById('po-list');
+        updatePoQuickFilterButtons();
 
         if (listTitle) {
           listTitle.textContent = isSearchActive ? 'Résultats de recherche' : 'Bons récents';
         }
+
+        if (poLastCreatedOrderId === -1 && recentOrders.length) {
+          poLastCreatedOrderId = Number(recentOrders[0].id);
+        }
+
+        const lastCreatedOrder = Number(poLastCreatedOrderId || 0)
+          ? recentOrders.find(order => Number(order.id) === Number(poLastCreatedOrderId))
+          : null;
+        updatePoLastCreatedCard(lastCreatedOrder || null);
 
         if (selectedPurchaseOrderId && !recentOrders.some(o => Number(o.id) === Number(selectedPurchaseOrderId))) {
           selectedPurchaseOrderId = null;
@@ -17384,8 +17822,9 @@
                   ? 'badge-red'
                   : 'badge-yellow';
               const isStatusOnlyView = isZoneStockManager();
+              const isLastCreated = Number(poLastCreatedOrderId || 0) === Number(o.id) && Date.now() <= Number(poLastCreatedHighlightUntil || 0);
               return `
-              <li class="list-item po-list-item">
+              <li class="list-item po-list-item ${isLastCreated ? 'po-list-item-highlight' : ''}" data-po-id="${Number(o.id)}">
                 <div class="list-item-content ${isStatusOnlyView ? '' : 'project-item-clickable'} ${Number(selectedPurchaseOrderId) === Number(o.id) ? 'project-item-selected' : ''}" ${isStatusOnlyView ? '' : `onclick="viewPurchaseOrder(${o.id})"`}>
                   <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(o))}</div>
                   <div class="list-item-meta">${isStatusOnlyView ? `Statut: ${escapeHtml(displayedStatus)}` : `${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(displayedStatus)}${isExecutive() && o.creePar ? ` • <em>Par ${escapeHtml(o.creePar)}</em>` : ''}`}</div>
@@ -17413,6 +17852,31 @@
         const selectedOrder = isZoneStockManager()
           ? null
           : (filteredOrders.find(o => Number(o.id) === Number(selectedPurchaseOrderId)) || null);
+
+        const hasPendingValidation = recentOrders.some(order => {
+          const status = getPoOrderDecisionStatus(order);
+          return status === 'EN_ATTENTE' || status === 'EN_COURS';
+        });
+        updatePoWorkflowStrip({
+          hasNewRequests: boardState.groupedCount > 0,
+          hasOptions: boardState.optionCount > 0,
+          hasLastCreated: Boolean(lastCreatedOrder),
+          needsValidation: hasPendingValidation,
+        });
+
+        if (Number(selectedPurchaseOrderId || 0) > 0) {
+          const selectedRow = list.querySelector(`[data-po-id="${Number(selectedPurchaseOrderId)}"]`);
+          if (selectedRow) {
+            selectedRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
+
+        if (Number(poLastCreatedOrderId || 0) > 0 && Date.now() <= Number(poLastCreatedHighlightUntil || 0)) {
+          const createdRow = list.querySelector(`[data-po-id="${Number(poLastCreatedOrderId)}"]`);
+          if (createdRow) {
+            createdRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
 
         if (isZoneStockManager()) {
           const details = document.getElementById('po-details');
@@ -22365,7 +22829,7 @@
           return;
         }
 
-        await fetchJson('/api/purchase-orders', {
+        const createdPurchaseOrder = await fetchJson('/api/purchase-orders', {
           method: 'POST',
           body: JSON.stringify({
             creePar: document.getElementById('po-created-by').value || 'admin',
@@ -22384,6 +22848,18 @@
             signatureRole: document.getElementById('po-signature-role')?.value?.trim() || null,
           }),
         });
+
+        const createdId = Number(createdPurchaseOrder?.id || createdPurchaseOrder?.purchaseOrder?.id || 0);
+        if (createdId > 0) {
+          poLastCreatedOrderId = createdId;
+          selectedPurchaseOrderId = createdId;
+        } else {
+          // Fallback: the latest row from backend refresh will be selected.
+          poLastCreatedOrderId = -1;
+        }
+        poQuickFilter = 'all';
+        poLastCreatedHighlightUntil = Date.now() + 3500;
+
         e.target.reset();
         document.getElementById('po-items').innerHTML = '';
         addPoItemRow();
@@ -22391,7 +22867,7 @@
         document.getElementById('po-date').value = formatDateForInput();
         syncPoDeliveryScope();
         showMessage('Bon de commande créé');
-        loadPurchaseOrders();
+        await loadPurchaseOrders();
         loadDatabaseDocuments();
       } catch (err) {
         showMessage('Erreur: ' + err.message, 'error');
@@ -22821,6 +23297,13 @@
     document.getElementById('po-search').addEventListener('input', e => {
       purchaseOrderSearchTerm = e.target.value;
       loadPurchaseOrders();
+    });
+
+    document.querySelectorAll('#po-quick-filters .po-quick-filter').forEach(button => {
+      button.addEventListener('click', () => {
+        poQuickFilter = String(button.dataset.poQuickFilter || 'all');
+        loadPurchaseOrders();
+      });
     });
 
     document.getElementById('auto-vehicle-search').addEventListener('input', e => {
@@ -24437,6 +24920,8 @@
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
+      poQuickFilter = 'all';
+      updatePoQuickFilterButtons();
       poCurrentPage = 1;
       applyPurchaseOrderFiltersAndPagination();
     }
