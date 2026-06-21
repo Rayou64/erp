@@ -3291,6 +3291,71 @@
     }
 
     @media (min-width: 901px) and (max-width: 1200px) {
+      .erp-container {
+        position: relative;
+        height: 100svh;
+        min-height: 100svh;
+      }
+
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: min(88vw, 370px);
+        max-width: 370px;
+        transform: translateX(-105%);
+        transition: transform 0.28s ease, box-shadow 0.28s ease;
+        box-shadow: 14px 0 42px rgba(8, 25, 63, 0.45);
+        border-right: 1px solid rgba(191, 219, 254, 0.34);
+        border-bottom: 0;
+        z-index: 1400;
+        overflow-y: auto;
+        backdrop-filter: blur(8px);
+      }
+
+      .sidebar.mobile-open {
+        width: min(88vw, 370px);
+        transform: translateX(0);
+      }
+
+      .mobile-sidebar-backdrop {
+        display: block;
+      }
+
+      .main-content {
+        padding-top: 0;
+        background:
+          radial-gradient(circle at top right, rgba(191, 219, 254, 0.22), transparent 30%),
+          linear-gradient(180deg, #12398b 0%, #1d4ed8 42%, #184095 100%);
+      }
+
+      .topbar {
+        display: block !important;
+        position: fixed;
+        width: 100%;
+        height: auto;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        z-index: 85;
+        pointer-events: none;
+      }
+
+      .topbar-left,
+      .topbar-center,
+      #theme-toggle,
+      .user-info {
+        display: none !important;
+      }
+
+      .topbar-right .notif-btn-wrap {
+        display: none !important;
+      }
+
       body.mobile-module-topbar-visible .mobile-module-topbar {
         display: flex;
         position: fixed;
@@ -3308,6 +3373,99 @@
         width: auto;
         align-items: center;
         justify-content: space-between;
+      }
+
+      body.mobile-search-open .mobile-module-topbar,
+      body.mobile-notif-open .mobile-module-topbar {
+        display: none !important;
+      }
+
+      body.mobile-notif-open .topbar {
+        display: block;
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: calc(env(safe-area-inset-top, 0px) + 8px);
+        z-index: 95;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        pointer-events: auto;
+      }
+
+      body.mobile-notif-open .topbar-right {
+        display: flex !important;
+        justify-content: flex-end;
+        pointer-events: auto;
+      }
+
+      body.mobile-notif-open .topbar-right > :not(.notif-btn-wrap) {
+        display: none !important;
+      }
+
+      body.mobile-notif-open .notif-btn-wrap {
+        display: inline-flex !important;
+        pointer-events: auto;
+      }
+
+      body.mobile-notif-open .notif-dropdown {
+        display: block;
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: calc(env(safe-area-inset-top, 0px) + 58px);
+        width: auto;
+        max-height: 68vh;
+        border-radius: 14px;
+        z-index: 96;
+        pointer-events: auto;
+      }
+
+      .menu-item[data-module="dashboard"] {
+        display: none !important;
+      }
+
+      .content-area {
+        padding: 0;
+        background: transparent;
+      }
+
+      .module:not(#dashboard) {
+        padding: 12px;
+        padding-top: calc(env(safe-area-inset-top, 0px) + 72px);
+      }
+
+      .card,
+      .stat-card,
+      .executive-dashboard,
+      .exec-card,
+      .modal-card,
+      .card h3,
+      .stat-card h3,
+      .module h1,
+      .module h2,
+      .module h3,
+      .module h4 {
+        color: #0f172a;
+      }
+
+      .card p,
+      .stat-card p,
+      .module p,
+      .module li,
+      .module label,
+      .module span {
+        color: #334155;
+      }
+
+      .card,
+      .stat-card,
+      .exec-card,
+      .modal-card {
+        background: rgba(255, 255, 255, 0.92);
+        border-color: rgba(15, 23, 42, 0.14);
       }
     }
 
