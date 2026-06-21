@@ -193,6 +193,34 @@
       align-items: center;
     }
 
+    .layout-mode-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border: 1px solid #dbe7ff;
+      border-radius: 10px;
+      background: #f8fbff;
+    }
+
+    .layout-mode-wrap label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      white-space: nowrap;
+    }
+
+    .layout-mode-select {
+      border: 1px solid #c7dafc;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #1e3a8a;
+      font-size: 12px;
+      font-weight: 700;
+      min-height: 32px;
+      padding: 4px 8px;
+    }
+
     .user-info {
       font-size: 13px;
       color: #64748b;
@@ -5550,6 +5578,77 @@
     .topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 20px; }
     .topbar-right { gap: 10px; }
 
+    @media (min-width: 901px) and (max-width: 1366px) and (orientation: landscape) {
+      body.app-layout-mode .erp-container {
+        height: 100dvh;
+        min-height: 100dvh;
+      }
+
+      body.app-layout-mode .sidebar {
+        position: relative;
+        transform: none !important;
+        width: 272px;
+        min-width: 272px;
+        max-width: 272px;
+      }
+
+      body.app-layout-mode .mobile-sidebar-backdrop {
+        display: none !important;
+      }
+
+      body.app-layout-mode .main-content {
+        overflow: hidden;
+      }
+
+      body.app-layout-mode .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 25;
+      }
+
+      body.app-layout-mode .content-area {
+        overflow: auto;
+        height: calc(100dvh - 86px);
+      }
+
+      body.app-layout-mode .module .button,
+      body.app-layout-mode .module .btn-export-excel,
+      body.app-layout-mode .module .filter-reset,
+      body.app-layout-mode .module .actions-menu summary {
+        min-height: 44px;
+      }
+
+      body.browser-layout-mode .erp-container {
+        display: block;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      body.browser-layout-mode .sidebar {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        position: relative;
+        transform: none !important;
+      }
+
+      body.browser-layout-mode .main-content,
+      body.browser-layout-mode .content-area {
+        overflow: visible;
+        height: auto;
+      }
+
+      body.browser-layout-mode .topbar {
+        position: static;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .layout-mode-wrap {
+        display: none;
+      }
+    }
+
     /* Requested UI cleanup: remove top search/bell/logout controls */
     #mobile-search-dock-btn,
     #logout-button,
@@ -5691,6 +5790,13 @@
           </div>
         </div>
         <div class="topbar-right">
+          <div class="layout-mode-wrap">
+            <label for="layout-mode-select">Affichage</label>
+            <select id="layout-mode-select" class="layout-mode-select" aria-label="Choix du mode d'affichage">
+              <option value="app">Mode application</option>
+              <option value="browser">Mode navigateur</option>
+            </select>
+          </div>
           <div class="notif-btn-wrap">
             <button id="notif-bell-btn" title="Notifications">
               🔔
@@ -8286,6 +8392,7 @@
     let stockIssuesCache = [];
     const ERP_THEME_KEY = 'erp_theme_v1';
     const ERP_SIDEBAR_COLLAPSED_KEY = 'erp_sidebar_collapsed_v1';
+    const ERP_LAYOUT_MODE_KEY = 'erp_layout_mode_v1';
     const ERP_AUDIT_LOG_KEY = 'erp_audit_log_v1';
     const ERP_NOTIF_KEY = 'erp_notifs_v1';
     const DEFAULT_PAGE_SIZE = 10;
@@ -25532,6 +25639,28 @@
     function initEnhancements() {
       const savedTheme = localStorage.getItem(ERP_THEME_KEY) || 'light';
       setTheme(savedTheme);
+
+      const applyLayoutMode = modeValue => {
+        const mode = modeValue === 'browser' ? 'browser' : 'app';
+        document.body.classList.toggle('app-layout-mode', mode === 'app');
+        document.body.classList.toggle('browser-layout-mode', mode === 'browser');
+        localStorage.setItem(ERP_LAYOUT_MODE_KEY, mode);
+        const select = document.getElementById('layout-mode-select');
+        if (select && select.value !== mode) {
+          select.value = mode;
+        }
+      };
+
+      const savedLayoutMode = localStorage.getItem(ERP_LAYOUT_MODE_KEY) || 'app';
+      applyLayoutMode(savedLayoutMode);
+
+      const layoutModeSelect = document.getElementById('layout-mode-select');
+      if (layoutModeSelect) {
+        layoutModeSelect.value = savedLayoutMode === 'browser' ? 'browser' : 'app';
+        layoutModeSelect.addEventListener('change', e => {
+          applyLayoutMode(String(e.target.value || 'app'));
+        });
+      }
 
       const sidebarStored = localStorage.getItem(ERP_SIDEBAR_COLLAPSED_KEY);
       const sidebarCollapsed = window.innerWidth <= 900 ? true : sidebarStored === '1';
