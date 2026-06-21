@@ -2639,6 +2639,10 @@
         display: none !important;
       }
 
+      .topbar-right .notif-btn-wrap {
+        display: none !important;
+      }
+
       body.mobile-module-topbar-visible .mobile-module-topbar {
         display: flex;
         position: fixed;
@@ -2701,11 +2705,13 @@
         border: 0;
         background: transparent;
         box-shadow: none;
+        pointer-events: auto;
       }
 
       body.mobile-notif-open .topbar-right {
         display: flex !important;
         justify-content: flex-end;
+        pointer-events: auto;
       }
 
       body.mobile-notif-open .topbar-right > :not(.notif-btn-wrap) {
@@ -2714,6 +2720,7 @@
 
       body.mobile-notif-open .notif-btn-wrap {
         display: inline-flex !important;
+        pointer-events: auto;
       }
 
       body.mobile-notif-open .notif-dropdown {
@@ -2726,6 +2733,7 @@
         max-height: 68vh;
         border-radius: 14px;
         z-index: 96;
+        pointer-events: auto;
       }
 
       .menu-item[data-module="dashboard"] {
@@ -4100,7 +4108,6 @@
 
     /* Requested UI cleanup: remove top search/bell/logout controls */
     #mobile-search-dock-btn,
-    .notif-btn-wrap,
     #logout-button,
     #mph-notif-btn,
     #mph-nav-search,
@@ -4240,6 +4247,22 @@
           </div>
         </div>
         <div class="topbar-right">
+          <div class="notif-btn-wrap">
+            <button id="notif-bell-btn" title="Notifications">
+              🔔
+              <span id="notif-badge" class="notif-badge">0</span>
+            </button>
+            <div id="notif-dropdown" class="notif-dropdown">
+              <div class="notif-header">
+                <span>Notifications</span>
+                <div class="notif-actions">
+                  <span id="notif-test" class="notif-test">Test</span>
+                  <span id="notif-clear" class="notif-clear">Vider</span>
+                </div>
+              </div>
+              <div id="notif-list" class="notif-list"></div>
+            </div>
+          </div>
           <button id="theme-toggle" class="button button-secondary button-small" title="Basculer mode sombre/clair">🌙</button>
           <div class="user-info">
             <span id="username">Admin</span>
@@ -4266,7 +4289,7 @@
               <div class="mph-profile-caret">▾</div>
             </div>
             <div class="mph-quick-actions">
-              <button type="button" class="mph-quick-action-btn" id="mph-module-search-btn" aria-label="Recherche">🔍</button>
+              <button type="button" class="mph-quick-action-btn" id="mph-module-menu-btn" aria-label="Liste des modules">☰</button>
               <button type="button" class="mph-quick-action-btn" id="mph-module-notif-btn" aria-label="Notifications">🔔<span id="mph-module-notif-badge" class="mph-quick-action-badge">0</span></button>
             </div>
             <button type="button" id="mph-module-back-btn" class="mph-top-back-btn" aria-label="Retour à la sélection des blocs">←</button>
@@ -22552,19 +22575,13 @@
         });
       }
 
-      const moduleSearchBtn = document.getElementById('mph-module-search-btn');
-      if (moduleSearchBtn && !moduleSearchBtn.dataset.bound) {
-        moduleSearchBtn.dataset.bound = '1';
-        moduleSearchBtn.addEventListener('click', () => {
+      const moduleMenuBtn = document.getElementById('mph-module-menu-btn');
+      if (moduleMenuBtn && !moduleMenuBtn.dataset.bound) {
+        moduleMenuBtn.dataset.bound = '1';
+        moduleMenuBtn.addEventListener('click', () => {
           document.body.classList.remove('mobile-notif-open');
-          const isOpen = document.body.classList.toggle('mobile-search-open');
-          moduleSearchBtn.classList.toggle('active', isOpen);
-          if (isOpen) {
-            const input = document.getElementById('global-search');
-            if (input) {
-              requestAnimationFrame(() => input.focus());
-            }
-          }
+          document.body.classList.remove('mobile-search-open');
+          setSidebarCollapsed(false);
         });
       }
 
