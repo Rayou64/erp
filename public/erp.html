@@ -1251,7 +1251,8 @@
       background: rgba(255, 255, 255, 0.18);
     }
 
-    .mph-home-btn {
+    .mph-home-btn,
+    .mph-top-home-btn {
       width: 44px;
       height: 44px;
       border: 1px solid rgba(148, 163, 184, 0.28);
@@ -1266,13 +1267,15 @@
       padding: 0;
     }
 
-    .mph-home-btn svg {
+    .mph-home-btn svg,
+    .mph-top-home-btn svg {
       width: 22px;
       height: 22px;
       display: block;
     }
 
-    .mph-home-btn:hover {
+    .mph-home-btn:hover,
+    .mph-top-home-btn:hover {
       background: linear-gradient(145deg, #ffffff, #e5e7eb);
     }
 
@@ -4212,16 +4215,8 @@
               <div class="mph-brand">
                 <div class="mph-brand-badge">⬢</div>
                 <div class="mph-brand-meta">
-                  <small>Ryan ERP Mobile</small>
-                  <div class="mph-brand-title-row">
-                    <strong>Accueil</strong>
-                    <button type="button" id="mph-home-btn" class="mph-home-btn" aria-label="Retour à l'accueil">
-                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M3.5 11.2L12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M5.5 10.6V20h5.2v-5.4h2.6V20h5.2v-9.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
-                      </svg>
-                    </button>
-                  </div>
+                  <small>RYAN ERP MOBILE</small>
+                  <strong>ACCEUIL</strong>
                 </div>
               </div>
               <div class="mph-actions">
@@ -4237,6 +4232,12 @@
                   </div>
                   <div class="mph-profile-caret">▾</div>
                 </div>
+                <button type="button" id="mph-home-btn" class="mph-top-home-btn" aria-label="Retour à l'accueil">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3.5 11.2L12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M5.5 10.6V20h5.2v-5.4h2.6V20h5.2v-9.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </button>
               </div>
             </div>
             <div class="mph-hero">
