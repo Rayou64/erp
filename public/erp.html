@@ -810,6 +810,9 @@
     }
 
     .mph-brand-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
       min-width: 0;
     }
 
@@ -826,6 +829,21 @@
       display: block;
       font-size: 18px;
       line-height: 1.1;
+    }
+
+    .mph-brand-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mph-brand-title-row strong {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .mph-actions {
@@ -1234,22 +1252,28 @@
     }
 
     .mph-home-btn {
-      width: 42px;
-      height: 42px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 15px;
-      background: rgba(255, 255, 255, 0.15);
-      color: #ffffff;
-      font-size: 18px;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 999px;
+      background: linear-gradient(145deg, #ffffff, #f3f4f6);
+      color: #374151;
       display: grid;
       place-items: center;
-      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
       cursor: pointer;
       flex: 0 0 auto;
+      padding: 0;
+    }
+
+    .mph-home-btn svg {
+      width: 22px;
+      height: 22px;
+      display: block;
     }
 
     .mph-home-btn:hover {
-      background: rgba(255, 255, 255, 0.22);
+      background: linear-gradient(145deg, #ffffff, #e5e7eb);
     }
 
     .mph-panel-head strong {
@@ -4189,7 +4213,15 @@
                 <div class="mph-brand-badge">⬢</div>
                 <div class="mph-brand-meta">
                   <small>Ryan ERP Mobile</small>
-                  <strong>Accueil</strong>
+                  <div class="mph-brand-title-row">
+                    <strong>Accueil</strong>
+                    <button type="button" id="mph-home-btn" class="mph-home-btn" aria-label="Retour à l'accueil">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M3.5 11.2L12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M5.5 10.6V20h5.2v-5.4h2.6V20h5.2v-9.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
               <div class="mph-actions">
@@ -4229,7 +4261,6 @@
                 <div class="mph-panel-head-actions">
                   <button type="button" id="mph-back-btn" class="mph-back-btn" aria-label="Retour à la sélection des modules">← Modules</button>
                   <div id="mph-panel-badge" class="mph-panel-badge">0 module</div>
-                  <button type="button" id="mph-home-btn" class="mph-home-btn" aria-label="Retour à l'accueil">🏠</button>
                 </div>
               </div>
               <div class="mph-panel-toolbar">
