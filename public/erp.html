@@ -2677,6 +2677,110 @@
       align-items: center;
     }
 
+    .purchase-orders-module .page-header {
+      border-radius: 18px;
+      padding: 18px 20px;
+      background: linear-gradient(120deg, #0f766e 0%, #1d4ed8 58%, #0f172a 100%);
+      color: #f8fafc;
+      margin-bottom: 18px;
+      box-shadow: 0 18px 38px rgba(15, 23, 42, 0.22);
+    }
+
+    .purchase-orders-module .page-header h1,
+    .purchase-orders-module .page-header p {
+      color: #f8fafc;
+    }
+
+    .purchase-orders-module .card {
+      border: 1px solid #cfe0ff;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 250, 255, 0.96));
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.12);
+    }
+
+    .purchase-orders-module .form-group label {
+      color: #1d4a83;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .purchase-orders-module input,
+    .purchase-orders-module select,
+    .purchase-orders-module textarea {
+      min-height: 44px;
+      border-radius: 12px;
+      border: 1px solid #c9dafc;
+      background: linear-gradient(180deg, #ffffff, #f7fbff);
+      color: #16325c;
+      font-size: 14px;
+    }
+
+    .purchase-orders-module input::placeholder,
+    .purchase-orders-module textarea::placeholder {
+      color: #6b84aa;
+    }
+
+    .purchase-orders-module .button,
+    .purchase-orders-module .btn-export-excel,
+    .purchase-orders-module .filter-reset {
+      min-height: 44px;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+
+    .purchase-orders-module #po-list .list-item {
+      align-items: flex-start;
+      gap: 10px;
+      border-left-color: #14b8a6;
+      background: linear-gradient(145deg, #ffffff 0%, #eef6ff 100%);
+    }
+
+    .purchase-orders-module #po-list .list-item .list-item-title {
+      color: #0f2d5a;
+      font-weight: 800;
+    }
+
+    .purchase-orders-module #po-list .list-item .list-item-meta {
+      color: #47648e;
+      margin-top: 2px;
+    }
+
+    .purchase-orders-module .actions-menu summary {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+    }
+
+    .purchase-orders-module #po-filter-bar {
+      margin-top: 12px;
+      border: 1px solid #d3e3ff;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #f8fbff, #edf4ff);
+      padding: 10px;
+      gap: 8px;
+    }
+
+    .purchase-orders-module #po-details {
+      border: 1px solid #d2e4ff;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #f9fcff, #f1f7ff);
+    }
+
+    .purchase-orders-module .po-item-row {
+      border-color: #cfe1ff;
+      background: linear-gradient(180deg, #ffffff, #f3f8ff);
+      border-radius: 12px;
+      padding: 12px;
+      gap: 10px;
+    }
+
+    .purchase-orders-module .po-item-total {
+      border-color: #bfd5ff;
+      color: #17427d;
+      font-weight: 700;
+      border-radius: 10px;
+      min-height: 44px;
+    }
+
     @media (max-width: 900px) {
       .erp-container {
         position: relative;
@@ -3137,6 +3241,65 @@
         grid-template-columns: 1fr;
       }
 
+      .purchase-orders-module .grid-2 {
+        gap: 14px;
+      }
+
+      .purchase-orders-module .card {
+        padding: 12px;
+        border-radius: 14px;
+      }
+
+      .purchase-orders-module #po-list .list-item,
+      .purchase-orders-module #po-suggestions-list .list-item {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+      }
+
+      .purchase-orders-module .action-buttons {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .purchase-orders-module .action-buttons .button,
+      .purchase-orders-module .action-buttons .actions-menu summary {
+        width: 100%;
+        min-height: 44px;
+      }
+
+      .purchase-orders-module .badge {
+        align-self: flex-start;
+      }
+
+      .purchase-orders-module #po-filter-bar {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .purchase-orders-module #po-filter-bar label {
+        color: #1d4a83;
+        font-weight: 700;
+        margin-top: 2px;
+      }
+
+      .purchase-orders-module #po-search {
+        min-height: 46px;
+        font-size: 15px;
+      }
+
+      .purchase-orders-module #po-priority-actions {
+        position: sticky;
+        top: calc(env(safe-area-inset-top, 0px) + 64px);
+        z-index: 4;
+      }
+
+      .purchase-orders-module .po-item-row .form-group label {
+        font-size: 12px;
+      }
+
       /* Maquette 5 theme - mobile only */
       .main-content {
         background:
@@ -3382,6 +3545,24 @@
       .modal-card {
         max-height: 90vh;
         overflow-y: auto;
+      }
+    }
+
+    @media (min-width: 901px) and (max-width: 1200px) {
+      .purchase-orders-module #po-list .list-item,
+      .purchase-orders-module #po-suggestions-list .list-item {
+        align-items: flex-start;
+      }
+
+      .purchase-orders-module .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .purchase-orders-module #po-filter-bar {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
 
@@ -5895,7 +6076,7 @@
           </div>
         </div>
 
-        <div id="purchase-orders" class="module">
+        <div id="purchase-orders" class="module purchase-orders-module">
           <div class="page-header">
             <h1>Bons de commande</h1>
             <p>Achat aux fournisseurs</p>
@@ -12859,28 +13040,28 @@
       row.innerHTML = `
         <div class="form-group" style="margin-bottom: 0;">
           <label>Demande liée</label>
-          <select class="po-item-request">${getMaterialRequestOptionsHtml(initialValues.materialRequestId || '')}</select>
+          <select class="po-item-request" aria-label="Demande liée">${getMaterialRequestOptionsHtml(initialValues.materialRequestId || '')}</select>
         </div>
         <div class="form-group" style="margin-bottom: 0;">
           <label>Catalogue matériau</label>
-          <select class="po-item-catalog">${getPoCatalogOptionsHtml(initialValues.catalogId || '', initialValues.materialRequestId || null)}</select>
+          <select class="po-item-catalog" aria-label="Catalogue matériau">${getPoCatalogOptionsHtml(initialValues.catalogId || '', initialValues.materialRequestId || null)}</select>
         </div>
         <div class="form-group" style="margin-bottom: 0;">
           <label>Article *</label>
-          <input type="text" class="po-item-article" value="${escapeHtml(initialValues.article || '')}" required />
+          <input type="text" class="po-item-article" value="${escapeHtml(initialValues.article || '')}" required aria-label="Nom de l'article" />
         </div>
         <div class="form-group" style="margin-bottom: 0;">
           <label>Quantité *</label>
-          <input type="text" inputmode="decimal" class="po-item-qty" value="${initialValues.quantite || ''}" required />
+          <input type="text" inputmode="decimal" class="po-item-qty" value="${initialValues.quantite || ''}" required aria-label="Quantité" />
         </div>
         <div class="form-group" style="margin-bottom: 0;">
           <label>Prix unitaire (FCFA) *</label>
-          <input type="text" inputmode="decimal" class="po-item-price" value="${initialValues.prixUnitaire || ''}" required />
+          <input type="text" inputmode="decimal" class="po-item-price" value="${initialValues.prixUnitaire || ''}" required aria-label="Prix unitaire" />
         </div>
         <div class="form-group" style="margin-bottom: 0;">
           <label>Total ligne</label>
           <div class="po-item-total">0.00 FCFA</div>
-          <button type="button" class="button button-small button-danger po-item-remove" style="margin-top: 6px; width: 100%;">Retirer</button>
+          <button type="button" class="button button-small button-danger po-item-remove" style="margin-top: 6px; width: 100%;" aria-label="Retirer cette ligne d'article">Retirer</button>
         </div>
       `;
 
@@ -16555,16 +16736,16 @@
                   : 'badge-yellow';
               const isStatusOnlyView = isZoneStockManager();
               return `
-              <li class="list-item">
+              <li class="list-item po-list-item">
                 <div class="list-item-content ${isStatusOnlyView ? '' : 'project-item-clickable'} ${Number(selectedPurchaseOrderId) === Number(o.id) ? 'project-item-selected' : ''}" ${isStatusOnlyView ? '' : `onclick="viewPurchaseOrder(${o.id})"`}>
                   <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(o))}</div>
                   <div class="list-item-meta">${isStatusOnlyView ? `Statut: ${escapeHtml(displayedStatus)}` : `${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(displayedStatus)}${isExecutive() && o.creePar ? ` • <em>Par ${escapeHtml(o.creePar)}</em>` : ''}`}</div>
                 </div>
-                <div class="action-buttons">
-                  ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-success" onclick="validatePurchaseOrder(${o.id})">Valider</button>` : ''}
-                  ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-danger" onclick="rejectPurchaseOrder(${o.id})">Rejeter</button>` : ''}
+                <div class="action-buttons po-action-buttons">
+                  ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-success" aria-label="Valider le bon de commande ${Number(o.id)}" onclick="validatePurchaseOrder(${o.id})">Valider</button>` : ''}
+                  ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-danger" aria-label="Rejeter le bon de commande ${Number(o.id)}" onclick="rejectPurchaseOrder(${o.id})">Rejeter</button>` : ''}
                   ${isStatusOnlyView ? '' : `<details class="actions-menu">
-                    <summary aria-label="Actions bon de commande">&#8942;</summary>
+                    <summary aria-label="Actions du bon de commande ${Number(o.id)}">&#8942;</summary>
                     <div class="actions-dropdown">
                       ${isPurchaseReadOnlyRole() ? '' : `<button type="button" onclick="editPurchaseOrder(${o.id})">Modifier</button>`}
                       <button type="button" onclick="downloadPurchaseOrderPdf(${o.id})">Telecharger PDF</button>
