@@ -4617,6 +4617,29 @@
        DESIGN SYSTEM GLOBAL — CRÉATION / HISTORIQUE
     ═══════════════════════════════════════════════════ */
 
+    /* --- Standard visuel PO sur les en-têtes de modules --- */
+    .module:not(.purchase-orders-module) .page-header {
+      border-radius: 18px;
+      padding: 18px 20px;
+      background: linear-gradient(120deg, #0b5f72 0%, #1e40af 56%, #0f172a 100%);
+      color: #f8fafc;
+      margin-bottom: 18px;
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.2);
+      border: 1px solid rgba(191, 219, 254, 0.35);
+    }
+
+    .module:not(.purchase-orders-module) .page-header h1,
+    .module:not(.purchase-orders-module) .page-header p {
+      color: #f8fafc;
+    }
+
+    /* --- Cartes globales avec rendu premium homogène --- */
+    .module:not(.purchase-orders-module) .card {
+      border: 1px solid #cfe0ff;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 250, 255, 0.96));
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.1);
+    }
+
     /* --- Carte de création (formulaire) --- */
     .module .grid-2 > .form-card {
       position: relative;
@@ -4657,6 +4680,43 @@
       color: #0f2d5a;
       font-weight: 800;
       letter-spacing: 0.01em;
+    }
+
+    /* --- Listes et historiques façon PO --- */
+    .module .list .list-item {
+      align-items: flex-start;
+      gap: 10px;
+      border-left: 4px solid #14b8a6;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #ffffff 0%, #eef6ff 100%);
+      box-shadow: 0 8px 16px rgba(29, 78, 216, 0.06);
+      padding: 12px;
+    }
+
+    .module .list .list-item .list-item-title {
+      color: #0f2d5a;
+      font-weight: 800;
+    }
+
+    .module .list .list-item .list-item-meta {
+      color: #47648e;
+      margin-top: 2px;
+    }
+
+    /* --- Filtres et panneaux d'actions homogènes --- */
+    .module .filter-bar {
+      margin-top: 12px;
+      border: 1px solid #d3e3ff;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #f8fbff, #edf4ff);
+      padding: 10px;
+      gap: 8px;
+    }
+
+    .module .actions-menu summary {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
     }
 
     /* --- Labels de formulaires (accessibilité) --- */
@@ -4702,6 +4762,18 @@
     .module .button-secondary.button-small,
     .module .button-small {
       min-height: 40px;
+    }
+
+    /* --- Focus visible cohérent clavier/tactile --- */
+    .module button:focus-visible,
+    .module .button:focus-visible,
+    .module input:focus-visible,
+    .module select:focus-visible,
+    .module textarea:focus-visible,
+    .module summary:focus-visible,
+    .module a:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, 0.38);
+      outline-offset: 2px;
     }
 
     /* --- Séparateur entre sections sur tablet/mobile --- */
@@ -4756,6 +4828,14 @@
       /* Simplify form internal grids on tablet */
       .module .form-group .erp-two-col {
         grid-template-columns: 1fr !important;
+      }
+
+      .module .filter-bar {
+        grid-template-columns: 1fr !important;
+      }
+
+      .module .list .list-item {
+        padding: 11px;
       }
     }
 
