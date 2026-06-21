@@ -4614,6 +4614,136 @@
     .skeleton-container { padding: 8px 0; }
 
     /* ═══════════════════════════════════════════════════
+       DESIGN SYSTEM GLOBAL — CRÉATION / HISTORIQUE
+    ═══════════════════════════════════════════════════ */
+
+    /* --- Carte de création (formulaire) --- */
+    .module .grid-2 > .form-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #b6dff5;
+      box-shadow: 0 12px 28px rgba(14, 116, 144, 0.12);
+    }
+
+    .module .grid-2 > .form-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: linear-gradient(180deg, #14b8a6 0%, #0ea5e9 55%, #1d4ed8 100%);
+      border-radius: 0;
+      pointer-events: none;
+    }
+
+    /* --- Carte historique (liste récente) --- */
+    .module .grid-2 > .card:not(.form-card) {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #bfcfff;
+      box-shadow: 0 12px 28px rgba(29, 78, 216, 0.10);
+    }
+
+    .module .grid-2 > .card:not(.form-card)::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: linear-gradient(180deg, #1d4ed8 0%, #3b82f6 55%, #22d3ee 100%);
+      pointer-events: none;
+    }
+
+    /* --- Titres de section dans les modules --- */
+    .module .grid-2 h3 {
+      color: #0f2d5a;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    /* --- Labels de formulaires (accessibilité) --- */
+    .module .form-group label {
+      color: #193b7d;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* --- Champs tactiles confortables --- */
+    .module .form-group input,
+    .module .form-group select,
+    .module .form-group textarea {
+      min-height: 44px;
+      border-radius: 11px;
+      border: 1.5px solid #c9dafc;
+      background: linear-gradient(180deg, #ffffff, #f7fbff);
+      color: #16325c;
+      font-size: 14px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .module .form-group input:focus,
+    .module .form-group select:focus,
+    .module .form-group textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+      background: #fff;
+    }
+
+    .module .form-group input::placeholder,
+    .module .form-group textarea::placeholder {
+      color: #6b84aa;
+    }
+
+    /* --- Boutons principaux dans les modules --- */
+    .module .button-primary {
+      min-height: 48px;
+      font-size: 15px;
+      letter-spacing: 0.02em;
+    }
+
+    .module .button-secondary.button-small,
+    .module .button-small {
+      min-height: 40px;
+    }
+
+    /* --- Séparateur entre sections sur tablet/mobile --- */
+    .module .erp-section-sep {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      color: #3056a0;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin: 4px 0;
+    }
+
+    .module .erp-section-sep::before,
+    .module .erp-section-sep::after {
+      content: '';
+      flex: 1;
+      height: 1.5px;
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0), rgba(59, 130, 246, 0.7), rgba(59, 130, 246, 0));
+    }
+
+    @media (max-width: 1366px) {
+      /* Force single-column for all module grid-2 */
+      .module .grid-2 {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+
+      /* Show section separator */
+      .module .erp-section-sep {
+        display: flex;
+      }
+
+      /* Simplify form internal grids on tablet */
+      .module .form-group .erp-two-col {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
        RECHERCHE GLOBALE
     ═══════════════════════════════════════════════════ */
     .global-search-wrap {
@@ -5692,6 +5822,7 @@
                 <button type="submit" class="button button-primary" style="width:100%;">Enregistrer le pointage</button>
               </form>
             </div>
+            <div class="erp-section-sep">Historique récent</div>
             <div class="card">
               <h3 style="margin-bottom: 15px;">Pointages récents</h3>
               <div class="table-wrapper" style="overflow-x:auto;">
@@ -5745,6 +5876,7 @@
                 <button type="submit" class="button button-primary" style="width: 100%;">Assigner</button>
               </form>
             </div>
+            <div class="erp-section-sep">Historique récent</div>
             <div class="card">
               <h3 id="assignments-list-title" style="margin-bottom: 15px;">Assignations récentes</h3>
               <div class="form-group" style="margin-bottom: 12px;">
@@ -5820,6 +5952,7 @@
                 <button type="submit" class="button button-primary" style="width:100%;">Envoyer la demande</button>
               </form>
             </div>
+            <div class="erp-section-sep">Historique récent</div>
             <div class="card">
               <h3 style="margin-bottom: 15px;">Historique des demandes</h3>
               <div class="table-wrapper" style="overflow-x:auto;">
@@ -5878,7 +6011,7 @@
                 <button type="submit" class="button button-primary" style="width:100%; margin-top: 12px;">📨 Envoyer pour signature</button>
               </form>
             </div>
-
+            <div class="erp-section-sep">Historique récent</div>
             <div class="card">
               <h3 style="margin-bottom: 15px;">Statuts des demandes</h3>
               <div class="table-wrapper" style="overflow-x:auto;">
@@ -6006,6 +6139,7 @@
                 <button type="submit" class="button button-primary" style="width: 100%;">Créer la demande</button>
               </form>
             </div>
+            <div class="erp-section-sep">Historique récent</div>
             <div class="card">
               <h3 id="materials-list-title" style="margin-bottom: 15px;">Demandes récentes</h3>
               <div class="form-group" style="margin-bottom: 12px;">
@@ -6522,6 +6656,7 @@
                 <button type="submit" class="button button-primary" style="width: 100%;">Ajouter le véhicule</button>
               </form>
             </div>
+            <div class="erp-section-sep">Historique récent</div>
             <div class="card">
               <h3 id="auto-vehicles-list-title" style="margin-bottom: 15px;">Véhicules récents</h3>
               <div class="form-group" style="margin-bottom: 12px;">
@@ -6563,6 +6698,7 @@
                 <p style="margin-top: 10px; color: #64748b; font-size: 12px;">Cette opération crée automatiquement une ligne dans Dépenses (catégorie transport).</p>
               </form>
             </div>
+            <div class="erp-section-sep">Historique récent</div>
             <div class="card">
               <h3 id="auto-transports-list-title" style="margin-bottom: 15px;">Transports récents</h3>
               <div class="form-group" style="margin-bottom: 12px;">
@@ -6789,6 +6925,7 @@
                 <button type="submit" class="button button-primary" style="width: 100%;">Enregistrer</button>
               </form>
             </div>
+            <div class="erp-section-sep">Historique récent</div>
             <div class="card">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
                 <h3 id="expenses-list-title" style="margin:0;">Dépenses récentes</h3>
@@ -6874,6 +7011,7 @@
                 <button type="submit" class="button button-primary" style="width: 100%;">Enregistrer</button>
               </form>
             </div>
+            <div class="erp-section-sep">Historique récent</div>
             <div class="card">
               <h3 id="revenues-list-title" style="margin-bottom: 15px;">Revenus récents</h3>
               <div class="form-group" style="margin-bottom: 12px;">
