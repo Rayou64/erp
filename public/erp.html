@@ -2880,6 +2880,111 @@
       letter-spacing: 0.01em;
     }
 
+    .purchase-orders-module #po-suggestions-list .list-item {
+      border: 1px solid #cfe2ff;
+      border-radius: 14px;
+      background: linear-gradient(150deg, #ffffff 0%, #eef5ff 100%);
+      padding: 11px;
+      gap: 10px;
+      align-items: stretch;
+      border-left-color: #0ea5a5;
+    }
+
+    .purchase-orders-module .po-suggestion-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .purchase-orders-module .po-suggestion-meta {
+      font-size: 12px;
+      color: #47648e;
+      line-height: 1.35;
+      margin-top: 2px;
+    }
+
+    .purchase-orders-module .po-suggestion-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      border: 1px solid #99f6e4;
+      background: #ecfeff;
+      color: #0f766e;
+      white-space: nowrap;
+    }
+
+    .purchase-orders-module .po-suggestion-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .purchase-orders-module .po-suggestion-option {
+      border: 1px solid #d8e5ff;
+      border-radius: 10px;
+      background: #ffffff;
+      padding: 7px;
+      min-height: 58px;
+    }
+
+    .purchase-orders-module .po-suggestion-option .opt-k {
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #6381b1;
+      margin-bottom: 4px;
+      font-weight: 800;
+    }
+
+    .purchase-orders-module .po-suggestion-option .opt-v {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f2d5a;
+      line-height: 1.25;
+    }
+
+    .purchase-orders-module .po-suggestion-actions,
+    #sortie-autorisations .sia-action-buttons,
+    .module .decision-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    .purchase-orders-module .po-suggestion-actions .button,
+    #sortie-autorisations .sia-action-buttons .button,
+    .module .decision-actions .button {
+      width: 100%;
+      min-height: 44px;
+      font-weight: 700;
+    }
+
+    #sortie-autorisations #sia-list .list-item {
+      border: 1px solid #cfe2ff;
+      border-left-color: #1d4ed8;
+      background: linear-gradient(150deg, #ffffff 0%, #eef5ff 100%);
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    #sortie-autorisations .sia-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
     .purchase-orders-module #po-suggestions-list {
       margin-bottom: 0;
       max-height: 280px;
@@ -3383,6 +3488,10 @@
         padding: 12px;
       }
 
+      .purchase-orders-module .po-suggestion-options {
+        grid-template-columns: 1fr;
+      }
+
       .purchase-orders-module .action-buttons {
         width: 100%;
         display: grid;
@@ -3394,6 +3503,12 @@
       .purchase-orders-module .action-buttons .actions-menu summary {
         width: 100%;
         min-height: 44px;
+      }
+
+      .purchase-orders-module .po-suggestion-actions,
+      #sortie-autorisations .sia-action-buttons,
+      .module .decision-actions {
+        grid-template-columns: 1fr;
       }
 
       .purchase-orders-module .badge {
@@ -13712,15 +13827,36 @@
         const demandeur = first.demandeur || '-';
         const idsArg = groupReqs.map(r => Number(r.id)).filter(id => Number.isInteger(id) && id > 0).join(',');
         const articlesMeta = groupReqs.map(r => `${r.itemName} (${Number(r.quantiteRestante || r.quantiteDemandee || 0).toFixed(2)})`).join(', ');
+        const totalQty = groupReqs.reduce((sum, r) => sum + Number(r.quantiteRestante || r.quantiteDemandee || 0), 0);
+        const latestAt = sortRecent(groupReqs, row => row?.updatedAt || row?.dateDemande || row?.createdAt || row?.id)[0];
+        const latestDate = latestAt ? formatDate(latestAt.updatedAt || latestAt.dateDemande || latestAt.createdAt) : 'Date inconnue';
         return `
           <li class="list-item" tabindex="0" aria-label="Demande ${escapeHtml(title)} de ${escapeHtml(demandeur)} sur ${escapeHtml(site)}">
             <div class="list-item-content">
-              <div class="list-item-title">${escapeHtml(title)}</div>
-              <div class="list-item-meta">${escapeHtml(site)} • ${escapeHtml(demandeur)} • ${groupReqs.length} article${groupReqs.length > 1 ? 's' : ''}</div>
+              <div class="po-suggestion-head">
+                <div>
+                  <div class="list-item-title">${escapeHtml(title)}</div>
+                  <div class="po-suggestion-meta">${escapeHtml(site)} • ${escapeHtml(demandeur)} • Mise à jour: ${escapeHtml(latestDate)}</div>
+                </div>
+                <span class="po-suggestion-status">Nouveau</span>
+              </div>
+              <div class="po-suggestion-options" aria-label="Options déjà proposées pour cette demande">
+                <div class="po-suggestion-option">
+                  <div class="opt-k">Option site</div>
+                  <div class="opt-v">${escapeHtml(site)}</div>
+                </div>
+                <div class="po-suggestion-option">
+                  <div class="opt-k">Articles</div>
+                  <div class="opt-v">${groupReqs.length} article${groupReqs.length > 1 ? 's' : ''}</div>
+                </div>
+                <div class="po-suggestion-option">
+                  <div class="opt-k">Quantité totale</div>
+                  <div class="opt-v">${Number(totalQty || 0).toFixed(2)}</div>
+                </div>
+              </div>
               <div class="list-item-meta" style="font-size:0.8em;color:#64748b;">${escapeHtml(articlesMeta)}</div>
-              <div class="list-item-meta" style="font-size:0.8em;color:#92400e;">Statut: EN_ATTENTE</div>
             </div>
-            ${isOpsReviewer() ? '' : `<div class="action-buttons">
+            ${isOpsReviewer() ? '' : `<div class="action-buttons po-suggestion-actions decision-actions">
               <button type="button" class="button button-small button-primary" onclick="authorizeTransferGroup(${idsArg})">Autorisation de transfert</button>
               <button type="button" class="button button-small button-secondary" onclick="prepareGroupFromRequests(${idsArg})">Création de bon de commande</button>
               <button type="button" class="button button-small button-danger" onclick="rejectGroupForPo(${idsArg})">Rejeter</button>
@@ -17254,7 +17390,7 @@
                   <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(o))}</div>
                   <div class="list-item-meta">${isStatusOnlyView ? `Statut: ${escapeHtml(displayedStatus)}` : `${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(displayedStatus)}${isExecutive() && o.creePar ? ` • <em>Par ${escapeHtml(o.creePar)}</em>` : ''}`}</div>
                 </div>
-                <div class="action-buttons po-action-buttons">
+                <div class="action-buttons po-action-buttons decision-actions">
                   ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-success" aria-label="Valider le bon de commande ${Number(o.id)}" onclick="validatePurchaseOrder(${o.id})">Valider</button>` : ''}
                   ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-danger" aria-label="Rejeter le bon de commande ${Number(o.id)}" onclick="rejectPurchaseOrder(${o.id})">Rejeter</button>` : ''}
                   ${isStatusOnlyView ? '' : `<details class="actions-menu">
@@ -17935,18 +18071,20 @@
           return `
             <li class="list-item">
               <div class="list-item-content">
-                <div class="list-item-title">${escapeHtml(title)}</div>
+                <div class="sia-card-top">
+                  <div class="list-item-title">${escapeHtml(title)}</div>
+                  <span class="badge ${badgeClass}">${escapeHtml(statusLabel)}</span>
+                </div>
                 <div class="list-item-meta">Projet: ${escapeHtml(row.nomProjet || '-')} ${row.numeroMaison ? `• Site ${escapeHtml(row.numeroMaison)}` : ''}</div>
                 <div class="list-item-meta">Articles: ${escapeHtml(itemsLabel)}</div>
                 <div class="list-item-meta">Total: ${Number(row.totalQuantite || row.quantiteSortie || 0).toFixed(2)} • ${Number(row.itemCount || items.length || 1)} article(s) • Demandé par: ${escapeHtml(row.requestedBy || '-')} • ${formatDate(row.requestedAt)}</div>
                 ${row.decisionNote ? `<div class="list-item-meta" style="color:#dc2626;">Note: ${escapeHtml(row.decisionNote)}</div>` : ''}
               </div>
-              <div class="action-buttons">
+              <div class="action-buttons sia-action-buttons decision-actions">
                 ${canDecide ? `<button type="button" class="button button-small button-success" onclick="openSiaSignModal(${Number(row.id)}, 'VALIDEE')">Valider</button>` : ''}
                 ${canDecide ? `<button type="button" class="button button-small button-danger" onclick="openSiaSignModal(${Number(row.id)}, 'REJETEE')">Rejeter</button>` : ''}
                 <button type="button" class="button button-small button-secondary" onclick="downloadSiaPdfById(${Number(row.id)})">Télécharger</button>
               </div>
-              <span class="badge ${badgeClass}">${escapeHtml(statusLabel)}</span>
             </li>
           `;
         }).join('');
