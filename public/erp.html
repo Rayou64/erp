@@ -789,6 +789,10 @@
       margin-bottom: 16px;
     }
 
+    .mobile-module-topbar {
+      display: none;
+    }
+
     .mph-brand {
       display: flex;
       align-items: center;
@@ -1276,6 +1280,27 @@
 
     .mph-home-btn:hover,
     .mph-top-home-btn:hover {
+      background: linear-gradient(145deg, #ffffff, #e5e7eb);
+    }
+
+    .mph-top-back-btn {
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 999px;
+      background: linear-gradient(145deg, #ffffff, #f3f4f6);
+      color: #374151;
+      font-size: 24px;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+      cursor: pointer;
+      flex: 0 0 auto;
+      padding: 0;
+    }
+
+    .mph-top-back-btn:hover {
       background: linear-gradient(145deg, #ffffff, #e5e7eb);
     }
 
@@ -2611,6 +2636,26 @@
       .topbar-center,
       #theme-toggle,
       .user-info {
+        display: none !important;
+      }
+
+      body.mobile-module-topbar-visible .mobile-module-topbar {
+        display: flex;
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: calc(env(safe-area-inset-top, 0px) + 8px);
+        z-index: 84;
+        margin: 0;
+        padding: 8px 10px;
+        border: 1px solid rgba(191, 219, 254, 0.34);
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.92);
+        box-shadow: 0 14px 32px rgba(2, 6, 23, 0.48);
+      }
+
+      body.mobile-search-open .mobile-module-topbar,
+      body.mobile-notif-open .mobile-module-topbar {
         display: none !important;
       }
 
@@ -4204,6 +4249,36 @@
 
       <!-- Content Area -->
       <div class="content-area">
+        <div id="mobile-module-topbar" class="mobile-module-topbar">
+          <div class="mph-brand">
+            <div class="mph-brand-badge">⬢</div>
+            <div class="mph-brand-meta">
+              <small>RYAN ERP MOBILE</small>
+            </div>
+          </div>
+          <div class="mph-actions">
+            <div class="mph-profile-chip" id="mph-module-profile-chip">
+              <div class="mph-avatar" id="mph-module-avatar">AD</div>
+              <div class="mph-profile-text">
+                <span id="mph-module-role">Profil actif</span>
+                <strong id="mph-module-username">Admin</strong>
+              </div>
+              <div class="mph-profile-caret">▾</div>
+            </div>
+            <div class="mph-quick-actions">
+              <button type="button" class="mph-quick-action-btn" id="mph-module-search-btn" aria-label="Recherche">🔍</button>
+              <button type="button" class="mph-quick-action-btn" id="mph-module-notif-btn" aria-label="Notifications">🔔<span id="mph-module-notif-badge" class="mph-quick-action-badge">0</span></button>
+            </div>
+            <button type="button" id="mph-module-back-btn" class="mph-top-back-btn" aria-label="Retour à la sélection des blocs">←</button>
+            <button type="button" id="mph-module-home-btn" class="mph-top-home-btn" aria-label="Retour à l'accueil">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M3.5 11.2L12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M5.5 10.6V20h5.2v-5.4h2.6V20h5.2v-9.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
         <!-- Dashboard Module -->
         <div id="dashboard" class="module active">
           <div class="page-header" style="display:none;">
@@ -4219,7 +4294,7 @@
                 </div>
               </div>
               <div class="mph-actions">
-                <div class="mph-profile-chip">
+                <div class="mph-profile-chip" id="mph-home-profile-chip">
                   <div class="mph-avatar" id="mph-avatar">AD</div>
                   <div class="mph-profile-text">
                     <span id="mph-role">Profil actif</span>
@@ -14583,6 +14658,7 @@
         document.body.classList.remove('mobile-notif-open');
         document.body.classList.remove('mobile-dock-open');
       }
+      document.body.classList.toggle('mobile-module-topbar-visible', moduleName !== 'dashboard');
       document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
       const activeModuleEl = document.getElementById(moduleName);
       activeModuleEl?.classList.add('active');
@@ -22196,9 +22272,15 @@
       const usernameNode = document.getElementById('mph-username');
       const roleNode = document.getElementById('mph-role');
       const avatarNode = document.getElementById('mph-avatar');
+      const moduleUsernameNode = document.getElementById('mph-module-username');
+      const moduleRoleNode = document.getElementById('mph-module-role');
+      const moduleAvatarNode = document.getElementById('mph-module-avatar');
       if (usernameNode) usernameNode.textContent = String(currentUserUsername || 'Admin');
       if (roleNode) roleNode.textContent = getFriendlyRoleLabel();
       if (avatarNode) avatarNode.textContent = buildMobilePremiumAvatar();
+      if (moduleUsernameNode) moduleUsernameNode.textContent = String(currentUserUsername || 'Admin');
+      if (moduleRoleNode) moduleRoleNode.textContent = getFriendlyRoleLabel();
+      if (moduleAvatarNode) moduleAvatarNode.textContent = buildMobilePremiumAvatar();
     }
 
     function performLogout() {
@@ -22207,14 +22289,14 @@
     }
 
     function syncMobilePremiumNotifications() {
-      const button = document.getElementById('mph-top-notif-btn');
-      const navBadge = document.getElementById('mph-top-notif-badge');
-      if (!button) return;
+      const homeBadge = document.getElementById('mph-top-notif-badge');
+      const moduleBadge = document.getElementById('mph-module-notif-badge');
       const unread = notifications.filter(n => n.unread).length;
-      if (navBadge) {
-        navBadge.textContent = String(unread);
-        navBadge.style.display = unread > 0 ? 'flex' : 'none';
-      }
+      [homeBadge, moduleBadge].forEach(badge => {
+        if (!badge) return;
+        badge.textContent = String(unread);
+        badge.style.display = unread > 0 ? 'flex' : 'none';
+      });
     }
 
     function getAuthorizedHomeModules() {
@@ -22420,7 +22502,7 @@
         });
       }
 
-      const profileChip = document.querySelector('.mph-profile-chip');
+      const profileChip = document.getElementById('mph-home-profile-chip');
       if (profileChip && !profileChip.dataset.bound) {
         profileChip.dataset.bound = '1';
         profileChip.addEventListener('click', () => {
@@ -22457,6 +22539,58 @@
       if (homeBtn && !homeBtn.dataset.bound) {
         homeBtn.dataset.bound = '1';
         homeBtn.addEventListener('click', () => {
+          returnToHomeScreen();
+        });
+      }
+
+      const moduleProfileChip = document.getElementById('mph-module-profile-chip');
+      if (moduleProfileChip && !moduleProfileChip.dataset.bound) {
+        moduleProfileChip.dataset.bound = '1';
+        moduleProfileChip.addEventListener('click', () => {
+          const settingsItem = document.querySelector('.menu-item[data-module="settings"]') || document.querySelector('.menu-item[data-module="users"]');
+          settingsItem?.click();
+        });
+      }
+
+      const moduleSearchBtn = document.getElementById('mph-module-search-btn');
+      if (moduleSearchBtn && !moduleSearchBtn.dataset.bound) {
+        moduleSearchBtn.dataset.bound = '1';
+        moduleSearchBtn.addEventListener('click', () => {
+          document.body.classList.remove('mobile-notif-open');
+          const isOpen = document.body.classList.toggle('mobile-search-open');
+          moduleSearchBtn.classList.toggle('active', isOpen);
+          if (isOpen) {
+            const input = document.getElementById('global-search');
+            if (input) {
+              requestAnimationFrame(() => input.focus());
+            }
+          }
+        });
+      }
+
+      const moduleNotifBtn = document.getElementById('mph-module-notif-btn');
+      if (moduleNotifBtn && !moduleNotifBtn.dataset.bound) {
+        moduleNotifBtn.dataset.bound = '1';
+        moduleNotifBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          lastNotifToggleAt = Date.now();
+          toggleNotificationsPanel();
+          setupPushNotifications({ requestPermission: true }).catch(() => {});
+        });
+      }
+
+      const moduleBackBtn = document.getElementById('mph-module-back-btn');
+      if (moduleBackBtn && !moduleBackBtn.dataset.bound) {
+        moduleBackBtn.dataset.bound = '1';
+        moduleBackBtn.addEventListener('click', () => {
+          returnToModuleSelection();
+        });
+      }
+
+      const moduleHomeBtn = document.getElementById('mph-module-home-btn');
+      if (moduleHomeBtn && !moduleHomeBtn.dataset.bound) {
+        moduleHomeBtn.dataset.bound = '1';
+        moduleHomeBtn.addEventListener('click', () => {
           returnToHomeScreen();
         });
       }
@@ -23586,7 +23720,7 @@
         const searchWrap = document.querySelector('.global-search-wrap');
         const notifWrap = document.querySelector('.notif-btn-wrap');
         const notifExternalTrigger = e.target && e.target.closest
-          ? e.target.closest('#mph-top-notif-btn, #dock-notif-btn')
+          ? e.target.closest('#mph-top-notif-btn, #mph-module-notif-btn, #dock-notif-btn')
           : null;
         const isToggleGuardWindow = (Date.now() - Number(lastNotifToggleAt || 0)) < 300;
         if (searchWrap && !searchWrap.contains(e.target)) {
