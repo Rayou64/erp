@@ -2707,6 +2707,9 @@
       box-shadow: 0 16px 34px rgba(14, 116, 144, 0.14);
       position: relative;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
     .purchase-orders-module .po-create-card::before {
@@ -2861,6 +2864,7 @@
     }
 
     .purchase-orders-module .po-recent-requests {
+      order: -1;
       margin-top: 14px;
       border: 1px solid #d2e4ff;
       border-radius: 12px;
@@ -6282,7 +6286,7 @@
                   </label>
                   <input type="hidden" id="po-stage" />
                 </div>
-                <div class="po-form-help" id="po-form-help">Astuce: commence par sélectionner une demande récente ci-dessous pour pré-remplir automatiquement les articles.</div>
+                <div class="po-form-help" id="po-form-help">Astuce: commence par sélectionner une demande récente ci-dessus pour pré-remplir automatiquement les articles.</div>
                 <div style="margin-bottom:10px;">
                   <button type="button" id="po-load-catalog" class="button button-secondary" style="width:100%;" aria-describedby="po-form-help">↧ Charger les articles du catalogue</button>
                 </div>
