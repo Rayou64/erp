@@ -3432,6 +3432,25 @@
         background: transparent;
       }
 
+      /* Dashboard topbar: brand gauche, actions droite */
+      .mph-topbar {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: calc(env(safe-area-inset-top, 0px) + 8px) 10px 0;
+      }
+
+      #mobile-premium-home .mph-brand,
+      #mobile-premium-home .mph-actions {
+        width: auto;
+        flex-shrink: 0;
+      }
+
+      #mobile-premium-home .mph-actions {
+        justify-content: flex-end;
+      }
+
       .module:not(#dashboard) {
         padding: 12px;
         padding-top: calc(env(safe-area-inset-top, 0px) + 72px);
@@ -3466,228 +3485,6 @@
       .modal-card {
         background: rgba(255, 255, 255, 0.92);
         border-color: rgba(15, 23, 42, 0.14);
-      }
-
-      /* Thème tablette — identique mobile */
-      .main-content {
-        background:
-          radial-gradient(760px 360px at 0% 8%, rgba(46, 196, 182, 0.22), transparent 52%),
-          radial-gradient(860px 420px at 100% -4%, rgba(95, 106, 242, 0.20), transparent 55%),
-          linear-gradient(180deg, #f8fbff 0%, #f8fafc 100%);
-      }
-
-      .sidebar {
-        color: #1f2937;
-        box-shadow: 14px 0 42px rgba(31, 41, 55, 0.25);
-        border-right: 1px solid rgba(31, 41, 55, 0.14);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 251, 255, 0.98));
-      }
-
-      .sidebar-logo {
-        color: #1f2937;
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92));
-        border-color: rgba(31, 41, 55, 0.14);
-      }
-
-      .sidebar-header {
-        background: linear-gradient(135deg, rgba(255, 209, 102, 0.34) 0%, rgba(77, 171, 247, 0.22) 100%);
-      }
-
-      .menu-section {
-        border-color: rgba(31, 41, 55, 0.10);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(238, 246, 255, 0.68));
-        box-shadow: 0 10px 22px rgba(31, 41, 55, 0.10);
-      }
-
-      .menu-section-title {
-        color: #475569;
-      }
-
-      .menu-item {
-        color: #334155;
-        background: rgba(255, 255, 255, 0.72);
-      }
-
-      .menu-item:hover,
-      .menu-item.active {
-        background: linear-gradient(90deg, rgba(255, 107, 107, 0.16), rgba(46, 196, 182, 0.16));
-      }
-
-      .mobile-premium-home {
-        display: block;
-        margin: 0;
-        border-radius: 0;
-        border: 0;
-        box-shadow: none;
-        min-height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-        padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 14px);
-        background:
-          radial-gradient(circle at 18% 0%, rgba(255, 107, 107, 0.12), transparent 24%),
-          radial-gradient(circle at 82% 9%, rgba(77, 171, 247, 0.16), transparent 24%),
-          radial-gradient(circle at 60% 100%, rgba(139, 233, 209, 0.10), transparent 26%),
-          linear-gradient(180deg, #f8fbff 0%, #f8fafc 100%);
-        color: #1f2937;
-      }
-
-      .mph-topbar {
-        align-items: flex-start;
-      }
-
-      .mph-actions {
-        flex-direction: row;
-        align-items: center;
-      }
-
-      .mph-profile-chip {
-        width: auto;
-        border-color: rgba(31, 41, 55, 0.12);
-        background: rgba(255, 255, 255, 0.84);
-      }
-
-      .mph-hero-title {
-        font-size: 24px;
-      }
-
-      .mph-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .grid-2 {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-
-      .tabs-container {
-        overflow-x: auto;
-        white-space: nowrap;
-      }
-
-      .tab-button {
-        padding: 10px 12px;
-      }
-
-      .table th,
-      .table td {
-        font-size: 12px;
-        padding: 8px;
-      }
-
-      .po-item-row {
-        grid-template-columns: 1fr;
-      }
-
-      .mph-brand-meta small {
-        color: #64748b;
-      }
-
-      .mph-brand-meta strong {
-        color: #1f2937;
-      }
-
-      .mph-brand-badge {
-        background: linear-gradient(145deg, #ffd166, #ff9f43);
-        color: #7c2d12;
-      }
-
-      .mph-quick-action-btn {
-        border-color: rgba(31, 41, 55, 0.12);
-        background: rgba(255, 255, 255, 0.88);
-        color: #1f2937;
-        box-shadow: 0 10px 20px rgba(31, 41, 55, 0.12);
-      }
-
-      .mph-avatar {
-        background: linear-gradient(145deg, #ffd166, #ff9f43);
-        color: #7c2d12;
-      }
-
-      .mph-profile-text span,
-      .mph-profile-caret {
-        color: #64748b;
-      }
-
-      .mph-profile-text strong {
-        color: #1f2937;
-      }
-
-      .mph-tile {
-        color: #0f172a;
-        border-color: rgba(31, 41, 55, 0.10);
-        box-shadow: 0 12px 30px rgba(31, 41, 55, 0.12);
-      }
-
-      .mph-tile-desc {
-        color: #475569;
-      }
-
-      .mph-tile--construction { background: linear-gradient(160deg, #ffffff 0%, #fff1f1 45%, #ffe3e3 100%); }
-      .mph-tile--stock { background: linear-gradient(160deg, #ffffff 0%, #e8fff8 44%, #d0f7ee 100%); }
-      .mph-tile--achats { background: linear-gradient(160deg, #ffffff 0%, #eef6ff 44%, #dfeeff 100%); }
-      .mph-tile--finance { background: linear-gradient(160deg, #ffffff 0%, #fff8e9 44%, #ffe9b8 100%); }
-      .mph-tile--rh { background: linear-gradient(160deg, #ffffff 0%, #f2ecff 44%, #e7dcff 100%); }
-      .mph-tile--admin { background: linear-gradient(160deg, #ffffff 0%, #ffeef6 44%, #ffd9e9 100%); }
-
-      .mph-panel {
-        border-color: rgba(31, 41, 55, 0.12);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(245, 250, 255, 0.98));
-        box-shadow: 0 18px 42px rgba(31, 41, 55, 0.14);
-      }
-
-      .mph-back-btn {
-        border-color: rgba(31, 41, 55, 0.12);
-        background: rgba(255, 255, 255, 0.86);
-        color: #334155;
-      }
-
-      .mph-panel-head strong,
-      .mph-panel-badge,
-      .mph-module-btn,
-      .mph-module-btn-arrow {
-        color: #0f172a;
-      }
-
-      .mph-panel-head span,
-      .mph-module-btn-text span {
-        color: #64748b;
-      }
-
-      .mph-panel-badge,
-      .mph-panel-chip,
-      .mph-module-btn {
-        border-color: rgba(31, 41, 55, 0.10);
-        background: rgba(255, 255, 255, 0.76);
-      }
-
-      .mph-module-btn-icon {
-        background: linear-gradient(145deg, rgba(255, 209, 102, 0.34), rgba(77, 171, 247, 0.24));
-      }
-
-      .module:not(#dashboard) .button:not(.button-primary),
-      .module:not(#dashboard) .button-secondary,
-      .module:not(#dashboard) .button-small {
-        color: #0f172a;
-        border-color: rgba(31, 41, 55, 0.16);
-        background: rgba(255, 255, 255, 0.90);
-      }
-
-      .module:not(#dashboard) .button-primary {
-        color: #ffffff;
-      }
-
-      .mph-logout-btn {
-        background: linear-gradient(145deg, rgba(255, 107, 107, 0.20), rgba(247, 143, 179, 0.20));
-        border-color: rgba(255, 107, 107, 0.30);
-        color: #b91c1c;
-      }
-
-      .modal-card {
-        max-height: 90vh;
-        overflow-y: auto;
-      }
-
-      .dashboard-grid {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 12px;
       }
     }
 
