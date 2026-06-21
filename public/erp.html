@@ -800,9 +800,14 @@
       width: 100%;
     }
 
+    .mobile-module-topbar .mph-brand,
+    .mobile-module-topbar .mph-actions {
+      width: auto;
+    }
+
     .mobile-module-topbar .mph-actions,
     #mobile-premium-home .mph-actions {
-      justify-content: flex-end;
+      justify-content: flex-start;
     }
 
     .mph-brand {
@@ -2661,7 +2666,7 @@
       body.mobile-module-topbar-visible .mobile-module-topbar {
         display: flex;
         position: fixed;
-        left: 10px;
+        left: auto;
         right: 10px;
         top: calc(env(safe-area-inset-top, 0px) + 8px);
         z-index: 84;
@@ -2672,6 +2677,8 @@
         background: transparent;
         box-shadow: none;
         pointer-events: auto;
+        width: auto;
+        align-items: flex-end;
       }
 
       body.mobile-search-open .mobile-module-topbar,
