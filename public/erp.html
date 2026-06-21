@@ -897,6 +897,7 @@
       box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
       position: relative;
       cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.22s ease, background-color 0.22s ease, border-color 0.22s ease;
     }
 
     .mph-quick-action-btn.active {
@@ -952,6 +953,36 @@
       padding: 8px 12px 8px 8px;
       box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
       min-width: 0;
+      transition: transform 0.18s ease, box-shadow 0.22s ease, background-color 0.22s ease, border-color 0.22s ease;
+    }
+
+    .mph-quick-action-btn:hover,
+    .mph-profile-chip:hover,
+    .mph-module-btn:hover,
+    .mph-tile:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(15, 23, 42, 0.20);
+    }
+
+    .mph-quick-action-btn:active,
+    .mph-profile-chip:active,
+    .mph-module-btn:active,
+    .mph-tile:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    button:focus-visible,
+    .button:focus-visible,
+    .mph-quick-action-btn:focus-visible,
+    .mph-profile-chip:focus-visible,
+    .mph-module-btn:focus-visible,
+    .mph-tile:focus-visible,
+    .global-search-input:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.30), 0 10px 22px rgba(15, 23, 42, 0.16);
     }
 
     .mph-avatar {
@@ -2390,20 +2421,84 @@
       position: fixed;
       bottom: 20px;
       right: 20px;
-      padding: 16px 20px;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.96) 0%, rgba(5, 150, 105, 0.96) 100%);
       color: white;
-      border-radius: 6px;
-      box-shadow: 0 8px 16px rgba(16, 185, 129, 0.4);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow: 0 16px 34px rgba(5, 150, 105, 0.34);
       z-index: 1000;
-      max-width: 400px;
-      animation: slideIn 0.3s ease-out;
-      font-weight: 500;
+      max-width: min(440px, calc(100vw - 24px));
+      animation: slideIn 0.24s ease-out;
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
-    .notification.error {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      box-shadow: 0 8px 16px rgba(239, 68, 68, 0.4);
+    .notification.notification-error {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.96) 0%, rgba(220, 38, 38, 0.96) 100%);
+      box-shadow: 0 16px 34px rgba(220, 38, 38, 0.34);
+    }
+
+    .notification.notification-warning {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.96) 0%, rgba(217, 119, 6, 0.96) 100%);
+      box-shadow: 0 16px 34px rgba(217, 119, 6, 0.32);
+    }
+
+    .notification.notification-info {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.96) 0%, rgba(29, 78, 216, 0.96) 100%);
+      box-shadow: 0 16px 34px rgba(29, 78, 216, 0.32);
+    }
+
+    .notification-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.20);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex: 0 0 auto;
+    }
+
+    .notification-text {
+      flex: 1;
+      min-width: 0;
+      line-height: 1.35;
+    }
+
+    .notification-close {
+      border: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      flex: 0 0 auto;
+      transition: background-color 0.2s ease;
+    }
+
+    .notification-close:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    @media (max-width: 900px) {
+      .notification {
+        right: 10px;
+        left: 10px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+        width: auto;
+      }
     }
 
     @keyframes slideIn {
@@ -13783,12 +13878,39 @@
 
     function showMessage(message, type = 'success') {
       const notif = document.querySelector('#notification');
-      notif.textContent = message;
-      notif.className = `notification ${type === 'error' ? 'error' : ''}`;
-      notif.style.display = 'block';
-      setTimeout(() => {
+      if (!notif) return;
+
+      const variants = {
+        success: { icon: '✔', className: 'notification-success' },
+        error: { icon: '⚠', className: 'notification-error' },
+        warning: { icon: '!', className: 'notification-warning' },
+        info: { icon: 'i', className: 'notification-info' },
+      };
+      const variant = variants[type] || variants.success;
+
+      notif.className = `notification ${variant.className}`;
+      notif.innerHTML = `
+        <span class="notification-icon" aria-hidden="true">${variant.icon}</span>
+        <span class="notification-text"></span>
+        <button type="button" class="notification-close" aria-label="Fermer la notification">×</button>
+      `;
+
+      const textEl = notif.querySelector('.notification-text');
+      if (textEl) textEl.textContent = String(message || '');
+
+      const closeEl = notif.querySelector('.notification-close');
+      const hide = () => {
         notif.style.display = 'none';
-      }, 3500);
+      };
+      if (closeEl) closeEl.onclick = hide;
+
+      if (notif._hideTimer) {
+        clearTimeout(notif._hideTimer);
+      }
+
+      notif.setAttribute('role', type === 'error' ? 'alert' : 'status');
+      notif.style.display = 'flex';
+      notif._hideTimer = setTimeout(hide, 3800);
     }
 
     async function fetchJson(url, options = {}) {
