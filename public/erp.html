@@ -5619,22 +5619,22 @@
       }
 
       body.browser-layout-mode .erp-container {
-        display: block;
+        display: flex;
         height: auto;
-        min-height: 100vh;
+        min-height: 100dvh;
       }
 
       body.browser-layout-mode .sidebar {
-        width: 100%;
-        max-width: none;
-        min-width: 0;
+        width: 260px;
+        min-width: 260px;
+        max-width: 260px;
         position: relative;
         transform: none !important;
       }
 
       body.browser-layout-mode .main-content,
       body.browser-layout-mode .content-area {
-        overflow: visible;
+        overflow: auto;
         height: auto;
       }
 
@@ -14251,7 +14251,7 @@
         const id = Number(req.id);
         const status = String(req.statut || '').trim().toUpperCase();
         const alreadyLinked = linkedRequestIds.has(id);
-        const canBecomePo = status === 'EN_ATTENTE' || status === 'APPROUVEE' || status === 'EN_COURS';
+        const canBecomePo = status === 'EN_ATTENTE';
         return !alreadyLinked && canBecomePo;
       });
 
@@ -22177,6 +22177,8 @@
         currentValidatingRequestIds = [];
         currentValidationTarget = 'purchase-order';
         currentValidationDecision = 'VALIDEE';
+        poQuickFilter = 'all';
+        updatePoQuickFilterButtons();
         showMessage(`Signature enregistrée. Demande ${decisionText} et autorisation disponible dans Gestion de stock (${warehouseText}).`);
         loadPurchaseOrders();
         loadMaterials();
