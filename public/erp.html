@@ -2781,6 +2781,39 @@
       min-height: 44px;
     }
 
+    .purchase-orders-module .po-recent-requests {
+      margin-top: 14px;
+      border: 1px solid #d2e4ff;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #f8fbff, #eef5ff);
+      padding: 10px;
+    }
+
+    .purchase-orders-module .po-recent-requests h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #1d4a83;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    .purchase-orders-module #po-suggestions-list {
+      margin-bottom: 0;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .purchase-orders-module .po-form-help {
+      margin: -2px 0 10px;
+      font-size: 12px;
+      color: #46648f;
+      background: #ecf5ff;
+      border: 1px solid #cfe2ff;
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
     @media (max-width: 900px) {
       .erp-container {
         position: relative;
@@ -3288,6 +3321,10 @@
       .purchase-orders-module #po-search {
         min-height: 46px;
         font-size: 15px;
+      }
+
+      .purchase-orders-module #po-suggestions-list {
+        max-height: 230px;
       }
 
       .purchase-orders-module #po-priority-actions {
@@ -6125,17 +6162,18 @@
                   </label>
                   <input type="hidden" id="po-stage" />
                 </div>
+                <div class="po-form-help" id="po-form-help">Astuce: commence par sélectionner une demande récente ci-dessous pour pré-remplir automatiquement les articles.</div>
                 <div style="margin-bottom:10px;">
-                  <button type="button" id="po-load-catalog" class="button button-secondary" style="width:100%;">↧ Charger les articles du catalogue</button>
+                  <button type="button" id="po-load-catalog" class="button button-secondary" style="width:100%;" aria-describedby="po-form-help">↧ Charger les articles du catalogue</button>
                 </div>
                 <div class="form-group">
                   <label>Articles du bon *</label>
                   <div id="po-items" style="display: grid; gap: 10px;"></div>
-                  <button type="button" id="add-po-item" class="button button-secondary" style="margin-top: 8px; width: 100%;">+ Ajouter un article manuellement</button>
+                  <button type="button" id="add-po-item" class="button button-secondary" style="margin-top: 8px; width: 100%;" aria-label="Ajouter une nouvelle ligne d'article">+ Ajouter un article manuellement</button>
                 </div>
                 <div class="form-group">
                   <label>Fournisseur *</label>
-                  <input type="text" id="po-supplier" required />
+                  <input type="text" id="po-supplier" required autocomplete="organization" />
                 </div>
                 <div class="form-group">
                   <label>Montant total (FCFA) *</label>
@@ -6153,12 +6191,12 @@
                 </div>
                 <div class="form-group">
                   <label>Créé par</label>
-                  <input type="text" id="po-created-by" />
+                  <input type="text" id="po-created-by" autocomplete="name" />
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
                   <div class="form-group" style="margin-bottom:0;">
                     <label>Nom du signataire</label>
-                    <input type="text" id="po-signature-name" placeholder="Ex: Ryan Kouadio" />
+                    <input type="text" id="po-signature-name" placeholder="Ex: Ryan Kouadio" autocomplete="name" />
                   </div>
                   <div class="form-group" style="margin-bottom:0;">
                     <label>Rôle du signataire</label>
@@ -6167,6 +6205,10 @@
                 </div>
                 <button type="submit" class="button button-primary" style="width: 100%;">Créer le bon</button>
               </form>
+              <div class="po-recent-requests" aria-live="polite" aria-label="Demandes récentes pour création de bon">
+                <h4 id="po-suggestions-title">Demandes récentes</h4>
+                <ul id="po-suggestions-list" class="list"></ul>
+              </div>
             </div>
             <div class="card">
               <div id="po-priority-actions" style="display:none;margin-bottom:12px;padding:12px;border:2px solid #0f766e;border-radius:10px;background:linear-gradient(135deg,#ecfeff,#f0fdfa);box-shadow:0 10px 20px rgba(15,118,110,0.12);">
@@ -6182,8 +6224,6 @@
                 </div>
               </div>
               <h3 id="po-list-title" style="margin-bottom: 15px;">Bons récents</h3>
-              <h4 style="margin-bottom: 8px; font-size: 13px; color: #475569;">Propositions depuis les demandes</h4>
-              <ul id="po-suggestions-list" class="list" style="margin-bottom: 12px;"></ul>
               <div class="form-group" style="margin-bottom: 12px;">
                 <input type="text" id="po-search" placeholder="Rechercher un bon (site, fournisseur, statut)" />
               </div>
@@ -8658,13 +8698,13 @@
       }
 
       const poSuggestionsList = document.getElementById('po-suggestions-list');
+      const poSuggestionsTitle = document.getElementById('po-suggestions-title');
       if (poSuggestionsList) {
         poSuggestionsList.style.display = 'none';
         poSuggestionsList.innerHTML = '';
-        const poSuggestionsTitle = poSuggestionsList.previousElementSibling;
-        if (poSuggestionsTitle) {
-          poSuggestionsTitle.style.display = 'none';
-        }
+      }
+      if (poSuggestionsTitle) {
+        poSuggestionsTitle.style.display = 'none';
       }
 
       const detailedExpensesCard = document.getElementById('expenses-detailed-by-project-table')?.closest('.card');
@@ -13160,10 +13200,12 @@
 
     function renderPoSuggestions(materials, orders) {
       const suggestionsList = document.getElementById('po-suggestions-list');
+      const suggestionsTitle = document.getElementById('po-suggestions-title');
       if (!suggestionsList) return;
 
       if (isExecutive()) {
         suggestionsList.innerHTML = '';
+        if (suggestionsTitle) suggestionsTitle.style.display = 'none';
         return;
       }
 
@@ -13185,11 +13227,19 @@
         return !alreadyLinked && canBecomePo;
       });
 
-      const groupedProposals = groupMaterialRequests(proposals);
+      const recentProposals = sortRecent(proposals, row => row?.updatedAt || row?.dateDemande || row?.createdAt || row?.id).slice(0, 12);
+
+      const groupedProposals = groupMaterialRequests(recentProposals);
 
       if (!groupedProposals.length) {
+        if (suggestionsTitle) suggestionsTitle.textContent = 'Demandes récentes';
         suggestionsList.innerHTML = '<div class="empty-state"><p>Aucune proposition en attente</p></div>';
         return;
+      }
+
+      if (suggestionsTitle) {
+        suggestionsTitle.style.display = '';
+        suggestionsTitle.textContent = `Demandes récentes (${groupedProposals.length})`;
       }
 
       suggestionsList.innerHTML = groupedProposals.map(groupReqs => {
@@ -13200,7 +13250,7 @@
         const idsArg = groupReqs.map(r => Number(r.id)).filter(id => Number.isInteger(id) && id > 0).join(',');
         const articlesMeta = groupReqs.map(r => `${r.itemName} (${Number(r.quantiteRestante || r.quantiteDemandee || 0).toFixed(2)})`).join(', ');
         return `
-          <li class="list-item">
+          <li class="list-item" tabindex="0" aria-label="Demande ${escapeHtml(title)} de ${escapeHtml(demandeur)} sur ${escapeHtml(site)}">
             <div class="list-item-content">
               <div class="list-item-title">${escapeHtml(title)}</div>
               <div class="list-item-meta">${escapeHtml(site)} • ${escapeHtml(demandeur)} • ${groupReqs.length} article${groupReqs.length > 1 ? 's' : ''}</div>
@@ -16654,7 +16704,7 @@
 
       const suggestionsList = document.getElementById('po-suggestions-list');
       const poFormCard = document.querySelector('#purchase-orders .form-card');
-      const suggestionsTitle = suggestionsList ? suggestionsList.previousElementSibling : null;
+      const suggestionsTitle = document.getElementById('po-suggestions-title');
       const isStatusOnlyView = isZoneStockManager();
 
       if (isExecutive() || isStatusOnlyView) {
