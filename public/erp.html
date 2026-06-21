@@ -2529,25 +2529,32 @@
     .actions-menu summary {
       list-style: none;
       cursor: pointer;
-      border: 1.5px solid #e8e8e8;
-      background: white;
-      color: #666;
-      border-radius: 6px;
-      width: 36px;
-      height: 36px;
-      display: flex;
+      border: 1px solid #dbe7ff;
+      background: #f8fbff;
+      color: #1e3a8a;
+      border-radius: 9px;
+      min-width: 92px;
+      min-height: 36px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 0;
       line-height: 1;
       user-select: none;
-      transition: all 0.3s;
+      transition: transform 0.15s ease, filter 0.15s ease;
+      padding: 6px 9px;
+      font-weight: 700;
     }
 
     .actions-menu summary:hover {
-      border-color: #6366f1;
-      color: #6366f1;
-      background-color: rgba(99, 102, 241, 0.06);
+      transform: translateY(-1px);
+      filter: brightness(0.99);
+    }
+
+    .actions-menu summary::after {
+      content: 'Actions';
+      font-size: 12px;
+      letter-spacing: 0.01em;
     }
 
     .actions-menu summary::-webkit-details-marker {
@@ -2596,22 +2603,27 @@
 
     .actions-dropdown button {
       width: 100%;
-      border: none;
-      background: transparent;
+      border: 1px solid #dbe7ff;
+      background: #f8fbff;
       text-align: left;
-      padding: 8px 12px;
-      border-radius: 4px;
+      padding: 6px 9px;
+      border-radius: 9px;
       font-size: 12px;
-      color: #333;
+      color: #1e3a8a;
       cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s;
+      font-weight: 700;
+      transition: transform 0.15s ease, filter 0.15s ease;
       white-space: nowrap;
+      margin-bottom: 6px;
+    }
+
+    .actions-dropdown button:last-child {
+      margin-bottom: 0;
     }
 
     .actions-dropdown button:hover {
-      background: rgba(99, 102, 241, 0.08);
-      color: #6366f1;
+      transform: translateY(-1px);
+      filter: brightness(0.99);
     }
 
     .modal-overlay {
@@ -2832,8 +2844,10 @@
     }
 
     .purchase-orders-module .actions-menu summary {
-      width: 44px;
-      height: 44px;
+      width: auto;
+      height: auto;
+      min-height: 40px;
+      min-width: 92px;
       border-radius: 12px;
     }
 
@@ -2869,12 +2883,15 @@
     }
 
     .purchase-orders-module .po-recent-requests {
-      order: -1;
-      margin-top: 14px;
+      margin-top: 0;
       border: 1px solid #d2e4ff;
       border-radius: 12px;
       background: linear-gradient(180deg, #f8fbff, #eef5ff);
       padding: 10px;
+    }
+
+    .purchase-orders-module .po-demands-card {
+      display: block;
     }
 
     .purchase-orders-module .po-workflow-strip {
@@ -5131,8 +5148,10 @@
     }
 
     .module .actions-menu summary {
-      width: 44px;
-      height: 44px;
+      min-width: 92px;
+      min-height: 40px;
+      width: auto;
+      height: auto;
       border-radius: 12px;
     }
 
@@ -5333,8 +5352,9 @@
       }
 
       .module .actions-menu summary {
-        width: 46px;
-        height: 46px;
+        min-height: 44px;
+        width: auto;
+        height: auto;
       }
 
       .module .table th,
@@ -6988,14 +7008,6 @@
 
           <div class="grid-2">
             <div class="card form-card po-create-card">
-              <div id="po-new-requests-sticky" class="po-new-requests-sticky" aria-live="polite" aria-label="Nouvelles demandes en attente">
-                <div class="po-sticky-head">
-                  <h4 id="po-new-requests-title">Nouvelles demandes</h4>
-                  <span id="po-new-requests-count" class="badge badge-blue">0 nouvelle</span>
-                </div>
-                <ul id="po-new-requests-list" class="list"></ul>
-              </div>
-
               <h3 class="po-section-title">Créer un bon</h3>
               <form id="po-form">
                 <!-- Sélecteurs projet / site -->
@@ -7080,16 +7092,15 @@
                 </div>
                 <button type="submit" class="button button-primary" style="width: 100%;">Créer le bon</button>
               </form>
+            </div>
+
+            <div class="card po-demands-card">
               <div class="po-recent-requests" aria-live="polite" aria-label="Demandes récentes pour création de bon">
                 <h4 id="po-suggestions-title">Demandes récentes</h4>
                 <ul id="po-suggestions-list" class="list"></ul>
               </div>
-
-              <div class="po-options-board" aria-live="polite" aria-label="Options proposées">
-                <h4 id="po-options-title">Options proposées</h4>
-                <ul id="po-options-list" class="list"></ul>
-              </div>
             </div>
+
             <div class="po-section-divider" role="separator" aria-label="Séparation des sections">Section suivante</div>
             <div class="card po-recent-card">
               <div id="po-last-created-card" class="po-last-created-card" style="display:none;" aria-live="polite">
