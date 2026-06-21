@@ -4646,6 +4646,25 @@
       box-shadow: 0 14px 28px rgba(37, 99, 235, 0.10);
     }
 
+    .module:not(#dashboard) .grid-2 {
+      align-items: start;
+    }
+
+    .module:not(#dashboard) .card h3 {
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .module:not(#dashboard) .table-wrapper {
+      border: 1px solid #dbe7ff;
+      border-radius: 12px;
+      background: #ffffff;
+    }
+
+    .module:not(#dashboard) .form-group {
+      margin-bottom: 12px;
+    }
+
     .module .grid-2 > .form-card::before {
       content: '';
       position: absolute;
@@ -4809,6 +4828,11 @@
         border-radius: 14px;
       }
 
+      .module:not(#dashboard) .card,
+      .module:not(#dashboard) .form-card {
+        padding: 14px;
+      }
+
       /* Keep create-first hierarchy in modules that were list-first on desktop */
       #stock-management .grid-2 .stock-create-card,
       #maps .grid-2 .maps-create-card {
@@ -4845,6 +4869,10 @@
       .module .filter-bar {
         display: grid;
         grid-template-columns: 1fr;
+      }
+
+      .module .form-group {
+        margin-bottom: 10px;
       }
     }
 
@@ -4886,6 +4914,10 @@
         border-radius: 14px;
       }
 
+      .module:not(#dashboard) .card h3 {
+        font-size: 17px;
+      }
+
       .module:not(#dashboard) .page-header {
         border-radius: 16px;
         padding: 14px;
@@ -4900,6 +4932,11 @@
       .module .actions-menu summary {
         width: 46px;
         height: 46px;
+      }
+
+      .module .table th,
+      .module .table td {
+        padding: 9px 8px;
       }
     }
 
