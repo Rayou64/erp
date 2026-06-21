@@ -26070,43 +26070,34 @@
         }
       };
 
-      const isTabletViewport = () => {
+      const isMobileViewport = () => {
         const width = Number(window.innerWidth || 0);
-        return width >= 700 && width <= 1366;
+        return width <= 900;
       };
-
-      const isDesktopViewport = () => Number(window.innerWidth || 0) > 1366;
 
       const syncLayoutModeByViewport = () => {
         const select = document.getElementById('layout-mode-select');
-        if (isDesktopViewport()) {
-          // Sur ordinateur, conserver le rendu navigateur classique sans sélecteur.
-          applyLayoutMode('browser', false);
+        if (isMobileViewport()) {
+          // Sur mobile, rester en mode application.
+          applyLayoutMode('app', false);
           if (select) select.disabled = true;
           return;
         }
 
-        if (isTabletViewport()) {
-          const tabletSavedMode = localStorage.getItem(ERP_LAYOUT_MODE_KEY) || 'app';
-          applyLayoutMode(tabletSavedMode, false);
-          if (select) select.disabled = false;
-          return;
-        }
-
-        // Sur mobile, rester en mode application et masquer le choix.
-        applyLayoutMode('app', false);
+        // Sur tablette/ordinateur, forcer le rendu navigateur pour éviter l'ancien style app.
+        applyLayoutMode('browser', false);
         if (select) select.disabled = true;
       };
 
-      const savedLayoutMode = localStorage.getItem(ERP_LAYOUT_MODE_KEY) || 'app';
-      applyLayoutMode(savedLayoutMode, false);
+      const savedLayoutMode = localStorage.getItem(ERP_LAYOUT_MODE_KEY) || 'browser';
+      applyLayoutMode(isMobileViewport() ? 'app' : savedLayoutMode === 'app' && isMobileViewport() ? 'app' : 'browser', false);
 
       const layoutModeSelect = document.getElementById('layout-mode-select');
       if (layoutModeSelect) {
-        layoutModeSelect.value = savedLayoutMode === 'browser' ? 'browser' : 'app';
+        layoutModeSelect.value = isMobileViewport() ? 'app' : 'browser';
         layoutModeSelect.addEventListener('change', e => {
-          if (!isTabletViewport()) return;
-          applyLayoutMode(String(e.target.value || 'app'), true);
+          if (isMobileViewport()) return;
+          applyLayoutMode('browser', true);
         });
       }
 
