@@ -5078,6 +5078,17 @@
       align-items: start;
     }
 
+    #materials .grid-2 {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    #materials .grid-2 > .card,
+    #materials .grid-2 > .form-card {
+      width: 100%;
+      max-width: none;
+    }
+
     .module:not(#dashboard) .card h3 {
       line-height: 1.25;
       margin-bottom: 12px;
@@ -7192,6 +7203,17 @@
           </div>
 
           <div class="grid-2">
+            <div class="card">
+              <h3 id="materials-list-title" style="margin-bottom: 15px;">Demandes récentes</h3>
+              <div class="form-group" style="margin-bottom: 12px;">
+                <input type="text" id="material-search" placeholder="Rechercher une demande (projet, produit, demandeur)" />
+              </div>
+              <ul id="materials-list" class="list"></ul>
+              <div id="material-details" class="card" style="margin-top: 12px; background-color: #f8fafc;"></div>
+            </div>
+
+            <div class="erp-section-sep">Nouvelle demande</div>
+
             <div class="card form-card">
               <h3 style="margin-bottom: 15px;">Nouvelle demande</h3>
               <div id="material-folder-label" style="margin-bottom: 12px; padding: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; color: #166534; font-weight: 600; display: none;"></div>
@@ -7283,15 +7305,6 @@
                 </div>
                 <button type="submit" class="button button-primary" style="width: 100%;">Créer la demande</button>
               </form>
-            </div>
-            <div class="erp-section-sep">Historique récent</div>
-            <div class="card">
-              <h3 id="materials-list-title" style="margin-bottom: 15px;">Demandes récentes</h3>
-              <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="material-search" placeholder="Rechercher une demande (projet, produit, demandeur)" />
-              </div>
-              <ul id="materials-list" class="list"></ul>
-              <div id="material-details" class="card" style="margin-top: 12px; background-color: #f8fafc;"></div>
             </div>
           </div>
         </div>
