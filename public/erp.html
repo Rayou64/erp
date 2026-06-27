@@ -2772,6 +2772,35 @@
       overflow: hidden;
     }
 
+    .purchase-orders-module .grid-2 > .po-demands-card {
+      order: 1;
+    }
+
+    .purchase-orders-module .grid-2 > .po-create-card {
+      order: 2;
+    }
+
+    .purchase-orders-module .grid-2 > .po-section-divider {
+      order: 3;
+    }
+
+    .purchase-orders-module .grid-2 > .po-recent-card {
+      order: 4;
+    }
+
+    @media (min-width: 901px) {
+      .purchase-orders-module .grid-2 {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+
+      .purchase-orders-module .grid-2 > .card,
+      .purchase-orders-module .grid-2 > .form-card {
+        width: 100% !important;
+        max-width: none !important;
+      }
+    }
+
     .purchase-orders-module .po-recent-card::before {
       content: '';
       position: absolute;
@@ -2822,19 +2851,6 @@
       gap: 10px;
       margin-bottom: 10px;
       align-items: end;
-    }
-
-    .purchase-orders-module .grid-2 {
-      grid-template-columns: 1fr !important;
-      gap: 16px !important;
-    }
-
-    .purchase-orders-module .grid-2 > .card,
-    .purchase-orders-module .grid-2 > .form-card,
-    .purchase-orders-module .grid-2 > .po-section-divider {
-      width: 100% !important;
-      max-width: none !important;
-      grid-column: 1 / -1;
     }
 
     .purchase-orders-module .form-group label {
@@ -7557,13 +7573,6 @@
           </div>
 
           <div class="grid-2">
-            <div class="card po-demands-card">
-              <div class="po-recent-requests" aria-live="polite" aria-label="Demandes récentes pour création de bon">
-                <h4 id="po-suggestions-title">Demandes récentes</h4>
-                <ul id="po-suggestions-list" class="list"></ul>
-              </div>
-            </div>
-
             <div class="card form-card po-create-card">
               <h3 class="po-section-title">Créer un bon</h3>
               <form id="po-form">
@@ -7651,7 +7660,14 @@
               </form>
             </div>
 
-            <div class="po-section-divider" role="separator" aria-label="Séparation des sections">Section suivante</div>
+            <div class="card po-demands-card">
+              <div class="po-recent-requests" aria-live="polite" aria-label="Demandes récentes pour création de bon">
+                <h4 id="po-suggestions-title">Demandes récentes</h4>
+                <ul id="po-suggestions-list" class="list"></ul>
+              </div>
+            </div>
+
+            <div class="po-section-divider" role="separator" aria-label="Séparation des sections">Bons récents</div>
             <div class="card po-recent-card">
               <div id="po-last-created-card" class="po-last-created-card" style="display:none;" aria-live="polite">
                 <div class="po-last-created-head">
