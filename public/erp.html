@@ -113,6 +113,14 @@
       box-shadow: 0 10px 22px rgba(15, 23, 42, 0.22);
     }
 
+    .sidebar-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      display: block;
+    }
+
     .sidebar-menu {
       padding: 10px;
       flex: 1;
@@ -859,6 +867,15 @@
       font-size: 22px;
       box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
       flex: 0 0 auto;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .mph-brand-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .mph-brand-meta {
@@ -6233,7 +6250,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-logo">🏗️ RyanERP</div>
+        <div class="sidebar-logo"><img src="/assets/ryan-erp-logo.png" alt="Ryan ERP" /></div>
       </div>
 
       <div class="sidebar-menu">
@@ -6357,9 +6374,10 @@
       <div class="content-area">
         <div id="mobile-module-topbar" class="mobile-module-topbar">
           <div class="mph-brand">
-            <div class="mph-brand-badge">⬢</div>
+            <div class="mph-brand-badge"><img src="/assets/ryan-erp-logo.png" alt="Ryan ERP" /></div>
             <div class="mph-brand-meta">
               <small>RYAN ERP MOBILE</small>
+              <strong>RyanERP</strong>
             </div>
           </div>
           <div class="mph-actions">
@@ -6394,9 +6412,10 @@
           <div id="mobile-premium-home" class="mobile-premium-home">
             <div class="mph-topbar">
               <div class="mph-brand">
-                <div class="mph-brand-badge">⬢</div>
+                <div class="mph-brand-badge"><img src="/assets/ryan-erp-logo.png" alt="Ryan ERP" /></div>
                 <div class="mph-brand-meta">
                   <small>RYAN ERP MOBILE</small>
+                  <strong>RyanERP</strong>
                 </div>
               </div>
               <div class="mph-actions">
@@ -25939,12 +25958,15 @@
       }
     }
 
+    function hasTouchPrimaryInput() {
+      try {
+        if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return true;
+      } catch (_) {}
+      return Number(navigator.maxTouchPoints || 0) > 0;
+    }
+
     function isMobileViewport() {
-      const width = Number(window.innerWidth || 0);
-      if (width > 900) return false;
-      const ua = String(navigator.userAgent || '').toLowerCase();
-      const isPhoneOrTabletUa = /android|iphone|ipad|ipod|mobile|windows phone/.test(ua);
-      return isPhoneOrTabletUa;
+      return window.innerWidth <= 900 && hasTouchPrimaryInput();
     }
 
     function closeNotificationsPanel() {
@@ -26280,6 +26302,11 @@
         if (select && select.value !== mode) {
           select.value = mode;
         }
+      };
+
+      const isMobileViewport = () => {
+        const width = Number(window.innerWidth || 0);
+        return width <= 900 && hasTouchPrimaryInput();
       };
 
       const syncLayoutModeByViewport = () => {
