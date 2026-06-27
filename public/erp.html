@@ -25939,15 +25939,12 @@
       }
     }
 
-    function hasTouchPrimaryInput() {
-      try {
-        if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return true;
-      } catch (_) {}
-      return Number(navigator.maxTouchPoints || 0) > 0;
-    }
-
     function isMobileViewport() {
-      return window.innerWidth <= 900 && hasTouchPrimaryInput();
+      const width = Number(window.innerWidth || 0);
+      if (width > 900) return false;
+      const ua = String(navigator.userAgent || '').toLowerCase();
+      const isPhoneOrTabletUa = /android|iphone|ipad|ipod|mobile|windows phone/.test(ua);
+      return isPhoneOrTabletUa;
     }
 
     function closeNotificationsPanel() {
@@ -26283,11 +26280,6 @@
         if (select && select.value !== mode) {
           select.value = mode;
         }
-      };
-
-      const isMobileViewport = () => {
-        const width = Number(window.innerWidth || 0);
-        return width <= 900 && hasTouchPrimaryInput();
       };
 
       const syncLayoutModeByViewport = () => {
