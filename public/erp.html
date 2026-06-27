@@ -118,6 +118,7 @@
       flex: 1;
       min-height: 0;
       overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
     .menu-section {
@@ -3382,8 +3383,6 @@
         border-bottom: 0;
         z-index: 1400;
         overflow: hidden;
-        display: flex;
-        flex-direction: column;
         backdrop-filter: blur(8px);
       }
 
@@ -3412,9 +3411,6 @@
       .sidebar-menu {
         display: block;
         padding: 12px;
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
       }
 
       .menu-section {
@@ -4226,8 +4222,6 @@
         border-bottom: 0;
         z-index: 1400;
         overflow: hidden;
-        display: flex;
-        flex-direction: column;
         backdrop-filter: blur(8px);
       }
 
@@ -5074,8 +5068,6 @@
         border-bottom: 0;
         z-index: 1400;
         overflow: hidden;
-        display: flex;
-        flex-direction: column;
         backdrop-filter: blur(8px);
         flex-shrink: 0;
       }
@@ -5097,6 +5089,38 @@
       .content-area {
         min-width: 0;
         width: 100%;
+      }
+    }
+
+    @media (max-width: 900px) and (hover: hover) and (pointer: fine) {
+      body.browser-layout-mode .sidebar {
+        position: relative;
+        inset: auto;
+        width: 280px;
+        min-width: 280px;
+        max-width: 280px;
+        transform: none !important;
+        z-index: auto;
+      }
+
+      body.browser-layout-mode .mobile-sidebar-backdrop {
+        display: none !important;
+      }
+    }
+
+    @media (min-width: 901px) and (max-width: 1200px) and (hover: hover) and (pointer: fine) {
+      body.browser-layout-mode .sidebar {
+        position: relative;
+        inset: auto;
+        width: 280px;
+        min-width: 280px;
+        max-width: 280px;
+        transform: none !important;
+        z-index: auto;
+      }
+
+      body.browser-layout-mode .mobile-sidebar-backdrop {
+        display: none !important;
       }
     }
 
@@ -25915,8 +25939,15 @@
       }
     }
 
+    function hasTouchPrimaryInput() {
+      try {
+        if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return true;
+      } catch (_) {}
+      return Number(navigator.maxTouchPoints || 0) > 0;
+    }
+
     function isMobileViewport() {
-      return window.innerWidth <= 900;
+      return window.innerWidth <= 900 && hasTouchPrimaryInput();
     }
 
     function closeNotificationsPanel() {
@@ -26138,22 +26169,12 @@
       localStorage.setItem(ERP_THEME_KEY, theme);
     }
 
-    function isTouchOnlyMobileViewport() {
-      const width = Number(window.innerWidth || 0);
-      if (width > 900) return false;
-      const ua = String(navigator.userAgent || '');
-      const uaLooksMobile = /Android|iPhone|iPad|iPod|Windows Phone|Mobile/i.test(ua);
-      const coarsePointer = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
-      const noHover = typeof window.matchMedia === 'function' && window.matchMedia('(hover: none)').matches;
-      return uaLooksMobile || (coarsePointer && noHover);
-    }
-
     function setSidebarCollapsed(collapsed) {
       const sidebar = document.querySelector('.sidebar');
       if (!sidebar) return;
       const backdrop = document.getElementById('mobile-sidebar-backdrop');
 
-      if (isTouchOnlyMobileViewport()) {
+      if (window.innerWidth <= 900) {
         const shouldOpen = !collapsed;
         sidebar.classList.remove('collapsed');
         sidebar.classList.toggle('mobile-open', shouldOpen);
@@ -26264,7 +26285,10 @@
         }
       };
 
-      const isMobileViewport = () => isTouchOnlyMobileViewport();
+      const isMobileViewport = () => {
+        const width = Number(window.innerWidth || 0);
+        return width <= 900 && hasTouchPrimaryInput();
+      };
 
       const syncLayoutModeByViewport = () => {
         const select = document.getElementById('layout-mode-select');
@@ -26295,7 +26319,7 @@
       syncLayoutModeByViewport();
 
       const sidebarStored = localStorage.getItem(ERP_SIDEBAR_COLLAPSED_KEY);
-      const sidebarCollapsed = isMobileViewport() ? true : sidebarStored === '1';
+      const sidebarCollapsed = window.innerWidth <= 900 ? true : sidebarStored === '1';
       setSidebarCollapsed(sidebarCollapsed);
 
       const themeBtn = document.getElementById('theme-toggle');
