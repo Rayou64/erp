@@ -5791,26 +5791,20 @@
       }
     }
 
-    @media (min-width: 700px) and (max-width: 1366px) {
-      .layout-mode-wrap {
-        display: inline-flex;
-      }
-    }
-
-    @media (min-width: 700px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+    @media (max-width: 1366px) {
       .layout-mode-wrap {
         display: none !important;
       }
     }
 
-    body.browser-layout-mode .layout-mode-wrap {
-      display: none !important;
+    @media (min-width: 1367px) {
+      .layout-mode-wrap {
+        display: inline-flex;
+      }
     }
 
-    @media (max-width: 699px) {
-      .layout-mode-wrap {
-        display: none;
-      }
+    body.browser-layout-mode .layout-mode-wrap {
+      display: none !important;
     }
 
     /* ═══════════════════════════════════════════════════
