@@ -2951,6 +2951,41 @@
       display: block;
     }
 
+    .purchase-orders-module .po-pending-validation-section {
+      margin-top: 12px;
+      border: 1px solid #99f6e4;
+      border-radius: 12px;
+      background: linear-gradient(160deg, #ffffff 0%, #ecfeff 100%);
+      padding: 10px;
+      box-shadow: 0 10px 20px rgba(15, 118, 110, 0.10);
+    }
+
+    .purchase-orders-module .po-pending-validation-section h4 {
+      margin: 0 0 8px 0;
+      color: #0f766e;
+      font-size: 15px;
+    }
+
+    .purchase-orders-module .po-pending-note {
+      width: 100%;
+      min-height: 68px;
+      margin-top: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 8px 10px;
+      resize: vertical;
+      background: #ffffff;
+      color: #0f172a;
+      font-size: 13px;
+    }
+
+    .purchase-orders-module .po-pending-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .purchase-orders-module .po-workflow-strip {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -7665,6 +7700,10 @@
                 <h4 id="po-suggestions-title">Demandes récentes</h4>
                 <ul id="po-suggestions-list" class="list"></ul>
               </div>
+              <div id="po-pending-validation-section" class="po-pending-validation-section" style="display:none;" aria-live="polite" aria-label="Bons en attente de validation">
+                <h4 id="po-pending-validation-title">Bons en attente de validation</h4>
+                <ul id="po-pending-validation-list" class="list"></ul>
+              </div>
             </div>
 
             <div class="po-section-divider" role="separator" aria-label="Séparation des sections">Bons récents</div>
@@ -8658,6 +8697,10 @@
         <label>Date/heure de signature *</label>
         <input type="datetime-local" id="po-validation-signed-at" />
       </div>
+      <div class="form-group">
+        <label>Commentaire de décision</label>
+        <textarea id="po-validation-note" placeholder="Motif du rejet ou commentaire (optionnel)"></textarea>
+      </div>
       <div class="modal-actions">
         <button type="button" id="cancel-po-validation-sign" class="button button-secondary">Annuler</button>
         <span id="po-validation-tempo-status" class="badge badge-yellow" style="margin-right:auto;">Tempo: en attente</span>
@@ -8865,6 +8908,7 @@
     let poQuickFilter = 'all';
     let poLastCreatedOrderId = null;
     let poLastCreatedHighlightUntil = 0;
+    let poPendingDecisionDraftById = {};
     let expensesCurrentPage = 1;
     let auditCurrentPage = 1;
 
@@ -18206,6 +18250,70 @@
       rejectBtn.onclick = () => openPurchaseOrderValidationModal(Number(order.id), 'ANNULEE');
     }
 
+    function renderPoPendingValidationList(orders) {
+      const section = document.getElementById('po-pending-validation-section');
+      const list = document.getElementById('po-pending-validation-list');
+      const title = document.getElementById('po-pending-validation-title');
+      if (!section || !list) return;
+
+      if (!isExecutive()) {
+        section.style.display = 'none';
+        list.innerHTML = '';
+        return;
+      }
+
+      const pendingOrders = (Array.isArray(orders) ? orders : []).filter(order => canCurrentUserValidatePurchaseOrder(order));
+      section.style.display = '';
+      if (title) {
+        title.textContent = `Bons en attente de validation (${pendingOrders.length})`;
+      }
+
+      if (!pendingOrders.length) {
+        list.innerHTML = '<div class="empty-state"><p>Aucun bon en attente de validation</p></div>';
+        return;
+      }
+
+      list.innerHTML = pendingOrders.map(order => {
+        const id = Number(order.id);
+        const defaultNote = String(poPendingDecisionDraftById[id] || '');
+        return `
+          <li class="list-item" data-po-pending-id="${id}">
+            <div class="list-item-content">
+              <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(order))}</div>
+              <div class="list-item-meta">${escapeHtml(order.nomProjet || '-')} • ${escapeHtml(order.fournisseur || '-')} • ${Number(order.montantTotal || 0).toFixed(2)} FCFA</div>
+            </div>
+            <textarea class="po-pending-note" placeholder="Commentaire (optionnel)">${escapeHtml(defaultNote)}</textarea>
+            <div class="po-pending-actions">
+              <button type="button" class="button button-small button-success po-pending-validate">Valider</button>
+              <button type="button" class="button button-small button-danger po-pending-reject">Rejeter</button>
+            </div>
+          </li>
+        `;
+      }).join('');
+
+      list.querySelectorAll('.po-pending-validate').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const row = btn.closest('[data-po-pending-id]');
+          if (!row) return;
+          const id = Number(row.getAttribute('data-po-pending-id') || 0);
+          const note = String(row.querySelector('.po-pending-note')?.value || '').trim();
+          poPendingDecisionDraftById[id] = note;
+          openPurchaseOrderValidationModal(id, 'VALIDEE', note);
+        });
+      });
+
+      list.querySelectorAll('.po-pending-reject').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const row = btn.closest('[data-po-pending-id]');
+          if (!row) return;
+          const id = Number(row.getAttribute('data-po-pending-id') || 0);
+          const note = String(row.querySelector('.po-pending-note')?.value || '').trim();
+          poPendingDecisionDraftById[id] = note;
+          openPurchaseOrderValidationModal(id, 'ANNULEE', note);
+        });
+      });
+    }
+
     function getPoOrderDecisionStatus(order) {
       return String(getPurchaseOrderDecisionStatus(order) || '').trim().toUpperCase();
     }
@@ -18428,6 +18536,7 @@
       const optionsBoard = document.querySelector('#purchase-orders .po-options-board');
       const poFormCard = document.querySelector('#purchase-orders .form-card');
       const suggestionsTitle = document.getElementById('po-suggestions-title');
+      const pendingValidationSection = document.getElementById('po-pending-validation-section');
       const isStatusOnlyView = isZoneStockManager();
 
       if (isExecutive() || isStatusOnlyView) {
@@ -18439,6 +18548,7 @@
         if (optionsBoard) optionsBoard.style.display = 'none';
         if (suggestionsTitle) suggestionsTitle.style.display = 'none';
         if (poFormCard) poFormCard.style.display = 'none';
+        if (pendingValidationSection) pendingValidationSection.style.display = isExecutive() ? '' : 'none';
       }
 
       try {
@@ -18463,6 +18573,7 @@
           if (suggestionsTitle) suggestionsTitle.style.display = 'none';
           // Masquer le formulaire de création pour le dirigeant et le gestionnaire stock zone.
           if (poFormCard) poFormCard.style.display = 'none';
+          if (pendingValidationSection) pendingValidationSection.style.display = isExecutive() ? '' : 'none';
         } else {
           if (suggestionsList) {
             suggestionsList.style.display = '';
@@ -18471,6 +18582,7 @@
           if (stickyPanel) stickyPanel.style.display = '';
           if (optionsBoard) optionsBoard.style.display = '';
           if (poFormCard) poFormCard.style.display = '';
+          if (pendingValidationSection) pendingValidationSection.style.display = 'none';
           renderPoSuggestions(materialRequestsCache, recentOrders);
         }
         const listTitle = document.getElementById('po-list-title');
@@ -18508,6 +18620,7 @@
           ? recentOrders.find(order => Number(order.id) === Number(poLastCreatedOrderId))
           : null;
         updatePoLastCreatedCard(lastCreatedOrder || null);
+        renderPoPendingValidationList(recentOrders);
 
         if (selectedPurchaseOrderId && !recentOrders.some(o => Number(o.id) === Number(selectedPurchaseOrderId))) {
           selectedPurchaseOrderId = null;
@@ -21938,7 +22051,7 @@
       }
     }
 
-    window.openPurchaseOrderValidationModal = (id, decision = 'VALIDEE') => {
+    window.openPurchaseOrderValidationModal = (id, decision = 'VALIDEE', initialNote = '') => {
       const order = purchaseOrdersCache.find(o => Number(o.id) === Number(id));
       if (!order) {
         showMessage('Bon de commande introuvable', 'error');
@@ -21971,6 +22084,7 @@
       const nameInput = document.getElementById('po-validation-sign-name');
       const roleInput = document.getElementById('po-validation-sign-role');
       const signedAtInput = document.getElementById('po-validation-signed-at');
+      const noteInput = document.getElementById('po-validation-note');
       if (nameInput && !nameInput.value.trim()) {
         nameInput.value = (document.getElementById('username')?.textContent || '').trim();
       }
@@ -21980,6 +22094,9 @@
       if (signedAtInput) {
         const now = new Date();
         signedAtInput.value = now.toISOString().slice(0, 16);
+      }
+      if (noteInput) {
+        noteInput.value = String(initialNote || poPendingDecisionDraftById[currentValidatingPurchaseOrderId] || '').trim();
       }
 
       updateSignatureNamePreview();
@@ -22012,6 +22129,7 @@
       const nameInput = document.getElementById('po-validation-sign-name');
       const roleInput = document.getElementById('po-validation-sign-role');
       const signedAtInput = document.getElementById('po-validation-signed-at');
+      const noteInput = document.getElementById('po-validation-note');
       if (nameInput && !nameInput.value.trim()) {
         nameInput.value = (document.getElementById('username')?.textContent || '').trim();
       }
@@ -22021,6 +22139,9 @@
       if (signedAtInput) {
         const now = new Date();
         signedAtInput.value = now.toISOString().slice(0, 16);
+      }
+      if (noteInput) {
+        noteInput.value = '';
       }
 
       updateSignatureNamePreview();
@@ -22559,6 +22680,8 @@
       currentValidatingRequestIds = [];
       currentValidationTarget = 'purchase-order';
       currentValidationDecision = 'VALIDEE';
+      const noteInput = document.getElementById('po-validation-note');
+      if (noteInput) noteInput.value = '';
       setValidationTempoStatus('en attente', 'pending');
       document.getElementById('po-validation-sign-modal').classList.remove('open');
     });
@@ -22572,6 +22695,7 @@
       const signatureName = document.getElementById('po-validation-sign-name').value.trim();
       const signatureRole = document.getElementById('po-validation-sign-role').value.trim();
       const signedAt = document.getElementById('po-validation-signed-at').value;
+      const decisionNote = String(document.getElementById('po-validation-note')?.value || '').trim();
 
       if (!signatureName || !signedAt) {
         showMessage('Nom du signataire et date de signature sont obligatoires', 'error');
@@ -22614,6 +22738,7 @@
               signatureName,
               signatureRole,
               signedAt,
+              decisionNote,
             }),
           });
           linkedIds = Array.from(new Set(
