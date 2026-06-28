@@ -893,10 +893,10 @@
 
     .mobile-module-topbar .mph-brand-badge,
     #mobile-premium-home .mph-brand-badge {
-      width: 74px;
-      height: 74px;
-      border-radius: 22px;
-      box-shadow: 0 16px 28px rgba(15, 23, 42, 0.24);
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      box-shadow: 0 12px 22px rgba(15, 23, 42, 0.2);
     }
 
     .mph-brand-badge img {
@@ -6227,6 +6227,12 @@
 
     body.browser-layout-mode .notif-item:hover {
       background: rgba(95, 106, 242, 0.08);
+    }
+
+    /* Logo policy: keep logo only on home interface */
+    .sidebar .sidebar-logo,
+    #mobile-module-topbar .mph-brand {
+      display: none !important;
     }
 
     /* Requested UI cleanup: remove top search/bell/logout controls */
