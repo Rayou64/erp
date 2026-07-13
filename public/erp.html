@@ -644,6 +644,46 @@
       background: rgba(255, 255, 255, 0.84);
     }
 
+    .hr-employee-dossier-grid .hr-info-item {
+      border: 1px solid #dbe7fb;
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #ffffff;
+      box-shadow: 0 5px 12px rgba(148, 163, 184, 0.1);
+      display: grid;
+      gap: 3px;
+    }
+
+    .hr-employee-dossier-grid .hr-info-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #475569;
+    }
+
+    .hr-employee-dossier-grid .hr-info-value {
+      font-size: 13px;
+      color: #0f172a;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .hr-employee-dossier-grid .hr-info-item:nth-child(3n + 1) {
+      border-color: #d7e6ff;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
+    }
+
+    .hr-employee-dossier-grid .hr-info-item:nth-child(3n + 2) {
+      border-color: #d9f2e9;
+      background: linear-gradient(180deg, #ffffff 0%, #f1fcf7 100%);
+    }
+
+    .hr-employee-dossier-grid .hr-info-item:nth-child(3n) {
+      border-color: #ffe5c8;
+      background: linear-gradient(180deg, #ffffff 0%, #fff8ef 100%);
+    }
+
     .hr-employee-doc-list {
       display: grid;
       gap: 10px;
@@ -656,6 +696,17 @@
       background: #ffffff;
       padding: 12px;
       box-shadow: 0 8px 18px rgba(148, 163, 184, 0.12);
+      border-left: 4px solid var(--hr-accent);
+    }
+
+    .hr-employee-doc-list .list-item-title {
+      color: #0f2d63;
+      font-weight: 800;
+    }
+
+    .hr-employee-doc-list .list-item-meta {
+      color: #475569;
+      font-size: 12px;
     }
 
     .hr-employee-doc-section {
@@ -5535,13 +5586,19 @@
         padding: 14px;
       }
 
-      /* Keep create-first hierarchy in modules that were list-first on desktop */
-      #stock-management .grid-2 .stock-create-card,
+      /* Mobile UX: show reception orders before stock-out form */
+      #stock-management .grid-2 .stock-history-card {
+        order: 1;
+      }
+
+      #stock-management .grid-2 .stock-create-card {
+        order: 3;
+      }
+
       #maps .grid-2 .maps-create-card {
         order: 1;
       }
 
-      #stock-management .grid-2 .stock-history-card,
       #maps .grid-2 .maps-history-card {
         order: 3;
       }
@@ -16192,15 +16249,15 @@
                     `}
                   </div>
                   <div class="hr-employee-dossier-grid">
-                    <div><strong>Poste:</strong> ${escapeHtml(employee.jobTitle || '-')}</div>
-                    <div><strong>Date d'embauche:</strong> ${escapeHtml(employee.dateEmbauche || '-')}</div>
-                    <div><strong>Sexe:</strong> ${escapeHtml(employee.sexe || '-')}</div>
-                    <div><strong>Type de contrat:</strong> ${escapeHtml(employee.typeContrat || '-')}</div>
-                    <div><strong>Projet:</strong> ${escapeHtml(employee.projet || projectSite.project || '-')}</div>
-                    <div><strong>Site:</strong> ${escapeHtml(projectSite.site || '-')}</div>
-                    <div><strong>Téléphone:</strong> ${escapeHtml(employee.phoneNumber || '-')}</div>
-                    <div><strong>Adresse:</strong> ${escapeHtml(projectSite.rawAddress || employee.address || '-')}</div>
-                    <div><strong>Situation maritale:</strong> ${escapeHtml(employee.maritalStatus || '-')}</div>
+                    <div class="hr-info-item"><span class="hr-info-label">Poste</span><span class="hr-info-value">${escapeHtml(employee.jobTitle || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Date d'embauche</span><span class="hr-info-value">${escapeHtml(employee.dateEmbauche || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Sexe</span><span class="hr-info-value">${escapeHtml(employee.sexe || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Type de contrat</span><span class="hr-info-value">${escapeHtml(employee.typeContrat || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Projet</span><span class="hr-info-value">${escapeHtml(employee.projet || projectSite.project || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Site</span><span class="hr-info-value">${escapeHtml(projectSite.site || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Téléphone</span><span class="hr-info-value">${escapeHtml(employee.phoneNumber || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Adresse</span><span class="hr-info-value">${escapeHtml(projectSite.rawAddress || employee.address || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Situation maritale</span><span class="hr-info-value">${escapeHtml(employee.maritalStatus || '-')}</span></div>
                   </div>
                   <div class="hr-employee-doc-section">
                     <div class="hr-employee-doc-header">

@@ -347,6 +347,29 @@ app.get('/download/desktop', (req, res) => {
   return res.download(DESKTOP_ZIP_PATH, downloadName);
 });
 
+app.get('/download/desktop/windows', (req, res) => {
+  if (!fs.existsSync(DESKTOP_ZIP_PATH)) {
+    return res.status(404).json({ error: 'Archive desktop introuvable' });
+  }
+
+  const downloadName = path.basename(DESKTOP_ZIP_PATH);
+  res.setHeader('Cache-Control', 'no-store');
+  return res.download(DESKTOP_ZIP_PATH, downloadName);
+});
+
+app.get('/download/desktop/app', (req, res) => {
+  const exists = fs.existsSync(DESKTOP_ZIP_PATH);
+  const host = req.get('host');
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+  const downloadUrl = `${protocol}://${host}/download/desktop/windows`;
+
+  if (!exists) {
+    return res.status(404).send(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Téléchargement RyanERP</title></head><body style="font-family:Arial,sans-serif;padding:24px;background:#f8fafc;color:#0f172a;"><h1>RyanERP Desktop</h1><p>Archive desktop introuvable sur ce serveur.</p></body></html>`);
+  }
+
+  return res.send(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Téléchargement RyanERP Desktop</title></head><body style="font-family:Arial,sans-serif;padding:24px;background:#f1f5f9;color:#0f172a;"><div style="max-width:760px;margin:0 auto;background:#fff;border:1px solid #dbeafe;border-radius:14px;padding:22px;box-shadow:0 8px 24px rgba(15,23,42,.08)"><h1 style="margin:0 0 8px">RyanERP Desktop (Windows)</h1><p style="margin:0 0 16px;color:#475569">Télécharge l'application puis décompresse le ZIP et lance l'exécutable RyanERP.</p><a href="${downloadUrl}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 16px;border-radius:10px;font-weight:700">Télécharger RyanERP pour ordinateur</a><p style="margin:14px 0 0;color:#64748b;font-size:13px">Lien direct: <a href="${downloadUrl}">${downloadUrl}</a></p></div></body></html>`);
+});
+
 async function insertExpenseRecord({
   materialId = null,
   projetId = null,
