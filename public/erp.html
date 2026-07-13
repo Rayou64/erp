@@ -11328,28 +11328,87 @@
       localStorage.setItem(DEMO_WAREHOUSES_STORAGE_KEY, JSON.stringify(demoWarehouseAssignments));
     }
 
+    function loadCustomStockWarehousesFromStorage() {
+      try {
+        const raw = localStorage.getItem(CUSTOM_STOCK_WAREHOUSES_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+          .filter(item => item && String(item.id || '').trim())
+          .map(item => ({
+            ...item,
+            custom: true,
+            isHidden: false,
+          }));
+      } catch (_error) {
+        return [];
+      }
+    }
+
+    function persistCustomStockWarehousesToStorage() {
+      try {
+        localStorage.setItem(CUSTOM_STOCK_WAREHOUSES_STORAGE_KEY, JSON.stringify(customStockWarehouses));
+      } catch (_error) {
+        // Ignore storage quota/security errors.
+      }
+    }
+
     async function loadCustomStockWarehouses() {
+      const tryLoadLegacyWarehouses = async () => {
+        try {
+          const legacyResponse = await fetchJson('/api/warehouses');
+          const legacyWarehouses = Array.isArray(legacyResponse?.warehouses)
+            ? legacyResponse.warehouses
+                .filter(item => item && String(item.id || '').trim())
+                .map(item => ({
+                  id: String(item.id || '').trim(),
+                  name: String(item.name || item.project || item.prefecture || '').trim() || 'Entrepôt',
+                  linkedProjectName: String(item.project || '').trim(),
+                  linkedZoneName: String(item.prefecture || '').trim(),
+                  prefecture: String(item.prefecture || '').trim(),
+                  custom: true,
+                  isHidden: false,
+                }))
+            : [];
+          return legacyWarehouses;
+        } catch (_error) {
+          return [];
+        }
+      };
+
       try {
         const response = await fetchJson('/api/custom-warehouses');
         if (response && response.warehouses) {
-          customStockWarehouses = response.warehouses
+          const apiWarehouses = response.warehouses
             .filter(item => item && String(item.id || '').trim())
             .map(item => ({
               ...item,
               custom: true,
               isHidden: false,
             }));
+
+          if (apiWarehouses.length > 0) {
+            customStockWarehouses = apiWarehouses;
+          } else {
+            const fromStorage = loadCustomStockWarehousesFromStorage();
+            customStockWarehouses = fromStorage.length > 0 ? fromStorage : await tryLoadLegacyWarehouses();
+          }
+
+          persistCustomStockWarehousesToStorage();
         } else {
-          customStockWarehouses = [];
+          const fromStorage = loadCustomStockWarehousesFromStorage();
+          customStockWarehouses = fromStorage.length > 0 ? fromStorage : await tryLoadLegacyWarehouses();
         }
       } catch (error) {
         console.warn('Erreur chargement entrepôts personnalisés:', error);
-        customStockWarehouses = [];
+        const fromStorage = loadCustomStockWarehousesFromStorage();
+        customStockWarehouses = fromStorage.length > 0 ? fromStorage : await tryLoadLegacyWarehouses();
       }
     }
 
     async function saveCustomStockWarehouses() {
-      // Les entrepôts sont sauvegardés via l'API, pas en localStorage
+      persistCustomStockWarehousesToStorage();
     }
 
     function getAllStockWarehouses() {
@@ -11688,11 +11747,22 @@
           linkedZoneName: String(zone.prefecture || zone.nomSite || zone.nomProjet || '').trim(),
           prefecture: String(zone.prefecture || zone.nomSite || zone.nomProjet || '').trim(),
         };
-        
-        await fetchJson('/api/custom-warehouses', { method: 'POST', body: JSON.stringify(warehouseData) });
-        
-        // Recharger les entrepôts depuis l'API
-        await loadCustomStockWarehouses();
+
+        let apiSaved = false;
+        try {
+          await fetchJson('/api/custom-warehouses', { method: 'POST', body: JSON.stringify(warehouseData) });
+          apiSaved = true;
+        } catch (apiError) {
+          console.warn('API custom-warehouses indisponible, bascule en sauvegarde locale:', apiError);
+        }
+
+        if (!apiSaved) {
+          customStockWarehouses.push({ ...warehouseData, custom: true, isHidden: false });
+          await saveCustomStockWarehouses();
+        } else {
+          // Recharger les entrepôts depuis l'API
+          await loadCustomStockWarehouses();
+        }
         
         selectedStockWarehouseId = id;
         await loadStockManagement();
@@ -11718,10 +11788,21 @@
       }
 
       try {
-        await fetchJson(`/api/custom-warehouses/${normalizedId}`, { method: 'DELETE' });
-        
-        // Recharger les entrepôts depuis l'API
-        await loadCustomStockWarehouses();
+        let apiDeleted = false;
+        try {
+          await fetchJson(`/api/custom-warehouses/${normalizedId}`, { method: 'DELETE' });
+          apiDeleted = true;
+        } catch (apiError) {
+          console.warn('API custom-warehouses indisponible, suppression locale:', apiError);
+        }
+
+        if (!apiDeleted) {
+          customStockWarehouses = customStockWarehouses.filter(item => String(item.id || '').trim() !== normalizedId);
+          await saveCustomStockWarehouses();
+        } else {
+          // Recharger les entrepôts depuis l'API
+          await loadCustomStockWarehouses();
+        }
 
         Object.keys(demoWarehouseAssignments).forEach(requestId => {
           if (demoWarehouseAssignments[requestId] === normalizedId) {
