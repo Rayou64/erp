@@ -142,7 +142,7 @@ function createPostgresClient(databaseUrl) {
     ssl: process.env.PGSSL_DISABLE === '1' ? false : { rejectUnauthorized: false },
     max: Number(process.env.PG_POOL_MAX || 20),
     idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS || 30_000),
-    connectionTimeoutMillis: Number(process.env.PG_CONNECT_TIMEOUT_MS || 10_000),
+    connectionTimeoutMillis: Number(process.env.PG_CONNECT_TIMEOUT_MS || 30_000),
   });
 
   async function run(sql, params = []) {
