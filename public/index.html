@@ -32,14 +32,17 @@
     }
 
     body {
-      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
     }
 
     .login-screen {
       position: relative;
-      min-height: 100vh;
-      padding: clamp(18px, 3.2vw, 40px);
+      height: 100dvh;
+      padding: clamp(12px, 2.4vw, 24px);
       overflow: hidden;
+      display: grid;
+      grid-template-rows: 1fr auto;
       background:
         linear-gradient(132deg, rgba(4, 22, 66, 0.82), rgba(10, 42, 115, 0.75)),
         radial-gradient(circle at 84% 11%, rgba(74, 154, 255, 0.4) 0%, rgba(74, 154, 255, 0) 42%),
@@ -67,25 +70,26 @@
       z-index: 1;
       max-width: 1310px;
       margin: 0 auto;
-      min-height: calc(100vh - 80px);
+      min-height: 0;
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: clamp(26px, 4vw, 74px);
+      gap: clamp(16px, 2.3vw, 34px);
     }
 
     .brand-panel {
-      width: min(44%, 540px);
+      width: min(45%, 520px);
       display: flex;
       flex-direction: column;
-      gap: 26px;
+      gap: 14px;
     }
 
     .ryan-brand {
       display: inline-flex;
       align-items: center;
       gap: 16px;
-      font-size: clamp(34px, 4vw, 60px);
+      font-size: clamp(28px, 2.9vw, 42px);
       font-weight: 800;
       line-height: 1;
       letter-spacing: -0.02em;
@@ -94,9 +98,9 @@
     }
 
     .ryan-brand img {
-      width: clamp(68px, 6vw, 92px);
-      height: clamp(68px, 6vw, 92px);
-      border-radius: 18px;
+      width: clamp(56px, 4.8vw, 76px);
+      height: clamp(56px, 4.8vw, 76px);
+      border-radius: 14px;
       background: rgba(255, 255, 255, 0.97);
       box-shadow: 0 16px 30px rgba(6, 18, 57, 0.35);
       padding: 8px;
@@ -109,8 +113,8 @@
 
     .brand-title {
       margin: 0;
-      font-size: clamp(40px, 3.95vw, 56px);
-      line-height: 1.11;
+      font-size: clamp(26px, 2.55vw, 38px);
+      line-height: 1.08;
       letter-spacing: -0.02em;
       font-weight: 750;
       max-width: 520px;
@@ -121,8 +125,8 @@
     }
 
     .brand-line {
-      width: 56px;
-      height: 4px;
+      width: 48px;
+      height: 3px;
       border-radius: 999px;
       background: var(--ryan-accent);
       margin: 4px 0 0;
@@ -131,9 +135,9 @@
 
     .brand-description {
       margin: 0;
-      max-width: 430px;
-      font-size: clamp(20px, 1.6vw, 28px);
-      line-height: 1.55;
+      max-width: 400px;
+      font-size: clamp(14px, 1vw, 16px);
+      line-height: 1.45;
       color: rgba(229, 240, 255, 0.96);
     }
 
@@ -143,7 +147,7 @@
       list-style: none;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px 24px;
+      gap: 10px 16px;
       max-width: 480px;
     }
 
@@ -151,14 +155,14 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      font-size: clamp(16px, 1.2vw, 22px);
+      font-size: clamp(13px, 0.95vw, 15px);
       color: rgba(223, 236, 255, 0.96);
       letter-spacing: 0.005em;
     }
 
     .brand-features svg {
-      width: 20px;
-      height: 20px;
+      width: 15px;
+      height: 15px;
       stroke: #67c0ff;
       stroke-width: 1.8;
       fill: none;
@@ -166,12 +170,12 @@
     }
 
     .stats-bar {
-      width: min(470px, 100%);
+      width: min(430px, 100%);
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      border-radius: 18px;
-      padding: 18px 20px;
+      gap: 10px;
+      border-radius: 14px;
+      padding: 12px 14px;
       border: 1px solid rgba(137, 180, 255, 0.32);
       background: linear-gradient(165deg, rgba(12, 50, 132, 0.48), rgba(8, 31, 93, 0.34));
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 22px 46px rgba(2, 14, 47, 0.32);
@@ -181,30 +185,30 @@
     .stat {
       text-align: center;
       color: #d6e7ff;
-      font-size: 15px;
+      font-size: 12px;
     }
 
     .stat strong {
       display: block;
       color: #fff;
-      font-size: clamp(30px, 2.3vw, 40px);
-      margin-bottom: 4px;
+      font-size: clamp(21px, 1.55vw, 28px);
+      margin-bottom: 2px;
       letter-spacing: -0.02em;
       line-height: 1.08;
     }
 
     .auth-panel {
-      width: min(56%, 640px);
+      width: min(55%, 580px);
       display: flex;
       justify-content: flex-end;
     }
 
     .auth-card {
-      width: min(100%, 640px);
+      width: min(100%, 580px);
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
-      border-radius: 34px;
-      padding: clamp(28px, 2.6vw, 44px);
+      border-radius: 24px;
+      padding: clamp(18px, 1.8vw, 28px);
       box-shadow: var(--card-shadow);
       color: var(--text-main);
       position: relative;
@@ -222,41 +226,41 @@
 
     .auth-head {
       text-align: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .auth-head img {
-      width: clamp(76px, 6.3vw, 96px);
-      height: clamp(76px, 6.3vw, 96px);
-      border-radius: 20px;
+      width: clamp(54px, 4.2vw, 68px);
+      height: clamp(54px, 4.2vw, 68px);
+      border-radius: 14px;
       background: #fff;
       box-shadow: 0 10px 24px rgba(20, 40, 94, 0.16);
-      padding: 10px;
+      padding: 7px;
       object-fit: contain;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
     }
 
     .auth-head h1 {
       margin: 0;
-      font-size: clamp(46px, 4.3vw, 58px);
-      line-height: 1.05;
+      font-size: clamp(30px, 2.8vw, 40px);
+      line-height: 1.02;
       letter-spacing: -0.025em;
       color: #1a2d5a;
     }
 
     .auth-head p {
-      margin: 10px 0 0;
-      font-size: clamp(19px, 1.55vw, 24px);
+      margin: 4px 0 0;
+      font-size: clamp(14px, 1vw, 16px);
       color: var(--text-soft);
     }
 
     .auth-separator {
-      margin: 22px 0 12px;
+      margin: 10px 0 8px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
       color: #8090af;
-      font-size: 22px;
+      font-size: 16px;
       justify-content: center;
     }
 
@@ -270,13 +274,13 @@
 
     #login-form {
       display: grid;
-      gap: 18px;
+      gap: 10px;
     }
 
     .field-block label {
       display: block;
-      font-size: clamp(22px, 1.7vw, 28px);
-      margin-bottom: 10px;
+      font-size: clamp(14px, 1vw, 16px);
+      margin-bottom: 6px;
       font-weight: 700;
       color: #1f3364;
     }
@@ -287,11 +291,11 @@
 
     .field-wrap input {
       width: 100%;
-      border-radius: 14px;
+      border-radius: 10px;
       border: 1px solid #d4dded;
       background: #fff;
-      padding: clamp(15px, 1.2vw, 20px) 54px;
-      font-size: clamp(18px, 1.35vw, 22px);
+      padding: 10px 38px;
+      font-size: clamp(13px, 0.9vw, 15px);
       color: #22355d;
       outline: none;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -306,8 +310,8 @@
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 21px;
-      height: 21px;
+      width: 16px;
+      height: 16px;
       stroke: #7c8cad;
       stroke-width: 1.9;
       fill: none;
@@ -315,34 +319,34 @@
     }
 
     .field-wrap .left-icon {
-      left: 18px;
+      left: 12px;
     }
 
     .field-wrap .right-icon {
-      right: 18px;
+      right: 12px;
     }
 
     .auth-tools {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      margin-top: 2px;
+      gap: 10px;
+      margin-top: 0;
       color: var(--text-soft);
-      font-size: clamp(18px, 1.3vw, 22px);
+      font-size: clamp(12px, 0.86vw, 14px);
     }
 
     .remember-wrap {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
       user-select: none;
       color: #2f446f;
     }
 
     .remember-wrap input {
-      width: 18px;
-      height: 18px;
+      width: 14px;
+      height: 14px;
       accent-color: #1f75ff;
       margin: 0;
       border-radius: 4px;
@@ -361,10 +365,10 @@
     .login-button {
       width: 100%;
       border: 0;
-      border-radius: 13px;
-      padding: clamp(16px, 1.25vw, 20px) 18px;
+      border-radius: 10px;
+      padding: 11px 14px;
       color: #fff;
-      font-size: clamp(27px, 1.95vw, 33px);
+      font-size: clamp(17px, 1.2vw, 20px);
       font-weight: 760;
       cursor: pointer;
       background: linear-gradient(180deg, #2e89ff 0%, #0b5dff 100%);
@@ -374,7 +378,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 8px;
     }
 
     .login-button:hover {
@@ -389,12 +393,12 @@
     }
 
     .or-divider {
-      margin: 20px 0 16px;
+      margin: 12px 0 8px;
       display: flex;
       align-items: center;
-      gap: 13px;
+      gap: 10px;
       color: #7a8aa8;
-      font-size: clamp(20px, 1.4vw, 24px);
+      font-size: clamp(14px, 0.96vw, 16px);
       font-weight: 600;
     }
 
@@ -409,13 +413,13 @@
     .demo-link {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       justify-content: center;
       width: 100%;
       border: 0;
       background: transparent;
       color: #1f69f2;
-      font-size: clamp(22px, 1.5vw, 26px);
+      font-size: clamp(14px, 1vw, 16px);
       font-weight: 630;
       cursor: pointer;
       text-decoration: none;
@@ -423,19 +427,19 @@
     }
 
     .demo-link svg {
-      width: 22px;
-      height: 22px;
+      width: 16px;
+      height: 16px;
       stroke: currentColor;
       stroke-width: 2;
       fill: none;
     }
 
     .error {
-      min-height: 24px;
-      margin-top: 12px;
+      min-height: 18px;
+      margin-top: 8px;
       color: #c11f3d;
       font-weight: 700;
-      font-size: clamp(16px, 1.08vw, 20px);
+      font-size: clamp(12px, 0.9vw, 14px);
       text-align: center;
     }
 
@@ -443,17 +447,48 @@
       position: relative;
       z-index: 1;
       max-width: 1310px;
-      margin: 14px auto 0;
+      margin: 8px auto 0;
       display: flex;
       justify-content: space-between;
       gap: 16px;
       color: rgba(217, 232, 255, 0.92);
-      font-size: clamp(16px, 1.05vw, 19px);
+      font-size: clamp(11px, 0.8vw, 13px);
+    }
+
+    @media (max-height: 860px) and (orientation: landscape) {
+      .login-screen {
+        padding-top: 10px;
+        padding-bottom: 8px;
+      }
+
+      .brand-description {
+        display: none;
+      }
+
+      .brand-features {
+        gap: 8px 12px;
+      }
+
+      .auth-card {
+        padding: 14px 16px;
+      }
+
+      #login-form {
+        gap: 8px;
+      }
+
+      .or-divider {
+        margin: 8px 0 6px;
+      }
+
+      .stats-bar {
+        padding: 10px;
+      }
     }
 
     @media (max-width: 1260px) {
       .auth-head h1 {
-        font-size: clamp(38px, 4vw, 52px);
+        font-size: clamp(26px, 2.5vw, 34px);
       }
 
       .field-block label {
@@ -479,17 +514,18 @@
       }
     }
 
-    @media (max-width: 1024px), (orientation: portrait) {
+    @media (max-width: 1180px), (orientation: portrait) {
       .login-screen {
-        padding: 16px 16px 20px;
+        padding: 10px 10px 8px;
         background-position: center;
       }
 
       .login-shell {
         min-height: auto;
-        gap: 20px;
+        gap: 8px;
         flex-direction: column;
         align-items: stretch;
+        justify-content: start;
       }
 
       .brand-panel,
@@ -498,27 +534,31 @@
       }
 
       .brand-panel {
-        gap: 14px;
+        gap: 8px;
       }
 
       .ryan-brand {
-        font-size: clamp(28px, 7.5vw, 48px);
+        font-size: clamp(24px, 7vw, 36px);
       }
 
       .ryan-brand img {
-        width: clamp(54px, 15vw, 74px);
-        height: clamp(54px, 15vw, 74px);
+        width: clamp(42px, 10vw, 56px);
+        height: clamp(42px, 10vw, 56px);
         border-radius: 16px;
       }
 
       .brand-title {
-        font-size: clamp(30px, 8.7vw, 54px);
+        font-size: clamp(21px, 6vw, 32px);
         max-width: 92%;
       }
 
       .brand-description,
       .brand-features {
         display: none;
+      }
+
+      .brand-line {
+        margin-top: 0;
       }
 
       .brand-line {
@@ -530,107 +570,107 @@
       }
 
       .auth-card {
-        border-radius: 24px;
-        padding: clamp(20px, 5.4vw, 30px);
+        border-radius: 18px;
+        padding: 14px 12px;
       }
 
       .auth-head img {
-        width: clamp(64px, 17vw, 80px);
-        height: clamp(64px, 17vw, 80px);
-        margin-bottom: 14px;
+        width: clamp(44px, 12vw, 54px);
+        height: clamp(44px, 12vw, 54px);
+        margin-bottom: 6px;
       }
 
       .auth-head h1 {
-        font-size: clamp(36px, 10vw, 48px);
+        font-size: clamp(25px, 7.2vw, 34px);
       }
 
       .auth-head p {
-        font-size: clamp(18px, 4.8vw, 22px);
+        font-size: clamp(13px, 3.4vw, 15px);
       }
 
       .auth-separator {
-        margin: 18px 0 8px;
+        margin: 8px 0 6px;
       }
 
       #login-form {
-        gap: 14px;
-      }
-
-      .field-block label {
-        font-size: clamp(20px, 5vw, 26px);
-        margin-bottom: 8px;
-      }
-
-      .field-wrap input {
-        border-radius: 12px;
-        padding: 14px 46px;
-        font-size: clamp(17px, 4.4vw, 20px);
-      }
-
-      .field-wrap svg {
-        width: 20px;
-        height: 20px;
-      }
-
-      .field-wrap .left-icon {
-        left: 14px;
-      }
-
-      .field-wrap .right-icon {
-        right: 14px;
-      }
-
-      .auth-tools {
-        font-size: clamp(14px, 3.7vw, 17px);
-      }
-
-      .remember-wrap {
         gap: 8px;
       }
 
+      .field-block label {
+        font-size: clamp(13px, 3.5vw, 15px);
+        margin-bottom: 4px;
+      }
+
+      .field-wrap input {
+        border-radius: 10px;
+        padding: 10px 36px;
+        font-size: clamp(13px, 3.4vw, 15px);
+      }
+
+      .field-wrap svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .field-wrap .left-icon {
+        left: 10px;
+      }
+
+      .field-wrap .right-icon {
+        right: 10px;
+      }
+
+      .auth-tools {
+        font-size: clamp(11px, 2.9vw, 13px);
+      }
+
+      .remember-wrap {
+        gap: 6px;
+      }
+
       .remember-wrap input {
-        width: 16px;
-        height: 16px;
+        width: 13px;
+        height: 13px;
       }
 
       .login-button {
-        font-size: clamp(18px, 5vw, 24px);
-        padding: 14px 14px;
+        font-size: clamp(15px, 3.9vw, 18px);
+        padding: 10px 12px;
       }
 
       .or-divider {
-        margin: 16px 0 12px;
-        font-size: clamp(16px, 4.3vw, 20px);
+        margin: 8px 0 6px;
+        font-size: clamp(12px, 3.2vw, 14px);
       }
 
       .demo-link {
-        font-size: clamp(18px, 4.5vw, 22px);
+        font-size: clamp(13px, 3.6vw, 15px);
       }
 
       .stats-bar {
         width: 100%;
-        gap: 10px;
-        padding: 14px;
+        gap: 6px;
+        padding: 9px 8px;
         grid-template-columns: repeat(4, minmax(0, 1fr));
       }
 
       .stat {
-        font-size: clamp(12px, 3.1vw, 14px);
+        font-size: clamp(10px, 2.5vw, 12px);
       }
 
       .stat strong {
-        font-size: clamp(16px, 5vw, 24px);
+        font-size: clamp(14px, 3.8vw, 18px);
       }
 
       .login-footer {
-        margin-top: 12px;
-        font-size: clamp(12px, 3.15vw, 14px);
+        margin-top: 6px;
+        font-size: clamp(10px, 2.6vw, 12px);
       }
     }
 
     @media (max-width: 480px) {
       .login-screen {
-        padding: 14px 12px 16px;
+        padding: 8px;
       }
 
       .brand-title {
@@ -638,8 +678,8 @@
       }
 
       .auth-card {
-        border-radius: 20px;
-        padding: 18px 14px;
+        border-radius: 16px;
+        padding: 12px 10px;
       }
 
       .auth-tools {
@@ -653,6 +693,7 @@
 
       .login-footer {
         flex-direction: row;
+        gap: 8px;
       }
     }
   </style>
