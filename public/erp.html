@@ -227,6 +227,63 @@
       align-items: center;
     }
 
+    .topbar-user-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-user-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-logout-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 14px;
+      border: 1px solid #fecaca;
+      background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+      color: #b91c1c;
+      box-shadow: 0 10px 20px rgba(248, 113, 113, 0.14);
+    }
+
+    .topbar-logout-btn:hover {
+      filter: brightness(0.98);
+    }
+
+    .topbar-right-brand {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(145deg, #ffffff, #eff6ff);
+      border: 1px solid #dbeafe;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.14);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+
+    .topbar-right-brand img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+
+    .topbar-user-meta .user-info {
+      padding-right: 0;
+      border-right: 0;
+      display: inline-flex;
+      align-items: center;
+    }
+
     .layout-mode-wrap {
       display: none;
       align-items: center;
@@ -6271,7 +6328,6 @@
 
     /* Requested UI cleanup: remove top search/bell/logout controls */
     #mobile-search-dock-btn,
-    #logout-button,
     #mph-notif-btn,
     #mph-nav-search,
     #mph-nav-notif,
@@ -6435,8 +6491,16 @@
             </div>
           </div>
           <button id="theme-toggle" class="button button-secondary button-small" title="Basculer mode sombre/clair">🌙</button>
-          <div class="user-info">
-            <span id="username">Admin</span>
+          <div class="topbar-user-actions">
+            <button id="logout-button" class="button topbar-logout-btn" type="button" title="Déconnexion">Déconnexion</button>
+            <div class="topbar-user-meta">
+              <div class="user-info">
+                <span id="username">Admin</span>
+              </div>
+              <div class="topbar-right-brand" aria-hidden="true">
+                <img src="/assets/ryan-erp-logo-icon.png?v=20260627c" alt="Ryan ERP" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
