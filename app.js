@@ -1799,6 +1799,7 @@ async function ensureMaterialRequestsForOrder(orderId, options = {}) {
 }
 
 async function initDb() {
+  console.log('[initDb] Démarrage de l\'initialisation...');
   await run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
@@ -1806,6 +1807,7 @@ async function initDb() {
     role TEXT NOT NULL,
     createdAt TEXT NOT NULL
   )`);
+  console.log('[initDb] Table users créée');
 
   await run(`CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY,
@@ -2913,7 +2915,12 @@ async function initDb() {
   }
 }
 
-initDb().then(() => {
+// Wrap initDb with a global timeout to prevent hanging
+const initDbTimeout = new Promise((_, reject) => 
+  setTimeout(() => reject(new Error('initDb timeout after 120 seconds')), 120_000)
+);
+
+Promise.race([initDb(), initDbTimeout]).then(() => {
   server = app.listen(PORT, () => {
     isReady = true;
     console.log(`API Construction & Logistique démarrée sur http://localhost:${PORT}`);
