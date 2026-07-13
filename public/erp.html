@@ -6147,20 +6147,6 @@
       color: #ffffff;
     }
 
-    body.public-browser-shell .sidebar-logo,
-    body.public-browser-shell .sidebar-logo-icon {
-      display: flex !important;
-    }
-
-    body.public-browser-shell .sidebar-logo-icon {
-      align-items: center;
-      justify-content: center;
-    }
-
-    body.public-browser-shell .sidebar-logo-icon img {
-      display: block !important;
-    }
-
     body.browser-layout-mode .menu-section-title {
       color: rgba(226, 239, 255, 0.84);
     }
@@ -26367,7 +26353,6 @@
     function initEnhancements() {
       const savedTheme = localStorage.getItem(ERP_THEME_KEY) || 'light';
       setTheme(savedTheme);
-      document.body.classList.add('public-browser-shell');
 
       const applyLayoutMode = (modeValue, persist = true) => {
         const mode = modeValue === 'browser' ? 'browser' : 'app';
@@ -26383,23 +26368,32 @@
       };
 
       const isMobileViewport = () => {
-        return false;
+        const width = Number(window.innerWidth || 0);
+        return width <= 900 && hasTouchPrimaryInput();
       };
 
       const syncLayoutModeByViewport = () => {
         const select = document.getElementById('layout-mode-select');
+        if (isMobileViewport()) {
+          // Sur mobile, rester en mode application.
+          applyLayoutMode('app', false);
+          if (select) select.disabled = true;
+          return;
+        }
+
+        // Sur tablette/ordinateur, forcer le rendu navigateur pour éviter l'ancien style app.
         applyLayoutMode('browser', false);
         if (select) select.disabled = true;
       };
 
       const savedLayoutMode = localStorage.getItem(ERP_LAYOUT_MODE_KEY) || 'browser';
-      localStorage.setItem(ERP_LAYOUT_MODE_KEY, 'browser');
-      applyLayoutMode('browser', false);
+      applyLayoutMode(isMobileViewport() ? 'app' : savedLayoutMode === 'app' && isMobileViewport() ? 'app' : 'browser', false);
 
       const layoutModeSelect = document.getElementById('layout-mode-select');
       if (layoutModeSelect) {
-        layoutModeSelect.value = 'browser';
+        layoutModeSelect.value = 'app';
         layoutModeSelect.addEventListener('change', e => {
+          if (isMobileViewport()) return;
           applyLayoutMode('browser', true);
         });
       }
@@ -26407,7 +26401,7 @@
       syncLayoutModeByViewport();
 
       const sidebarStored = localStorage.getItem(ERP_SIDEBAR_COLLAPSED_KEY);
-      const sidebarCollapsed = sidebarStored === '1';
+      const sidebarCollapsed = window.innerWidth <= 900 ? true : sidebarStored === '1';
       setSidebarCollapsed(sidebarCollapsed);
 
       const themeBtn = document.getElementById('theme-toggle');
@@ -26521,6 +26515,7 @@
         document.querySelectorAll('.actions-menu[open]').forEach(detailsEl => {
           repositionActionsMenu(detailsEl);
         });
+        syncLayoutModeByViewport();
       });
 
       const notifBell = document.getElementById('notif-bell-btn');
