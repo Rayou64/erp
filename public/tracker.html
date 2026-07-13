@@ -23,7 +23,30 @@
       padding: 14px;
       box-shadow: 0 10px 28px rgba(2, 6, 23, 0.35);
     }
-    h1 { margin: 0 0 4px 0; font-size: 20px; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .brand-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 12px 22px rgba(2, 6, 23, 0.28);
+      flex: 0 0 auto;
+    }
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    .brand-copy h1 { margin: 0; font-size: 20px; }
+    .brand-copy p { margin: 4px 0 0 0; color: #cbd5e1; }
     p { margin: 0 0 10px 0; color: #cbd5e1; }
     .field { margin-bottom: 10px; }
     label { display: block; font-size: 12px; margin-bottom: 4px; color: #cbd5e1; }
@@ -77,8 +100,15 @@
 </head>
 <body>
   <div class="card">
-    <h1>Tracking Smartphone</h1>
-    <p>Envoi automatique des positions GPS vers RyanERP</p>
+    <div class="brand">
+      <div class="brand-logo">
+        <img src="/assets/ryan-erp-logo-icon.png?v=20260627c" alt="Ryan ERP" />
+      </div>
+      <div class="brand-copy">
+        <h1>Tracking Smartphone</h1>
+        <p>Envoi automatique des positions GPS vers RyanERP</p>
+      </div>
+    </div>
 
     <div class="field">
       <label for="token">Token appareil</label>

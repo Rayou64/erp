@@ -6264,8 +6264,7 @@
       background: rgba(95, 106, 242, 0.08);
     }
 
-    /* Logo policy: keep logo only on home interface */
-    .sidebar .sidebar-logo,
+    /* Keep the app logo visible in the public desktop shell. */
     #mobile-module-topbar .mph-brand {
       display: none !important;
     }
@@ -26369,32 +26368,22 @@
       };
 
       const isMobileViewport = () => {
-        const width = Number(window.innerWidth || 0);
-        return width <= 900 && hasTouchPrimaryInput();
+        return false;
       };
 
       const syncLayoutModeByViewport = () => {
         const select = document.getElementById('layout-mode-select');
-        if (isMobileViewport()) {
-          // Sur mobile, rester en mode application.
-          applyLayoutMode('app', false);
-          if (select) select.disabled = true;
-          return;
-        }
-
-        // Sur tablette/ordinateur, forcer le rendu navigateur pour éviter l'ancien style app.
         applyLayoutMode('browser', false);
         if (select) select.disabled = true;
       };
 
       const savedLayoutMode = localStorage.getItem(ERP_LAYOUT_MODE_KEY) || 'browser';
-      applyLayoutMode(isMobileViewport() ? 'app' : savedLayoutMode === 'app' && isMobileViewport() ? 'app' : 'browser', false);
+      applyLayoutMode('browser', false);
 
       const layoutModeSelect = document.getElementById('layout-mode-select');
       if (layoutModeSelect) {
-        layoutModeSelect.value = 'app';
+        layoutModeSelect.value = 'browser';
         layoutModeSelect.addEventListener('change', e => {
-          if (isMobileViewport()) return;
           applyLayoutMode('browser', true);
         });
       }
@@ -26402,7 +26391,7 @@
       syncLayoutModeByViewport();
 
       const sidebarStored = localStorage.getItem(ERP_SIDEBAR_COLLAPSED_KEY);
-      const sidebarCollapsed = window.innerWidth <= 900 ? true : sidebarStored === '1';
+      const sidebarCollapsed = sidebarStored === '1';
       setSidebarCollapsed(sidebarCollapsed);
 
       const themeBtn = document.getElementById('theme-toggle');
@@ -26516,7 +26505,6 @@
         document.querySelectorAll('.actions-menu[open]').forEach(detailsEl => {
           repositionActionsMenu(detailsEl);
         });
-        syncLayoutModeByViewport();
       });
 
       const notifBell = document.getElementById('notif-bell-btn');
