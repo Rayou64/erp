@@ -32,15 +32,20 @@
     }
 
     body {
+      min-height: 100vh;
       min-height: 100dvh;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     .login-screen {
       position: relative;
-      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      height: auto;
       padding: clamp(12px, 2.4vw, 24px);
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
       display: grid;
       grid-template-rows: 1fr auto;
       background:
@@ -516,6 +521,8 @@
 
     @media (max-width: 1180px), (orientation: portrait) {
       .login-screen {
+        min-height: 100vh;
+        min-height: 100dvh;
         padding: 10px 10px 8px;
         background-position: center;
       }
