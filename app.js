@@ -1988,7 +1988,7 @@ async function initDb() {
     updatedAt TEXT NOT NULL
   )`);
 
-  await run(`INSERT OR IGNORE INTO custom_stock_warehouses (
+  await run(`INSERT INTO custom_stock_warehouses (
     id,
     name,
     linkedProjectId,
@@ -1999,7 +1999,8 @@ async function initDb() {
     isHidden,
     createdAt,
     updatedAt
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT (id) DO NOTHING`, [
     'entrepot-songon-1',
     'Songon',
     null,
