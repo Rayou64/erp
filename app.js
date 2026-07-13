@@ -93,6 +93,102 @@ app.get('/api/warehouses', async (req, res) => {
   }
 });
 
+function normalizeCustomWarehouseRow(row) {
+  if (!row) return null;
+  const id = String(row.id || '').trim();
+  const name = String(row.name || '').trim();
+  if (!id || !name) return null;
+
+  return {
+    id,
+    name,
+    linkedProjectId: Number(row.linkedProjectId || 0) || null,
+    linkedProjectName: String(row.linkedProjectName || '').trim(),
+    linkedZoneId: String(row.linkedZoneId || '').trim(),
+    linkedZoneName: String(row.linkedZoneName || '').trim(),
+    prefecture: String(row.prefecture || '').trim(),
+    custom: true,
+    isHidden: Number(row.isHidden || 0) === 1,
+    createdAt: String(row.createdAt || '').trim(),
+    updatedAt: String(row.updatedAt || '').trim(),
+  };
+}
+
+app.get('/api/custom-warehouses', authenticateToken, async (_req, res) => {
+  try {
+    const rows = await all(`
+      SELECT id, name, linkedProjectId, linkedProjectName, linkedZoneId, linkedZoneName, prefecture, isHidden, createdAt, updatedAt
+      FROM custom_stock_warehouses
+      ORDER BY updatedAt DESC, createdAt DESC, name ASC
+    `);
+    res.json({ warehouses: rows.map(normalizeCustomWarehouseRow).filter(Boolean) });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur chargement entrepôts personnalisés', details: String(error) });
+  }
+});
+
+app.post('/api/custom-warehouses', authenticateToken, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const name = String(req.body?.name || '').trim();
+    const linkedProjectId = Number(req.body?.linkedProjectId || 0) || null;
+    const linkedProjectName = String(req.body?.linkedProjectName || '').trim();
+    const linkedZoneId = String(req.body?.linkedZoneId || '').trim();
+    const linkedZoneName = String(req.body?.linkedZoneName || '').trim();
+    const prefecture = String(req.body?.prefecture || '').trim();
+
+    if (!id || !name) {
+      return res.status(400).json({ error: 'id et name sont obligatoires' });
+    }
+
+    const existing = await get('SELECT id FROM custom_stock_warehouses WHERE id = ?', [id]);
+    const timestamp = new Date().toISOString();
+
+    await run(`
+      INSERT INTO custom_stock_warehouses (
+        id, name, linkedProjectId, linkedProjectName, linkedZoneId, linkedZoneName, prefecture, isHidden, createdAt, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        linkedProjectId = excluded.linkedProjectId,
+        linkedProjectName = excluded.linkedProjectName,
+        linkedZoneId = excluded.linkedZoneId,
+        linkedZoneName = excluded.linkedZoneName,
+        prefecture = excluded.prefecture,
+        isHidden = excluded.isHidden,
+        updatedAt = excluded.updatedAt
+    `, [id, name, linkedProjectId, linkedProjectName, linkedZoneId, linkedZoneName, prefecture, timestamp, timestamp]);
+
+    const row = await get(
+      'SELECT id, name, linkedProjectId, linkedProjectName, linkedZoneId, linkedZoneName, prefecture, isHidden, createdAt, updatedAt FROM custom_stock_warehouses WHERE id = ?',
+      [id]
+    );
+
+    res.status(existing ? 200 : 201).json(normalizeCustomWarehouseRow(row));
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur creation entrepôt personnalisé', details: String(error) });
+  }
+});
+
+app.delete('/api/custom-warehouses/:id', authenticateToken, async (req, res) => {
+  try {
+    const id = String(req.params.id || '').trim();
+    if (!id) {
+      return res.status(400).json({ error: 'id manquant' });
+    }
+
+    const existing = await get('SELECT id FROM custom_stock_warehouses WHERE id = ?', [id]);
+    if (!existing) {
+      return res.status(404).json({ error: 'Entrepôt introuvable' });
+    }
+
+    await run('DELETE FROM custom_stock_warehouses WHERE id = ?', [id]);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur suppression entrepôt personnalisé', details: String(error) });
+  }
+});
+
 const APP_DATA_DIR = process.env.APP_DATA_DIR || (process.env.RAILWAY_ENVIRONMENT ? '/data' : __dirname);
 const DB_FILE = process.env.DB_FILE || path.join(APP_DATA_DIR, 'data.db');
 const ARCHIVE_ROOT = process.env.ARCHIVE_ROOT || path.join(APP_DATA_DIR, 'archives');
@@ -1878,6 +1974,19 @@ async function initDb() {
   try {
     await run('DROP INDEX IF EXISTS idx_project_folders_name_site');
   } catch (e) {}
+
+  await run(`CREATE TABLE IF NOT EXISTS custom_stock_warehouses (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    linkedProjectId INTEGER,
+    linkedProjectName TEXT,
+    linkedZoneId TEXT,
+    linkedZoneName TEXT,
+    prefecture TEXT,
+    isHidden INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  )`);
 
   await run(`CREATE TABLE IF NOT EXISTS material_requests (
     id INTEGER PRIMARY KEY,
