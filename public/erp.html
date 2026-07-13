@@ -6147,6 +6147,20 @@
       color: #ffffff;
     }
 
+    body.public-browser-shell .sidebar-logo,
+    body.public-browser-shell .sidebar-logo-icon {
+      display: flex !important;
+    }
+
+    body.public-browser-shell .sidebar-logo-icon {
+      align-items: center;
+      justify-content: center;
+    }
+
+    body.public-browser-shell .sidebar-logo-icon img {
+      display: block !important;
+    }
+
     body.browser-layout-mode .menu-section-title {
       color: rgba(226, 239, 255, 0.84);
     }
@@ -26353,6 +26367,7 @@
     function initEnhancements() {
       const savedTheme = localStorage.getItem(ERP_THEME_KEY) || 'light';
       setTheme(savedTheme);
+      document.body.classList.add('public-browser-shell');
 
       const applyLayoutMode = (modeValue, persist = true) => {
         const mode = modeValue === 'browser' ? 'browser' : 'app';
@@ -26378,6 +26393,7 @@
       };
 
       const savedLayoutMode = localStorage.getItem(ERP_LAYOUT_MODE_KEY) || 'browser';
+      localStorage.setItem(ERP_LAYOUT_MODE_KEY, 'browser');
       applyLayoutMode('browser', false);
 
       const layoutModeSelect = document.getElementById('layout-mode-select');
