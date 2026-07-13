@@ -1988,6 +1988,30 @@ async function initDb() {
     updatedAt TEXT NOT NULL
   )`);
 
+  await run(`INSERT OR IGNORE INTO custom_stock_warehouses (
+    id,
+    name,
+    linkedProjectId,
+    linkedProjectName,
+    linkedZoneId,
+    linkedZoneName,
+    prefecture,
+    isHidden,
+    createdAt,
+    updatedAt
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    'entrepot-songon-1',
+    'Songon',
+    null,
+    '',
+    '',
+    'Songon',
+    'Songon',
+    0,
+    new Date().toISOString(),
+    new Date().toISOString(),
+  ]);
+
   await run(`CREATE TABLE IF NOT EXISTS material_requests (
     id INTEGER PRIMARY KEY,
     projetId INTEGER NOT NULL,

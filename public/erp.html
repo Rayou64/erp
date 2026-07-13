@@ -11355,6 +11355,20 @@
       }
     }
 
+    function mergeUniqueStockWarehouses(primaryWarehouses, fallbackWarehouses) {
+      const merged = [];
+      const seenIds = new Set();
+      for (const warehouse of [...(Array.isArray(primaryWarehouses) ? primaryWarehouses : []), ...(Array.isArray(fallbackWarehouses) ? fallbackWarehouses : [])]) {
+        const id = String(warehouse?.id || '').trim();
+        if (!id || seenIds.has(id)) {
+          continue;
+        }
+        seenIds.add(id);
+        merged.push(warehouse);
+      }
+      return merged;
+    }
+
     async function loadCustomStockWarehouses() {
       const tryLoadLegacyWarehouses = async () => {
         try {
@@ -11413,7 +11427,7 @@
     }
 
     function getAllStockWarehouses() {
-      return [...DEMO_WAREHOUSES, ...customStockWarehouses];
+      return mergeUniqueStockWarehouses(customStockWarehouses, DEMO_WAREHOUSES);
     }
 
     function getVisibleStockWarehouses() {
