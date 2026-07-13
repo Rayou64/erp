@@ -5906,6 +5906,26 @@
       }
     }
 
+    @media (orientation: landscape) and (max-width: 1366px) {
+      body.app-layout-mode .mobile-module-topbar .mph-brand,
+      body.app-layout-mode #mobile-premium-home .mph-topbar .mph-brand {
+        display: none !important;
+      }
+
+      body.app-layout-mode #mph-hero-logout-btn {
+        display: none !important;
+      }
+    }
+
+    @media (orientation: landscape) and (max-width: 1366px) and (pointer: coarse) {
+      body.app-layout-mode .topbar-user-actions .topbar-logout-btn,
+      body.app-layout-mode .topbar-user-actions .topbar-right-brand,
+      body.browser-layout-mode .topbar-user-actions .topbar-logout-btn,
+      body.browser-layout-mode .topbar-user-actions .topbar-right-brand {
+        display: none !important;
+      }
+    }
+
     @media (min-width: 1367px) {
       .layout-mode-wrap {
         display: inline-flex;
