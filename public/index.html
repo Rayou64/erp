@@ -4,64 +4,766 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Connexion - RyanERP</title>
-  <link rel="stylesheet" href="style.css" />
   <style>
-    .auth-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
+    :root {
+      --ryan-blue-900: #081d53;
+      --ryan-blue-800: #0d2c77;
+      --ryan-blue-700: #1746ab;
+      --ryan-blue-500: #1678ff;
+      --ryan-accent: #1ea2ff;
+      --panel-bg: #f9fbff;
+      --panel-border: #dce4f2;
+      --text-main: #172b57;
+      --text-soft: #6f7f9f;
+      --card-shadow: 0 32px 64px rgba(9, 26, 66, 0.36);
     }
 
-    .auth-brand-logo {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "Segoe UI", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      color: #fff;
+      background: var(--ryan-blue-900);
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .login-screen {
+      position: relative;
+      min-height: 100vh;
+      padding: clamp(18px, 3.2vw, 40px);
       overflow: hidden;
-      background: rgba(255, 255, 255, 0.95);
-      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+      background:
+        linear-gradient(132deg, rgba(4, 22, 66, 0.82), rgba(10, 42, 115, 0.75)),
+        radial-gradient(circle at 84% 11%, rgba(74, 154, 255, 0.4) 0%, rgba(74, 154, 255, 0) 42%),
+        radial-gradient(circle at 12% 80%, rgba(12, 81, 201, 0.34) 0%, rgba(12, 81, 201, 0) 46%),
+        url("https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=2200&q=80") center/cover no-repeat;
+    }
+
+    .login-screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle, rgba(105, 170, 255, 0.25) 1px, transparent 1px),
+        linear-gradient(118deg, transparent 72%, rgba(128, 182, 255, 0.14) 73%, transparent 76%),
+        linear-gradient(160deg, transparent 81%, rgba(149, 193, 255, 0.18) 82%, transparent 86%);
+      background-size: 12px 12px, 100% 100%, 100% 100%;
+      background-position: 100% 48px, 0 0, 0 0;
+      mix-blend-mode: screen;
+      opacity: 0.75;
+    }
+
+    .login-shell {
+      position: relative;
+      z-index: 1;
+      max-width: 1310px;
+      margin: 0 auto;
+      min-height: calc(100vh - 80px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: clamp(26px, 4vw, 74px);
+    }
+
+    .brand-panel {
+      width: min(44%, 540px);
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+
+    .ryan-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      font-size: clamp(34px, 4vw, 60px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      color: #fff;
+      text-shadow: 0 8px 28px rgba(2, 14, 46, 0.35);
+    }
+
+    .ryan-brand img {
+      width: clamp(68px, 6vw, 92px);
+      height: clamp(68px, 6vw, 92px);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 16px 30px rgba(6, 18, 57, 0.35);
+      padding: 8px;
+      object-fit: contain;
+    }
+
+    .ryan-brand .erp-accent {
+      color: var(--ryan-accent);
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: clamp(40px, 3.95vw, 56px);
+      line-height: 1.11;
+      letter-spacing: -0.02em;
+      font-weight: 750;
+      max-width: 520px;
+    }
+
+    .brand-title .accent {
+      color: var(--ryan-accent);
+    }
+
+    .brand-line {
+      width: 56px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--ryan-accent);
+      margin: 4px 0 0;
+      box-shadow: 0 0 20px rgba(30, 162, 255, 0.45);
+    }
+
+    .brand-description {
+      margin: 0;
+      max-width: 430px;
+      font-size: clamp(20px, 1.6vw, 28px);
+      line-height: 1.55;
+      color: rgba(229, 240, 255, 0.96);
+    }
+
+    .brand-features {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 24px;
+      max-width: 480px;
+    }
+
+    .brand-features li {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: clamp(16px, 1.2vw, 22px);
+      color: rgba(223, 236, 255, 0.96);
+      letter-spacing: 0.005em;
+    }
+
+    .brand-features svg {
+      width: 20px;
+      height: 20px;
+      stroke: #67c0ff;
+      stroke-width: 1.8;
+      fill: none;
       flex: 0 0 auto;
     }
 
-    .auth-brand-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
+    .stats-bar {
+      width: min(470px, 100%);
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      border-radius: 18px;
+      padding: 18px 20px;
+      border: 1px solid rgba(137, 180, 255, 0.32);
+      background: linear-gradient(165deg, rgba(12, 50, 132, 0.48), rgba(8, 31, 93, 0.34));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 22px 46px rgba(2, 14, 47, 0.32);
+      backdrop-filter: blur(4px);
+    }
+
+    .stat {
+      text-align: center;
+      color: #d6e7ff;
+      font-size: 15px;
+    }
+
+    .stat strong {
       display: block;
+      color: #fff;
+      font-size: clamp(30px, 2.3vw, 40px);
+      margin-bottom: 4px;
+      letter-spacing: -0.02em;
+      line-height: 1.08;
     }
 
-    .auth-brand-copy h1 {
+    .auth-panel {
+      width: min(56%, 640px);
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .auth-card {
+      width: min(100%, 640px);
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 34px;
+      padding: clamp(28px, 2.6vw, 44px);
+      box-shadow: var(--card-shadow);
+      color: var(--text-main);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+
+    .auth-head {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .auth-head img {
+      width: clamp(76px, 6.3vw, 96px);
+      height: clamp(76px, 6.3vw, 96px);
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 10px 24px rgba(20, 40, 94, 0.16);
+      padding: 10px;
+      object-fit: contain;
+      margin-bottom: 16px;
+    }
+
+    .auth-head h1 {
       margin: 0;
+      font-size: clamp(46px, 4.3vw, 58px);
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      color: #1a2d5a;
     }
 
-    .auth-brand-copy p {
-      margin: 4px 0 0 0;
+    .auth-head p {
+      margin: 10px 0 0;
+      font-size: clamp(19px, 1.55vw, 24px);
+      color: var(--text-soft);
+    }
+
+    .auth-separator {
+      margin: 22px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #8090af;
+      font-size: 22px;
+      justify-content: center;
+    }
+
+    .auth-separator::before,
+    .auth-separator::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: #d5deee;
+    }
+
+    #login-form {
+      display: grid;
+      gap: 18px;
+    }
+
+    .field-block label {
+      display: block;
+      font-size: clamp(22px, 1.7vw, 28px);
+      margin-bottom: 10px;
+      font-weight: 700;
+      color: #1f3364;
+    }
+
+    .field-wrap {
+      position: relative;
+    }
+
+    .field-wrap input {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid #d4dded;
+      background: #fff;
+      padding: clamp(15px, 1.2vw, 20px) 54px;
+      font-size: clamp(18px, 1.35vw, 22px);
+      color: #22355d;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .field-wrap input:focus {
+      border-color: #4c8dff;
+      box-shadow: 0 0 0 4px rgba(45, 126, 255, 0.16);
+    }
+
+    .field-wrap svg {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 21px;
+      height: 21px;
+      stroke: #7c8cad;
+      stroke-width: 1.9;
+      fill: none;
+      pointer-events: none;
+    }
+
+    .field-wrap .left-icon {
+      left: 18px;
+    }
+
+    .field-wrap .right-icon {
+      right: 18px;
+    }
+
+    .auth-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 2px;
+      color: var(--text-soft);
+      font-size: clamp(18px, 1.3vw, 22px);
+    }
+
+    .remember-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+      color: #2f446f;
+    }
+
+    .remember-wrap input {
+      width: 18px;
+      height: 18px;
+      accent-color: #1f75ff;
+      margin: 0;
+      border-radius: 4px;
+    }
+
+    .forgot-link {
+      color: #216dff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .forgot-link:hover {
+      text-decoration: underline;
+    }
+
+    .login-button {
+      width: 100%;
+      border: 0;
+      border-radius: 13px;
+      padding: clamp(16px, 1.25vw, 20px) 18px;
+      color: #fff;
+      font-size: clamp(27px, 1.95vw, 33px);
+      font-weight: 760;
+      cursor: pointer;
+      background: linear-gradient(180deg, #2e89ff 0%, #0b5dff 100%);
+      box-shadow: 0 12px 25px rgba(14, 88, 229, 0.35);
+      letter-spacing: -0.01em;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .login-button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+      box-shadow: 0 14px 26px rgba(14, 88, 229, 0.4);
+    }
+
+    .login-button:disabled {
+      cursor: wait;
+      filter: saturate(0.8);
+    }
+
+    .or-divider {
+      margin: 20px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      color: #7a8aa8;
+      font-size: clamp(20px, 1.4vw, 24px);
+      font-weight: 600;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #d5deee;
+    }
+
+    .demo-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #1f69f2;
+      font-size: clamp(22px, 1.5vw, 26px);
+      font-weight: 630;
+      cursor: pointer;
+      text-decoration: none;
+      padding: 4px 0 2px;
+    }
+
+    .demo-link svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .error {
+      min-height: 24px;
+      margin-top: 12px;
+      color: #c11f3d;
+      font-weight: 700;
+      font-size: clamp(16px, 1.08vw, 20px);
+      text-align: center;
+    }
+
+    .login-footer {
+      position: relative;
+      z-index: 1;
+      max-width: 1310px;
+      margin: 14px auto 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: rgba(217, 232, 255, 0.92);
+      font-size: clamp(16px, 1.05vw, 19px);
+    }
+
+    @media (max-width: 1260px) {
+      .auth-head h1 {
+        font-size: clamp(38px, 4vw, 52px);
+      }
+
+      .field-block label {
+        font-size: clamp(18px, 1.5vw, 24px);
+      }
+
+      .field-wrap input {
+        font-size: clamp(16px, 1.2vw, 20px);
+      }
+
+      .auth-tools,
+      .or-divider,
+      .demo-link {
+        font-size: clamp(16px, 1.18vw, 20px);
+      }
+
+      .login-button {
+        font-size: clamp(20px, 1.72vw, 28px);
+      }
+
+      .stat strong {
+        font-size: clamp(24px, 2vw, 34px);
+      }
+    }
+
+    @media (max-width: 1024px), (orientation: portrait) {
+      .login-screen {
+        padding: 16px 16px 20px;
+        background-position: center;
+      }
+
+      .login-shell {
+        min-height: auto;
+        gap: 20px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .brand-panel,
+      .auth-panel {
+        width: 100%;
+      }
+
+      .brand-panel {
+        gap: 14px;
+      }
+
+      .ryan-brand {
+        font-size: clamp(28px, 7.5vw, 48px);
+      }
+
+      .ryan-brand img {
+        width: clamp(54px, 15vw, 74px);
+        height: clamp(54px, 15vw, 74px);
+        border-radius: 16px;
+      }
+
+      .brand-title {
+        font-size: clamp(30px, 8.7vw, 54px);
+        max-width: 92%;
+      }
+
+      .brand-description,
+      .brand-features {
+        display: none;
+      }
+
+      .brand-line {
+        margin-top: 2px;
+      }
+
+      .auth-panel {
+        justify-content: center;
+      }
+
+      .auth-card {
+        border-radius: 24px;
+        padding: clamp(20px, 5.4vw, 30px);
+      }
+
+      .auth-head img {
+        width: clamp(64px, 17vw, 80px);
+        height: clamp(64px, 17vw, 80px);
+        margin-bottom: 14px;
+      }
+
+      .auth-head h1 {
+        font-size: clamp(36px, 10vw, 48px);
+      }
+
+      .auth-head p {
+        font-size: clamp(18px, 4.8vw, 22px);
+      }
+
+      .auth-separator {
+        margin: 18px 0 8px;
+      }
+
+      #login-form {
+        gap: 14px;
+      }
+
+      .field-block label {
+        font-size: clamp(20px, 5vw, 26px);
+        margin-bottom: 8px;
+      }
+
+      .field-wrap input {
+        border-radius: 12px;
+        padding: 14px 46px;
+        font-size: clamp(17px, 4.4vw, 20px);
+      }
+
+      .field-wrap svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .field-wrap .left-icon {
+        left: 14px;
+      }
+
+      .field-wrap .right-icon {
+        right: 14px;
+      }
+
+      .auth-tools {
+        font-size: clamp(14px, 3.7vw, 17px);
+      }
+
+      .remember-wrap {
+        gap: 8px;
+      }
+
+      .remember-wrap input {
+        width: 16px;
+        height: 16px;
+      }
+
+      .login-button {
+        font-size: clamp(18px, 5vw, 24px);
+        padding: 14px 14px;
+      }
+
+      .or-divider {
+        margin: 16px 0 12px;
+        font-size: clamp(16px, 4.3vw, 20px);
+      }
+
+      .demo-link {
+        font-size: clamp(18px, 4.5vw, 22px);
+      }
+
+      .stats-bar {
+        width: 100%;
+        gap: 10px;
+        padding: 14px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .stat {
+        font-size: clamp(12px, 3.1vw, 14px);
+      }
+
+      .stat strong {
+        font-size: clamp(16px, 5vw, 24px);
+      }
+
+      .login-footer {
+        margin-top: 12px;
+        font-size: clamp(12px, 3.15vw, 14px);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .login-screen {
+        padding: 14px 12px 16px;
+      }
+
+      .brand-title {
+        max-width: 100%;
+      }
+
+      .auth-card {
+        border-radius: 20px;
+        padding: 18px 14px;
+      }
+
+      .auth-tools {
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      .stats-bar {
+        border-radius: 14px;
+      }
+
+      .login-footer {
+        flex-direction: row;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <div class="card auth-card">
-      <div class="auth-brand">
-        <div class="auth-brand-logo">
-          <img src="/assets/ryan-erp-logo-icon.png?v=20260627c" alt="Ryan ERP" />
+  <div class="login-screen">
+    <main class="login-shell">
+      <section class="brand-panel" aria-label="Présentation RyanERP">
+        <div class="ryan-brand">
+          <img src="/assets/ryan-erp-logo-icon.png?v=20260627c" alt="RyanERP" />
+          <span>Ryan<span class="erp-accent">ERP</span></span>
         </div>
-        <div class="auth-brand-copy">
-          <h1>Connexion</h1>
-          <p class="hint">Accès sécurisé à RyanERP</p>
+        <h2 class="brand-title">Pilotez vos projets de construction <span class="accent">en toute simplicite.</span></h2>
+        <div class="brand-line" aria-hidden="true"></div>
+        <p class="brand-description">RyanERP est une solution complete pour gerer vos chantiers, vos equipes, vos approvisionnements et vos ressources.</p>
+
+        <ul class="brand-features">
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M4 20v-6l8-4 8 4v6M12 6V3"></path></svg>
+            Gestion des chantiers
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 21v-8h10v8M3 21h18M9 9h6V3H9z"></path></svg>
+            Ressources humaines
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M6 7l1 12h10l1-12M9 7V5a3 3 0 1 1 6 0v2"></path></svg>
+            Approvisionnement
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 16v-5M12 16V8M17 16v-7"></path></svg>
+            Tableaux de bord
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l8-4 8 4-8 4-8-4zm0 4l8 4 8-4"></path></svg>
+            Gestion des stocks
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 9h8M8 13h8"></path></svg>
+            Rapports & Analyses
+          </li>
+        </ul>
+
+        <div class="stats-bar" aria-label="Statistiques">
+          <div class="stat"><strong>88</strong>Chantiers</div>
+          <div class="stat"><strong>200+</strong>Maisons</div>
+          <div class="stat"><strong>350+</strong>Employes</div>
+          <div class="stat"><strong>4</strong>Zones</div>
         </div>
-      </div>
-      <p class="hint">Profils : <strong>admin</strong> / admin123 &nbsp;|&nbsp; <strong>achat_user</strong> / achat@123 &nbsp;|&nbsp; <strong>chef_chantier_site15</strong> / chefsite15@123</p>
-      <form id="login-form">
-        <label>Nom d’utilisateur</label>
-        <input type="text" id="username" required autocomplete="username" />
-        <label>Mot de passe</label>
-        <input type="password" id="password" required autocomplete="current-password" />
-        <button type="submit">Se connecter</button>
-      </form>
-      <div id="login-error" class="error"></div>
-    </div>
+      </section>
+
+      <section class="auth-panel" aria-label="Connexion">
+        <div class="auth-card">
+          <div class="auth-head">
+            <img src="/assets/ryan-erp-logo-icon.png?v=20260627c" alt="RyanERP" />
+            <h1>Connexion</h1>
+            <p>Acces securise a RyanERP</p>
+          </div>
+
+          <div class="auth-separator" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6l7-3z"></path></svg>
+          </div>
+
+          <form id="login-form">
+            <div class="field-block">
+              <label for="username">Nom d'utilisateur</label>
+              <div class="field-wrap">
+                <svg class="left-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-7 8a7 7 0 0 1 14 0"></path></svg>
+                <input type="text" id="username" required autocomplete="username" placeholder="Entrez votre nom d'utilisateur" />
+              </div>
+            </div>
+
+            <div class="field-block">
+              <label for="password">Mot de passe</label>
+              <div class="field-wrap">
+                <svg class="left-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z"></path></svg>
+                <input type="password" id="password" required autocomplete="current-password" placeholder="Entrez votre mot de passe" />
+                <svg class="right-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg>
+              </div>
+            </div>
+
+            <div class="auth-tools">
+              <label class="remember-wrap" for="remember-me">
+                <input type="checkbox" id="remember-me" checked />
+                <span>Se souvenir de moi</span>
+              </label>
+              <a class="forgot-link" href="#" onclick="return false;">Mot de passe oublie ?</a>
+            </div>
+
+            <button type="submit" class="login-button" id="login-submit-btn">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z"></path></svg>
+              Se connecter
+            </button>
+          </form>
+
+          <div class="or-divider">ou</div>
+
+          <button type="button" class="demo-link" onclick="fillDemoCredentials()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M20 8v6M23 11h-6"></path></svg>
+            Comptes de demonstration
+          </button>
+
+          <div id="login-error" class="error"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="login-footer">
+      <span>&copy; 2026 Ryan Construction. Tous droits reserves.</span>
+      <span>RyanERP v2.5.0</span>
+    </footer>
   </div>
 
   <script>
@@ -69,23 +771,47 @@
 
     const form = document.querySelector('#login-form');
     const errorBox = document.querySelector('#login-error');
+    const submitButton = document.querySelector('#login-submit-btn');
+
+    function fillDemoCredentials() {
+      const usernameInput = document.querySelector('#username');
+      const passwordInput = document.querySelector('#password');
+      if (!usernameInput || !passwordInput) return;
+      usernameInput.value = 'admin';
+      passwordInput.value = 'admin123';
+      usernameInput.focus();
+    }
+
+    window.fillDemoCredentials = fillDemoCredentials;
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
       errorBox.textContent = '';
+      submitButton.disabled = true;
+      submitButton.textContent = 'Connexion...';
 
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: document.querySelector('#username').value,
-          password: document.querySelector('#password').value,
-        }),
-      });
+      let response;
+      try {
+        response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.querySelector('#username').value,
+            password: document.querySelector('#password').value,
+          }),
+        });
+      } catch (error) {
+        errorBox.textContent = 'Serveur inaccessible. Verifiez votre connexion internet.';
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z"></path></svg>Se connecter';
+        return;
+      }
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         errorBox.textContent = data.error || 'Erreur de connexion';
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z"></path></svg>Se connecter';
         return;
       }
 
