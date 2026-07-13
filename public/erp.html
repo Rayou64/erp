@@ -5926,6 +5926,16 @@
       }
     }
 
+    @media (orientation: landscape) {
+      body.mobile-runtime .topbar-user-actions .topbar-logout-btn,
+      body.mobile-runtime .topbar-user-actions .topbar-right-brand,
+      body.mobile-runtime .mobile-module-topbar .mph-brand,
+      body.mobile-runtime #mobile-premium-home .mph-topbar .mph-brand,
+      body.mobile-runtime #mph-hero-logout-btn {
+        display: none !important;
+      }
+    }
+
     @media (min-width: 1367px) {
       .layout-mode-wrap {
         display: inline-flex;
@@ -8972,6 +8982,11 @@
     const urlParams = new URLSearchParams(window.location.search);
     const mobileAuthToken = String(urlParams.get('mobileAuth') || '').trim();
     const openModuleFromPush = String(urlParams.get('openModule') || '').trim();
+    const userAgentValue = String(navigator.userAgent || '').toLowerCase();
+    const isLikelyMobileRuntime = Boolean(mobileAuthToken) || userAgentValue.includes('capacitor') || userAgentValue.includes(' wv');
+    if (isLikelyMobileRuntime) {
+      document.body.classList.add('mobile-runtime');
+    }
     if (mobileAuthToken) {
       localStorage.setItem('erp_token', mobileAuthToken);
       // Remove token from URL after handoff to reduce exposure in history/shares.
