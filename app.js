@@ -2915,42 +2915,82 @@ async function initDb() {
   }
 }
 
-// Wrap initDb with a global timeout to prevent hanging
-const initDbTimeout = new Promise((_, reject) => 
-  setTimeout(() => reject(new Error('initDb timeout after 120 seconds')), 120_000)
-);
+// Keep HTTP reachable immediately; DB init runs in background with retries.
+const INIT_DB_TIMEOUT_MS = Number(process.env.INIT_DB_TIMEOUT_MS || 120_000);
+const INIT_DB_RETRY_DELAY_MS = Number(process.env.INIT_DB_RETRY_DELAY_MS || 15_000);
+let hasRunBackgroundReconciliations = false;
+let initDbInProgress = false;
 
-Promise.race([initDb(), initDbTimeout]).then(() => {
-  server = app.listen(PORT, () => {
-    isReady = true;
-    console.log(`API Construction & Logistique démarrée sur http://localhost:${PORT}`);
+function initDbWithTimeout() {
+  return Promise.race([
+    initDb(),
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`initDb timeout after ${INIT_DB_TIMEOUT_MS}ms`)), INIT_DB_TIMEOUT_MS);
+    }),
+  ]);
+}
 
-    if (LOCALHOST_FALLBACK_PORT > 0 && LOCALHOST_FALLBACK_PORT !== PORT) {
-      localhostFallbackServer = app.listen(LOCALHOST_FALLBACK_PORT, () => {
-        console.log(`Compatibilite locale active sur http://localhost:${LOCALHOST_FALLBACK_PORT}`);
-      });
-      localhostFallbackServer.on('error', error => {
-        console.error(`Impossible d'activer la compatibilite localhost:${LOCALHOST_FALLBACK_PORT}:`, error.message || error);
-      });
-    }
-    
-    // Exécuter les réconciliations en arrière-plan sans bloquer
-    setImmediate(() => {
-      reconcilePurchaseOrderExpenses().catch(err => {
-        console.error('Erreur reconciliation bons/depenses:', err);
-      });
-    });
-    
-    setImmediate(() => {
-      reconcileDocumentArchives().catch(err => {
-        console.error('Erreur reconciliation archives:', err);
-      });
+function runBackgroundReconciliationsOnce() {
+  if (hasRunBackgroundReconciliations) {
+    return;
+  }
+
+  hasRunBackgroundReconciliations = true;
+
+  setImmediate(() => {
+    reconcilePurchaseOrderExpenses().catch(err => {
+      console.error('Erreur reconciliation bons/depenses:', err);
     });
   });
-}).catch(error => {
-  isReady = false;
-  console.error('Erreur d\'initialisation de la base de données', error.stack || error);
-  process.exit(1);
+
+  setImmediate(() => {
+    reconcileDocumentArchives().catch(err => {
+      console.error('Erreur reconciliation archives:', err);
+    });
+  });
+}
+
+async function initializeDatabaseWithRetry() {
+  if (initDbInProgress) {
+    return;
+  }
+
+  initDbInProgress = true;
+
+  try {
+    await initDbWithTimeout();
+    isReady = true;
+    console.log('Initialisation base de donnees terminee. API ready.');
+    runBackgroundReconciliationsOnce();
+  } catch (error) {
+    isReady = false;
+    console.error('Erreur d\'initialisation de la base de données', error.stack || error);
+    console.error(`Nouvelle tentative dans ${INIT_DB_RETRY_DELAY_MS}ms...`);
+    setTimeout(() => {
+      initializeDatabaseWithRetry().catch(innerError => {
+        console.error('Erreur retry initDb:', innerError.stack || innerError);
+      });
+    }, INIT_DB_RETRY_DELAY_MS);
+  } finally {
+    initDbInProgress = false;
+  }
+}
+
+server = app.listen(PORT, () => {
+  console.log(`API Construction & Logistique démarrée sur http://localhost:${PORT}`);
+
+  if (LOCALHOST_FALLBACK_PORT > 0 && LOCALHOST_FALLBACK_PORT !== PORT) {
+    localhostFallbackServer = app.listen(LOCALHOST_FALLBACK_PORT, () => {
+      console.log(`Compatibilite locale active sur http://localhost:${LOCALHOST_FALLBACK_PORT}`);
+    });
+    localhostFallbackServer.on('error', error => {
+      console.error(`Impossible d'activer la compatibilite localhost:${LOCALHOST_FALLBACK_PORT}:`, error.message || error);
+    });
+  }
+
+  initializeDatabaseWithRetry().catch(error => {
+    console.error('Erreur inattendue init/retry:', error.stack || error);
+  });
 });
 
 async function shutdown(signal) {
