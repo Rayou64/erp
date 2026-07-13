@@ -34,6 +34,8 @@ app.use(express.static(path.join(__dirname, 'public'), {
     const lower = String(filePath || '').toLowerCase();
     if (lower.endsWith('.html')) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
       return;
     }
     if (lower.endsWith('.js')) {
@@ -54,7 +56,23 @@ app.use(express.static(path.join(__dirname, 'public'), {
 app.use((req, res, next) => {
   if (req.path.endsWith('.html')) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
   }
+  next();
+});
+
+// Autoriser les appels API depuis l'application mobile (Capacitor/file://) et repondre aux preflights OPTIONS.
+app.use('/api', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Device-Token, X-Tracking-Token');
+  res.setHeader('Access-Control-Max-Age', '86400');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
   next();
 });
 
