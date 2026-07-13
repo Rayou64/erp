@@ -1,6 +1,28 @@
 const fs = require('fs');
 const path = require('path');
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function isTransientPgError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  const code = String(error?.code || '').toLowerCase();
+
+  if (code === '57p01' || code === '57p02' || code === '57p03') {
+    return true;
+  }
+
+  return (
+    message.includes('connection terminated') ||
+    message.includes('connection timeout') ||
+    message.includes('timeout expired') ||
+    message.includes('terminating connection') ||
+    message.includes('remaining connection slots are reserved') ||
+    message.includes('sorry, too many clients already')
+  );
+}
+
 function normalizeDriver(rawDriver, databaseUrl) {
   const normalized = String(rawDriver || '').trim().toLowerCase();
   if (normalized === 'postgres' || normalized === 'postgresql' || normalized === 'pg') {
@@ -137,6 +159,8 @@ function createPostgresClient(databaseUrl) {
   }
 
   const { Pool } = require('pg');
+  const queryRetryCount = Math.max(0, Number(process.env.PG_QUERY_RETRY_COUNT || 1));
+  const queryRetryDelayMs = Math.max(0, Number(process.env.PG_QUERY_RETRY_DELAY_MS || 250));
   const pool = new Pool({
     connectionString: effectiveDatabaseUrl,
     ssl: process.env.PGSSL_DISABLE === '1' ? false : { rejectUnauthorized: false },
@@ -144,6 +168,28 @@ function createPostgresClient(databaseUrl) {
     idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS || 30_000),
     connectionTimeoutMillis: Number(process.env.PG_CONNECT_TIMEOUT_MS || 30_000),
   });
+
+  async function queryWithRetry(sql, params = []) {
+    let attempt = 0;
+    let lastError = null;
+
+    while (attempt <= queryRetryCount) {
+      try {
+        return await pool.query(sql, params);
+      } catch (error) {
+        lastError = error;
+        if (attempt >= queryRetryCount || !isTransientPgError(error)) {
+          throw error;
+        }
+
+        const waitMs = queryRetryDelayMs * (attempt + 1);
+        await sleep(waitMs);
+        attempt += 1;
+      }
+    }
+
+    throw lastError;
+  }
 
   async function run(sql, params = []) {
     const preparedSql = toPgPlaceholders(quoteCamelCaseIdentifiers(sql));
@@ -153,12 +199,12 @@ function createPostgresClient(databaseUrl) {
     let result;
     if (isInsert && !hasReturning) {
       try {
-        result = await pool.query(`${preparedSql} RETURNING "id"`, params);
+        result = await queryWithRetry(`${preparedSql} RETURNING "id"`, params);
       } catch (_error) {
-        result = await pool.query(preparedSql, params);
+        result = await queryWithRetry(preparedSql, params);
       }
     } else {
-      result = await pool.query(preparedSql, params);
+      result = await queryWithRetry(preparedSql, params);
     }
 
     return {
@@ -169,12 +215,12 @@ function createPostgresClient(databaseUrl) {
   }
 
   async function get(sql, params = []) {
-    const result = await pool.query(toPgPlaceholders(quoteCamelCaseIdentifiers(sql)), params);
+    const result = await queryWithRetry(toPgPlaceholders(quoteCamelCaseIdentifiers(sql)), params);
     return result.rows[0];
   }
 
   async function all(sql, params = []) {
-    const result = await pool.query(toPgPlaceholders(quoteCamelCaseIdentifiers(sql)), params);
+    const result = await queryWithRetry(toPgPlaceholders(quoteCamelCaseIdentifiers(sql)), params);
     return result.rows;
   }
 

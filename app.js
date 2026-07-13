@@ -99,6 +99,8 @@ const ARCHIVE_ROOT = process.env.ARCHIVE_ROOT || path.join(APP_DATA_DIR, 'archiv
 const DESKTOP_ZIP_FILE = process.env.DESKTOP_ZIP_FILE || 'RyanERP-win32-x64.zip';
 const DESKTOP_ZIP_PATH = path.resolve(__dirname, 'electron', 'dist', DESKTOP_ZIP_FILE);
 const JWT_SECRET = process.env.JWT_SECRET || 'erp-secret-2026';
+const NODE_ENV = String(process.env.NODE_ENV || 'development').trim().toLowerCase();
+const ALLOW_INSECURE_JWT_SECRET = String(process.env.ALLOW_INSECURE_JWT_SECRET || '0').trim() === '1';
 const PORT = Number(process.env.PORT || 4000);
 const LOCALHOST_FALLBACK_PORT = Number(process.env.LOCALHOST_FALLBACK_PORT || (PORT === 4000 ? 3000 : 0));
 const COMMIS_STOCK_USERNAME = process.env.COMMIS_STOCK_USERNAME || 'commis_stock';
@@ -149,6 +151,12 @@ app.use('/archives', express.static(ARCHIVE_ROOT));
 
 if (JWT_SECRET === 'erp-secret-2026') {
   console.warn('Avertissement securite: JWT_SECRET par defaut detecte. Configure une valeur forte en production.');
+}
+
+if (NODE_ENV === 'production' && !ALLOW_INSECURE_JWT_SECRET) {
+  if (JWT_SECRET === 'erp-secret-2026' || JWT_SECRET.length < 32) {
+    throw new Error('Configuration invalide: JWT_SECRET doit etre robuste (>= 32 caracteres) en production.');
+  }
 }
 
 function shouldTriggerMutationBackup(method, originalUrl, statusCode) {
