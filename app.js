@@ -1816,6 +1816,15 @@ async function initDb() {
     await run("ALTER TABLE project_catalog ADD COLUMN description TEXT DEFAULT ''");
   } catch (e) {}
   try {
+    await run('ALTER TABLE projects ADD COLUMN isHidden INTEGER NOT NULL DEFAULT 0');
+  } catch (e) {}
+  try {
+    await run('ALTER TABLE project_catalog ADD COLUMN isHidden INTEGER NOT NULL DEFAULT 0');
+  } catch (e) {}
+  try {
+    await run('ALTER TABLE project_folders ADD COLUMN isHidden INTEGER NOT NULL DEFAULT 0');
+  } catch (e) {}
+  try {
     await run('DROP INDEX IF EXISTS idx_project_folders_name_site');
   } catch (e) {}
 
