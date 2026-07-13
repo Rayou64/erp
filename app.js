@@ -114,8 +114,37 @@ function normalizeCustomWarehouseRow(row) {
   };
 }
 
+async function ensureHistoricalCustomWarehouse() {
+  const now = new Date().toISOString();
+  await run(`INSERT INTO custom_stock_warehouses (
+    id,
+    name,
+    linkedProjectId,
+    linkedProjectName,
+    linkedZoneId,
+    linkedZoneName,
+    prefecture,
+    isHidden,
+    createdAt,
+    updatedAt
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT (id) DO NOTHING`, [
+    'entrepot-songon-1',
+    'Songon',
+    null,
+    '',
+    '',
+    'Songon',
+    'Songon',
+    0,
+    now,
+    now,
+  ]);
+}
+
 app.get('/api/custom-warehouses', authenticateToken, async (_req, res) => {
   try {
+    await ensureHistoricalCustomWarehouse();
     const rows = await all(`
       SELECT id, name, linkedProjectId, linkedProjectName, linkedZoneId, linkedZoneName, prefecture, isHidden, createdAt, updatedAt
       FROM custom_stock_warehouses
