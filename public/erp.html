@@ -11416,7 +11416,16 @@
     }
 
     function getVisibleStockWarehouses() {
-      return getAllStockWarehouses().filter(item => !item.isHidden);
+      const visible = getAllStockWarehouses().filter(item => !item.isHidden);
+      if (visible.length > 0) {
+        return visible;
+      }
+
+      // Fallback: if everything is hidden and no custom warehouse exists, restore default choices.
+      return DEMO_WAREHOUSES.map(item => ({
+        ...item,
+        isHidden: false,
+      }));
     }
 
     function getWarehouseById(warehouseId) {

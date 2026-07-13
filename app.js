@@ -2915,11 +2915,9 @@ async function initDb() {
   }
 }
 
-// Keep HTTP reachable immediately; DB init runs in background with retries.
+// Keep HTTP reachable immediately; DB init runs in background once.
 const INIT_DB_TIMEOUT_MS = Number(process.env.INIT_DB_TIMEOUT_MS || 120_000);
-const INIT_DB_RETRY_DELAY_MS = Number(process.env.INIT_DB_RETRY_DELAY_MS || 15_000);
 let hasRunBackgroundReconciliations = false;
-let initDbInProgress = false;
 
 function initDbWithTimeout() {
   return Promise.race([
@@ -2950,13 +2948,7 @@ function runBackgroundReconciliationsOnce() {
   });
 }
 
-async function initializeDatabaseWithRetry() {
-  if (initDbInProgress) {
-    return;
-  }
-
-  initDbInProgress = true;
-
+async function initializeDatabaseOnce() {
   try {
     await initDbWithTimeout();
     isReady = true;
@@ -2965,14 +2957,6 @@ async function initializeDatabaseWithRetry() {
   } catch (error) {
     isReady = false;
     console.error('Erreur d\'initialisation de la base de données', error.stack || error);
-    console.error(`Nouvelle tentative dans ${INIT_DB_RETRY_DELAY_MS}ms...`);
-    setTimeout(() => {
-      initializeDatabaseWithRetry().catch(innerError => {
-        console.error('Erreur retry initDb:', innerError.stack || innerError);
-      });
-    }, INIT_DB_RETRY_DELAY_MS);
-  } finally {
-    initDbInProgress = false;
   }
 }
 
@@ -2988,8 +2972,8 @@ server = app.listen(PORT, () => {
     });
   }
 
-  initializeDatabaseWithRetry().catch(error => {
-    console.error('Erreur inattendue init/retry:', error.stack || error);
+  initializeDatabaseOnce().catch(error => {
+    console.error('Erreur inattendue initDb:', error.stack || error);
   });
 });
 
