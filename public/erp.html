@@ -5908,11 +5908,20 @@
 
     @media (orientation: portrait) {
       body.mobile-runtime .topbar-user-actions .topbar-logout-btn,
-      body.mobile-runtime .topbar-user-actions .topbar-right-brand,
-      body.mobile-runtime .mobile-module-topbar .mph-brand,
-      body.mobile-runtime #mobile-premium-home .mph-topbar .mph-brand,
-      body.mobile-runtime #mph-hero-logout-btn {
+      body.mobile-runtime .topbar-user-actions .topbar-right-brand {
         display: none !important;
+      }
+
+      body.mobile-runtime #mobile-premium-home .mph-hero-title {
+        margin-bottom: 10px;
+      }
+
+      body.mobile-runtime #mobile-premium-home #mph-hero-logout-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        margin-top: 0;
+        margin-bottom: 12px;
       }
     }
 
