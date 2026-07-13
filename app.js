@@ -2654,7 +2654,7 @@ async function initDb() {
     const now = new Date().toISOString();
     if (existing) {
       await run(
-        'UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, maritalStatus = ?, createdBy = COALESCE(NULLIF(?, ""), createdBy), updatedAt = ? WHERE id = ?',
+        "UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, maritalStatus = ?, createdBy = COALESCE(NULLIF(?, ''), createdBy), updatedAt = ? WHERE id = ?",
         [
           String(fullName || usernameValue).trim(),
           String(jobTitle || '').trim(),
