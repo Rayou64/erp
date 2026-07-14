@@ -111,6 +111,11 @@
       color: #ffffff;
       border: 1px solid rgba(255, 255, 255, 0.34);
       box-shadow: 0 14px 30px rgba(15, 23, 42, 0.24);
+      cursor: pointer;
+    }
+    .sidebar-logo:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.75);
+      outline-offset: 2px;
     }
 
     .sidebar-logo-icon {
@@ -9252,7 +9257,7 @@
     const COMMIS_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'hr-employee-search']);
     const GEST_STOCK_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'hr-employee-search']);
     const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search']);
-    const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave']);
+    const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave']);
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search']);
     const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database']);
     const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search']);
@@ -10581,6 +10586,8 @@
           section.style.display = 'none';
         }
       });
+
+      syncHrMenuLabelsAndVisibility();
 
       applyExecutiveReadOnlyState();
 
@@ -25613,13 +25620,33 @@
         });
       }
 
+      const openProfileModule = () => {
+        if (typeof showModule === 'function') {
+          showModule('hr-employees');
+          return;
+        }
+        const profileItem = document.querySelector('.menu-item[data-module="hr-employees"]');
+        profileItem?.click();
+      };
+
+      const sidebarLogo = document.querySelector('.sidebar-logo');
+      if (sidebarLogo && !sidebarLogo.dataset.bound) {
+        sidebarLogo.dataset.bound = '1';
+        sidebarLogo.setAttribute('role', 'button');
+        sidebarLogo.setAttribute('tabindex', '0');
+        sidebarLogo.addEventListener('click', openProfileModule);
+        sidebarLogo.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openProfileModule();
+          }
+        });
+      }
+
       const profileChip = document.getElementById('mph-home-profile-chip');
       if (profileChip && !profileChip.dataset.bound) {
         profileChip.dataset.bound = '1';
-        profileChip.addEventListener('click', () => {
-          const profileItem = document.querySelector('.menu-item[data-module="hr-employees"]');
-          profileItem?.click();
-        });
+        profileChip.addEventListener('click', openProfileModule);
       }
 
       const logoutBtn = document.getElementById('mph-logout-btn');
@@ -25657,10 +25684,7 @@
       const moduleProfileChip = document.getElementById('mph-module-profile-chip');
       if (moduleProfileChip && !moduleProfileChip.dataset.bound) {
         moduleProfileChip.dataset.bound = '1';
-        moduleProfileChip.addEventListener('click', () => {
-          const profileItem = document.querySelector('.menu-item[data-module="hr-employees"]');
-          profileItem?.click();
-        });
+        moduleProfileChip.addEventListener('click', openProfileModule);
       }
 
       const moduleMenuBtn = document.getElementById('mph-module-menu-btn');
