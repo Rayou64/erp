@@ -218,6 +218,92 @@ app.delete('/api/custom-warehouses/:id', authenticateToken, async (req, res) => 
   }
 });
 
+const DATA_PURGE_TABLES = [
+  'stock_issue_authorization_items',
+  'stock_issues',
+  'stock_issue_authorizations',
+  'purchase_order_items',
+  'purchase_orders',
+  'material_requests',
+  'hr_document_signatures',
+  'hr_employee_documents',
+  'hr_leave_requests',
+  'hr_attendance',
+  'hr_employees',
+  'project_progress_updates',
+  'project_assignments',
+  'generated_documents',
+  'auto_vehicle_locations',
+  'auto_tracking_devices',
+  'auto_transport_costs',
+  'auto_vehicles',
+  'expenses',
+  'revenues',
+  'materials',
+  'building_material_catalog',
+  'suppliers',
+  'projects',
+  'project_folders',
+  'project_catalog',
+  'custom_stock_warehouses'
+];
+
+async function purgeBusinessData() {
+  const now = new Date().toISOString();
+
+  if (process.env.DATABASE_URL) {
+    if (DATA_PURGE_TABLES.length) {
+      await run(`TRUNCATE TABLE ${DATA_PURGE_TABLES.map(name => `"${name}"`).join(', ')} RESTART IDENTITY CASCADE`);
+    }
+  } else {
+    try { await run('PRAGMA foreign_keys = OFF'); } catch (_error) {}
+    for (const tableName of DATA_PURGE_TABLES) {
+      try {
+        await run(`DELETE FROM ${tableName}`);
+      } catch (_error) {}
+    }
+    try {
+      await run(`DELETE FROM sqlite_sequence WHERE name IN (${DATA_PURGE_TABLES.map(() => '?').join(', ')})`, DATA_PURGE_TABLES);
+    } catch (_error) {}
+    try { await run('PRAGMA foreign_keys = ON'); } catch (_error) {}
+  }
+
+  try {
+    if (fs.existsSync(ARCHIVE_ROOT)) {
+      fs.rmSync(ARCHIVE_ROOT, { recursive: true, force: true });
+    }
+    fs.mkdirSync(ARCHIVE_ROOT, { recursive: true });
+  } catch (_error) {}
+
+  try {
+    await run('DELETE FROM generated_documents');
+  } catch (_error) {}
+
+  return {
+    purgedAt: now,
+    tables: DATA_PURGE_TABLES,
+    archivesCleared: true,
+  };
+}
+
+app.post('/api/admin/purge-business-data', authenticateToken, async (req, res) => {
+  try {
+    if (String(req.user?.role || '').trim() !== 'dirigeant') {
+      return res.status(403).json({ error: 'Acces reserve au dirigeant' });
+    }
+
+    const confirm = String(req.body?.confirm || '').trim();
+    if (confirm !== 'PURGE_ALL_DATA') {
+      return res.status(400).json({ error: 'Confirmation manquante', details: 'Envoyer confirm=PURGE_ALL_DATA' });
+    }
+
+    const result = await purgeBusinessData();
+    res.json({ ok: true, ...result });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur purge donnees metier', details: String(error) });
+  }
+});
+
 const APP_DATA_DIR = process.env.APP_DATA_DIR || (process.env.RAILWAY_ENVIRONMENT ? '/data' : __dirname);
 const DB_FILE = process.env.DB_FILE || path.join(APP_DATA_DIR, 'data.db');
 const ARCHIVE_ROOT = process.env.ARCHIVE_ROOT || path.join(APP_DATA_DIR, 'archives');
