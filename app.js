@@ -3325,6 +3325,7 @@ function authorizeRoleAccess(req, res, next) {
 
   const commisRules = [
     { method: 'GET', pattern: /^\/projects$/ },
+    { method: 'GET', pattern: /^\/hr\/employees$/ },
     { method: 'GET', pattern: /^\/material-requests$/ },
     { method: 'POST', pattern: /^\/material-requests$/ },
     { method: 'POST', pattern: /^\/material-requests\/auto-stage$/ },
@@ -3339,6 +3340,7 @@ function authorizeRoleAccess(req, res, next) {
 
   const gestStockRules = [
     { method: 'GET',   pattern: /^\/projects$/ },
+    { method: 'GET',   pattern: /^\/hr\/employees$/ },
     { method: 'GET',   pattern: /^\/material-requests$/ },
     { method: 'POST',  pattern: /^\/material-requests\/auto-stage$/ },
     { method: 'GET',   pattern: /^\/purchase-orders$/ },

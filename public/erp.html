@@ -6529,6 +6529,7 @@
         <div class="menu-section">
           <div class="menu-section-title">Ressources humaines</div>
           <div class="menu-item" data-module="hr-employees">👥 Liste des employés</div>
+          <div class="menu-item" data-module="hr-employee-search" style="display:none;">🔎 Recherche d'employé</div>
           <div class="menu-item" data-module="hr-attendance">🕘 Pointage journalier</div>
           <div class="menu-item" data-module="hr-calendar">🗓️ Calendrier présence/congé</div>
           <div class="menu-item" data-module="hr-leave">📝 Demandes de congé</div>
@@ -7198,8 +7199,8 @@
               <button type="button" id="hr-employee-import-btn" class="button button-small button-secondary">Importer</button>
             </div>
             <div class="hr-employee-search-row">
-              <input type="text" id="hr-employee-search" placeholder="Rechercher un dossier (nom, poste, téléphone, adresse, situation maritale)" />
-              <span id="hr-employee-search-count" class="hr-employee-search-count">0 dossier</span>
+              <input type="text" id="hr-employee-list-search" placeholder="Rechercher un dossier (nom, poste, téléphone, adresse, situation maritale)" />
+              <span id="hr-employee-list-search-count" class="hr-employee-search-count">0 dossier</span>
             </div>
             <input type="file" id="hr-employee-import-input" accept=".csv,.json,text/csv,application/json" style="display:none;" />
             <div id="hr-employees-list-body" class="hr-employee-dossiers"></div>
@@ -7277,6 +7278,29 @@
               </form>
             </div>
           </div>
+        </div>
+
+        <!-- HR Employee Search Module -->
+        <div id="hr-employee-search" class="module">
+          <div class="page-header">
+            <h1>Recherche d'employé</h1>
+            <p>Trouvez rapidement un nom dans le registre RH et affichez téléphone et courriel s'ils sont renseignés.</p>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <div class="grid-2" style="gap:12px; align-items:end;">
+              <div class="form-group" style="margin-bottom:0; grid-column:1 / -1;">
+                <label>Nom de l'employé</label>
+                <input type="text" id="hr-employee-directory-search" placeholder="Écris un nom complet ou partiel" />
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; flex-wrap:wrap;">
+              <div style="font-size:12px; color:#64748b;">Recherche RH disponible pour tous les profils sauf admin et directeur RH.</div>
+              <span id="hr-employee-directory-search-count" style="font-size:12px; font-weight:800; color:#0f766e;">0 résultat</span>
+            </div>
+          </div>
+
+          <div id="hr-employee-directory-results" class="grid-2" style="gap:14px;"></div>
         </div>
 
         <!-- HR Attendance Module -->
@@ -9112,6 +9136,7 @@
     let hrUserProfilesCache = [];
     let hrEmployeeEditingId = null;
     let hrEmployeeSearchTerm = '';
+    let hrEmployeeDirectorySearchTerm = '';
     let hrAttendanceCache = [];
     let hrLeaveRequestsCache = [];
     let hrSignatureRequestsCache = [];
@@ -9224,13 +9249,13 @@
 
     const MATERIAL_CATALOG_PROJECT = 'PINUT';
 
-    const COMMIS_ALLOWED_MODULES = new Set(['stock-management', 'inventory']);
-    const GEST_STOCK_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations']);
-    const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier']);
+    const COMMIS_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'hr-employee-search']);
+    const GEST_STOCK_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'hr-employee-search']);
+    const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search']);
     const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave']);
-    const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash']);
+    const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search']);
     const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database']);
-    const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave']);
+    const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search']);
     const STANDARD_EMPLOYEE_USERNAMES = new Set([
       'agbodjro123',
       'appia123',
@@ -9264,10 +9289,10 @@
       'yeo123',
       'zran123',
     ]);
-    const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog']);
-    const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash']);
-    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'expenses', 'revenues', 'reports', 'maps']);
-      const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash']);
+    const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'hr-employee-search']);
+    const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search']);
+    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search']);
+      const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search']);
     const AUTO_MAP_REFRESH_MS = 10000;
     const AUTO_DASHBOARD_REFRESH_MS = 30000;
 
@@ -9326,12 +9351,23 @@
     }
 
     function isHrPersonalProfileMode() {
-      const username = String(currentUserUsername || '').trim().toLowerCase();
-      return isProcurementReviewer() || isKokanStockManager() || isSongonSiteChiefUsername(username) || isStandardEmployeeProfileRole();
+      return !isAdmin() && !isHrDirector();
     }
 
     function canUploadHrProfileDocuments() {
       return isHrDirector() || isProcurementReviewer() || isKokanStockManager() || isSongonSiteChiefUsername(currentUserUsername);
+    }
+
+    function syncHrMenuLabelsAndVisibility() {
+      const hrEmployeesLabel = document.querySelector('.menu-item[data-module="hr-employees"]');
+      if (hrEmployeesLabel) {
+        hrEmployeesLabel.textContent = isAdmin() || isHrDirector() ? '👥 Liste des employés' : '👤 Profil';
+      }
+
+      const hrSearchItem = document.querySelector('.menu-item[data-module="hr-employee-search"]');
+      if (hrSearchItem) {
+        hrSearchItem.style.display = isAdmin() || isHrDirector() ? 'none' : '';
+      }
     }
 
     function isExecutive() {
@@ -16243,7 +16279,7 @@
 
     function renderHrEmployeesList() {
       const container = document.getElementById('hr-employees-list-body');
-      const searchCount = document.getElementById('hr-employee-search-count');
+      const searchCount = document.getElementById('hr-employee-list-search-count');
       if (!container) return;
 
       const profileMode = isHrPersonalProfileMode();
@@ -16768,7 +16804,7 @@
       const hrEmployeeAddToggle = document.getElementById('hr-employee-add-toggle');
       const hrEmployeeToolbarLabel = document.querySelector('.hr-employee-toolbar-label');
       const hrEmployeeImportButton = document.getElementById('hr-employee-import-btn');
-      const hrEmployeeSearchInput = document.getElementById('hr-employee-search');
+      const hrEmployeeSearchInput = document.getElementById('hr-employee-list-search');
       const hrEmployeeSearchRow = document.querySelector('.hr-employee-search-row');
       if (hrEmployeeAddToggle) {
         hrEmployeeAddToggle.style.display = profileMode ? 'none' : (canManageHrData() ? '' : 'none');
@@ -16808,6 +16844,71 @@
           await loadPendingSignaturesForProfile(profileEmployee.id);
         }
       }
+    }
+
+    function renderHrEmployeeSearchModule() {
+      const container = document.getElementById('hr-employee-directory-results');
+      const countNode = document.getElementById('hr-employee-directory-search-count');
+      const searchInput = document.getElementById('hr-employee-directory-search');
+      if (!container || !countNode || !searchInput) return;
+
+      const searchValue = normalizeText(String(hrEmployeeDirectorySearchTerm || '').trim());
+      const employees = searchValue
+        ? hrEmployeesCache.filter(employee => {
+            const haystack = normalizeText([
+              employee.fullName,
+              employee.jobTitle,
+              employee.phoneNumber,
+              employee.username,
+              employee.address,
+              employee.maritalStatus,
+            ].join(' '));
+            return haystack.includes(searchValue);
+          })
+        : hrEmployeesCache;
+
+      countNode.textContent = `${employees.length} résultat${employees.length > 1 ? 's' : ''}`;
+
+      if (!employees.length) {
+        container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><p>Aucun employé trouvé</p></div>';
+        return;
+      }
+
+      container.innerHTML = employees.map(employee => {
+        const phone = String(employee.phoneNumber || '').trim();
+        const email = String(employee.email || employee.courriel || employee.mail || '').trim();
+        return `
+          <div class="card" style="border:1px solid #dbe3ee;background:#fff;box-shadow:none;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+              <div>
+                <div style="font-size:16px;font-weight:900;color:#0f172a;">${escapeHtml(employee.fullName || 'Employé')}</div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">${escapeHtml(employee.jobTitle || 'Poste non renseigné')}</div>
+              </div>
+              <span style="padding:5px 10px;border-radius:999px;background:#ecfdf5;color:#0f766e;font-weight:800;font-size:11px;">${escapeHtml(employee.username || employee.createdBy || 'RH')}</span>
+            </div>
+            <div style="margin-top:12px;display:grid;gap:8px;font-size:13px;color:#334155;">
+              <div><strong>Téléphone:</strong> ${escapeHtml(phone || 'Non renseigné')}</div>
+              <div><strong>Courriel:</strong> ${escapeHtml(email || 'Non renseigné')}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadHrEmployeeSearchModule() {
+      if (!hrEmployeesCache.length) {
+        hrEmployeesCache = await fetchJson('/api/hr/employees').catch(() => []);
+      }
+      const pageTitle = document.querySelector('#hr-employee-search .page-header h1');
+      const pageSubtitle = document.querySelector('#hr-employee-search .page-header p');
+      if (pageTitle) pageTitle.textContent = 'Recherche d\'employé';
+      if (pageSubtitle) pageSubtitle.textContent = 'Trouvez un employé par son nom et récupérez son téléphone et son courriel.';
+
+      const input = document.getElementById('hr-employee-directory-search');
+      if (input && input.value !== hrEmployeeDirectorySearchTerm) {
+        input.value = hrEmployeeDirectorySearchTerm;
+      }
+      renderHrEmployeeSearchModule();
     }
 
     async function loadHrAttendanceModule() {
@@ -17249,6 +17350,9 @@
       if (moduleName === 'material-catalog') {
         loadMaterialCatalog();
       }
+      if (moduleName === 'hr-employee-search') {
+        loadHrEmployeeSearchModule();
+      }
       syncAutoMapLiveRefresh();
       syncAutoDashboardRefresh();
 
@@ -17258,6 +17362,7 @@
         'project-progress': ['Suivi des projets', 'Suivi des étapes par chef de chantier'],
         'journal-chantier': ['Journal de chantier', 'Journal automatique des suivis par site'],
         'hr-employees': ['Ressources humaines', 'Liste des employés'],
+        'hr-employee-search': ['Ressources humaines', 'Recherche d\'employé'],
         'hr-attendance': ['Ressources humaines', 'Pointage journalier'],
         assignments: ['Construction', 'Assignations de projet'],
         'hr-calendar': ['Ressources humaines', 'Calendrier présence/congé'],
@@ -23472,7 +23577,8 @@
     const hrEmployeeModalCancel = document.getElementById('hr-employee-modal-cancel');
     const hrEmployeeImportButton = document.getElementById('hr-employee-import-btn');
     const hrEmployeeImportInput = document.getElementById('hr-employee-import-input');
-    const hrEmployeeSearchInput = document.getElementById('hr-employee-search');
+    const hrEmployeeSearchInput = document.getElementById('hr-employee-list-search');
+    const hrEmployeeDirectorySearchInput = document.getElementById('hr-employee-directory-search');
     const hrEmployeeLinkedUsername = document.getElementById('hr-employee-linked-username');
     if (hrEmployeeAddToggle) {
       hrEmployeeAddToggle.addEventListener('click', () => {
@@ -23520,6 +23626,13 @@
       hrEmployeeSearchInput.addEventListener('input', e => {
         hrEmployeeSearchTerm = e.target.value;
         renderHrEmployeesList();
+      });
+    }
+
+    if (hrEmployeeDirectorySearchInput) {
+      hrEmployeeDirectorySearchInput.addEventListener('input', e => {
+        hrEmployeeDirectorySearchTerm = e.target.value;
+        renderHrEmployeeSearchModule();
       });
     }
 
@@ -25178,7 +25291,7 @@
         tone: 'rh',
         description: 'Employes, conges, signatures',
         subtitle: 'Ressources humaines, pointage, conges et signatures.',
-        modules: ['hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures'],
+        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures'],
       },
       {
         key: 'admin',
@@ -25207,6 +25320,7 @@
       revenues: 'Recettes des projets',
       reports: 'Analyse et reporting',
       'hr-employees': 'Effectif et fiches employes',
+      'hr-employee-search': 'Recherche d employe par nom',
       'hr-attendance': 'Pointage journalier',
       'hr-calendar': 'Calendrier presence et absence',
       'hr-leave': 'Demandes de conge',
@@ -25274,6 +25388,7 @@
       if (sidebarNameNode) sidebarNameNode.textContent = String(currentUserUsername || 'Admin');
       if (sidebarRoleNode) sidebarRoleNode.textContent = friendlyRole;
       if (sidebarInitialsNode) sidebarInitialsNode.textContent = avatarText;
+      syncHrMenuLabelsAndVisibility();
     }
 
     function performLogout() {
@@ -25502,8 +25617,8 @@
       if (profileChip && !profileChip.dataset.bound) {
         profileChip.dataset.bound = '1';
         profileChip.addEventListener('click', () => {
-          const settingsItem = document.querySelector('.menu-item[data-module="settings"]') || document.querySelector('.menu-item[data-module="users"]');
-          settingsItem?.click();
+          const profileItem = document.querySelector('.menu-item[data-module="hr-employees"]');
+          profileItem?.click();
         });
       }
 
@@ -25543,8 +25658,8 @@
       if (moduleProfileChip && !moduleProfileChip.dataset.bound) {
         moduleProfileChip.dataset.bound = '1';
         moduleProfileChip.addEventListener('click', () => {
-          const settingsItem = document.querySelector('.menu-item[data-module="settings"]') || document.querySelector('.menu-item[data-module="users"]');
-          settingsItem?.click();
+          const profileItem = document.querySelector('.menu-item[data-module="hr-employees"]');
+          profileItem?.click();
         });
       }
 
