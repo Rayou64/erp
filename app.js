@@ -9453,12 +9453,15 @@ app.get('/api/material-catalog', async (req, res) => {
 
 app.post('/api/material-catalog', async (req, res) => {
   const {
+    id = null,
     projectFolder = '',
     materialName,
     unite = '',
     quantiteParBatiment = 0,
     prixUnitaire = 0,
     notes = '',
+    createdAt = null,
+    updatedAt = null,
   } = req.body || {};
 
   const name = String(materialName || '').trim();
@@ -9476,7 +9479,10 @@ app.post('/api/material-catalog', async (req, res) => {
   }
 
   const now = new Date().toISOString();
-  const nextCatalogMaterialId = await getNextTableId('building_material_catalog');
+  const explicitId = Number(id);
+  const nextCatalogMaterialId = Number.isInteger(explicitId) && explicitId > 0 ? explicitId : await getNextTableId('building_material_catalog');
+  const createdAtValue = String(createdAt || '').trim() || now;
+  const updatedAtValue = String(updatedAt || '').trim() || createdAtValue;
   const result = await run(
     `INSERT INTO building_material_catalog
       (id, projectFolder, materialName, unite, quantiteParBatiment, prixUnitaire, notes, createdAt, updatedAt)
@@ -9489,8 +9495,8 @@ app.post('/api/material-catalog', async (req, res) => {
       qty,
       price,
       String(notes || '').trim(),
-      now,
-      now,
+      createdAtValue,
+      updatedAtValue,
     ]
   );
 
