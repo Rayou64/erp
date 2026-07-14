@@ -674,6 +674,65 @@
       overflow-wrap: anywhere;
     }
 
+    .hr-info-value-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .hr-inline-edit-icon {
+      border: 1px solid #c9dbff;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 999px;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .hr-inline-edit-icon:hover {
+      background: #dbeafe;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    .hr-inline-edit-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .hr-inline-edit-actions .button {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    .hr-inline-edit-input,
+    .hr-inline-edit-select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #0f172a;
+      background: #fff;
+    }
+
+    .hr-inline-edit-input:focus,
+    .hr-inline-edit-select:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.16);
+    }
+
     .hr-employee-dossier-grid .hr-info-item:nth-child(3n + 1) {
       border-color: #d7e6ff;
       background: linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
@@ -7257,6 +7316,10 @@
                   <input type="tel" id="hr-employee-phone" placeholder="Ex: 07 12 34 56 78" />
                 </div>
                 <div class="form-group">
+                  <label>Courriel</label>
+                  <input type="email" id="hr-employee-email" placeholder="Ex: nom@entreprise.com" />
+                </div>
+                <div class="form-group">
                   <label>Adresse</label>
                   <input type="text" id="hr-employee-address" placeholder="Ex: Cocody Angre, Abidjan" />
                 </div>
@@ -9142,6 +9205,7 @@
     let hrEmployeeEditingId = null;
     let hrEmployeeSearchTerm = '';
     let hrEmployeeDirectorySearchTerm = '';
+    let hrProfileInlineEditState = {};
     let hrAttendanceCache = [];
     let hrLeaveRequestsCache = [];
     let hrSignatureRequestsCache = [];
@@ -15481,6 +15545,7 @@
       const groupRequests = materialRequestsCache.filter(item => getMaterialRequestGroupKey(item) === groupKey);
       const groupIdsArg = groupRequests.map(item => Number(item.id)).filter(id => Number.isInteger(id) && id > 0).join(',');
       const poActionState = getRequestGroupPurchaseOrderActionState(groupRequests);
+      const requestTableHtml = renderMaterialRequestInstructionTable(groupRequests, { title: 'Instructions produit et quantités' });
 
       details.innerHTML = `
         <h4 style="margin-bottom: 10px;">Détails de la demande</h4>
@@ -15496,6 +15561,8 @@
         <p style="margin-bottom: 8px;"><strong>Date de demande:</strong> ${escapeHtml(formatDate(request.dateDemande))}</p>
         <p style="margin-bottom: 8px;"><strong>Date reçue (bon):</strong> ${escapeHtml(request.dateProduitRecu ? formatDate(request.dateProduitRecu) : '-')}</p>
         <p style="margin-bottom: 8px;"><strong>Description:</strong> ${escapeHtml(request.description || '-')}</p>
+        <h4 style="margin: 12px 0 6px;">Articles demandés</h4>
+        ${requestTableHtml}
         <p style="margin-top:8px;color:#64748b;font-size:12px;">Cette demande apparaîtra automatiquement dans "Propositions depuis les demandes".</p>
         ${poActionState.allowed || !poActionState.reason
           ? ''
@@ -15604,6 +15671,18 @@
       renderPoPriorityActions(order);
 
       const items = Array.isArray(order.items) ? order.items : [];
+      const linkedRequestIds = new Set();
+      if (Number(order.materialRequestId || 0) > 0) {
+        linkedRequestIds.add(Number(order.materialRequestId));
+      }
+      items.forEach(item => {
+        const requestId = Number(item?.materialRequestId || 0);
+        if (requestId > 0) linkedRequestIds.add(requestId);
+      });
+      const linkedRequests = materialRequestsCache.filter(row => linkedRequestIds.has(Number(row.id || 0)));
+      const linkedRequestsTable = linkedRequests.length
+        ? renderMaterialRequestInstructionTable(linkedRequests, { title: 'Instructions produit et quantités (demande liée)' })
+        : '<p style="margin:4px 0 0;color:#64748b;font-size:12px;">Aucune demande liée pour ce bon.</p>';
       const displayedStatus = (isExecutive() || isProcurementReviewer())
         ? getPurchaseOrderDecisionStatus(order)
         : String(order.statut || '').trim().toUpperCase();
@@ -15649,6 +15728,8 @@
         </div>
         <p style="margin-bottom: 8px;"><strong>Date du bon:</strong> ${escapeHtml(formatDate(order.dateCommande))}</p>
         <p style="margin-bottom: 8px;"><strong>Montant total:</strong> ${escapeHtml(Number(order.montantTotal || 0).toFixed(2))} FCFA</p>
+        <h4 style="margin: 10px 0 4px;">Demande envoyée</h4>
+        ${linkedRequestsTable}
         <h4 style="margin: 10px 0 4px;">Articles du bon</h4>
         ${itemsHtml}
       `;
@@ -16284,6 +16365,104 @@
       return hrEmployeesCache.find(employee => normalizeText(employee.fullName || '') === normalizeText(currentUserUsername || '')) || null;
     }
 
+    function canEditOwnHrProfileFields(employee) {
+      if (!isHrPersonalProfileMode() || !isStandardEmployeeProfileRole()) return false;
+      const profileEmployee = getCurrentHrProfileEmployee();
+      return Number(profileEmployee?.id || 0) > 0 && Number(employee?.id || 0) === Number(profileEmployee.id);
+    }
+
+    function getHrProfileInlineStateKey(employeeId, fieldKey) {
+      return `${Number(employeeId)}:${String(fieldKey)}`;
+    }
+
+    function getHrProfileInlineDraft(employee, fieldKey) {
+      const key = getHrProfileInlineStateKey(employee.id, fieldKey);
+      const entry = hrProfileInlineEditState[key];
+      if (entry && entry.editing) {
+        return String(entry.draft ?? '').trim();
+      }
+
+      const valueByField = {
+        phoneNumber: employee.phoneNumber,
+        maritalStatus: employee.maritalStatus,
+        address: employee.address,
+        email: employee.email,
+      };
+      return String(valueByField[fieldKey] || '').trim();
+    }
+
+    function renderHrProfileEditableInfoItem(employee, fieldKey, label, fallbackValue, options = {}) {
+      const key = getHrProfileInlineStateKey(employee.id, fieldKey);
+      const state = hrProfileInlineEditState[key] || { editing: false, draft: '' };
+      const displayValue = String(fallbackValue || '').trim() || '-';
+      const isEditable = canEditOwnHrProfileFields(employee);
+      const inputType = options.inputType || 'text';
+      const value = state.editing ? String(state.draft || '') : String(displayValue === '-' ? '' : displayValue);
+
+      let editControlHtml = '';
+      if (state.editing) {
+        if (fieldKey === 'maritalStatus') {
+          const maritalOptions = ['', 'Célibataire', 'Marié(e)', 'Divorcé(e)', 'Veuf(ve)', 'Union libre'];
+          editControlHtml = `
+            <select class="hr-inline-edit-select" data-hr-profile-edit-input="${escapeHtml(fieldKey)}">
+              ${maritalOptions.map(option => `<option value="${escapeHtml(option)}"${option === value ? ' selected' : ''}>${escapeHtml(option || 'Non renseignée')}</option>`).join('')}
+            </select>
+          `;
+        } else {
+          editControlHtml = `<input class="hr-inline-edit-input" data-hr-profile-edit-input="${escapeHtml(fieldKey)}" type="${escapeHtml(inputType)}" value="${escapeHtml(value)}" />`;
+        }
+      }
+
+      return `
+        <div class="hr-info-item">
+          <span class="hr-info-label">${escapeHtml(label)}</span>
+          <div class="hr-info-value-row">
+            <span class="hr-info-value">${escapeHtml(displayValue)}</span>
+            ${isEditable ? `<button type="button" class="hr-inline-edit-icon" title="Modifier ${escapeHtml(label)}" onclick="toggleHrProfileFieldEdit(${Number(employee.id)}, '${escapeHtml(fieldKey)}')">✎</button>` : ''}
+          </div>
+          ${state.editing ? `
+            <div style="margin-top:6px;">
+              ${editControlHtml}
+              <div class="hr-inline-edit-actions">
+                <button type="button" class="button button-small button-primary" onclick="saveHrProfileFieldEdit(${Number(employee.id)}, '${escapeHtml(fieldKey)}')">OK</button>
+                <button type="button" class="button button-small button-secondary" onclick="cancelHrProfileFieldEdit(${Number(employee.id)}, '${escapeHtml(fieldKey)}')">Annuler</button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function renderMaterialRequestInstructionTable(requests, options = {}) {
+      const rows = Array.isArray(requests) ? requests.filter(Boolean) : [];
+      if (!rows.length) {
+        return '<p style="margin:4px 0 0;color:#64748b;font-size:12px;">Aucune ligne de demande.</p>';
+      }
+
+      return `
+        <div class="table-wrapper" style="overflow-x:auto; margin-top:6px;">
+          <table class="table" aria-label="${escapeHtml(options.title || 'Instructions produit et quantités')}">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Instructions produit</th>
+                <th>Quantité demandée</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(row => `
+                <tr>
+                  <td>${escapeHtml(row.itemName || '-')}</td>
+                  <td>${escapeHtml(row.description || '-')}</td>
+                  <td>${escapeHtml(Number(row.quantiteDemandee || 0).toFixed(2))}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
     function renderHrEmployeesList() {
       const container = document.getElementById('hr-employees-list-body');
       const searchCount = document.getElementById('hr-employee-list-search-count');
@@ -16375,6 +16554,18 @@
 
               const projectSite = parseHrProjectSiteLabel(employee.address);
               const canAttachDocuments = profileMode ? canUploadHrProfileDocuments() : canManageHrData();
+              const phoneInfoItem = profileMode
+                ? renderHrProfileEditableInfoItem(employee, 'phoneNumber', 'Téléphone', employee.phoneNumber, { inputType: 'tel' })
+                : `<div class="hr-info-item"><span class="hr-info-label">Téléphone</span><span class="hr-info-value">${escapeHtml(employee.phoneNumber || '-')}</span></div>`;
+              const addressInfoItem = profileMode
+                ? renderHrProfileEditableInfoItem(employee, 'address', 'Adresse', projectSite.rawAddress || employee.address, { inputType: 'text' })
+                : `<div class="hr-info-item"><span class="hr-info-label">Adresse</span><span class="hr-info-value">${escapeHtml(projectSite.rawAddress || employee.address || '-')}</span></div>`;
+              const maritalInfoItem = profileMode
+                ? renderHrProfileEditableInfoItem(employee, 'maritalStatus', 'Situation maritale', employee.maritalStatus)
+                : `<div class="hr-info-item"><span class="hr-info-label">Situation maritale</span><span class="hr-info-value">${escapeHtml(employee.maritalStatus || '-')}</span></div>`;
+              const emailInfoItem = profileMode
+                ? renderHrProfileEditableInfoItem(employee, 'email', 'Courriel', employee.email, { inputType: 'email' })
+                : `<div class="hr-info-item"><span class="hr-info-label">Courriel</span><span class="hr-info-value">${escapeHtml(employee.email || '-')}</span></div>`;
 
               return `
                 <article class="hr-employee-dossier-card" style="--hr-enter-delay:${enterDelay}ms;">
@@ -16403,9 +16594,10 @@
                     <div class="hr-info-item"><span class="hr-info-label">Type de contrat</span><span class="hr-info-value">${escapeHtml(employee.typeContrat || '-')}</span></div>
                     <div class="hr-info-item"><span class="hr-info-label">Projet</span><span class="hr-info-value">${escapeHtml(employee.projet || projectSite.project || '-')}</span></div>
                     <div class="hr-info-item"><span class="hr-info-label">Site</span><span class="hr-info-value">${escapeHtml(projectSite.site || '-')}</span></div>
-                    <div class="hr-info-item"><span class="hr-info-label">Téléphone</span><span class="hr-info-value">${escapeHtml(employee.phoneNumber || '-')}</span></div>
-                    <div class="hr-info-item"><span class="hr-info-label">Adresse</span><span class="hr-info-value">${escapeHtml(projectSite.rawAddress || employee.address || '-')}</span></div>
-                    <div class="hr-info-item"><span class="hr-info-label">Situation maritale</span><span class="hr-info-value">${escapeHtml(employee.maritalStatus || '-')}</span></div>
+                    ${phoneInfoItem}
+                    ${addressInfoItem}
+                    ${maritalInfoItem}
+                    ${emailInfoItem}
                   </div>
                   <div class="hr-employee-doc-section">
                     <div class="hr-employee-doc-header">
@@ -16521,6 +16713,7 @@
         phoneNumber: String(employee.phoneNumber || '').trim(),
         address: String(employee.address || '').trim(),
         maritalStatus: String(employee.maritalStatus || '').trim(),
+        email: String(employee.email || '').trim(),
       };
       const fileName = `employe-${String(payload.fullName || 'profil').replace(/\s+/g, '-').toLowerCase()}.json`;
       triggerTextDownload(fileName, 'application/json;charset=utf-8', JSON.stringify(payload, null, 2));
@@ -16529,7 +16722,7 @@
     window.downloadHrEmployeeProfileCsv = function downloadHrEmployeeProfileCsv(id) {
       const employee = hrEmployeesCache.find(row => Number(row.id) === Number(id));
       if (!employee) return;
-      const header = ['id', 'fullName', 'jobTitle', 'phoneNumber', 'address', 'maritalStatus'];
+      const header = ['id', 'fullName', 'jobTitle', 'phoneNumber', 'address', 'maritalStatus', 'email'];
       const row = [
         Number(employee.id),
         String(employee.fullName || '').trim(),
@@ -16537,6 +16730,7 @@
         String(employee.phoneNumber || '').trim(),
         String(employee.address || '').trim(),
         String(employee.maritalStatus || '').trim(),
+        String(employee.email || '').trim(),
       ];
       const csv = `\uFEFF${header.join(';')}\n${row.map(value => escapeCsvCell(value)).join(';')}`;
       const fileName = `employe-${String(employee.fullName || 'profil').replace(/\s+/g, '-').toLowerCase()}.csv`;
@@ -16773,6 +16967,7 @@
       const phoneInput = document.getElementById('hr-employee-phone');
       const addressInput = document.getElementById('hr-employee-address');
       const maritalInput = document.getElementById('hr-employee-marital-status');
+      const emailInput = document.getElementById('hr-employee-email');
       const hireDateInput = document.getElementById('hr-employee-hire-date');
       const sexeInput = document.getElementById('hr-employee-sexe');
       const contractTypeInput = document.getElementById('hr-employee-contract-type');
@@ -16785,6 +16980,7 @@
       if (phoneInput) phoneInput.value = String(employee.phoneNumber || '').trim();
       if (addressInput) addressInput.value = String(employee.address || '').trim();
       if (maritalInput) maritalInput.value = String(employee.maritalStatus || '').trim();
+      if (emailInput) emailInput.value = String(employee.email || '').trim();
       refreshHrEmployeeProfileOptions(String(employee.username || '').trim());
       setHrEmployeeFormOpen(true);
     }
@@ -17250,6 +17446,71 @@
       openHrEmployeeFormEditMode(employee);
     };
 
+    window.toggleHrProfileFieldEdit = function toggleHrProfileFieldEdit(employeeId, fieldKey) {
+      const employee = hrEmployeesCache.find(row => Number(row.id) === Number(employeeId));
+      if (!employee || !canEditOwnHrProfileFields(employee)) return;
+
+      const key = getHrProfileInlineStateKey(employeeId, fieldKey);
+      const current = hrProfileInlineEditState[key] || { editing: false, draft: '' };
+      if (current.editing) {
+        hrProfileInlineEditState[key] = { editing: false, draft: '' };
+      } else {
+        hrProfileInlineEditState[key] = { editing: true, draft: getHrProfileInlineDraft(employee, fieldKey) };
+      }
+      renderHrEmployeesList();
+    };
+
+    window.cancelHrProfileFieldEdit = function cancelHrProfileFieldEdit(employeeId, fieldKey) {
+      const key = getHrProfileInlineStateKey(employeeId, fieldKey);
+      hrProfileInlineEditState[key] = { editing: false, draft: '' };
+      renderHrEmployeesList();
+    };
+
+    window.saveHrProfileFieldEdit = async function saveHrProfileFieldEdit(employeeId, fieldKey) {
+      const employee = hrEmployeesCache.find(row => Number(row.id) === Number(employeeId));
+      if (!employee || !canEditOwnHrProfileFields(employee)) return;
+
+      const input = document.querySelector(`[data-hr-profile-edit-input="${fieldKey}"]`);
+      const draftValue = String(input?.value || '').trim();
+
+      if (fieldKey === 'email' && draftValue && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draftValue)) {
+        showMessage('Adresse email invalide', 'error');
+        return;
+      }
+
+      const maritalAllowed = new Set(['', 'Célibataire', 'Marié(e)', 'Divorcé(e)', 'Veuf(ve)', 'Union libre']);
+      if (fieldKey === 'maritalStatus' && !maritalAllowed.has(draftValue)) {
+        showMessage('Situation maritale invalide', 'error');
+        return;
+      }
+
+      const key = getHrProfileInlineStateKey(employeeId, fieldKey);
+      hrProfileInlineEditState[key] = { editing: true, draft: draftValue };
+
+      const payload = {
+        phoneNumber: getHrProfileInlineDraft(employee, 'phoneNumber'),
+        maritalStatus: getHrProfileInlineDraft(employee, 'maritalStatus'),
+        address: getHrProfileInlineDraft(employee, 'address'),
+        email: getHrProfileInlineDraft(employee, 'email'),
+      };
+
+      try {
+        await fetchJson(`/api/hr/employees/${Number(employeeId)}`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload),
+        });
+
+        Object.keys(hrProfileInlineEditState)
+          .filter(stateKey => stateKey.startsWith(`${Number(employeeId)}:`))
+          .forEach(stateKey => { hrProfileInlineEditState[stateKey] = { editing: false, draft: '' }; });
+
+        showMessage('Profil mis à jour');
+        await loadHrEmployeesModule();
+      } catch (err) {
+        showMessage('Erreur mise à jour profil: ' + err.message, 'error');
+      }
+    };
+
     window.deleteHrEmployee = async function deleteHrEmployee(id) {
       if (!canManageHrData()) return;
       if (!window.confirm('Supprimer cet employé ?')) return;
@@ -17310,6 +17571,7 @@
         const fullName = String(entry.fullName || entry.nom || entry.name || '').trim();
         const jobTitle = String(entry.jobTitle || entry.poste || entry.role || '').trim();
         const phoneNumber = String(entry.phoneNumber || entry.telephone || entry.phone || '').trim();
+        const email = String(entry.email || entry.courriel || entry.mail || '').trim();
         const address = String(entry.address || entry.adresse || '').trim();
         const maritalStatus = String(entry.maritalStatus || entry.situationMaritale || entry['situation maritale'] || '').trim();
 
@@ -17321,7 +17583,7 @@
         try {
           await fetchJson('/api/hr/employees', {
             method: 'POST',
-            body: JSON.stringify({ fullName, jobTitle, phoneNumber, address, maritalStatus }),
+            body: JSON.stringify({ fullName, jobTitle, phoneNumber, address, maritalStatus, email }),
           });
           imported += 1;
         } catch (error) {
@@ -17403,7 +17665,7 @@
     }
 
     function shouldAutoDashboardRefresh() {
-      return currentModule === 'dashboard' && isExecutive();
+      return currentModule === 'dashboard' && (isExecutive() || isHrDirector());
     }
 
     async function runAutoDashboardRefresh() {
@@ -21621,10 +21883,30 @@
         showMessage('Demande introuvable', 'error');
         return;
       }
-      const firstId = Number(normalizedIds[0]);
-      showModule('materials');
-      selectedMaterialRequestId = firstId;
-      loadMaterials();
+      const requests = normalizedIds
+        .map(id => materialRequestsCache.find(row => Number(row.id) === Number(id)))
+        .filter(Boolean);
+      if (!requests.length) {
+        showMessage('Demande introuvable', 'error');
+        return;
+      }
+
+      const first = requests[0];
+      const details = document.getElementById('po-details');
+      showModule('purchase-orders');
+      renderPoPriorityActions(null);
+      if (!details) return;
+
+      details.innerHTML = `
+        <h4 style="margin-bottom: 10px;">Détails de la demande envoyée</h4>
+        <p style="margin-bottom: 8px;"><strong>Nom de la demande:</strong> ${escapeHtml(getMaterialRequestDisplayName(first))}</p>
+        <p style="margin-bottom: 8px;"><strong>Projet:</strong> ${escapeHtml(first.projetNom || '-')}</p>
+        <p style="margin-bottom: 8px;"><strong>Étape:</strong> ${escapeHtml(getMaterialRequestStageLabel(first))}</p>
+        <p style="margin-bottom: 8px;"><strong>Site:</strong> ${escapeHtml(getMaterialRequestHouseNumber(first))}</p>
+        <p style="margin-bottom: 8px;"><strong>Demandeur:</strong> ${escapeHtml(first.demandeur || '-')}</p>
+        <h4 style="margin: 12px 0 6px;">Articles demandés</h4>
+        ${renderMaterialRequestInstructionTable(requests, { title: 'Instructions produit et quantités' })}
+      `;
     };
 
     async function loadExpenses() {
@@ -23676,6 +23958,7 @@
           const sexe = document.getElementById('hr-employee-sexe').value.trim();
           const typeContrat = document.getElementById('hr-employee-contract-type').value.trim();
           const phoneNumber = document.getElementById('hr-employee-phone').value.trim();
+          const email = document.getElementById('hr-employee-email').value.trim();
           const address = document.getElementById('hr-employee-address').value.trim();
           const maritalStatus = document.getElementById('hr-employee-marital-status').value.trim();
           const linkedUsername = String(document.getElementById('hr-employee-linked-username')?.value || '').trim();
@@ -23688,12 +23971,12 @@
           if (isEditMode) {
             await fetchJson(`/api/hr/employees/${hrEmployeeEditingId}`, {
               method: 'PATCH',
-              body: JSON.stringify({ fullName, jobTitle, projet, dateEmbauche, sexe, typeContrat, phoneNumber, address, maritalStatus, username: linkedUsername }),
+              body: JSON.stringify({ fullName, jobTitle, projet, dateEmbauche, sexe, typeContrat, phoneNumber, address, maritalStatus, email, username: linkedUsername }),
             });
           } else {
             await fetchJson('/api/hr/employees', {
               method: 'POST',
-              body: JSON.stringify({ fullName, jobTitle, projet, dateEmbauche, sexe, typeContrat, phoneNumber, address, maritalStatus, username: linkedUsername }),
+              body: JSON.stringify({ fullName, jobTitle, projet, dateEmbauche, sexe, typeContrat, phoneNumber, address, maritalStatus, email, username: linkedUsername }),
             });
           }
           e.target.reset();

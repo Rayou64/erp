@@ -2717,6 +2717,7 @@ async function initDb() {
     phoneNumber TEXT NOT NULL DEFAULT '',
     address TEXT NOT NULL DEFAULT '',
     maritalStatus TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '',
     username TEXT NOT NULL DEFAULT '',
     createdBy TEXT NOT NULL DEFAULT 'admin',
     createdAt TEXT NOT NULL,
@@ -2730,6 +2731,7 @@ async function initDb() {
   try { await run("ALTER TABLE hr_employees ADD COLUMN phoneNumber TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN address TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN maritalStatus TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_employees ADD COLUMN email TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN username TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN createdBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
   try { await run("ALTER TABLE hr_employees ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
@@ -2955,7 +2957,7 @@ async function initDb() {
     return Number(row?.nextId || 1);
   };
 
-  const ensureHrEmployeeProfile = async ({ username, fullName, jobTitle, phoneNumber = '', address = '', maritalStatus = '', createdBy = username }) => {
+  const ensureHrEmployeeProfile = async ({ username, fullName, jobTitle, phoneNumber = '', address = '', maritalStatus = '', email = '', createdBy = username }) => {
     const usernameValue = String(username || '').trim();
     if (!usernameValue) return;
 
@@ -2963,13 +2965,14 @@ async function initDb() {
     const now = new Date().toISOString();
     if (existing) {
       await run(
-        "UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, maritalStatus = ?, createdBy = COALESCE(NULLIF(?, ''), createdBy), updatedAt = ? WHERE id = ?",
+        "UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, maritalStatus = ?, email = COALESCE(NULLIF(?, ''), email), createdBy = COALESCE(NULLIF(?, ''), createdBy), updatedAt = ? WHERE id = ?",
         [
           String(fullName || usernameValue).trim(),
           String(jobTitle || '').trim(),
           String(phoneNumber || '').trim(),
           String(address || '').trim(),
           String(maritalStatus || '').trim(),
+          String(email || '').trim(),
           String(createdBy || usernameValue).trim(),
           now,
           Number(existing.id),
@@ -2980,7 +2983,7 @@ async function initDb() {
 
     const nextId = await getNextTableId('hr_employees');
     await run(
-      'INSERT INTO hr_employees (id, fullName, jobTitle, phoneNumber, address, maritalStatus, username, createdBy, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO hr_employees (id, fullName, jobTitle, phoneNumber, address, maritalStatus, email, username, createdBy, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         nextId,
         String(fullName || usernameValue).trim(),
@@ -2988,6 +2991,7 @@ async function initDb() {
         String(phoneNumber || '').trim(),
         String(address || '').trim(),
         String(maritalStatus || '').trim(),
+        String(email || '').trim(),
         usernameValue,
         String(createdBy || usernameValue).trim() || usernameValue,
         now,
@@ -3433,6 +3437,7 @@ function authorizeRoleAccess(req, res, next) {
   const hrDirectorRules = [
     { method: 'GET', pattern: /^\/auth\/me$/ },
     { method: 'GET', pattern: /^\/users$/ },
+    { method: 'GET', pattern: /^\/hr\/dashboard-summary$/ },
     { method: 'GET', pattern: /^\/hr\/employees$/ },
     { method: 'POST', pattern: /^\/hr\/employees$/ },
     { method: 'PATCH', pattern: /^\/hr\/employees\/[^/]+\/?$/ },
@@ -7737,7 +7742,8 @@ app.get('/api/hr/employees', async (_req, res) => {
             COALESCE(NULLIF(sexe, ''), 'Neant') AS sexe,
             COALESCE(NULLIF(typeContrat, ''), 'Neant') AS typeContrat,
             COALESCE(NULLIF(dateEmbauche, ''), SUBSTR(createdAt, 1, 10)) AS dateEmbauche,
-            phoneNumber, address, maritalStatus, COALESCE(username, createdBy, '') AS username, createdBy, createdAt, updatedAt
+            phoneNumber, address, maritalStatus, COALESCE(NULLIF(email, ''), '') AS email,
+            COALESCE(username, createdBy, '') AS username, createdBy, createdAt, updatedAt
      FROM hr_employees
      ${whereClause}
      ORDER BY fullName ASC, id ASC`,
@@ -7745,6 +7751,108 @@ app.get('/api/hr/employees', async (_req, res) => {
   );
   res.json(rows);
 });
+
+app.get('/api/hr/dashboard-summary', async (req, res) => {
+  const scopedEmployeeIds = await getHrScopedEmployeeIdsForUser(req.user);
+  if (scopedEmployeeIds && !scopedEmployeeIds.length) {
+    return res.json({ totalEmployees: 0, present: 0, absent: 0, onLeave: 0 });
+  }
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const whereEmployees = scopedEmployeeIds
+    ? `WHERE id IN (${scopedEmployeeIds.map(() => '?').join(', ')})`
+    : '';
+  const whereAttendance = scopedEmployeeIds
+    ? `AND a.employeeId IN (${scopedEmployeeIds.map(() => '?').join(', ')})`
+    : '';
+  const whereLeave = scopedEmployeeIds
+    ? `AND lr.employeeId IN (${scopedEmployeeIds.map(() => '?').join(', ')})`
+    : '';
+
+  const totalEmployeesRow = await get(
+    `SELECT COUNT(*) AS count
+     FROM hr_employees
+     ${whereEmployees}`,
+    scopedEmployeeIds || []
+  );
+
+  const presentRow = await get(
+    `SELECT COUNT(DISTINCT a.employeeId) AS count
+     FROM hr_attendance a
+     WHERE COALESCE(NULLIF(a.attendanceDate, ''), a.dayDate) = ?
+       AND UPPER(COALESCE(a.statusCode, a.status, 'P')) IN ('P', 'PR', 'PRESENT')
+       ${whereAttendance}`,
+    [todayIso].concat(scopedEmployeeIds || [])
+  );
+
+  const absentRow = await get(
+    `SELECT COUNT(DISTINCT a.employeeId) AS count
+     FROM hr_attendance a
+     WHERE COALESCE(NULLIF(a.attendanceDate, ''), a.dayDate) = ?
+       AND UPPER(COALESCE(a.statusCode, a.status, 'A')) IN ('A', 'ABS', 'ABSENT')
+       ${whereAttendance}`,
+    [todayIso].concat(scopedEmployeeIds || [])
+  );
+
+  const onLeaveRow = await get(
+    `SELECT COUNT(DISTINCT lr.employeeId) AS count
+     FROM hr_leave_requests lr
+     WHERE UPPER(COALESCE(lr.status, '')) = 'APPROUVEE'
+       AND lr.startDate <= ?
+       AND lr.endDate >= ?
+       ${whereLeave}`,
+    [todayIso, todayIso].concat(scopedEmployeeIds || [])
+  );
+
+  res.json({
+    totalEmployees: Number(totalEmployeesRow?.count || 0),
+    present: Number(presentRow?.count || 0),
+    absent: Number(absentRow?.count || 0),
+    onLeave: Number(onLeaveRow?.count || 0),
+  });
+});
+
+const HR_MARITAL_STATUS_ALLOWED = new Set([
+  '',
+  'Célibataire',
+  'Marié(e)',
+  'Divorcé(e)',
+  'Veuf(ve)',
+  'Union libre',
+]);
+
+function normalizeHrMaritalStatus(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  const normalized = normalizeTextValue(raw);
+  const aliasMap = {
+    celibataire: 'Célibataire',
+    'marie(e)': 'Marié(e)',
+    mariee: 'Marié(e)',
+    marie: 'Marié(e)',
+    'divorce(e)': 'Divorcé(e)',
+    divorcee: 'Divorcé(e)',
+    divorce: 'Divorcé(e)',
+    'veuf(ve)': 'Veuf(ve)',
+    veuve: 'Veuf(ve)',
+    veuf: 'Veuf(ve)',
+    'union libre': 'Union libre',
+  };
+
+  return aliasMap[normalized] || raw;
+}
+
+function normalizeHrEmail(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  return raw.toLowerCase();
+}
+
+function isValidHrEmail(emailValue) {
+  if (!emailValue) return true;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(emailValue));
+}
 
 function normalizeHrSexe(value) {
   const raw = String(value || '').trim().toUpperCase();
@@ -7792,21 +7900,25 @@ function normalizeHrHireDate(value) {
 }
 
 app.post('/api/hr/employees', async (req, res) => {
-  const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', username = '' } = req.body || {};
+  const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', email = '', username = '' } = req.body || {};
   const nameValue = String(fullName || '').trim();
   const hireDateValue = normalizeHrHireDate(dateEmbauche);
+  const normalizedEmail = normalizeHrEmail(email);
   if (!nameValue) {
     return res.status(400).json({ error: 'Nom employe obligatoire' });
   }
   if (!hireDateValue) {
     return res.status(400).json({ error: "Date d'embauche obligatoire (format AAAA-MM-JJ)" });
   }
+  if (!isValidHrEmail(normalizedEmail)) {
+    return res.status(400).json({ error: 'Adresse email invalide' });
+  }
 
   const now = new Date().toISOString();
   const nextId = await getNextTableId('hr_employees');
   await run(
-    `INSERT INTO hr_employees (id, fullName, jobTitle, sexe, typeContrat, dateEmbauche, phoneNumber, address, maritalStatus, username, createdBy, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO hr_employees (id, fullName, jobTitle, sexe, typeContrat, dateEmbauche, phoneNumber, address, maritalStatus, email, username, createdBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       nextId,
       nameValue,
@@ -7816,7 +7928,8 @@ app.post('/api/hr/employees', async (req, res) => {
       hireDateValue,
       String(phoneNumber || '').trim(),
       String(address || '').trim(),
-      String(maritalStatus || '').trim(),
+      normalizeHrMaritalStatus(maritalStatus),
+      normalizedEmail,
       String(username || '').trim(),
       String(req.user?.username || 'admin').trim() || 'admin',
       now,
@@ -7944,18 +8057,59 @@ app.get('/api/hr/employees/documents/:docId/download', async (req, res) => {
 
 app.patch('/api/hr/employees/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', username = '' } = req.body || {};
+  const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', email = '', username = '' } = req.body || {};
+
+  if (String(req.user?.role || '').trim() === 'employe_standard') {
+    const profileEmployee = await getHrProfileEmployeeForUser(req.user);
+    if (!profileEmployee?.id || Number(profileEmployee.id) !== Number(id)) {
+      return res.status(403).json({ error: 'Vous pouvez modifier uniquement votre profil' });
+    }
+
+    const normalizedMarital = normalizeHrMaritalStatus(maritalStatus);
+    if (!HR_MARITAL_STATUS_ALLOWED.has(normalizedMarital)) {
+      return res.status(400).json({ error: 'Situation maritale invalide' });
+    }
+
+    const normalizedEmail = normalizeHrEmail(email);
+    if (!isValidHrEmail(normalizedEmail)) {
+      return res.status(400).json({ error: 'Adresse email invalide' });
+    }
+
+    const result = await run(
+      'UPDATE hr_employees SET phoneNumber = ?, address = ?, maritalStatus = ?, email = ?, updatedAt = ? WHERE id = ?',
+      [
+        String(phoneNumber || '').trim(),
+        String(address || '').trim(),
+        normalizedMarital,
+        normalizedEmail,
+        new Date().toISOString(),
+        id,
+      ]
+    );
+
+    if (!result.changes) {
+      return res.status(404).json({ error: 'Employe introuvable' });
+    }
+
+    const employee = await get('SELECT * FROM hr_employees WHERE id = ?', [id]);
+    return res.json(employee);
+  }
+
   const nameValue = String(fullName || '').trim();
   const hireDateValue = normalizeHrHireDate(dateEmbauche);
+  const normalizedEmail = normalizeHrEmail(email);
   if (!id || !nameValue) {
     return res.status(400).json({ error: 'Employe invalide' });
   }
   if (!hireDateValue) {
     return res.status(400).json({ error: "Date d'embauche obligatoire (format AAAA-MM-JJ)" });
   }
+  if (!isValidHrEmail(normalizedEmail)) {
+    return res.status(400).json({ error: 'Adresse email invalide' });
+  }
 
   const result = await run(
-    'UPDATE hr_employees SET fullName = ?, jobTitle = ?, sexe = ?, typeContrat = ?, dateEmbauche = ?, phoneNumber = ?, address = ?, maritalStatus = ?, username = ?, updatedAt = ? WHERE id = ?',
+    'UPDATE hr_employees SET fullName = ?, jobTitle = ?, sexe = ?, typeContrat = ?, dateEmbauche = ?, phoneNumber = ?, address = ?, maritalStatus = ?, email = ?, username = ?, updatedAt = ? WHERE id = ?',
     [
       nameValue,
       String(jobTitle || '').trim(),
@@ -7964,7 +8118,8 @@ app.patch('/api/hr/employees/:id', async (req, res) => {
       hireDateValue,
       String(phoneNumber || '').trim(),
       String(address || '').trim(),
-      String(maritalStatus || '').trim(),
+      normalizeHrMaritalStatus(maritalStatus),
+      normalizedEmail,
       String(username || '').trim(),
       new Date().toISOString(),
       id,
