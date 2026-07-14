@@ -14366,8 +14366,8 @@
       const allEntries = Array.isArray(materialCatalogCache) ? materialCatalogCache : [];
 
       const hasFolder = candidate => allEntries.some(entry => {
-        const f = String(entry?.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
-        return normalizeText(f) === normalizeText(String(candidate || '').trim());
+        const f = canonicalizeMcProjectFolderLabel(entry?.projectFolder || MATERIAL_CATALOG_PROJECT);
+        return normalizeText(f) === normalizeText(canonicalizeMcProjectFolderLabel(candidate));
       });
 
       const findTypedFolderVariants = (baseFolder, villaType) => {
@@ -14379,8 +14379,8 @@
       };
 
       let scopedEntries = allEntries.filter(entry => {
-        const f = String(entry?.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
-        return normalizeText(f) === normalizeText(targetFolder);
+        const f = canonicalizeMcProjectFolderLabel(entry?.projectFolder || MATERIAL_CATALOG_PROJECT);
+        return normalizeText(f) === normalizeText(canonicalizeMcProjectFolderLabel(targetFolder));
       });
 
       if (!scopedEntries.length) {
@@ -14390,7 +14390,7 @@
           const typedVariants = findTypedFolderVariants(baseFromTarget, targetType);
           if (typedVariants.length) {
             scopedEntries = allEntries.filter(entry => {
-              const f = String(entry?.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
+              const f = canonicalizeMcProjectFolderLabel(entry?.projectFolder || MATERIAL_CATALOG_PROJECT);
               return typedVariants.some(v => normalizeText(v) === normalizeText(f));
             });
           }
@@ -14401,8 +14401,8 @@
         const baseFolder = String(targetFolder.split(' - ')[0] || '').trim();
         if (baseFolder) {
           scopedEntries = allEntries.filter(entry => {
-            const f = String(entry?.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
-            return normalizeText(f) === normalizeText(baseFolder);
+            const f = canonicalizeMcProjectFolderLabel(entry?.projectFolder || MATERIAL_CATALOG_PROJECT);
+            return normalizeText(f) === normalizeText(canonicalizeMcProjectFolderLabel(baseFolder));
           });
 
           if (!scopedEntries.length) {
@@ -14412,7 +14412,7 @@
               const typedVariants = findTypedFolderVariants(baseFolder, explicitType);
               if (typedVariants.length) {
                 scopedEntries = allEntries.filter(entry => {
-                  const f = String(entry?.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
+                  const f = canonicalizeMcProjectFolderLabel(entry?.projectFolder || MATERIAL_CATALOG_PROJECT);
                   return typedVariants.some(v => normalizeText(v) === normalizeText(f));
                 });
               }
@@ -19960,7 +19960,12 @@
       // Update edit modal folder select with all unique folders from catalog
       const sel = document.getElementById('edit-mc-project-folder');
       if (!sel) return;
-      const folders = [...new Set(materialCatalogCache.map(e => String(e.projectFolder || '').trim()).filter(Boolean))].sort();
+      const folders = [...new Map(
+        materialCatalogCache
+          .map(e => canonicalizeMcProjectFolderLabel(e.projectFolder || ''))
+          .filter(Boolean)
+          .map(folder => [normalizeText(folder), folder])
+      ).values()].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' }));
       const prev = sel.value;
       sel.innerHTML = folders.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join('') ||
         `<option value="${MATERIAL_CATALOG_PROJECT}">${MATERIAL_CATALOG_PROJECT}</option>`;
@@ -19993,8 +19998,19 @@
       return vt ? `${name} - ${vt}` : name;
     }
 
+    function canonicalizeMcProjectFolderLabel(folder) {
+      const value = String(folder || '').trim();
+      if (!value) return '';
+      const normalized = normalizeText(value).replace(/\s+/g, ' ');
+      if (normalized === 'songon kassemble - t1') {
+        return 'Songon Kassemblé - T1';
+      }
+      return value;
+    }
+
     function getMcEntriesForFolder(folder) {
-      return (Array.isArray(materialCatalogCache) ? materialCatalogCache : []).filter(entry => (entry.projectFolder || '') === folder);
+      const target = canonicalizeMcProjectFolderLabel(folder);
+      return (Array.isArray(materialCatalogCache) ? materialCatalogCache : []).filter(entry => canonicalizeMcProjectFolderLabel(entry.projectFolder || '') === target);
     }
 
     function getMcCurrentDocumentStageName() {
@@ -20666,7 +20682,7 @@
       const searchValue = normalizeText((mcSearchTerm || '').trim());
       const stageFilterValue = normalizeStageKey(mcFilterMainStage || '');
       let items = mcFilterFolder
-        ? materialCatalogCache.filter(e => (e.projectFolder || '') === mcFilterFolder)
+        ? materialCatalogCache.filter(e => canonicalizeMcProjectFolderLabel(e.projectFolder || '') === canonicalizeMcProjectFolderLabel(mcFilterFolder))
         : materialCatalogCache;
 
       if (stageFilterValue) {
@@ -20808,7 +20824,12 @@
     }
 
     function setMaterialCatalogCache(entries) {
-      materialCatalogCache = Array.isArray(entries) ? entries : [];
+      materialCatalogCache = Array.isArray(entries)
+        ? entries.map(entry => ({
+            ...entry,
+            projectFolder: canonicalizeMcProjectFolderLabel(entry?.projectFolder || ''),
+          }))
+        : [];
       materialCatalogVersion += 1;
       materialCatalogStageIndex = new Map();
       lastAutoPopulateCatalogKey = '';
@@ -20819,8 +20840,8 @@
       const explicitVillaType = /^T\d+$/i.test(rawVillaType) ? normalizeMcVillaType(rawVillaType) : '';
 
       const hasFolder = folderName => (Array.isArray(materialCatalogCache) ? materialCatalogCache : []).some(entry => {
-        const folder = String(entry?.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
-        return normalizeText(folder) === normalizeText(String(folderName || '').trim());
+        const folder = canonicalizeMcProjectFolderLabel(entry?.projectFolder || MATERIAL_CATALOG_PROJECT);
+        return normalizeText(folder) === normalizeText(canonicalizeMcProjectFolderLabel(folderName));
       });
 
       const resolveTypedFolder = baseFolder => {
@@ -20844,10 +20865,10 @@
       if (siteFolder) {
         const siteType = normalizeMcVillaType(getProjectVillaTypeLabel(selectedSite) || '');
         if (siteType) {
-          const typedFolder = `${siteFolder} - ${siteType}`;
+          const typedFolder = canonicalizeMcProjectFolderLabel(`${siteFolder} - ${siteType}`);
           const hasTypedCatalog = (Array.isArray(materialCatalogCache) ? materialCatalogCache : []).some(entry => {
-            const folder = String(entry?.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
-            return folder === typedFolder;
+            const folder = canonicalizeMcProjectFolderLabel(entry?.projectFolder || MATERIAL_CATALOG_PROJECT);
+            return normalizeText(folder) === normalizeText(typedFolder);
           });
           if (hasTypedCatalog) return typedFolder;
         }
@@ -20861,10 +20882,10 @@
       if (projectFolder) {
         const projectType = normalizeMcVillaType(getProjectVillaTypeLabel(selectedProject) || '');
         if (projectType) {
-          const typedFolder = `${projectFolder} - ${projectType}`;
+          const typedFolder = canonicalizeMcProjectFolderLabel(`${projectFolder} - ${projectType}`);
           const hasTypedCatalog = (Array.isArray(materialCatalogCache) ? materialCatalogCache : []).some(entry => {
-            const folder = String(entry?.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
-            return folder === typedFolder;
+            const folder = canonicalizeMcProjectFolderLabel(entry?.projectFolder || MATERIAL_CATALOG_PROJECT);
+            return normalizeText(folder) === normalizeText(typedFolder);
           });
           if (hasTypedCatalog) return typedFolder;
         }
@@ -20979,7 +21000,7 @@
       // Find catalog entry matching folder + materialName
       const entry = materialCatalogCache.find(e => {
         const nameMatch = normalizeText(e.materialName || '') === itemName;
-        const folderMatch = !e.projectFolder || !folder || e.projectFolder === folder;
+        const folderMatch = !e.projectFolder || !folder || canonicalizeMcProjectFolderLabel(e.projectFolder) === canonicalizeMcProjectFolderLabel(folder);
         return nameMatch && folderMatch;
       });
       if (!entry) { hintEl.style.display = 'none'; return; }
