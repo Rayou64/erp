@@ -20001,6 +20001,16 @@
       return String(document.getElementById('mc-document-stage-name')?.value || mcActiveDocumentStage || '').trim();
     }
 
+    function getMcDocumentStageIcon(stageName) {
+      const value = normalizeText(String(stageName || '').trim());
+      if (!value) return '📄';
+      if (value.includes('fondation')) return '🧱';
+      if (value.includes('montage') || value.includes('élévation') || value.includes('elevation')) return '🏗️';
+      if (value.includes('electricite') || value.includes('plomberie')) return '🔌';
+      if (value.includes('charpente') || value.includes('toiture')) return '🏠';
+      return '📄';
+    }
+
     function isSongonKassembleT1Folder(folder) {
       const value = normalizeText(String(folder || '').trim());
       if (!value) return false;
@@ -20096,7 +20106,7 @@
       const titleEl = document.getElementById('mc-editor-format-title');
       if (titleEl) {
         const stageName = getMcCurrentDocumentStageName() || 'Étape principale';
-        titleEl.textContent = `Déboursé sec — Étape principale : ${stageName.toUpperCase()}`;
+        titleEl.textContent = `${getMcDocumentStageIcon(stageName)} Déboursé sec — Étape principale : ${stageName.toUpperCase()}`;
       }
     }
 
@@ -20107,12 +20117,13 @@
 
       const stages = getMcDocumentStages(folder);
       const draftChip = mcIsDraftDocument
-        ? `<button type="button" data-stage="__draft__" style="padding:7px 12px;border-radius:999px;border:2px dashed #2563eb;background:#eff6ff;color:#1d4ed8;font-weight:700;font-size:12px;cursor:default;">Nouveau document${mcActiveDocumentStage ? ` • ${escapeHtml(mcActiveDocumentStage)}` : ''}</button>`
+        ? `<button type="button" data-stage="__draft__" style="padding:7px 12px;border-radius:999px;border:2px dashed #2563eb;background:#eff6ff;color:#1d4ed8;font-weight:700;font-size:12px;cursor:default;">📄 Nouveau document${mcActiveDocumentStage ? ` • ${escapeHtml(mcActiveDocumentStage)}` : ''}</button>`
         : '';
 
       container.innerHTML = draftChip + stages.map(stage => {
         const active = !mcIsDraftDocument && normalizeStageKey(stage) === normalizeStageKey(mcActiveDocumentStage);
-        return `<button type="button" class="mc-document-tab" data-stage="${escapeHtml(stage)}" style="padding:7px 12px;border-radius:999px;border:2px solid ${active ? '#0f766e' : '#cbd5e1'};background:${active ? '#ecfdf5' : '#ffffff'};color:${active ? '#0f766e' : '#334155'};font-weight:700;font-size:12px;cursor:pointer;">${escapeHtml(stage)}</button>`;
+        const icon = getMcDocumentStageIcon(stage);
+        return `<button type="button" class="mc-document-tab" data-stage="${escapeHtml(stage)}" style="display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;border:2px solid ${active ? '#0f766e' : '#cbd5e1'};background:${active ? '#ecfdf5' : '#ffffff'};color:${active ? '#0f766e' : '#334155'};font-weight:700;font-size:12px;cursor:pointer;">${icon}<span>${escapeHtml(stage)}</span></button>`;
       }).join('');
 
       container.querySelectorAll('.mc-document-tab').forEach(button => {
