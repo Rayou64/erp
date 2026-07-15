@@ -10830,7 +10830,7 @@
     function formatDateWithSameDayTime(value) {
       if (!value) return 'Non disponible';
       const date = parseDateValue(value);
-      if (Number.isNaN(date.getTime())) return 'Non disponible';
+      if (!date || Number.isNaN(date.getTime())) return 'Non disponible';
 
       const now = new Date();
       const isSameDay = date.getFullYear() === now.getFullYear()
