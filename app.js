@@ -48,6 +48,10 @@ app.use(express.static(path.join(__dirname, 'public'), {
     }
     if (lower.endsWith('.json')) {
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      return;
+    }
+    if (lower.endsWith('.webmanifest')) {
+      res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
     }
   },
 }));
@@ -1322,8 +1326,7 @@ function renderMaterialAuthorizationPdf(doc, payload) {
   const { order, request, items, signatureName, signatureRole, signedAt, decisionStatus = 'VALIDEE', documentKind = 'authorization' } = payload;
   const normalizedDocumentKind = String(documentKind || 'authorization').trim().toLowerCase();
   const isRequestDocument = normalizedDocumentKind === 'request';
-  // Project is always PINUT
-  const projectTitle = 'PINUT';
+  const projectTitle = String(request?.nomProjet || request?.projetNom || order?.nomProjet || '').trim() || 'Projet';
   const siteValueRaw = String(request.numeroMaison || request.nomSite || '').trim();
   const siteLabel = siteValueRaw
     ? (siteValueRaw.toLowerCase().includes('site') ? siteValueRaw : `Site Numero ${siteValueRaw}`)

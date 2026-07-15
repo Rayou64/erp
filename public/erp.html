@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1d4ed8" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Ryan ERP" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon-180.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png" />
   <title>RyanERP</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap" />
@@ -10698,6 +10705,8 @@
     }
     let selectedMaterialRequestId = null;
     let selectedPurchaseOrderId = null;
+    let selectedPoRequestGroupAnchorId = null;
+    let selectedStockIssueAuthorizationId = null;
     let currentEditingAssignmentId = null;
     let currentEditingProjectId = null;
     let currentEditingMaterialId = null;
@@ -15274,6 +15283,7 @@
         const site = first.projetNom || '-';
         const demandeur = first.demandeur || '-';
         const idsArg = groupReqs.map(r => Number(r.id)).filter(id => Number.isInteger(id) && id > 0).join(',');
+        const isSelected = Number(selectedPoRequestGroupAnchorId || 0) === Number(first.id || 0);
         const articlesMeta = groupReqs.map(r => `${r.itemName} (${Number(r.quantiteRestante || r.quantiteDemandee || 0).toFixed(2)})`).join(', ');
         const totalQty = groupReqs.reduce((sum, r) => sum + Number(r.quantiteRestante || r.quantiteDemandee || 0), 0);
         const latestAt = sortRecent(groupReqs, row => row?.updatedAt || row?.dateDemande || row?.createdAt || row?.id)[0];
@@ -15310,9 +15320,28 @@
               <button type="button" class="po-btn po-btn-soft" onclick="viewPoRequestGroupDetails(${idsArg})">Voir details</button>
               <button type="button" class="po-btn po-btn-danger" onclick="rejectGroupForPo(${idsArg})">Rejeter</button>
             </div>`}
+            ${isSelected ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">${buildPoRequestGroupDetailsHtml(groupReqs)}</div>` : ''}
           </li>
         `;
       }).join('');
+    }
+
+    function buildPoRequestGroupDetailsHtml(requests) {
+      const list = Array.isArray(requests) ? requests.filter(Boolean) : [];
+      if (!list.length) {
+        return '<p style="color:#64748b;">Demande introuvable.</p>';
+      }
+      const first = list[0];
+      return `
+        <h4 style="margin-bottom: 10px;">Détails de la demande envoyée</h4>
+        <p style="margin-bottom: 8px;"><strong>Nom de la demande:</strong> ${escapeHtml(getMaterialRequestDisplayName(first))}</p>
+        <p style="margin-bottom: 8px;"><strong>Projet:</strong> ${escapeHtml(first.projetNom || '-')}</p>
+        <p style="margin-bottom: 8px;"><strong>Étape:</strong> ${escapeHtml(getMaterialRequestStageLabel(first))}</p>
+        <p style="margin-bottom: 8px;"><strong>Site:</strong> ${escapeHtml(getMaterialRequestHouseNumber(first))}</p>
+        <p style="margin-bottom: 8px;"><strong>Demandeur:</strong> ${escapeHtml(first.demandeur || '-')}</p>
+        <h4 style="margin: 12px 0 6px;">Articles demandés</h4>
+        ${renderMaterialRequestInstructionTable(list, { title: 'Articles demandés et quantités' })}
+      `;
     }
 
     function getPurchaseOrderDecisionStatus(order) {
@@ -15532,32 +15561,25 @@
       `;
     }
 
-    function renderMaterialRequestDetails(request) {
-      const details = document.getElementById('material-details');
-      if (!details) return;
-
+    function buildMaterialRequestDetailsHtml(request, options = {}) {
       if (!request) {
-        details.innerHTML = '<p style="color: #64748b;">Clique sur une demande pour voir ses détails.</p>';
-        return;
+        return '<p style="color: #64748b;">Clique sur une demande pour voir ses détails.</p>';
       }
 
       const groupKey = getMaterialRequestGroupKey(request);
       const groupRequests = materialRequestsCache.filter(item => getMaterialRequestGroupKey(item) === groupKey);
-      const groupIdsArg = groupRequests.map(item => Number(item.id)).filter(id => Number.isInteger(id) && id > 0).join(',');
       const poActionState = getRequestGroupPurchaseOrderActionState(groupRequests);
-      const requestTableHtml = renderMaterialRequestInstructionTable(groupRequests, { title: 'Instructions produit et quantités' });
+      const requestTableHtml = renderMaterialRequestInstructionTable(groupRequests, { title: 'Articles demandés et quantités' });
+      const authorizationContainerId = options.authorizationContainerId || 'material-authorization-doc';
 
-      details.innerHTML = `
+      return `
         <h4 style="margin-bottom: 10px;">Détails de la demande</h4>
         <p style="margin-bottom: 8px;"><strong>Nom de la demande:</strong> ${escapeHtml(getMaterialRequestDisplayName(request))}</p>
         <p style="margin-bottom: 8px;"><strong>Projet:</strong> ${escapeHtml(request.projetNom || '-')}</p>
         <p style="margin-bottom: 8px;"><strong>Étape:</strong> ${escapeHtml(getMaterialRequestStageLabel(request))}</p>
         <p style="margin-bottom: 8px;"><strong>Site:</strong> ${escapeHtml(getMaterialRequestHouseNumber(request))}</p>
         <p style="margin-bottom: 8px;"><strong>Entrepôt souhaité:</strong> ${escapeHtml(getWarehouseNameById(getWarehouseIdForRequest(request)))}</p>
-        <p style="margin-bottom: 8px;"><strong>Produit:</strong> ${escapeHtml(request.itemName || '-')}</p>
-        <p style="margin-bottom: 8px;"><strong>Unité:</strong> ${escapeHtml(getMaterialRequestUnitLabel(request))}</p>
         <p style="margin-bottom: 8px;"><strong>Demandeur:</strong> ${escapeHtml(request.demandeur || '-')}</p>
-        <p style="margin-bottom: 8px;"><strong>Quantité demandée:</strong> ${escapeHtml(Number(request.quantiteDemandee || 0).toFixed(2))}</p>
         <p style="margin-bottom: 8px;"><strong>Date de demande:</strong> ${escapeHtml(formatDate(request.dateDemande))}</p>
         <p style="margin-bottom: 8px;"><strong>Date reçue (bon):</strong> ${escapeHtml(request.dateProduitRecu ? formatDate(request.dateProduitRecu) : '-')}</p>
         <p style="margin-bottom: 8px;"><strong>Description:</strong> ${escapeHtml(request.description || '-')}</p>
@@ -15567,10 +15589,16 @@
         ${poActionState.allowed || !poActionState.reason
           ? ''
           : `<p style="margin-top:8px;color:#64748b;font-size:12px;">${escapeHtml(poActionState.reason)}</p>`}
-        <div id="material-authorization-doc" style="margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0;">
+        <div id="${escapeHtml(authorizationContainerId)}" style="margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0;">
           <span style="font-size:12px;color:#94a3b8;">Chargement du document d'autorisation...</span>
         </div>
       `;
+    }
+
+    function renderMaterialRequestDetails(request) {
+      const details = document.getElementById('material-details');
+      if (!details) return;
+      details.innerHTML = buildMaterialRequestDetailsHtml(request);
 
       // Charger le document d'autorisation PDF si disponible
       loadMaterialAuthorizationDocument(request.id);
@@ -15583,8 +15611,8 @@
       return 'EN_ATTENTE';
     }
 
-    async function loadMaterialAuthorizationDocument(requestId) {
-      const container = document.getElementById('material-authorization-doc');
+    async function loadMaterialAuthorizationDocument(requestId, containerId = 'material-authorization-doc') {
+      const container = document.getElementById(containerId);
       if (!container || !requestId) return;
       try {
         const docs = await fetchJson(`/api/material-requests/${requestId}/authorization-documents`);
@@ -16445,7 +16473,6 @@
             <thead>
               <tr>
                 <th>Produit</th>
-                <th>Instructions produit</th>
                 <th>Quantité demandée</th>
               </tr>
             </thead>
@@ -16453,7 +16480,6 @@
               ${rows.map(row => `
                 <tr>
                   <td>${escapeHtml(row.itemName || '-')}</td>
-                  <td>${escapeHtml(row.description || '-')}</td>
                   <td>${escapeHtml(Number(row.quantiteDemandee || 0).toFixed(2))}</td>
                 </tr>
               `).join('')}
@@ -18473,8 +18499,8 @@
               const groupIdsArg = groupReqs.map(item => Number(item.id)).filter(id => Number.isInteger(id) && id > 0).join(',');
               const articlesMeta = groupReqs.map(item => `${item.itemName || '-'} (${Number(item.quantiteDemandee || 0).toFixed(2)})`).join(', ');
               const groupSelected = groupReqs.some(item => Number(selectedMaterialRequestId) === Number(item.id));
-              const poActionState = getRequestGroupPurchaseOrderActionState(groupReqs);
               const modifierAction = `editMaterialRequest(${first.id})`;
+              const inlineAuthorizationContainerId = `material-authorization-doc-inline-${Number(first.id)}`;
               return `
               <li class="list-item">
                 <div class="list-item-content project-item-clickable ${groupSelected ? 'project-item-selected' : ''}" onclick="viewMaterialRequest(${first.id})">
@@ -18493,6 +18519,9 @@
                   </details>
                 </div>
                 <span class="badge ${first.statut === 'EN_ATTENTE' ? 'badge-yellow' : first.statut === 'REJETEE' ? 'badge-red' : 'badge-green'}">${first.statut}</span>
+                ${groupSelected
+                  ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">${buildMaterialRequestDetailsHtml(first, { authorizationContainerId: inlineAuthorizationContainerId })}</div>`
+                  : ''}
               </li>
             `;
             }).join('')
@@ -18501,7 +18530,13 @@
               : '<div class="empty-state"><p>Aucune demande de matériel</p></div>');
 
         const selectedGroup = filteredGroups.find(groupReqs => groupReqs.some(m => Number(m.id) === Number(selectedMaterialRequestId))) || null;
-        renderMaterialRequestDetails(selectedGroup ? selectedGroup[0] : null);
+        const details = document.getElementById('material-details');
+        if (details) {
+          details.innerHTML = '<p style="color: #64748b;">Les détails s\'affichent maintenant directement sous la demande sélectionnée.</p>';
+        }
+        if (selectedGroup && selectedGroup[0]) {
+          loadMaterialAuthorizationDocument(selectedGroup[0].id, `material-authorization-doc-inline-${Number(selectedGroup[0].id)}`);
+        }
 
         refreshPoItemRequestOptions();
       } catch (err) {
@@ -19466,8 +19501,16 @@
           }
           renderPoPriorityActions(null);
         } else {
-          renderPoPriorityActions(selectedOrder);
-          renderPurchaseOrderDetails(selectedOrder);
+          const details = document.getElementById('po-details');
+          if (Number(selectedPoRequestGroupAnchorId || 0) > 0) {
+            renderPoPriorityActions(null);
+            if (details) {
+              details.innerHTML = '<p style="color:#64748b;">Les détails de la demande envoyée s\'affichent directement sous la demande sélectionnée.</p>';
+            }
+          } else {
+            renderPoPriorityActions(selectedOrder);
+            renderPurchaseOrderDetails(selectedOrder);
+          }
         }
 
         refreshPoItemRequestOptions();
@@ -20101,21 +20144,22 @@
           return;
         }
         list.innerHTML = rows.map(row => {
+          const rowId = Number(row.id || 0);
           const status = String(row.status || 'EN_ATTENTE').toUpperCase();
           const badgeClass = status === 'VALIDEE' ? 'badge-green' : status === 'REJETEE' ? 'badge-red' : 'badge-yellow';
           const statusLabel = status === 'VALIDEE' ? 'Validée' : status === 'REJETEE' ? 'Rejetée' : 'En attente';
           const etape = String(row.etapeApprovisionnement || row.requestEtape || 'Étape').trim();
           const siteNum = extractSiteNumberLabel(row.numeroMaison || '-');
           const title = `${etape}-${siteNum}`;
+          const rowSelected = rowId > 0 && rowId === Number(selectedStockIssueAuthorizationId || 0);
           const canDecide = status === 'EN_ATTENTE' && (isExecutive() || isAdmin());
-          const pdfDownloadUrl = `/api/stock-issue-authorizations/${Number(row.id)}/pdf`;
           const items = Array.isArray(row.items) ? row.items : [];
           const itemsLabel = items.length
             ? items.map(item => `${item.itemName} (${Number(item.quantiteSortie || 0).toFixed(2)})`).join(', ')
             : `${row.itemName || '-'} (${Number(row.quantiteSortie || 0).toFixed(2)})`;
           return `
             <li class="list-item">
-              <div class="list-item-content">
+              <div class="list-item-content project-item-clickable ${rowSelected ? 'project-item-selected' : ''}" onclick="viewStockIssueAuthorizationDetails(${rowId})">
                 <div class="sia-card-top">
                   <div class="list-item-title">${escapeHtml(title)}</div>
                   <span class="badge ${badgeClass}">${escapeHtml(statusLabel)}</span>
@@ -20130,6 +20174,7 @@
                 ${canDecide ? `<button type="button" class="button button-small button-danger" onclick="openSiaSignModal(${Number(row.id)}, 'REJETEE')">Rejeter</button>` : ''}
                 <button type="button" class="button button-small button-secondary" onclick="downloadSiaPdfById(${Number(row.id)})">Télécharger</button>
               </div>
+              ${rowSelected ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">${renderStockIssueAuthorizationItemsTable(row)}</div>` : ''}
             </li>
           `;
         }).join('');
@@ -20224,6 +20269,33 @@
     document.getElementById('sia-sign-reject').addEventListener('click', () => submitSiaDecision('REJETEE'));
     document.getElementById('sia-refresh').addEventListener('click', () => loadStockIssueAuthorizations());
     document.getElementById('sia-filter-status').addEventListener('change', () => loadStockIssueAuthorizations());
+
+    function renderStockIssueAuthorizationItemsTable(row) {
+      const items = Array.isArray(row?.items) && row.items.length
+        ? row.items
+        : [{ itemName: row?.itemName || '-', quantiteSortie: Number(row?.quantiteSortie || 0) }];
+      return `
+        <h4 style="margin: 0 0 8px;">Articles à sortir</h4>
+        <div class="table-wrapper" style="overflow-x:auto; margin-top:6px;">
+          <table class="table" aria-label="Articles à sortir">
+            <thead>
+              <tr>
+                <th>Nom de l'article</th>
+                <th>Quantité</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map(item => `
+                <tr>
+                  <td>${escapeHtml(item.itemName || item.article || '-')}</td>
+                  <td>${escapeHtml(Number(item.quantiteSortie || item.quantite || 0).toFixed(2))}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
 
     // ── Catalogue module event listeners ────────────────────────────────────
     document.getElementById('mc-add-row')?.addEventListener('click', () => addMcRow());
@@ -21624,10 +21696,16 @@
       loadMaterials();
     };
 
+    window.viewStockIssueAuthorizationDetails = id => {
+      selectedStockIssueAuthorizationId = Number(selectedStockIssueAuthorizationId || 0) === Number(id || 0) ? null : Number(id || 0);
+      loadStockIssueAuthorizations();
+    };
+
     // (editSupplier / deleteSupplier replaced by editCatalogEntry / deleteCatalogEntry)
 
     window.viewPurchaseOrder = id => {
       selectedPurchaseOrderId = id;
+      selectedPoRequestGroupAnchorId = null;
       loadPurchaseOrders();
     };
 
@@ -21892,21 +21970,9 @@
       }
 
       const first = requests[0];
-      const details = document.getElementById('po-details');
+      selectedPoRequestGroupAnchorId = Number(first.id || 0);
       showModule('purchase-orders');
-      renderPoPriorityActions(null);
-      if (!details) return;
-
-      details.innerHTML = `
-        <h4 style="margin-bottom: 10px;">Détails de la demande envoyée</h4>
-        <p style="margin-bottom: 8px;"><strong>Nom de la demande:</strong> ${escapeHtml(getMaterialRequestDisplayName(first))}</p>
-        <p style="margin-bottom: 8px;"><strong>Projet:</strong> ${escapeHtml(first.projetNom || '-')}</p>
-        <p style="margin-bottom: 8px;"><strong>Étape:</strong> ${escapeHtml(getMaterialRequestStageLabel(first))}</p>
-        <p style="margin-bottom: 8px;"><strong>Site:</strong> ${escapeHtml(getMaterialRequestHouseNumber(first))}</p>
-        <p style="margin-bottom: 8px;"><strong>Demandeur:</strong> ${escapeHtml(first.demandeur || '-')}</p>
-        <h4 style="margin: 12px 0 6px;">Articles demandés</h4>
-        ${renderMaterialRequestInstructionTable(requests, { title: 'Instructions produit et quantités' })}
-      `;
+      loadPurchaseOrders();
     };
 
     async function loadExpenses() {
@@ -26812,6 +26878,21 @@
       return outputArray;
     }
 
+    async function ensureAppServiceWorkerRegistration() {
+      if (!('serviceWorker' in navigator)) return null;
+      try {
+        return await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      } catch (_) {
+        return null;
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        ensureAppServiceWorkerRegistration();
+      });
+    }
+
     async function setupPushNotifications(options = {}) {
       if (pushSetupReady) return true;
       if (pushSetupStarted) return false;
@@ -26826,7 +26907,8 @@
         const publicKey = String(keyResult?.publicKey || '').trim();
         if (!publicKey) return false;
 
-        const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        const registration = await ensureAppServiceWorkerRegistration();
+        if (!registration) return false;
 
         if (typeof Notification !== 'undefined') {
           if (Notification.permission === 'default' && requestPermission) {

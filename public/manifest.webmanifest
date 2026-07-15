@@ -1,0 +1,26 @@
+{
+  "name": "Ryan ERP",
+  "short_name": "RyanERP",
+  "description": "Gestion ERP Ryan Construction sur mobile et desktop.",
+  "start_url": "/index.html?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#081d53",
+  "theme_color": "#0d2c77",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
