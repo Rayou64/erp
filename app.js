@@ -3486,6 +3486,7 @@ function authorizeRoleAccess(req, res, next) {
   if (
     (method === 'POST' && /^\/guide-documents\/upload$/.test(pathName))
     || (method === 'PATCH' && /^\/guide-documents\/\d+\/rename$/.test(pathName))
+    || (method === 'DELETE' && /^\/guide-documents\/\d+$/.test(pathName))
   ) {
     const normalizedRole = String(role || '').trim();
     if (normalizedRole === 'dirigeant' || normalizedRole === 'admin') {
@@ -7102,6 +7103,42 @@ app.patch('/api/guide-documents/:id/rename', async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ error: 'Erreur renommage document guide', details: String(err?.message || err) });
+  }
+});
+
+app.delete('/api/guide-documents/:id', async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'dirigeant' && role !== 'admin') {
+      return res.status(403).json({ error: 'Seul l\'admin peut supprimer les documents guide' });
+    }
+
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'ID document invalide' });
+    }
+
+    const row = await get('SELECT * FROM guide_documents WHERE id = ?', [id]);
+    if (!row) {
+      return res.status(404).json({ error: 'Document introuvable' });
+    }
+
+    const scope = String(row?.audienceScope || 'all').trim().toLowerCase() === 'selected' ? 'selected' : 'all';
+    if (scope !== 'all') {
+      return res.status(400).json({ error: 'Suppression autorisee uniquement pour les documents publies a tout le monde' });
+    }
+
+    await run('DELETE FROM guide_documents WHERE id = ?', [id]);
+
+    const relativePath = String(row.relativePath || '').trim();
+    const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
+    if (relativePath && fs.existsSync(absolutePath)) {
+      try { await fs.promises.unlink(absolutePath); } catch (_e) {}
+    }
+
+    return res.json({ message: 'Document guide supprime' });
+  } catch (err) {
+    return res.status(500).json({ error: 'Erreur suppression document guide', details: String(err?.message || err) });
   }
 });
 

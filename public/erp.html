@@ -22365,7 +22365,7 @@
             <div class="action-buttons">
               <button class="button button-small button-primary" onclick="downloadGuideDocument(${Number(doc.id)})">Télécharger</button>
               ${canManageGuideDocuments()
-                ? `<button class="button button-small button-secondary" onclick="renameGuideDocument(${Number(doc.id)})">Renommer</button>`
+                ? `<button class="button button-small button-secondary" onclick="renameGuideDocument(${Number(doc.id)})">Renommer</button>${String(doc.audienceScope || 'all') === 'all' ? `<button class="button button-small button-danger" onclick="deleteGuideDocument(${Number(doc.id)})">Supprimer</button>` : ''}`
                 : ''}
             </div>
           </li>
@@ -22475,6 +22475,36 @@
         loadGuideDocuments();
       } catch (err) {
         showMessage('Erreur: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteGuideDocument = async function(id) {
+      if (!canManageGuideDocuments()) {
+        showMessage('Action non autorisée pour ce profil', 'error');
+        return;
+      }
+
+      const doc = guideDocumentsCache.find(item => Number(item.id) === Number(id));
+      if (!doc) {
+        showMessage('Document guide introuvable', 'error');
+        return;
+      }
+
+      if (String(doc.audienceScope || 'all') !== 'all') {
+        showMessage('Suppression autorisée uniquement pour les documents diffusés à tout le monde', 'error');
+        return;
+      }
+
+      if (!confirm(`Supprimer le document guide "${String(doc.title || '').trim()}" ?`)) return;
+
+      try {
+        await fetchJson(`/api/guide-documents/${Number(id)}`, {
+          method: 'DELETE',
+        });
+        showMessage('Document guide supprimé');
+        loadGuideDocuments();
+      } catch (err) {
+        showMessage('Erreur suppression guide: ' + err.message, 'error');
       }
     };
 
