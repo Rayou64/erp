@@ -6611,6 +6611,7 @@
         <div class="menu-section">
           <div class="menu-section-title">Admin</div>
           <div class="menu-item" data-module="database">🗂️ Base de donnée</div>
+          <div class="menu-item" data-module="guide-erp">📘 Guide ERP</div>
           <div class="menu-item" data-module="trash">🗑️ Corbeille</div>
           <div class="menu-item" data-module="users">🔑 Utilisateurs</div>
           <div class="menu-item" data-module="settings">⚙️ Paramètres</div>
@@ -8832,6 +8833,38 @@
           </div>
         </div>
 
+        <div id="guide-erp" class="module">
+          <div class="page-header">
+            <h1>Guide ERP</h1>
+            <p>Documents d'implémentation et procédures internes</p>
+          </div>
+          <div class="card">
+            <h3 style="margin-bottom: 15px;">Importer un document guide</h3>
+            <form id="guide-upload-form" style="margin-bottom: 18px;">
+              <div class="grid-2" style="gap: 14px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label>Titre *</label>
+                  <input type="text" id="guide-upload-title" placeholder="Ex: Procédure achat - Version 1" required />
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label>Fichier *</label>
+                  <input type="file" id="guide-upload-file" required />
+                </div>
+              </div>
+              <button type="submit" class="button button-primary" style="margin-top: 10px;">Publier dans le guide ERP</button>
+            </form>
+
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
+
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label>Recherche</label>
+              <input type="text" id="guide-search" placeholder="Rechercher un document guide" />
+            </div>
+
+            <ul id="guide-documents-list" class="list"></ul>
+          </div>
+        </div>
+
         <div id="trash" class="module">
           <div class="page-header">
             <h1>Corbeille</h1>
@@ -9206,6 +9239,8 @@
     const DATABASE_TRASH_STORAGE_KEY = 'erp_database_trash_v1';
     let databaseHiddenDocumentIds = [];
     let databaseDocumentsCache = [];
+    let guideDocumentsCache = [];
+    let guideSearchTerm = '';
     let databaseTrashBySection = {
       achats: [],
       construction: [],
@@ -9332,13 +9367,13 @@
 
     const MATERIAL_CATALOG_PROJECT = 'PINUT';
 
-    const COMMIS_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'hr-employee-search']);
-    const GEST_STOCK_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'hr-employee-search']);
-    const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search']);
+    const COMMIS_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'hr-employee-search', 'guide-erp']);
+    const GEST_STOCK_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'hr-employee-search', 'guide-erp']);
+    const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search', 'guide-erp']);
     const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave']);
-    const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search']);
-    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database']);
-    const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search']);
+    const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
+    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
+    const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp']);
     const STANDARD_EMPLOYEE_USERNAMES = new Set([
       'agbodjro123',
       'appia123',
@@ -9372,10 +9407,10 @@
       'yeo123',
       'zran123',
     ]);
-    const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'hr-employee-search']);
-    const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search']);
-    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search']);
-      const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search']);
+    const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'hr-employee-search', 'guide-erp']);
+    const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
+    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp']);
+      const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
     const AUTO_MAP_REFRESH_MS = 10000;
     const AUTO_DASHBOARD_REFRESH_MS = 30000;
 
@@ -9513,6 +9548,10 @@
 
     function canManageDatabaseDocuments() {
       return !isProcurementReviewer() && !isSiteChief();
+    }
+
+    function canManageGuideDocuments() {
+      return isAdmin() || isExecutive();
     }
 
     function canManageTrashModule() {
@@ -10594,7 +10633,7 @@
     }
 
     function getAllowedModules() {
-      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
+      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
       if (isHrDirector()) return HR_DIRECTOR_ALLOWED_MODULES;
       if (isStandardEmployeeProfileRole()) return STANDARD_EMPLOYEE_ALLOWED_MODULES;
       if (isExecutive()) return EXECUTIVE_ALLOWED_MODULES;
@@ -10700,6 +10739,15 @@
         const clearAllDatabaseTrashButton = document.querySelector('button[onclick="clearDatabaseTrashAll()"]');
         if (clearAllDatabaseTrashButton) {
           clearAllDatabaseTrashButton.style.display = 'none';
+        }
+      }
+
+      if (!canManageGuideDocuments()) {
+        const guideUploadForm = document.getElementById('guide-upload-form');
+        if (guideUploadForm) {
+          guideUploadForm.style.display = 'none';
+          const uploadHeading = guideUploadForm.previousElementSibling;
+          if (uploadHeading) uploadHeading.style.display = 'none';
         }
       }
 
@@ -17682,6 +17730,7 @@
         revenues: ['Revenus', 'Revenus de projets'],
         reports: ['Rapports financiers', 'Analyse des performances'],
         database: ['Base de donnée', 'Archives PDF classées par section'],
+        'guide-erp': ['Guide ERP', 'Documents d\'implémentation et procédures'],
         trash: ['Corbeille', 'Éléments supprimés classés par module'],
         'audit-log': ['Historique des actions', 'Traçabilité des opérations ERP'],
         users: ['Utilisateurs', 'Gestion des comptes'],
@@ -22266,6 +22315,107 @@
       loadDatabaseDocuments();
     };
 
+    async function loadGuideDocuments() {
+      try {
+        const documents = await fetchJson('/api/guide-documents');
+        guideDocumentsCache = Array.isArray(documents) ? documents : [];
+        const list = document.getElementById('guide-documents-list');
+        if (!list) return;
+
+        const searchValue = normalizeText(guideSearchTerm.trim());
+        const filtered = guideDocumentsCache.filter(doc => {
+          const haystack = normalizeText([
+            doc.title,
+            doc.fileName,
+            doc.uploadedBy,
+          ].join(' '));
+          return !searchValue || haystack.includes(searchValue);
+        });
+
+        if (!guideDocumentsCache.length) {
+          list.innerHTML = '<div class="empty-state"><p>Aucun document guide disponible</p></div>';
+          return;
+        }
+
+        if (!filtered.length) {
+          list.innerHTML = '<div class="empty-state"><p>Aucun document guide ne correspond à la recherche</p></div>';
+          return;
+        }
+
+        list.innerHTML = filtered.map(doc => `
+          <li class="list-item">
+            <div class="list-item-content">
+              <div class="list-item-title">${escapeHtml(doc.title)}</div>
+              <div class="list-item-meta">${escapeHtml(doc.fileName)} • ${escapeHtml(doc.uploadedBy || 'admin')} • ${formatDateWithSameDayTime(doc.updatedAt)}</div>
+            </div>
+            <div class="action-buttons">
+              <button class="button button-small button-primary" onclick="downloadGuideDocument(${Number(doc.id)})">Télécharger</button>
+              ${canManageGuideDocuments()
+                ? `<button class="button button-small button-secondary" onclick="renameGuideDocument(${Number(doc.id)})">Renommer</button>`
+                : ''}
+            </div>
+          </li>
+        `).join('');
+      } catch (err) {
+        showMessage('Erreur lors du chargement du guide ERP', 'error');
+      }
+    }
+
+    window.downloadGuideDocument = async function(id) {
+      try {
+        const token = localStorage.getItem('erp_token');
+        const resp = await fetch(`/api/guide-documents/${id}/download`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error || `Erreur ${resp.status}`);
+        }
+
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const disp = resp.headers.get('Content-Disposition') || '';
+        const match = disp.match(/filename="([^"]+)"/);
+        a.download = match ? match[1] : 'guide-document';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        showMessage('Erreur téléchargement guide: ' + err.message, 'error');
+      }
+    };
+
+    window.renameGuideDocument = async function(id) {
+      if (!canManageGuideDocuments()) {
+        showMessage('Action non autorisée pour ce profil', 'error');
+        return;
+      }
+      const doc = guideDocumentsCache.find(item => Number(item.id) === Number(id));
+      if (!doc) {
+        showMessage('Document guide introuvable', 'error');
+        return;
+      }
+      const nextTitle = prompt('Nouveau titre du document guide :', String(doc.title || '').trim());
+      if (nextTitle === null) return;
+      if (!String(nextTitle).trim()) {
+        showMessage('Le titre ne peut pas être vide', 'error');
+        return;
+      }
+      try {
+        await fetchJson(`/api/guide-documents/${Number(id)}/rename`, {
+          method: 'PATCH',
+          body: JSON.stringify({ title: String(nextTitle).trim() }),
+        });
+        showMessage('Document guide renommé');
+        loadGuideDocuments();
+      } catch (err) {
+        showMessage('Erreur: ' + err.message, 'error');
+      }
+    };
+
     async function permanentlyDeleteDatabaseDocuments(ids) {
       const normalizedIds = Array.isArray(ids)
         ? ids.map(id => Number(id)).filter(id => Number.isInteger(id) && id > 0)
@@ -24871,6 +25021,45 @@
       }
     });
 
+    document.getElementById('guide-upload-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!canManageGuideDocuments()) {
+        showMessage('Import guide non autorisé pour ce profil', 'error');
+        return;
+      }
+
+      try {
+        const title = String(document.getElementById('guide-upload-title').value || '').trim();
+        const input = document.getElementById('guide-upload-file');
+        const file = input.files && input.files[0];
+        if (!title) {
+          showMessage('Renseigne un titre pour le document guide', 'error');
+          return;
+        }
+        if (!file) {
+          showMessage('Choisis un fichier à publier dans le guide', 'error');
+          return;
+        }
+
+        const contentBase64 = await fileToBase64(file);
+        await fetchJson('/api/guide-documents/upload', {
+          method: 'POST',
+          body: JSON.stringify({
+            title,
+            fileName: file.name,
+            contentBase64,
+            mimeType: file.type || 'application/octet-stream',
+          }),
+        });
+
+        e.target.reset();
+        showMessage('Document guide publié');
+        loadGuideDocuments();
+      } catch (err) {
+        showMessage('Erreur: ' + err.message, 'error');
+      }
+    });
+
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
       logoutButton.addEventListener('click', () => {
@@ -25528,6 +25717,13 @@
       }
     });
 
+    document.getElementById('guide-search').addEventListener('input', e => {
+      guideSearchTerm = e.target.value;
+      if (currentModule === 'guide-erp') {
+        loadGuideDocuments();
+      }
+    });
+
     document.getElementById('trash-search').addEventListener('input', e => {
       trashSearchTerm = e.target.value;
       if (currentModule === 'trash') {
@@ -25663,7 +25859,7 @@
         tone: 'admin',
         description: 'Users, parametres, historique',
         subtitle: 'Administration, comptes et parametrage du systeme.',
-        modules: ['database', 'trash', 'users', 'settings', 'audit-log'],
+        modules: ['database', 'guide-erp', 'trash', 'users', 'settings', 'audit-log'],
       },
     ];
 
@@ -25689,6 +25885,7 @@
       'hr-leave': 'Demandes de conge',
       'hr-signatures': 'Documents a signer',
       database: 'Base documentaire ERP',
+      'guide-erp': 'Guides et procédures ERP',
       trash: 'Elements supprimes',
       users: 'Comptes et permissions',
       settings: 'Configuration ERP',
@@ -26243,6 +26440,8 @@
         else if (resolvedModule === 'database') {
           loadProjects();
           loadDatabaseDocuments();
+        } else if (resolvedModule === 'guide-erp') {
+          loadGuideDocuments();
         } else if (resolvedModule === 'users') {
           loadUsersModule();
         } else if (resolvedModule === 'trash') {
