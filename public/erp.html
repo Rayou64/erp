@@ -5614,6 +5614,139 @@
       background: #f1f6ff;
     }
 
+    #guide-erp .list .list-item {
+      border: 1px solid #d6e2ff;
+      border-radius: 16px;
+      background: radial-gradient(120% 120% at 0% 0%, #f8fbff 0%, #eef4ff 52%, #ffffff 100%);
+      border-left: 6px solid #1d4ed8;
+      padding: 14px;
+      box-shadow: 0 8px 22px rgba(29, 78, 216, 0.08);
+      gap: 12px;
+    }
+
+    #guide-erp .list .list-item:hover {
+      box-shadow: 0 14px 30px rgba(29, 78, 216, 0.16);
+      border-color: #b8cdff;
+      transform: translateY(-1px);
+    }
+
+    #guide-erp .guide-doc-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    #guide-erp .guide-doc-title {
+      color: #0b2555;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    #guide-erp .guide-doc-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    #guide-erp .guide-doc-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      border: 1px solid transparent;
+    }
+
+    #guide-erp .guide-doc-badge-audience-all {
+      color: #065f46;
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+    }
+
+    #guide-erp .guide-doc-badge-audience-selected {
+      color: #7c2d12;
+      background: #fff7ed;
+      border-color: #fdba74;
+    }
+
+    #guide-erp .guide-doc-badge-ext {
+      color: #1e3a8a;
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      text-transform: uppercase;
+    }
+
+    #guide-erp .guide-doc-meta {
+      color: #3e5f8c;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    #guide-erp .guide-doc-meta-secondary {
+      color: #5f7aa3;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    #guide-erp .action-buttons {
+      width: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 0;
+    }
+
+    #guide-erp .action-buttons .button {
+      min-width: 108px;
+      min-height: 36px;
+      border-radius: 10px;
+    }
+
+    [data-theme="dark"] #guide-erp .list .list-item {
+      background: linear-gradient(145deg, #14213d 0%, #0f172a 100%);
+      border-color: #334155;
+      border-left-color: #60a5fa;
+      box-shadow: 0 10px 26px rgba(2, 6, 23, 0.45);
+    }
+
+    [data-theme="dark"] #guide-erp .guide-doc-title {
+      color: #dbeafe;
+    }
+
+    [data-theme="dark"] #guide-erp .guide-doc-meta {
+      color: #a8c2e8;
+    }
+
+    [data-theme="dark"] #guide-erp .guide-doc-meta-secondary {
+      color: #93afda;
+    }
+
+    [data-theme="dark"] #guide-erp .guide-doc-badge-audience-all {
+      color: #a7f3d0;
+      background: rgba(6, 95, 70, 0.32);
+      border-color: rgba(110, 231, 183, 0.45);
+    }
+
+    [data-theme="dark"] #guide-erp .guide-doc-badge-audience-selected {
+      color: #fed7aa;
+      background: rgba(124, 45, 18, 0.35);
+      border-color: rgba(251, 146, 60, 0.45);
+    }
+
+    [data-theme="dark"] #guide-erp .guide-doc-badge-ext {
+      color: #bfdbfe;
+      background: rgba(30, 58, 138, 0.42);
+      border-color: rgba(147, 197, 253, 0.45);
+    }
+
     /* --- Séparateur entre sections sur tablet/mobile --- */
     .module .erp-section-sep {
       display: none;
@@ -22358,9 +22491,17 @@
         list.innerHTML = filtered.map(doc => `
           <li class="list-item">
             <div class="list-item-content">
-              <div class="list-item-title">${escapeHtml(doc.title)}</div>
-              <div class="list-item-meta">${escapeHtml(doc.fileName)} • ${escapeHtml(doc.uploadedBy || 'admin')} • ${formatDateWithSameDayTime(doc.updatedAt)}</div>
-              <div class="list-item-meta" style="margin-top: 3px;">${String(doc.audienceScope || 'all') === 'selected' ? `Diffusion ciblée (${Array.isArray(doc.recipientEmployeeIds) ? doc.recipientEmployeeIds.length : 0} employé(s))` : 'Diffusion générale (tout le monde)'}</div>
+              <div class="guide-doc-head">
+                <div class="guide-doc-title">${escapeHtml(doc.title)}</div>
+                <div class="guide-doc-badges">
+                  <span class="guide-doc-badge guide-doc-badge-ext">${escapeHtml((String(doc.fileName || '').split('.').pop() || 'fichier').slice(0, 8))}</span>
+                  ${String(doc.audienceScope || 'all') === 'selected'
+                    ? `<span class="guide-doc-badge guide-doc-badge-audience-selected">Ciblé (${Array.isArray(doc.recipientEmployeeIds) ? doc.recipientEmployeeIds.length : 0})</span>`
+                    : '<span class="guide-doc-badge guide-doc-badge-audience-all">Tout le monde</span>'}
+                </div>
+              </div>
+              <div class="guide-doc-meta">${escapeHtml(doc.fileName)} • ${escapeHtml(formatFileSizeLabel(doc.sizeBytes))} • ${escapeHtml(doc.uploadedBy || 'admin')}</div>
+              <div class="guide-doc-meta-secondary">Mis à jour ${formatDateWithSameDayTime(doc.updatedAt)}</div>
             </div>
             <div class="action-buttons">
               <button class="button button-small button-primary" onclick="downloadGuideDocument(${Number(doc.id)})">Télécharger</button>
