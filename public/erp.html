@@ -8851,6 +8851,18 @@
                   <input type="file" id="guide-upload-file" required />
                 </div>
               </div>
+              <div class="form-group" style="margin-top: 10px; margin-bottom: 0;">
+                <label>Diffusion</label>
+                <select id="guide-audience-scope">
+                  <option value="all">Envoyer à tout le monde</option>
+                  <option value="selected">Envoyer à certains employés</option>
+                </select>
+              </div>
+              <div id="guide-recipient-picker" class="form-group" style="margin-top: 10px; margin-bottom: 0; display: none;">
+                <label>Employés destinataires</label>
+                <select id="guide-recipient-ids" multiple size="8"></select>
+                <p style="font-size: 12px; color: #64748b; margin-top: 6px;">Maintiens Ctrl (Windows) pour sélectionner plusieurs employés.</p>
+              </div>
               <button type="submit" class="button button-primary" style="margin-top: 10px;">Publier dans le guide ERP</button>
             </form>
 
@@ -9240,6 +9252,7 @@
     let databaseHiddenDocumentIds = [];
     let databaseDocumentsCache = [];
     let guideDocumentsCache = [];
+    let guideRecipientEmployeesCache = [];
     let guideSearchTerm = '';
     let databaseTrashBySection = {
       achats: [],
@@ -22347,6 +22360,7 @@
             <div class="list-item-content">
               <div class="list-item-title">${escapeHtml(doc.title)}</div>
               <div class="list-item-meta">${escapeHtml(doc.fileName)} • ${escapeHtml(doc.uploadedBy || 'admin')} • ${formatDateWithSameDayTime(doc.updatedAt)}</div>
+              <div class="list-item-meta" style="margin-top: 3px;">${String(doc.audienceScope || 'all') === 'selected' ? `Diffusion ciblée (${Array.isArray(doc.recipientEmployeeIds) ? doc.recipientEmployeeIds.length : 0} employé(s))` : 'Diffusion générale (tout le monde)'}</div>
             </div>
             <div class="action-buttons">
               <button class="button button-small button-primary" onclick="downloadGuideDocument(${Number(doc.id)})">Télécharger</button>
@@ -22359,6 +22373,54 @@
       } catch (err) {
         showMessage('Erreur lors du chargement du guide ERP', 'error');
       }
+    }
+
+    async function loadGuideRecipientEmployees() {
+      if (!canManageGuideDocuments()) return;
+
+      const picker = document.getElementById('guide-recipient-picker');
+      const recipientSelect = document.getElementById('guide-recipient-ids');
+      if (!picker || !recipientSelect) return;
+
+      try {
+        const rows = await fetchJson('/api/guide-documents/recipients/employees');
+        guideRecipientEmployeesCache = Array.isArray(rows) ? rows : [];
+
+        if (!guideRecipientEmployeesCache.length) {
+          recipientSelect.innerHTML = '<option value="">Aucun employé disponible</option>';
+          return;
+        }
+
+        recipientSelect.innerHTML = guideRecipientEmployeesCache.map(emp => {
+          const label = [
+            String(emp.fullName || '').trim() || `Employé ${Number(emp.id)}`,
+            String(emp.jobTitle || '').trim(),
+            String(emp.username || '').trim(),
+          ].filter(Boolean).join(' • ');
+          return `<option value="${Number(emp.id)}">${escapeHtml(label)}</option>`;
+        }).join('');
+      } catch (err) {
+        guideRecipientEmployeesCache = [];
+        recipientSelect.innerHTML = '';
+        showMessage('Erreur chargement destinataires: ' + err.message, 'error');
+      }
+    }
+
+    function getSelectedGuideRecipientIds() {
+      const select = document.getElementById('guide-recipient-ids');
+      if (!select) return [];
+      return Array.from(select.selectedOptions || [])
+        .map(option => Number(option.value || 0))
+        .filter(id => Number.isInteger(id) && id > 0);
+    }
+
+    function syncGuideRecipientPickerVisibility() {
+      const scopeSelect = document.getElementById('guide-audience-scope');
+      const picker = document.getElementById('guide-recipient-picker');
+      if (!scopeSelect || !picker) return;
+
+      const scope = String(scopeSelect.value || 'all').trim().toLowerCase();
+      picker.style.display = scope === 'selected' ? '' : 'none';
     }
 
     window.downloadGuideDocument = async function(id) {
@@ -25032,12 +25094,20 @@
         const title = String(document.getElementById('guide-upload-title').value || '').trim();
         const input = document.getElementById('guide-upload-file');
         const file = input.files && input.files[0];
+        const audienceScope = String(document.getElementById('guide-audience-scope')?.value || 'all').trim().toLowerCase() === 'selected'
+          ? 'selected'
+          : 'all';
+        const recipientEmployeeIds = audienceScope === 'selected' ? getSelectedGuideRecipientIds() : [];
         if (!title) {
           showMessage('Renseigne un titre pour le document guide', 'error');
           return;
         }
         if (!file) {
           showMessage('Choisis un fichier à publier dans le guide', 'error');
+          return;
+        }
+        if (audienceScope === 'selected' && !recipientEmployeeIds.length) {
+          showMessage('Choisis au moins un employé destinataire', 'error');
           return;
         }
 
@@ -25049,10 +25119,13 @@
             fileName: file.name,
             contentBase64,
             mimeType: file.type || 'application/octet-stream',
+            audienceScope,
+            recipientEmployeeIds,
           }),
         });
 
         e.target.reset();
+        syncGuideRecipientPickerVisibility();
         showMessage('Document guide publié');
         loadGuideDocuments();
       } catch (err) {
@@ -25722,6 +25795,10 @@
       if (currentModule === 'guide-erp') {
         loadGuideDocuments();
       }
+    });
+
+    document.getElementById('guide-audience-scope').addEventListener('change', () => {
+      syncGuideRecipientPickerVisibility();
     });
 
     document.getElementById('trash-search').addEventListener('input', e => {
@@ -26441,6 +26518,7 @@
           loadProjects();
           loadDatabaseDocuments();
         } else if (resolvedModule === 'guide-erp') {
+          loadGuideRecipientEmployees();
           loadGuideDocuments();
         } else if (resolvedModule === 'users') {
           loadUsersModule();

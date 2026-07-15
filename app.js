@@ -540,6 +540,42 @@ async function getNextTableId(tableName) {
   return Number(row?.nextId || row?.nextid || 1);
 }
 
+function normalizeNumericIdList(value) {
+  const asArray = Array.isArray(value)
+    ? value
+    : String(value || '')
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+
+  const seen = new Set();
+  const normalized = [];
+  for (const item of asArray) {
+    const numeric = Number(item);
+    if (!Number.isInteger(numeric) || numeric <= 0) continue;
+    if (seen.has(numeric)) continue;
+    seen.add(numeric);
+    normalized.push(numeric);
+  }
+  return normalized;
+}
+
+function hasTableColumn(columns, name) {
+  if (!columns || typeof columns.has !== 'function') return false;
+  if (columns.has(name)) return true;
+  const lower = String(name || '').toLowerCase();
+  for (const entry of columns) {
+    if (String(entry || '').toLowerCase() === lower) return true;
+  }
+  return false;
+}
+
+async function ensureGuideDocumentAudienceColumns() {
+  try { await run("ALTER TABLE guide_documents ADD COLUMN audienceScope TEXT NOT NULL DEFAULT 'all'"); } catch (_e) {}
+  try { await run("ALTER TABLE guide_documents ADD COLUMN recipientEmployeeIds TEXT NOT NULL DEFAULT ''"); } catch (_e) {}
+  return getTableColumns('guide_documents');
+}
+
 app.get('/healthz', (_req, res) => {
   if (isShuttingDown) {
     return res.status(503).json({ status: 'shutting-down' });
@@ -1747,7 +1783,7 @@ async function archiveUploadedDocument({ sectionCode, title, fileName, fileBuffe
   };
 }
 
-async function archiveGuideDocument({ title, fileName, fileBuffer, mimeType = 'application/octet-stream', uploadedBy = 'admin' }) {
+async function archiveGuideDocument({ title, fileName, fileBuffer, mimeType = 'application/octet-stream', uploadedBy = 'admin', audienceScope = 'all', recipientEmployeeIds = [] }) {
   const safeName = sanitizeFileName(fileName || 'guide-document');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const finalFileName = `${stamp}-${safeName}`;
@@ -1762,6 +1798,16 @@ async function archiveGuideDocument({ title, fileName, fileBuffer, mimeType = 'a
   const safeMimeType = String(mimeType || 'application/octet-stream').trim() || 'application/octet-stream';
   const sizeBytes = Number(fileBuffer?.length || 0);
   const safeUploadedBy = String(uploadedBy || 'admin').trim() || 'admin';
+  const normalizedAudienceScope = String(audienceScope || 'all').trim().toLowerCase() === 'selected' ? 'selected' : 'all';
+  const normalizedRecipientIds = normalizeNumericIdList(recipientEmployeeIds);
+  const serializedRecipientIds = normalizedAudienceScope === 'selected' ? normalizedRecipientIds.join(',') : '';
+  const guideColumns = await ensureGuideDocumentAudienceColumns();
+  const hasAudienceScopeColumn = hasTableColumn(guideColumns, 'audienceScope');
+  const hasRecipientIdsColumn = hasTableColumn(guideColumns, 'recipientEmployeeIds');
+
+  if (normalizedAudienceScope === 'selected' && (!hasAudienceScopeColumn || !hasRecipientIdsColumn)) {
+    throw new Error('Configuration guide incomplète: colonnes de ciblage absentes');
+  }
 
   let nextGuideId = null;
   if (DB_DRIVER === 'postgres') {
@@ -1787,6 +1833,12 @@ async function archiveGuideDocument({ title, fileName, fileBuffer, mimeType = 'a
   pushColumn('mimeType', safeMimeType);
   pushColumn('sizeBytes', sizeBytes);
   pushColumn('uploadedBy', safeUploadedBy);
+  if (hasAudienceScopeColumn) {
+    pushColumn('audienceScope', normalizedAudienceScope);
+  }
+  if (hasRecipientIdsColumn) {
+    pushColumn('recipientEmployeeIds', serializedRecipientIds);
+  }
   pushColumn('createdAt', now);
   pushColumn('updatedAt', now);
 
@@ -1803,6 +1855,8 @@ async function archiveGuideDocument({ title, fileName, fileBuffer, mimeType = 'a
     mimeType: safeMimeType,
     sizeBytes,
     uploadedBy: safeUploadedBy,
+    audienceScope: normalizedAudienceScope,
+    recipientEmployeeIds: normalizedRecipientIds,
     createdAt: now,
     updatedAt: now,
     fileUrl: `/archives/${relativePath.replace(/\\/g, '/')}`,
@@ -2740,6 +2794,8 @@ async function initDb() {
     mimeType TEXT NOT NULL,
     sizeBytes INTEGER NOT NULL DEFAULT 0,
     uploadedBy TEXT NOT NULL,
+    audienceScope TEXT NOT NULL DEFAULT 'all',
+    recipientEmployeeIds TEXT NOT NULL DEFAULT '',
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL
   )`);
@@ -2781,6 +2837,8 @@ async function initDb() {
   try { await run("ALTER TABLE guide_documents ADD COLUMN mimeType TEXT NOT NULL DEFAULT 'application/octet-stream'"); } catch (e) {}
   try { await run('ALTER TABLE guide_documents ADD COLUMN sizeBytes INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN uploadedBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
+  try { await run("ALTER TABLE guide_documents ADD COLUMN audienceScope TEXT NOT NULL DEFAULT 'all'"); } catch (e) {}
+  try { await run("ALTER TABLE guide_documents ADD COLUMN recipientEmployeeIds TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
 
@@ -3420,7 +3478,7 @@ function authorizeRoleAccess(req, res, next) {
 
   if (
     method === 'GET'
-    && (/^\/guide-documents$/.test(pathName) || /^\/guide-documents\/\d+\/download$/.test(pathName))
+    && (/^\/guide-documents$/.test(pathName) || /^\/guide-documents\/\d+\/download$/.test(pathName) || /^\/guide-documents\/recipients\/employees$/.test(pathName))
   ) {
     return next();
   }
@@ -6906,9 +6964,25 @@ app.get('/api/database-documents/:id/download', async (req, res) => {
 
 app.get('/api/guide-documents', async (_req, res) => {
   try {
-    const rows = await all('SELECT * FROM guide_documents ORDER BY updatedAt DESC, id DESC');
+    let rows = await all('SELECT * FROM guide_documents ORDER BY updatedAt DESC, id DESC');
+    const role = String(_req.user?.role || '').trim();
+    const canManage = role === 'admin' || role === 'dirigeant';
+    if (!canManage) {
+      const profile = await getHrProfileEmployeeForUser(_req.user);
+      const currentEmployeeId = Number(profile?.id || 0);
+      rows = (Array.isArray(rows) ? rows : []).filter(row => {
+        const scope = String(row?.audienceScope || 'all').trim().toLowerCase() === 'selected' ? 'selected' : 'all';
+        if (scope === 'all') return true;
+        if (!Number.isInteger(currentEmployeeId) || currentEmployeeId <= 0) return false;
+        const recipients = normalizeNumericIdList(row?.recipientEmployeeIds);
+        return recipients.includes(currentEmployeeId);
+      });
+    }
+
     const normalizedRows = (Array.isArray(rows) ? rows : []).map(row => ({
       ...row,
+      audienceScope: String(row?.audienceScope || 'all').trim().toLowerCase() === 'selected' ? 'selected' : 'all',
+      recipientEmployeeIds: normalizeNumericIdList(row?.recipientEmployeeIds),
       fileUrl: `/archives/${String(row.relativePath || '').replace(/\\/g, '/')}`,
     }));
     return res.json(normalizedRows);
@@ -6924,7 +6998,7 @@ app.post('/api/guide-documents/upload', async (req, res) => {
       return res.status(403).json({ error: 'Seul l\'admin peut importer des documents guide' });
     }
 
-    const { title, fileName, contentBase64, mimeType } = req.body || {};
+    const { title, fileName, contentBase64, mimeType, audienceScope, recipientEmployeeIds } = req.body || {};
     if (!fileName || !contentBase64) {
       return res.status(400).json({ error: 'fileName et contentBase64 sont obligatoires' });
     }
@@ -6940,17 +7014,60 @@ app.post('/api/guide-documents/upload', async (req, res) => {
       return res.status(400).json({ error: 'Le fichier est vide' });
     }
 
+    const normalizedAudienceScope = String(audienceScope || 'all').trim().toLowerCase() === 'selected' ? 'selected' : 'all';
+    const normalizedRecipientIds = normalizeNumericIdList(recipientEmployeeIds);
+    if (normalizedAudienceScope === 'selected' && !normalizedRecipientIds.length) {
+      return res.status(400).json({ error: 'Choisis au moins un employe destinataire' });
+    }
+
+    if (normalizedRecipientIds.length) {
+      const placeholders = normalizedRecipientIds.map(() => '?').join(', ');
+      const found = await all(`SELECT id FROM hr_employees WHERE id IN (${placeholders})`, normalizedRecipientIds);
+      const foundIds = new Set((found || []).map(row => Number(row?.id || 0)).filter(id => Number.isInteger(id) && id > 0));
+      const missing = normalizedRecipientIds.filter(id => !foundIds.has(id));
+      if (missing.length) {
+        return res.status(400).json({ error: 'Certains employes selectionnes sont introuvables' });
+      }
+    }
+
     const doc = await archiveGuideDocument({
       title: String(title || '').trim(),
       fileName: String(fileName || '').trim(),
       fileBuffer: buffer,
       mimeType: String(mimeType || 'application/octet-stream').trim() || 'application/octet-stream',
       uploadedBy: String(req.user?.username || 'admin').trim() || 'admin',
+      audienceScope: normalizedAudienceScope,
+      recipientEmployeeIds: normalizedAudienceScope === 'selected' ? normalizedRecipientIds : [],
     });
 
     return res.status(201).json(doc);
   } catch (err) {
     return res.status(500).json({ error: 'Erreur publication document guide', details: String(err?.message || err) });
+  }
+});
+
+app.get('/api/guide-documents/recipients/employees', async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'dirigeant' && role !== 'admin') {
+      return res.status(403).json({ error: 'Seul l\'admin peut choisir des destinataires' });
+    }
+
+    const rows = await all(
+      `SELECT id, fullName, jobTitle,
+              COALESCE(username, createdBy, '') AS username
+       FROM hr_employees
+       ORDER BY fullName ASC, id ASC`
+    );
+
+    return res.json((rows || []).map(row => ({
+      id: Number(row?.id || 0),
+      fullName: String(row?.fullName || '').trim(),
+      jobTitle: String(row?.jobTitle || '').trim(),
+      username: String(row?.username || '').trim(),
+    })).filter(row => Number.isInteger(row.id) && row.id > 0));
+  } catch (err) {
+    return res.status(500).json({ error: 'Erreur chargement destinataires', details: String(err?.message || err) });
   }
 });
 
@@ -6998,6 +7115,20 @@ app.get('/api/guide-documents/:id/download', async (req, res) => {
     const row = await get('SELECT * FROM guide_documents WHERE id = ?', [id]);
     if (!row) {
       return res.status(404).json({ error: 'Document introuvable' });
+    }
+
+    const role = String(req.user?.role || '').trim();
+    const canManage = role === 'admin' || role === 'dirigeant';
+    if (!canManage) {
+      const scope = String(row?.audienceScope || 'all').trim().toLowerCase() === 'selected' ? 'selected' : 'all';
+      if (scope === 'selected') {
+        const profile = await getHrProfileEmployeeForUser(req.user);
+        const currentEmployeeId = Number(profile?.id || 0);
+        const recipients = normalizeNumericIdList(row?.recipientEmployeeIds);
+        if (!Number.isInteger(currentEmployeeId) || currentEmployeeId <= 0 || !recipients.includes(currentEmployeeId)) {
+          return res.status(403).json({ error: 'Acces refuse: document non adresse a cet employe' });
+        }
+      }
     }
 
     const relativePath = String(row.relativePath || '').trim();
