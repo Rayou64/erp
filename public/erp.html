@@ -9128,7 +9128,14 @@
     const mobileAuthToken = String(urlParams.get('mobileAuth') || '').trim();
     const openModuleFromPush = String(urlParams.get('openModule') || '').trim();
     const userAgentValue = String(navigator.userAgent || '').toLowerCase();
-    const isLikelyMobileRuntime = Boolean(mobileAuthToken) || userAgentValue.includes('capacitor') || userAgentValue.includes(' wv');
+    const isStandaloneDisplay = Boolean(
+      (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches)
+      || (typeof navigator !== 'undefined' && navigator.standalone === true)
+    );
+    const isLikelyMobileRuntime = Boolean(mobileAuthToken)
+      || userAgentValue.includes('capacitor')
+      || userAgentValue.includes(' wv')
+      || isStandaloneDisplay;
     if (isLikelyMobileRuntime) {
       document.body.classList.add('mobile-runtime');
     }
