@@ -2343,6 +2343,31 @@
       flex: 1;
     }
 
+    #materials-list .list-item {
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    #materials-list .list-item .action-buttons {
+      align-self: flex-start;
+    }
+
+    #materials-list .list-item > .material-inline-details,
+    #materials-list .list-item > div[style*="border-top"] {
+      order: 99;
+      flex: 0 0 100%;
+      flex-basis: 100%;
+      width: 100% !important;
+      max-width: 100% !important;
+      display: block;
+      margin-top: 8px;
+      padding: 12px;
+      border-top: 1px solid #dbe7ff;
+      background: #f8fbff;
+      border-radius: 10px;
+    }
+
     .project-item-clickable {
       cursor: pointer;
       border-radius: 6px;
@@ -2696,6 +2721,30 @@
       color: #dc2626;
       background: #fff1f2;
       border-color: #fecdd3;
+    }
+
+    .badge-inventory-pending {
+      color: #7c2d12;
+      background: #fffbeb;
+      border-color: #f59e0b;
+    }
+
+    .badge-inventory-stock {
+      color: #065f46;
+      background: #ecfdf5;
+      border-color: #10b981;
+    }
+
+    .badge-inventory-empty {
+      color: #991b1b;
+      background: #fef2f2;
+      border-color: #ef4444;
+    }
+
+    .badge-site {
+      color: #9a3412;
+      background: #fff7ed;
+      border-color: #fdba74;
     }
 
     .notification {
@@ -3133,6 +3182,7 @@
 
     .purchase-orders-module #po-list .list-item {
       align-items: flex-start;
+      flex-wrap: wrap;
       gap: 10px;
       border-left-color: #14b8a6;
       background: linear-gradient(145deg, #ffffff 0%, #eef6ff 100%);
@@ -3401,7 +3451,25 @@
       padding: 11px;
       gap: 10px;
       align-items: stretch;
+      flex-wrap: wrap;
       border-left-color: #0ea5a5;
+    }
+
+    .purchase-orders-module #po-list .list-item > .po-inline-details,
+    .purchase-orders-module #po-suggestions-list .list-item > .po-request-inline-details,
+    .purchase-orders-module #po-list .list-item > div[style*="border-top"],
+    .purchase-orders-module #po-suggestions-list .list-item > div[style*="border-top"] {
+      order: 99;
+      flex: 0 0 100%;
+      flex-basis: 100%;
+      width: 100% !important;
+      max-width: 100% !important;
+      display: block;
+      margin-top: 10px;
+      padding: 12px;
+      border-top: 1px solid #e2e8f0;
+      background: #f8fbff;
+      border-radius: 10px;
     }
 
     .purchase-orders-module .po-suggestion-head {
@@ -4040,6 +4108,51 @@
 
       .mph-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .mph-tile {
+        min-height: 182px;
+        border-radius: 22px;
+        padding: 14px;
+      }
+
+      .mph-tile-top {
+        gap: 8px;
+      }
+
+      .mph-tile-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 22px;
+      }
+
+      .mph-tile-badge {
+        padding: 6px 9px;
+        font-size: 10px;
+      }
+
+      .mph-tile-bottom {
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .mph-tile-title {
+        font-size: 18px;
+        margin-bottom: 7px;
+      }
+
+      .mph-tile-desc {
+        font-size: 13px;
+        line-height: 1.3;
+        max-width: 132px;
+      }
+
+      .mph-tile-arrow {
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
       }
 
       .grid-2 {
@@ -8033,6 +8146,7 @@
                     <th>Total demandé (tous projets)</th>
                     <th>Total restant</th>
                     <th>Total sorti</th>
+                    <th>Statut</th>
                   </tr>
                 </thead>
                 <tbody id="inventory-summary-list"></tbody>
@@ -8149,7 +8263,7 @@
           <div class="card">
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
               <select id="sia-filter-status" style="min-width:180px;">
-                <option value="" selected>Tous les statuts</option>
+                <option value="ALL" selected>Tous les statuts</option>
                 <option value="EN_ATTENTE">En attente</option>
                 <option value="VALIDEE">Validées</option>
                 <option value="REJETEE">Rejetées</option>
@@ -8924,6 +9038,7 @@
               <div class="action-buttons" style="gap:8px;">
                 <button type="button" class="button button-secondary button-small" onclick="loadUsersModule()">Actualiser</button>
                 <button type="button" id="users-reset-all-login-state" class="button button-small" onclick="resetAllUsersLoginState()">Reinitialiser tous les profils</button>
+                <button type="button" id="users-purge-business-data" class="button button-danger button-small" onclick="purgeErpBusinessData()">Purge ERP</button>
               </div>
             </div>
             <p id="users-summary" style="font-size:12px; color:#475569; margin-bottom:10px;">Chargement...</p>
@@ -9611,7 +9726,7 @@
     ]);
     const OPS_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'hr-employee-search', 'guide-erp']);
     const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
-    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp']);
+    const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp']);
       const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
     const AUTO_MAP_REFRESH_MS = 10000;
     const AUTO_DASHBOARD_REFRESH_MS = 30000;
@@ -9643,6 +9758,10 @@
     function isSongonSiteChiefUsername(username) {
       const normalized = normalizeText(String(username || '').trim());
       return normalized === 'chef_chantier_sk' || normalized === 'conducteur_de_travaux';
+    }
+
+    function isKokanSkUsername(username) {
+      return normalizeText(String(username || '').trim()) === 'kokan_sk';
     }
 
     function isSongonScopedSiteChief() {
@@ -9700,6 +9819,13 @@
 
     function isPurchaseReadOnlyRole() {
       return isOpsReviewer() || isProcurementReviewer() || isExecutive();
+    }
+
+    function isMaterialCatalogReadOnlyProfile() {
+      return isProcurementReviewer()
+        || isExecutive()
+        || isSongonScopedSiteChief()
+        || isKokanSkUsername(currentUserUsername);
     }
 
     function isProcurementStockReadOnly() {
@@ -10039,7 +10165,7 @@
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
-      return isAdmin() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer();
+      return isAdmin() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive();
     }
 
     function canLoadPurchaseOrdersForCurrentRole() {
@@ -11105,8 +11231,12 @@
     async function loadUsersModule() {
       const tbody = document.getElementById('users-table-body');
       const resetAllButton = document.getElementById('users-reset-all-login-state');
+      const purgeButton = document.getElementById('users-purge-business-data');
       if (resetAllButton) {
         resetAllButton.style.display = isAdmin() ? 'inline-flex' : 'none';
+      }
+      if (purgeButton) {
+        purgeButton.style.display = isAdmin() ? 'inline-flex' : 'none';
       }
       if (tbody) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">Chargement...</td></tr>';
@@ -11165,6 +11295,81 @@
         await loadUsersModule();
       } catch (err) {
         showMessage('Impossible de reinitialiser tous les profils: ' + err.message, 'error');
+      }
+    };
+
+    window.purgeErpBusinessData = async function purgeErpBusinessData() {
+      if (!isAdmin()) {
+        showMessage('Acces refuse: admin uniquement', 'error');
+        return;
+      }
+
+      const warningText = [
+        'Cette action va supprimer definitivement:',
+        '- Bons de commande (bons recents + demandes recentes liees)',
+        '- Demandes d\'approvisionnement',
+        '- Inventaire et autorisations de sortie',
+        '- Depenses et revenus',
+        '- Corbeille et documents archives',
+        '',
+        'Tape PURGE_ALL_DATA pour confirmer.'
+      ].join('\n');
+
+      const confirmed = window.prompt(warningText, '');
+      if (confirmed !== 'PURGE_ALL_DATA') {
+        showMessage('Purge annulee: confirmation invalide', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetchJson('/api/admin/purge-business-data', {
+          method: 'POST',
+          body: JSON.stringify({ confirm: 'PURGE_ALL_DATA' }),
+        });
+
+        trashItems = [];
+        saveTrashItemsToStorage();
+        databaseTrashBySection = {
+          projects: [],
+          users: [],
+          assignments: [],
+          revenues: [],
+          expenses: [],
+          purchase_orders: [],
+          generated_documents: [],
+        };
+        saveDatabaseTrashToStorage();
+        saveDatabaseTrashHiddenIdsToStorage();
+
+        selectedMaterialRequestId = null;
+        selectedPurchaseOrderId = null;
+        selectedPoRequestGroupAnchorId = null;
+        poLastCreatedOrderId = null;
+        materialRequestsCache = [];
+        purchaseOrdersCache = [];
+        stockOrdersCache = [];
+        stockAvailableCache = [];
+        stockIssuesCache = [];
+        expensesCache = [];
+        revenuesCache = [];
+
+        await Promise.allSettled([
+          loadMaterials(),
+          loadPurchaseOrders(),
+          loadStockManagement(),
+          loadInventory(),
+          loadExpenses(),
+          loadRevenues(),
+        ]);
+
+        if (currentModule === 'trash') {
+          renderTrashModule();
+          renderDatabaseTrashModule();
+        }
+
+        showMessage(`Purge ERP terminee (${Array.isArray(response?.tables) ? response.tables.length : 0} tables)`, 'success');
+      } catch (error) {
+        showMessage('Impossible de purger l\'ERP: ' + (error?.message || error), 'error');
       }
     };
 
@@ -12782,23 +12987,40 @@
     }
 
     function formatInventoryStatusLabel(status) {
+      const normalizedStatus = normalizeInventoryStatus(status);
       const labels = {
         EN_ATTENTE: 'En attente',
         EN_COURS: 'En cours',
         APPROUVEE: 'Approuvée',
         EN_STOCK: 'En stock',
-        SUR_SITE: 'Sur site',
+        SUR_SITE: 'SUR SITE',
         LIVREE: 'En stock',
-        EPUISE: 'ÉPUISÉ',
+        EPUISE: 'ÉPUISÉE',
         REJETEE: 'Rejetée',
       };
-      return labels[status] || String(status || '-');
+      return labels[normalizedStatus] || String(status || '-');
+    }
+
+    function normalizeInventoryStatus(status) {
+      const normalized = normalizeText(status)
+        .replace(/\s+/g, '_')
+        .replace(/-/g, '_');
+
+      if (normalized === 'enstock') return 'EN_STOCK';
+      if (normalized === 'en_stock') return 'EN_STOCK';
+      if (normalized === 'epuisee') return 'EPUISE';
+      if (normalized === 'epuise') return 'EPUISE';
+      return normalized.toUpperCase();
     }
 
     function getInventoryBadgeClass(status) {
-      if (status === 'EN_STOCK' || status === 'LIVREE' || status === 'SUR_SITE') return 'badge-green';
-      if (status === 'EN_COURS' || status === 'EN_ATTENTE' || status === 'APPROUVEE') return 'badge-yellow';
-      if (status === 'EPUISE' || status === 'REJETEE') return 'badge-red';
+      const normalizedStatus = normalizeInventoryStatus(status);
+      if (normalizedStatus === 'SUR_SITE') return 'badge-site';
+      if (normalizedStatus === 'EN_STOCK' || normalizedStatus === 'LIVREE') return 'badge-inventory-stock';
+      if (normalizedStatus === 'EN_ATTENTE') return 'badge-inventory-pending';
+      if (normalizedStatus === 'EN_COURS' || normalizedStatus === 'APPROUVEE') return 'badge-yellow';
+      if (normalizedStatus === 'EPUISE') return 'badge-inventory-empty';
+      if (normalizedStatus === 'REJETEE') return 'badge-red';
       return 'badge-blue';
     }
 
@@ -15215,15 +15437,22 @@
       return `<option value="">Sans demande (catalogue direct)</option>${options}`;
     }
 
+    async function ensureMaterialCatalogLoadedForPo() {
+      if (Array.isArray(materialCatalogCache) && materialCatalogCache.length) return;
+      try {
+        const catalogData = await fetchJson('/api/material-catalog');
+        setMaterialCatalogCache(catalogData);
+      } catch (_err) {
+        // Keep existing behavior; matching will fallback to current cache.
+      }
+    }
+
     function getPoCatalogEntriesForRequest(requestOrId) {
       const request = typeof requestOrId === 'object'
         ? requestOrId
         : materialRequestsCache.find(m => Number(m.id) === Number(requestOrId));
 
-      const fallbackEntries = (materialCatalogCache || []).filter(entry => {
-        const folder = String(entry.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
-        return folder === MATERIAL_CATALOG_PROJECT;
-      });
+      const fallbackEntries = getCatalogEntriesForFolderWithFallback(MATERIAL_CATALOG_PROJECT);
 
       if (!request) return fallbackEntries;
 
@@ -15232,16 +15461,18 @@
       const projectType = normalizeMcVillaType(getProjectVillaTypeLabel(project) || '');
       const typedProjectFolder = projectType ? `${projectFolder} - ${projectType}` : '';
 
-      let scoped = (materialCatalogCache || []).filter(entry => {
-        const folder = String(entry.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
-        return folder === (typedProjectFolder || projectFolder);
-      });
+      let scoped = getCatalogEntriesForFolderWithFallback(typedProjectFolder || projectFolder);
 
       if (!scoped.length && typedProjectFolder) {
-        scoped = (materialCatalogCache || []).filter(entry => {
-          const folder = String(entry.projectFolder || MATERIAL_CATALOG_PROJECT).trim() || MATERIAL_CATALOG_PROJECT;
-          return folder === projectFolder;
-        });
+        scoped = getCatalogEntriesForFolderWithFallback(projectFolder);
+      }
+
+      const requestStage = String(request?.etapeApprovisionnement || '').trim();
+      if (requestStage && scoped.length) {
+        const scopedByStage = scoped.filter(entry => isCatalogEntryMatchingStage(entry, requestStage));
+        if (scopedByStage.length) {
+          scoped = scopedByStage;
+        }
       }
 
       return scoped.length ? scoped : fallbackEntries;
@@ -15598,10 +15829,81 @@
               <button type="button" class="po-btn po-btn-soft" onclick="viewPoRequestGroupDetails(${idsArg})">Voir details</button>
               <button type="button" class="po-btn po-btn-danger" onclick="rejectGroupForPo(${idsArg})">Rejeter</button>
             </div>`}
-            ${isSelected ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">${buildPoRequestGroupDetailsHtml(groupReqs)}</div>` : ''}
+            ${isSelected ? `<div class="po-request-inline-details">${buildPoRequestGroupDetailsHtml(groupReqs)}</div>` : ''}
           </li>
         `;
       }).join('');
+    }
+
+    function buildPurchaseOrderDetailsHtml(order, options = {}) {
+      const { includeDecisionActions = true } = options;
+      if (!order) {
+        return '<p style="color: #64748b;">Clique sur un bon pour voir ses détails.</p>';
+      }
+
+      const items = Array.isArray(order.items) ? order.items : [];
+      const linkedRequestIds = new Set();
+      if (Number(order.materialRequestId || 0) > 0) {
+        linkedRequestIds.add(Number(order.materialRequestId));
+      }
+      items.forEach(item => {
+        const requestId = Number(item?.materialRequestId || 0);
+        if (requestId > 0) linkedRequestIds.add(requestId);
+      });
+      const linkedRequests = materialRequestsCache.filter(row => linkedRequestIds.has(Number(row.id || 0)));
+      const linkedRequestsTable = linkedRequests.length
+        ? renderMaterialRequestInstructionTable(linkedRequests, { title: 'Instructions produit et quantités (demande liée)' })
+        : '<p style="margin:4px 0 0;color:#64748b;font-size:12px;">Aucune demande liée pour ce bon.</p>';
+      const isExecutiveView = isExecutive();
+      const displayedStatus = (isExecutive() || isProcurementReviewer())
+        ? getPurchaseOrderDecisionStatus(order)
+        : String(order.statut || '').trim().toUpperCase();
+      const itemsHtml = items.length
+        ? `
+            <div class="table-wrapper" style="overflow-x: auto; margin-top: 8px;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Article</th>
+                    <th>Quantité</th>
+                    <th>Prix unitaire</th>
+                    <th>Total ligne</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${items.map(item => `
+                    <tr>
+                      <td>${escapeHtml(item.article || '-')}</td>
+                      <td>${escapeHtml(Number(item.quantite || 0).toFixed(2))}</td>
+                      <td>${escapeHtml(Number(item.prixUnitaire || 0).toFixed(2))} FCFA</td>
+                      <td>${escapeHtml(Number(item.totalLigne || 0).toFixed(2))} FCFA</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `
+        : '<p style="margin-top: 8px; color: #64748b;">Aucun article.</p>';
+
+      return `
+        <h4 style="margin-bottom: 10px;">Détails du bon</h4>
+        ${isExecutiveView ? '' : `<p style="margin-bottom: 8px;"><strong>Matériel:</strong> ${escapeHtml(order.itemName || '-')}</p>`}
+        <p style="margin-bottom: 8px;"><strong>Fournisseur:</strong> ${escapeHtml(order.fournisseur || '-')}</p>
+        <p style="margin-bottom: 8px;"><strong>Projet(s):</strong> ${escapeHtml(order.nomProjet || '-')}</p>
+        <p style="margin-bottom: 8px;"><strong>Site de livraison:</strong> ${escapeHtml(order.numeroMaison || order.nomSiteManuel || '-')}</p>
+        <p style="margin-bottom: 8px;"><strong>Entrepôt de livraison:</strong> ${escapeHtml(order.warehouseId ? getWarehouseNameById(order.warehouseId) : '-')}</p>
+        <p style="margin-bottom: 8px;"><strong>Statut:</strong> ${escapeHtml(displayedStatus || '-')}</p>
+        ${includeDecisionActions ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 8px;">
+          ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-primary" onclick="openPurchaseOrderValidationModal(${Number(order.id)}, 'VALIDEE')">Valider et signer</button>` : ''}
+          ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-danger" onclick="openPurchaseOrderValidationModal(${Number(order.id)}, 'ANNULEE')">Rejeter et signer</button>` : ''}
+          ${canCurrentUserValidatePurchaseOrder(order) ? `<button type="button" class="button button-small button-secondary" onclick="transformPurchaseOrderToStockAuthorization(${Number(order.id)})">Transformer en autorisation de sortie</button>` : ''}
+        </div>` : ''}
+        <p style="margin-bottom: 8px;"><strong>Date du bon:</strong> ${escapeHtml(formatDate(order.dateCommande))}</p>
+        <p style="margin-bottom: 8px;"><strong>Montant total:</strong> ${escapeHtml(Number(order.montantTotal || 0).toFixed(2))} FCFA</p>
+        <h4 style="margin: 10px 0 4px;">${isExecutiveView ? 'Articles de la demande envoyée' : 'Demande envoyée'}</h4>
+        ${linkedRequestsTable}
+        ${isExecutiveView ? '' : `<h4 style="margin: 10px 0 4px;">Articles du bon</h4>${itemsHtml}`}
+      `;
     }
 
     function buildPoRequestGroupDetailsHtml(requests) {
@@ -15989,6 +16291,7 @@
       const linkedRequestsTable = linkedRequests.length
         ? renderMaterialRequestInstructionTable(linkedRequests, { title: 'Instructions produit et quantités (demande liée)' })
         : '<p style="margin:4px 0 0;color:#64748b;font-size:12px;">Aucune demande liée pour ce bon.</p>';
+      const isExecutiveView = isExecutive();
       const displayedStatus = (isExecutive() || isProcurementReviewer())
         ? getPurchaseOrderDecisionStatus(order)
         : String(order.statut || '').trim().toUpperCase();
@@ -16021,7 +16324,7 @@
 
       details.innerHTML = `
         <h4 style="margin-bottom: 10px;">Détails du bon</h4>
-        <p style="margin-bottom: 8px;"><strong>Matériel:</strong> ${escapeHtml(order.itemName || '-')}</p>
+        ${isExecutiveView ? '' : `<p style="margin-bottom: 8px;"><strong>Matériel:</strong> ${escapeHtml(order.itemName || '-')}</p>`}
         <p style="margin-bottom: 8px;"><strong>Fournisseur:</strong> ${escapeHtml(order.fournisseur || '-')}</p>
         <p style="margin-bottom: 8px;"><strong>Projet(s):</strong> ${escapeHtml(order.nomProjet || '-')}</p>
         <p style="margin-bottom: 8px;"><strong>Site de livraison:</strong> ${escapeHtml(order.numeroMaison || order.nomSiteManuel || '-')}</p>
@@ -16034,10 +16337,9 @@
         </div>
         <p style="margin-bottom: 8px;"><strong>Date du bon:</strong> ${escapeHtml(formatDate(order.dateCommande))}</p>
         <p style="margin-bottom: 8px;"><strong>Montant total:</strong> ${escapeHtml(Number(order.montantTotal || 0).toFixed(2))} FCFA</p>
-        <h4 style="margin: 10px 0 4px;">Demande envoyée</h4>
+        <h4 style="margin: 10px 0 4px;">${isExecutiveView ? 'Articles de la demande envoyée' : 'Demande envoyée'}</h4>
         ${linkedRequestsTable}
-        <h4 style="margin: 10px 0 4px;">Articles du bon</h4>
-        ${itemsHtml}
+        ${isExecutiveView ? '' : `<h4 style="margin: 10px 0 4px;">Articles du bon</h4>${itemsHtml}`}
       `;
 
       renderPurchaseOrderAuthorizationSection(order);
@@ -18883,7 +19185,7 @@
                 </div>
                 <span class="badge ${first.statut === 'EN_ATTENTE' ? 'badge-yellow' : first.statut === 'REJETEE' ? 'badge-red' : 'badge-green'}">${first.statut}</span>
                 ${groupSelected
-                  ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">${buildMaterialRequestDetailsHtml(first, { authorizationContainerId: inlineAuthorizationContainerId })}</div>`
+                  ? `<div class="material-inline-details">${buildMaterialRequestDetailsHtml(first, { authorizationContainerId: inlineAuthorizationContainerId })}</div>`
                   : ''}
               </li>
             `;
@@ -19293,7 +19595,7 @@
         if (list) {
           list.innerHTML = detailedRows.length
             ? detailedRows.map(row => `
-                <tr>
+                <tr${row.statut === 'SUR_SITE' ? ' style="background:#fffaf0;"' : ''}>
                   <td>${escapeHtml(row.materialName)}</td>
                   ${showStageColumn ? `<td>${escapeHtml(row.stageLabel || 'Étape')}</td>` : ''}
                   <td>${escapeHtml(row.warehouseLabel)}</td>
@@ -19302,7 +19604,7 @@
                   <td>${row.totalDemande.toFixed(2)}</td>
                   <td>${row.totalRestant.toFixed(2)}</td>
                   <td>${row.totalUtilise.toFixed(2)}</td>
-                  <td><span class="badge ${getInventoryBadgeClass(row.statut)}">${formatInventoryStatusLabel(row.statut)}</span></td>
+                  <td><span class="badge ${getInventoryBadgeClass(row.statut)}">${row.statut === 'SUR_SITE' ? '📍 SUR SITE' : formatInventoryStatusLabel(row.statut)}</span></td>
                 </tr>
               `).join('')
             : `<tr><td colspan="${detailsColspan}" style="text-align: center; padding: 20px;">Aucune donnée pour cette vue</td></tr>`;
@@ -19360,9 +19662,10 @@
                   <td>${row.totalDemande.toFixed(2)}</td>
                   <td>${row.totalRestant.toFixed(2)}</td>
                   <td>${row.totalUtilise.toFixed(2)}</td>
+                  <td><span class="badge ${getInventoryBadgeClass(row.statut)}">${row.statut === 'SUR_SITE' ? '📍 SUR SITE' : formatInventoryStatusLabel(row.statut)}</span></td>
                 </tr>
               `).join('')
-            : '<tr><td colspan="4" style="text-align: center; padding: 20px;">Aucune donnée</td></tr>';
+            : '<tr><td colspan="5" style="text-align: center; padding: 20px;">Aucune donnée</td></tr>';
         }
       } catch (err) {
         showMessage('Erreur', 'error');
@@ -19437,18 +19740,29 @@
         const defaultNote = String(poPendingDecisionDraftById[id] || '');
         return `
           <li class="list-item" data-po-pending-id="${id}">
-            <div class="list-item-content">
+            <div class="list-item-content project-item-clickable" onclick="viewPurchaseOrder(${id})">
               <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(order))}</div>
               <div class="list-item-meta">${escapeHtml(order.nomProjet || '-')} • ${escapeHtml(order.fournisseur || '-')} • ${Number(order.montantTotal || 0).toFixed(2)} FCFA</div>
             </div>
             <textarea class="po-pending-note" placeholder="Commentaire (optionnel)">${escapeHtml(defaultNote)}</textarea>
             <div class="po-pending-actions">
+              <button type="button" class="button button-small button-secondary po-pending-download">Télécharger</button>
               <button type="button" class="button button-small button-success po-pending-validate">Valider</button>
               <button type="button" class="button button-small button-danger po-pending-reject">Rejeter</button>
             </div>
           </li>
         `;
       }).join('');
+
+      list.querySelectorAll('.po-pending-download').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const row = btn.closest('[data-po-pending-id]');
+          if (!row) return;
+          const id = Number(row.getAttribute('data-po-pending-id') || 0);
+          if (!id) return;
+          downloadPurchaseOrderPdf(id);
+        });
+      });
 
       list.querySelectorAll('.po-pending-validate').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -19801,16 +20115,18 @@
               const statusLabel = getPoStatusLabel(displayedStatus);
               const statusClass = getPoStatusClass(displayedStatus);
               const isStatusOnlyView = isZoneStockManager();
+              const isSelectedOrder = !isStatusOnlyView && Number(selectedPurchaseOrderId) === Number(o.id);
               const isLastCreated = Number(poLastCreatedOrderId || 0) === Number(o.id) && Date.now() <= Number(poLastCreatedHighlightUntil || 0);
               return `
               <li class="list-item po-list-item ${isLastCreated ? 'po-list-item-highlight' : ''}" data-po-id="${Number(o.id)}">
-                <div class="list-item-content ${isStatusOnlyView ? '' : 'project-item-clickable'} ${Number(selectedPurchaseOrderId) === Number(o.id) ? 'project-item-selected' : ''}" ${isStatusOnlyView ? '' : `onclick="viewPurchaseOrder(${o.id})"`}>
+                <div class="list-item-content ${isStatusOnlyView ? '' : 'project-item-clickable'} ${isSelectedOrder ? 'project-item-selected' : ''}" ${isStatusOnlyView ? '' : `onclick="viewPurchaseOrder(${o.id})"`}>
                   <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(o))}</div>
                   <div class="list-item-meta">${isStatusOnlyView ? `Statut: ${escapeHtml(statusLabel)}` : `${o.nomProjet || '-'} • ${Number(o.montantTotal || 0).toFixed(2)} FCFA • ${escapeHtml(statusLabel)}${isExecutive() && o.creePar ? ` • <em>Par ${escapeHtml(o.creePar)}</em>` : ''}`}</div>
                 </div>
                 <div class="action-buttons po-action-buttons decision-actions">
-                  ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-success" aria-label="Valider le bon de commande ${Number(o.id)}" onclick="validatePurchaseOrder(${o.id})">Valider</button>` : ''}
-                  ${canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-danger" aria-label="Rejeter le bon de commande ${Number(o.id)}" onclick="rejectPurchaseOrder(${o.id})">Rejeter</button>` : ''}
+                  ${isExecutive() ? `<button type="button" class="button button-small button-secondary" aria-label="Télécharger le bon de commande ${Number(o.id)}" onclick="downloadPurchaseOrderPdf(${o.id})">Télécharger</button>` : ''}
+                  ${!isExecutive() && canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-success" aria-label="Valider le bon de commande ${Number(o.id)}" onclick="validatePurchaseOrder(${o.id})">Valider</button>` : ''}
+                  ${!isExecutive() && canCurrentUserValidatePurchaseOrder(o) ? `<button type="button" class="button button-small button-danger" aria-label="Rejeter le bon de commande ${Number(o.id)}" onclick="rejectPurchaseOrder(${o.id})">Rejeter</button>` : ''}
                   ${isStatusOnlyView ? '' : `<details class="actions-menu">
                     <summary aria-label="Actions du bon de commande ${Number(o.id)}">&#8942;</summary>
                     <div class="actions-dropdown">
@@ -19821,6 +20137,7 @@
                   </details>`}
                 </div>
                 <span class="po-status-pill ${statusClass}">${escapeHtml(statusLabel)}</span>
+                ${isSelectedOrder ? `<div class="po-inline-details">${buildPurchaseOrderDetailsHtml(o, { includeDecisionActions: false })}</div>` : ''}
               </li>
             `;
             }).join('')
@@ -19872,7 +20189,14 @@
             }
           } else {
             renderPoPriorityActions(selectedOrder);
-            renderPurchaseOrderDetails(selectedOrder);
+            if (details) {
+              details.innerHTML = selectedOrder
+                ? '<p style="color:#64748b;">Les détails du bon s\'affichent maintenant directement sous le bon sélectionné.</p>'
+                : '<p style="color:#64748b;">Clique sur un bon pour voir ses détails.</p>';
+            }
+            if (!selectedOrder) {
+              renderPurchaseOrderDetails(null);
+            }
           }
         }
 
@@ -19948,101 +20272,16 @@
       const projectSelect = document.getElementById('stock-issue-project');
       const selectedProjectId = Number(projectSelect?.value || 0);
 
-      const warehouseRows = getRowsByWarehouse(stockAvailableCache, selectedStockWarehouseId);
-      const warehouse = getWarehouseById(selectedStockWarehouseId);
-      const zoneNorm = normalizeText(String(warehouse?.name || '').trim());
-
-      const zoneRows = zoneNorm
-        ? warehouseRows.filter(row => {
-            const rowZone = normalizeText(String(row?.zoneName || row?.prefecture || row?.nomSite || '').trim());
-            const zoneMatches = rowZone === zoneNorm || rowZone.includes(zoneNorm) || zoneNorm.includes(rowZone);
-            return zoneMatches && String(row?.sourceType || '').toUpperCase() === 'ZONE_STOCK' && Number(row.quantiteRestante || 0) > 0;
-          })
-        : [];
-      if (zoneRows.length) {
-        return zoneRows;
-      }
-
-      const siteRows = warehouseRows.filter(row => Number(row.quantiteRestante || 0) > 0);
-
-      if (isZoneStockManager()) {
-        if (selectedProjectId) {
-          return siteRows.filter(row => Number(row.projetId) === selectedProjectId);
-        }
-        return siteRows;
-      }
-
       if (!selectedProjectId) return [];
 
-      return siteRows
-        .filter(row => Number(row.projetId) === selectedProjectId && Number(row.quantiteRestante || 0) > 0);
-    }
-
-    function getStockIssueCatalogEntries() {
-      const rows = getStockIssueCandidateRows();
-      const projectName = String(rows[0]?.nomProjet || '').trim();
-      if (!projectName) return [];
-
-      return (Array.isArray(materialCatalogCache) ? materialCatalogCache : []).filter(entry => {
-        return normalizeText(entry?.projectFolder || '') === normalizeText(projectName);
+      const warehouseRows = getRowsByWarehouse(stockAvailableCache, selectedStockWarehouseId);
+      return warehouseRows.filter(row => {
+        return Number(row.projetId) === selectedProjectId && Number(row.quantiteRestante || 0) > 0;
       });
     }
 
-    function isZoneStockIssue() {
-      const candidateRows = getStockIssueCandidateRows();
-      return candidateRows.length > 0 && candidateRows.every(row => String(row?.sourceType || '').toUpperCase() === 'ZONE_STOCK');
-    }
-
-    function getDebourseMatchedStockIssueRows() {
-      const candidateRows = getStockIssueCandidateRows();
-
-      // Pour les BC zone, on retourne directement tous les matériaux disponibles
-      // (l'étape est saisie librement par l'utilisateur au moment de la livraison)
-      if (isZoneStockIssue()) {
-        return candidateRows.map(row => ({ ...row, etapeApprovisionnement: '' }));
-      }
-
-      const catalogEntries = getStockIssueCatalogEntries();
-      if (!catalogEntries.length) {
-        return candidateRows
-          .map(row => ({
-            ...row,
-            etapeApprovisionnement: String(row?.etapeApprovisionnement || '').trim(),
-          }))
-          .filter(row => String(row.etapeApprovisionnement || '').trim());
-      }
-
-      const resolvedRows = [];
-      const seen = new Set();
-
-      candidateRows.forEach(row => {
-        const itemKey = normalizeText(row?.itemName || '');
-        const matchingEntries = catalogEntries.filter(entry => {
-          const catalogItemKey = normalizeText(entry?.materialName || '');
-          if (!catalogItemKey || !itemKey) return false;
-          return catalogItemKey === itemKey
-            || catalogItemKey.includes(itemKey)
-            || itemKey.includes(catalogItemKey);
-        });
-
-        if (!matchingEntries.length) {
-          const fallbackStage = String(row?.etapeApprovisionnement || '').trim();
-          if (!fallbackStage) return;
-          const dedupeKey = `${Number(row?.id || 0)}__${normalizeStageKey(fallbackStage)}`;
-          if (seen.has(dedupeKey)) return;
-          seen.add(dedupeKey);
-          resolvedRows.push({
-            ...row,
-            etapeApprovisionnement: fallbackStage,
-          });
-          return;
-        }
-
-        matchingEntries.forEach(entry => {
-          const catalogStage = String(getCatalogEntryStage(entry) || '').trim();
-          if (!catalogStage) return;
-          const resolvedStage = catalogStage;
-          const dedupeKey = `${Number(row?.id || 0)}__${normalizeStageKey(resolvedStage)}`;
+    function getStockIssueCatalogEntries() {
+      details.innerHTML = buildPurchaseOrderDetailsHtml(order, { includeDecisionActions: true });
           if (seen.has(dedupeKey)) return;
           seen.add(dedupeKey);
 
@@ -20488,8 +20727,11 @@
       const filterEl = document.getElementById('sia-filter-status');
       const filterContainer = filterEl ? filterEl.closest('div[style*="display:flex"]') : null;
       if (filterContainer) filterContainer.style.display = isSiteChief() ? 'none' : '';
-      if (isSiteChief() && filterEl) filterEl.value = '';
-      const statusFilter = filterEl?.value || '';
+      if (isSiteChief() && filterEl) filterEl.value = 'ALL';
+      const rawStatusFilter = String(filterEl?.value || '').trim().toUpperCase();
+      const statusFilter = (rawStatusFilter === '' || rawStatusFilter === 'ALL' || rawStatusFilter === 'TOUS')
+        ? ''
+        : rawStatusFilter;
       const url = '/api/stock-issue-authorizations' + (statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : '');
       const list = document.getElementById('sia-list');
       if (!list) return;
@@ -20687,6 +20929,10 @@
     });
 
     document.getElementById('mc-save-list')?.addEventListener('click', async () => {
+      if (isMaterialCatalogReadOnlyProfile()) {
+        showMessage('Catalogue en lecture seule pour ce profil', 'error');
+        return;
+      }
       const folder = getMcProjectFolder(mcSelectedProjectId, mcSelectedVillaType);
       if (!folder) { showMessage('Sélectionne un projet et un type de villa', 'error'); return; }
       const stageName = getMcCurrentDocumentStageName();
@@ -20736,6 +20982,10 @@
     });
 
     document.getElementById('mc-delete-catalog-btn')?.addEventListener('click', async () => {
+      if (isMaterialCatalogReadOnlyProfile()) {
+        showMessage('Catalogue en lecture seule pour ce profil', 'error');
+        return;
+      }
       const folder = getMcProjectFolder(mcSelectedProjectId, mcSelectedVillaType);
       if (!folder) return;
       if (!confirm(`Supprimer tout le déboursé sec "${folder}" ? Cette action est irréversible.`)) return;
@@ -21158,7 +21408,7 @@
 
       // Show editor only for roles that can edit
       const editorCard = document.getElementById('mc-editor-card');
-      if (editorCard && (!isSiteChief() || isSongonScopedSiteChief()) && !isPurchaseReadOnlyRole()) {
+      if (editorCard && !isMaterialCatalogReadOnlyProfile()) {
         editorCard.style.display = '';
         setMcEditorCollapsed(false);
         const stageDocuments = getMcDocumentStages(folder);
@@ -21825,6 +22075,10 @@
     }
 
     window.editCatalogEntry = id => {
+      if (isMaterialCatalogReadOnlyProfile()) {
+        showMessage('Catalogue en lecture seule pour ce profil', 'error');
+        return;
+      }
       const entry = materialCatalogCache.find(e => Number(e.id) === Number(id));
       if (!entry) { showMessage('Entrée introuvable', 'error'); return; }
       currentEditingCatalogId = id;
@@ -21846,6 +22100,10 @@
     };
 
     window.deleteCatalogEntry = async id => {
+      if (isMaterialCatalogReadOnlyProfile()) {
+        showMessage('Catalogue en lecture seule pour ce profil', 'error');
+        return;
+      }
       if (!confirm('Supprimer cette entrée du catalogue ?')) return;
       try {
         await fetchJson(`/api/material-catalog/${id}`, { method: 'DELETE' });
@@ -22142,12 +22400,14 @@
       }
     }
 
-    window.preparePoFromRequest = id => {
+    window.preparePoFromRequest = async id => {
       const request = materialRequestsCache.find(r => Number(r.id) === Number(id));
       if (!request) {
         showMessage('Demande introuvable', 'error');
         return;
       }
+
+      await ensureMaterialCatalogLoadedForPo();
 
       const itemsContainer = document.getElementById('po-items');
       itemsContainer.innerHTML = '';
@@ -22158,12 +22418,14 @@
       showMessage('Bon pré-rempli depuis la demande sélectionnée');
     };
 
-    window.validateRequestToPo = id => {
+    window.validateRequestToPo = async id => {
       const request = materialRequestsCache.find(r => Number(r.id) === Number(id));
       if (!request) {
         showMessage('Demande introuvable', 'error');
         return;
       }
+
+      await ensureMaterialCatalogLoadedForPo();
 
       const itemsContainer = document.getElementById('po-items');
       const existingRows = Array.from(itemsContainer.querySelectorAll('.po-item-row'));
@@ -22201,12 +22463,13 @@
     };
 
     // Group helpers for the suggestions list
-    window.validateGroupToPo = (...ids) => {
+    window.validateGroupToPo = async (...ids) => {
       const normalizedIds = normalizeRequestIds(ids);
       if (!normalizedIds.length) {
         showMessage('Demande introuvable', 'error');
         return;
       }
+      await ensureMaterialCatalogLoadedForPo();
       const itemsContainer = document.getElementById('po-items');
       let added = 0;
       for (const id of normalizedIds) {
@@ -22220,7 +22483,7 @@
       }
       updatePoOrderTotal();
       if (added > 0) {
-        showMessage(`${added} article${added > 1 ? 's' : ''} ajouté${added > 1 ? 's' : ''} au bon — remplis le fournisseur/prix puis crée le bon`);
+        showMessage(`${added} article${added > 1 ? 's' : ''} ajouté${added > 1 ? 's' : ''} au bon — prix unitaires chargés depuis le catalogue quand disponibles`);
         const supplierInput = document.getElementById('po-supplier');
         if (supplierInput) supplierInput.focus();
         const form = document.getElementById('po-form');
@@ -22246,7 +22509,7 @@
       }
     };
 
-    window.prepareGroupFromRequests = (...ids) => {
+    window.prepareGroupFromRequests = async (...ids) => {
       const normalizedIds = normalizeRequestIds(ids);
       if (!normalizedIds.length) {
         showMessage('Demande introuvable', 'error');
@@ -22260,6 +22523,8 @@
         showMessage(poActionState.reason || 'Transformation impossible pour cette demande', 'error');
         return;
       }
+
+      await ensureMaterialCatalogLoadedForPo();
 
       showModule('purchase-orders');
       const itemsContainer = document.getElementById('po-items');
@@ -22282,7 +22547,7 @@
       document.getElementById('po-supplier').focus();
       const form = document.getElementById('po-form');
       if (form) form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      showMessage('Bon pré-rempli depuis les demandes sélectionnées');
+      showMessage('Bon pré-rempli depuis les demandes sélectionnées avec prix unitaires du catalogue');
     };
 
     window.rejectGroupForPo = async (...ids) => {
@@ -24217,6 +24482,10 @@
     });
 
     document.getElementById('save-edit-mc').addEventListener('click', async () => {
+      if (isMaterialCatalogReadOnlyProfile()) {
+        showMessage('Catalogue en lecture seule pour ce profil', 'error');
+        return;
+      }
       if (!currentEditingCatalogId) return;
       const editingEntry = materialCatalogCache.find(e => Number(e.id) === Number(currentEditingCatalogId));
       const projectFolder = (editingEntry?.projectFolder) || document.getElementById('edit-mc-project-folder')?.value || MATERIAL_CATALOG_PROJECT;

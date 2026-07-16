@@ -292,8 +292,9 @@ async function purgeBusinessData() {
 
 app.post('/api/admin/purge-business-data', authenticateToken, async (req, res) => {
   try {
-    if (String(req.user?.role || '').trim() !== 'dirigeant') {
-      return res.status(403).json({ error: 'Acces reserve au dirigeant' });
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'admin' && role !== 'dirigeant') {
+      return res.status(403).json({ error: 'Acces reserve a l\'administrateur ou au dirigeant' });
     }
 
     const confirm = String(req.body?.confirm || '').trim();
@@ -3851,6 +3852,24 @@ function isProcurementReviewerRole(user) {
   return role === 'controle_achat' || role === 'controle_achat_global';
 }
 
+function normalizeUserKey(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+function isMaterialCatalogReadOnlyUser(user) {
+  const role = String(user?.role || '').trim();
+  if (role === 'controle_achat_global' || role === 'dirigeant') return true;
+
+  const username = normalizeUserKey(user?.username || '');
+  return username === 'kokan_sk'
+    || username === 'conducteur_de_travaux'
+    || username === 'chef_chantier_sk';
+}
+
 async function getHrScopedEmployeeIdsForUser(user) {
   if (!isProcurementReviewerRole(user)) return null;
 
@@ -4415,8 +4434,46 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
 
 app.get('/api/users', async (_req, res) => {
   const rows = await all(`
-    SELECT id, username, role FROM users 
-    WHERE username IN ('directeur_rh', 'controle_achat_global', 'chef_chantier_site15', 'dirigeant')
+    SELECT
+      COALESCE(u.id, -he.id) AS id,
+      COALESCE(NULLIF(TRIM(u.username), ''), NULLIF(TRIM(he.username), ''), '') AS username,
+      COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
+      COALESCE(NULLIF(TRIM(he.fullName), ''), '') AS linkedEmployeeName,
+      CASE
+        WHEN u.id IS NULL THEN '-'
+        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' AND COALESCE(TRIM(u.role), '') = 'employe_standard' AND COALESCE(TRIM(u.username), '') <> '' THEN TRIM(u.username) || '@2026'
+        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' THEN '-'
+        ELSE COALESCE(NULLIF(TRIM(u.password), ''), '-')
+      END AS initialPasswordHint,
+      0 AS hasLoggedIn,
+      '' AS firstLoginAt,
+      '' AS lastLoginAt,
+      CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END AS hasUserAccount
+    FROM hr_employees he
+    LEFT JOIN users u ON LOWER(TRIM(u.username)) = LOWER(TRIM(he.username))
+
+    UNION ALL
+
+    SELECT
+      u.id AS id,
+      COALESCE(NULLIF(TRIM(u.username), ''), '') AS username,
+      COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
+      '' AS linkedEmployeeName,
+      CASE
+        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' AND COALESCE(TRIM(u.role), '') = 'employe_standard' AND COALESCE(TRIM(u.username), '') <> '' THEN TRIM(u.username) || '@2026'
+        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' THEN '-'
+        ELSE COALESCE(NULLIF(TRIM(u.password), ''), '-')
+      END AS initialPasswordHint,
+      0 AS hasLoggedIn,
+      '' AS firstLoginAt,
+      '' AS lastLoginAt,
+      1 AS hasUserAccount
+    FROM users u
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM hr_employees he
+      WHERE LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
+    )
     ORDER BY username
   `);
   res.json(rows);
@@ -5490,10 +5547,6 @@ app.patch('/api/purchase-orders/:id/validation', async (req, res) => {
   }
 
   if (role === 'dirigeant') {
-    const creator = String(existingOrder.creePar || '').trim().toLowerCase();
-    if (creator !== String(PROCUREMENT_REVIEWER_USERNAME || '').trim().toLowerCase()) {
-      return res.status(403).json({ error: 'Le dirigeant peut valider uniquement les bons créés par controle_achat_global' });
-    }
     if (statut === 'LIVREE' || statut === 'EN_COURS') {
       return res.status(400).json({ error: 'Le dirigeant peut uniquement valider ou rejeter un bon' });
     }
@@ -5997,7 +6050,8 @@ app.get('/api/stock-management/issues', async (req, res) => {
 
 app.get('/api/stock-issue-authorizations', async (req, res) => {
   const warehouseId = String(req.query.warehouseId || '').trim();
-  const status = String(req.query.status || '').trim().toUpperCase();
+  const statusRaw = String(req.query.status || '').trim().toUpperCase();
+  const status = (statusRaw === '' || statusRaw === 'ALL' || statusRaw === 'TOUS') ? '' : statusRaw;
   const params = [];
   const whereParts = [];
 
@@ -6251,6 +6305,11 @@ app.post('/api/stock-issue-authorizations', async (req, res) => {
     if (!targetProject || !isInChefSiteScope(req.user, targetProject)) {
       return res.status(403).json({ error: 'Acces refuse: sortie autorisee uniquement vers le site 15' });
     }
+  }
+
+  const targetId = Number(targetProjetId || 0);
+  if (targetId > 0 && Number(resolvedProjectId || 0) > 0 && targetId !== Number(resolvedProjectId || 0)) {
+    return res.status(400).json({ error: 'La quantité doit provenir du stock du site destinataire sélectionné' });
   }
 
   const requestedBy = req.user ? req.user.username : 'admin';
@@ -10071,6 +10130,10 @@ app.get('/api/material-catalog', async (req, res) => {
 });
 
 app.post('/api/material-catalog', async (req, res) => {
+  if (isMaterialCatalogReadOnlyUser(req.user)) {
+    return res.status(403).json({ error: 'Catalogue en lecture seule pour ce profil' });
+  }
+
   const {
     id = null,
     projectFolder = '',
@@ -10124,6 +10187,10 @@ app.post('/api/material-catalog', async (req, res) => {
 });
 
 app.patch('/api/material-catalog/:id', async (req, res) => {
+  if (isMaterialCatalogReadOnlyUser(req.user)) {
+    return res.status(403).json({ error: 'Catalogue en lecture seule pour ce profil' });
+  }
+
   const id = Number(req.params.id);
   if (!id) return res.status(400).json({ error: 'ID invalide' });
 
@@ -10168,6 +10235,10 @@ app.patch('/api/material-catalog/:id', async (req, res) => {
 
 // Suppression d’une entrée ou d’un catalogue entier
 app.delete('/api/material-catalog/:id', async (req, res) => {
+  if (isMaterialCatalogReadOnlyUser(req.user)) {
+    return res.status(403).json({ error: 'Catalogue en lecture seule pour ce profil' });
+  }
+
   const id = Number(req.params.id);
   const result = await run('DELETE FROM building_material_catalog WHERE id = ?', [id]);
   if (result.changes === 0) return res.status(404).json({ error: 'Entrée catalogue introuvable' });
@@ -10175,6 +10246,10 @@ app.delete('/api/material-catalog/:id', async (req, res) => {
 });
 
 app.delete('/api/material-catalog', async (req, res) => {
+  if (isMaterialCatalogReadOnlyUser(req.user)) {
+    return res.status(403).json({ error: 'Catalogue en lecture seule pour ce profil' });
+  }
+
   const folder = req.query.projectFolder ? String(req.query.projectFolder).trim() : null;
   if (!folder) return res.status(400).json({ error: 'projectFolder requis' });
   const result = await run('DELETE FROM building_material_catalog WHERE projectFolder = ?', [folder]);
