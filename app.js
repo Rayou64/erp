@@ -7745,6 +7745,38 @@ function isValidTimeValue(timeValue) {
   return /^\d{2}:\d{2}$/.test(String(timeValue || '').trim());
 }
 
+function getAbidjanNowParts(baseDate = new Date()) {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Abidjan',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(baseDate);
+  const byType = {};
+  parts.forEach(part => {
+    byType[part.type] = part.value;
+  });
+  return {
+    date: `${byType.year}-${byType.month}-${byType.day}`,
+    time: `${byType.hour}:${byType.minute}`,
+  };
+}
+
+function normalizeAttendancePunchType(rawValue) {
+  const value = String(rawValue || '').trim().toLowerCase();
+  if (value === 'checkin' || value === 'arrival') return 'checkin';
+  if (value === 'checkout' || value === 'departure') return 'checkout';
+  return 'auto';
+}
+
+function isHrAttendanceDateLocked() {
+  return String(process.env.HR_ATTENDANCE_LOCK_TODAY || '1').trim() !== '0';
+}
+
 function normalizeHrCode(rawCode) {
   const value = String(rawCode || '').trim().toUpperCase();
   const allowed = new Set(['P', 'R', 'MS', 'A', 'CA', 'CM', 'CP']);
@@ -8595,20 +8627,18 @@ app.post('/api/hr/attendance', async (req, res) => {
     employeeId,
     attendanceDate,
     dayDate,
-    checkInTime = '',
-    checkOutTime = '',
     statusCode = '',
     note = '',
+    punchType = 'auto',
   } = req.body || {};
 
   const numericEmployeeId = Number(employeeId || 0);
-  const effectiveDate = String(attendanceDate || dayDate || '').trim();
+  const nowParts = getAbidjanNowParts(new Date());
+  const providedDate = String(attendanceDate || dayDate || '').trim();
+  const effectiveDate = isValidIsoDate(providedDate) ? providedDate : nowParts.date;
 
   if (!numericEmployeeId || !isValidIsoDate(effectiveDate)) {
     return res.status(400).json({ error: 'Employe et date obligatoires' });
-  }
-  if (!isValidTimeValue(checkInTime) || !isValidTimeValue(checkOutTime)) {
-    return res.status(400).json({ error: 'Format heure invalide (HH:MM)' });
   }
 
   const employee = await get('SELECT id FROM hr_employees WHERE id = ?', [numericEmployeeId]);
@@ -8616,14 +8646,33 @@ app.post('/api/hr/attendance', async (req, res) => {
     return res.status(404).json({ error: 'Employe introuvable' });
   }
 
-  const codeValue = inferAttendanceCode(checkInTime, statusCode);
+  const normalizedPunchType = normalizeAttendancePunchType(punchType);
+  if (isHrAttendanceDateLocked() && effectiveDate !== nowParts.date) {
+    return res.status(400).json({ error: `Le pointage doit être fait à la date du jour (heure CI: ${nowParts.date})` });
+  }
   const now = new Date().toISOString();
   const existing = await get(
-    "SELECT id FROM hr_attendance WHERE employeeId = ? AND COALESCE(NULLIF(attendanceDate, ''), dayDate) = ?",
+    "SELECT id, checkInTime, checkOutTime, statusCode, status, note FROM hr_attendance WHERE employeeId = ? AND COALESCE(NULLIF(attendanceDate, ''), dayDate) = ?",
     [numericEmployeeId, effectiveDate]
   );
 
   if (existing) {
+    const nextCheckInTime = String(existing.checkInTime || '').trim();
+    const nextCheckOutTime = String(existing.checkOutTime || '').trim();
+    const computedCheckIn =
+      normalizedPunchType === 'checkin'
+        ? nowParts.time
+        : (normalizedPunchType === 'auto' && !nextCheckInTime)
+          ? nowParts.time
+          : nextCheckInTime;
+    const computedCheckOut =
+      normalizedPunchType === 'checkout'
+        ? nowParts.time
+        : (normalizedPunchType === 'auto' && nextCheckInTime)
+          ? nowParts.time
+          : nextCheckOutTime;
+    const codeValue = inferAttendanceCode(computedCheckIn, statusCode || existing.statusCode || existing.status);
+
     await run(
       `UPDATE hr_attendance
        SET attendanceDate = ?, dayDate = ?, checkInTime = ?, checkOutTime = ?,
@@ -8632,11 +8681,11 @@ app.post('/api/hr/attendance', async (req, res) => {
       [
         effectiveDate,
         effectiveDate,
-        String(checkInTime || '').trim(),
-        String(checkOutTime || '').trim(),
+        computedCheckIn,
+        computedCheckOut,
         codeValue,
         codeValue,
-        String(note || '').trim(),
+        String(note || existing.note || '').trim(),
         now,
         Number(existing.id),
       ]
@@ -8651,6 +8700,9 @@ app.post('/api/hr/attendance', async (req, res) => {
   }
 
   const nextId = await getNextTableId('hr_attendance');
+  const computedCheckIn = normalizedPunchType === 'checkout' ? '' : nowParts.time;
+  const computedCheckOut = normalizedPunchType === 'checkout' ? nowParts.time : '';
+  const codeValue = inferAttendanceCode(computedCheckIn, statusCode);
   await run(
     `INSERT INTO hr_attendance
       (id, employeeId, attendanceDate, dayDate, checkInTime, checkOutTime, statusCode, status, note, createdBy, createdAt, updatedAt)
@@ -8660,8 +8712,8 @@ app.post('/api/hr/attendance', async (req, res) => {
       numericEmployeeId,
       effectiveDate,
       effectiveDate,
-      String(checkInTime || '').trim(),
-      String(checkOutTime || '').trim(),
+      computedCheckIn,
+      computedCheckOut,
       codeValue,
       codeValue,
       String(note || '').trim(),
@@ -8687,6 +8739,7 @@ app.patch('/api/hr/attendance/:id', async (req, res) => {
     checkOutTime = '',
     statusCode = '',
     note = '',
+    punchType = '',
   } = req.body || {};
 
   if (!id || !isValidTimeValue(checkInTime) || !isValidTimeValue(checkOutTime)) {
@@ -8698,17 +8751,37 @@ app.patch('/api/hr/attendance/:id', async (req, res) => {
     return res.status(404).json({ error: 'Pointage introuvable' });
   }
 
-  const codeValue = inferAttendanceCode(checkInTime, statusCode || current.statusCode || current.status);
+  const nowParts = getAbidjanNowParts(new Date());
+  const normalizedPunchType = normalizeAttendancePunchType(punchType);
+  const currentEffectiveDate = String(current.attendanceDate || current.dayDate || '').slice(0, 10);
+  if (String(punchType || '').trim() && isHrAttendanceDateLocked() && currentEffectiveDate && currentEffectiveDate !== nowParts.date) {
+    return res.status(400).json({ error: `Le pointage doit être fait à la date du jour (heure CI: ${nowParts.date})` });
+  }
+  let nextCheckIn = String(checkInTime || '').trim() || String(current.checkInTime || '').trim();
+  let nextCheckOut = String(checkOutTime || '').trim() || String(current.checkOutTime || '').trim();
+  if (normalizedPunchType === 'checkin') {
+    nextCheckIn = nowParts.time;
+  } else if (normalizedPunchType === 'checkout') {
+    nextCheckOut = nowParts.time;
+  } else if (String(punchType || '').trim() && normalizedPunchType === 'auto') {
+    if (!nextCheckIn) {
+      nextCheckIn = nowParts.time;
+    } else {
+      nextCheckOut = nowParts.time;
+    }
+  }
+
+  const codeValue = inferAttendanceCode(nextCheckIn, statusCode || current.statusCode || current.status);
   await run(
     `UPDATE hr_attendance
      SET checkInTime = ?, checkOutTime = ?, statusCode = ?, status = ?, note = ?, updatedAt = ?
      WHERE id = ?`,
     [
-      String(checkInTime || '').trim(),
-      String(checkOutTime || '').trim(),
+      nextCheckIn,
+      nextCheckOut,
       codeValue,
       codeValue,
-      String(note || '').trim(),
+      String(note || current.note || '').trim(),
       new Date().toISOString(),
       id,
     ]

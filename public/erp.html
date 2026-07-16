@@ -7579,15 +7579,16 @@
                 </div>
                 <div class="form-group">
                   <label>Date *</label>
-                  <input type="date" id="hr-attendance-date" required />
+                  <input type="date" id="hr-attendance-date" required readonly />
                 </div>
                 <div class="form-group">
-                  <label>Heure d'arrivée</label>
-                  <input type="time" id="hr-attendance-checkin" />
-                </div>
-                <div class="form-group">
-                  <label>Heure de sortie</label>
-                  <input type="time" id="hr-attendance-checkout" />
+                  <label>Action de pointage *</label>
+                  <select id="hr-attendance-action" required>
+                    <option value="checkin">Arrivée (pointer maintenant)</option>
+                    <option value="checkout">Départ (pointer maintenant)</option>
+                    <option value="auto">Auto (arrivée puis départ)</option>
+                  </select>
+                  <div style="margin-top:6px;font-size:12px;color:#64748b;">Heure automatique au clic, fuseau Côte d'Ivoire (Africa/Abidjan).</div>
                 </div>
                 <div class="form-group">
                   <label>Code présence</label>
@@ -7602,7 +7603,7 @@
                   <label>Note</label>
                   <textarea id="hr-attendance-note" placeholder="Optionnel"></textarea>
                 </div>
-                <button type="submit" class="button button-primary" style="width:100%;">Enregistrer le pointage</button>
+                <button type="submit" class="button button-primary" style="width:100%;">Pointer maintenant</button>
               </form>
             </div>
             <div class="erp-section-sep">Historique récent</div>
@@ -7692,6 +7693,10 @@
             <div id="hr-calendar-legend" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;"></div>
 
             <div id="hr-calendar-table-wrap" class="table-wrapper" style="overflow:auto;"></div>
+            <div id="hr-calendar-day-details" class="card" style="margin-top:12px; border:1px solid #dbeafe; background:#f8fbff;">
+              <div style="font-weight:800; color:#1e3a8a; margin-bottom:6px;">Détail du jour</div>
+              <div style="font-size:13px; color:#475569;">Cliquez sur un code (R, P, A, CA...) dans le calendrier pour afficher les détails de pointage.</div>
+            </div>
           </div>
         </div>
 
@@ -11170,6 +11175,27 @@
       }
       const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
       return localDate.toISOString().slice(0, 10);
+    }
+
+    function getAbidjanNowParts(dateValue = new Date()) {
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Africa/Abidjan',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+      const parts = formatter.formatToParts(dateValue);
+      const byType = {};
+      parts.forEach(part => {
+        byType[part.type] = part.value;
+      });
+      return {
+        date: `${byType.year}-${byType.month}-${byType.day}`,
+        time: `${byType.hour}:${byType.minute}`,
+      };
     }
 
     function normalizeText(value) {
@@ -17094,12 +17120,13 @@
         const codes = employee.codes && typeof employee.codes === 'object' ? employee.codes : {};
         const cells = Array.from({ length: daysInMonth }, (_, index) => {
           const day = String(index + 1);
+          const dateValue = `${String(data.month || '').slice(0, 7)}-${String(index + 1).padStart(2, '0')}`;
           const code = String(codes[day] || '').trim().toUpperCase();
           const meta = HR_CODE_META[code];
           if (!meta) {
             return '<td style="text-align:center;color:#cbd5e1;">-</td>';
           }
-          return `<td style="text-align:center;font-weight:700;color:${meta.color};background:${meta.bg};">${code}</td>`;
+          return `<td style="text-align:center;font-weight:700;color:${meta.color};background:${meta.bg};"><button type="button" onclick="showHrCalendarDayDetails(${Number(employee.id || 0)}, '${escapeHtml(dateValue)}', '${escapeHtml(code)}')" style="all:unset;display:inline-block;min-width:24px;cursor:pointer;font-weight:800;color:${meta.color};" title="Voir détail du ${escapeHtml(dateValue)}">${code}</button></td>`;
         }).join('');
 
         return `
@@ -17127,6 +17154,74 @@
         </table>
       `;
     }
+
+    async function loadHrCalendarDayDetails(employeeId, dateValue) {
+      const numericEmployeeId = Number(employeeId || 0);
+      const isoDate = String(dateValue || '').trim();
+      if (!numericEmployeeId || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) {
+        return { attendance: null, leave: null };
+      }
+
+      const attendanceRows = await fetchJson(`/api/hr/attendance?employeeId=${encodeURIComponent(numericEmployeeId)}&date=${encodeURIComponent(isoDate)}`).catch(() => []);
+      const leaveRows = await fetchJson(`/api/hr/leave-requests?employeeId=${encodeURIComponent(numericEmployeeId)}`).catch(() => []);
+      const attendance = Array.isArray(attendanceRows) && attendanceRows.length ? attendanceRows[0] : null;
+      const leave = Array.isArray(leaveRows)
+        ? leaveRows.find(row => {
+            const start = String(row?.startDate || '').slice(0, 10);
+            const end = String(row?.endDate || '').slice(0, 10);
+            const status = String(row?.status || '').trim().toUpperCase();
+            return status === 'APPROUVEE' && start && end && start <= isoDate && end >= isoDate;
+          }) || null
+        : null;
+      return { attendance, leave };
+    }
+
+    function renderHrCalendarDayDetailsPanel(payload = {}) {
+      const panel = document.getElementById('hr-calendar-day-details');
+      if (!panel) return;
+
+      const employeeName = String(payload.employeeName || '-').trim() || '-';
+      const dateValue = String(payload.date || '').trim() || '-';
+      const code = String(payload.code || '').trim().toUpperCase() || '-';
+      const attendance = payload.attendance || null;
+      const leave = payload.leave || null;
+      const meta = HR_CODE_META[code] || { label: 'Code inconnu', color: '#334155', bg: '#e2e8f0' };
+      const actionSource = leave
+        ? `Congé approuvé (${escapeHtml(formatHrLeaveTypeLabel(leave.leaveType || ''))})`
+        : (attendance ? 'Pointage journalier' : 'Aucune ligne de pointage enregistrée');
+
+      panel.innerHTML = `
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:800; color:#1e3a8a;">Détail du jour</div>
+            <div style="font-size:13px; color:#334155; margin-top:4px;"><strong>${escapeHtml(employeeName)}</strong> • ${escapeHtml(dateValue)}</div>
+          </div>
+          <span style="display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-weight:800;font-size:12px;background:${meta.bg};color:${meta.color};">${escapeHtml(code)} - ${escapeHtml(meta.label)}</span>
+        </div>
+        <div style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;font-size:13px;">
+          <div><strong>Arrivée:</strong> ${escapeHtml(String(attendance?.checkInTime || '-'))}</div>
+          <div><strong>Départ:</strong> ${escapeHtml(String(attendance?.checkOutTime || '-'))}</div>
+          <div><strong>Source:</strong> ${escapeHtml(actionSource)}</div>
+          <div><strong>Note:</strong> ${escapeHtml(String(attendance?.note || leave?.reason || '-'))}</div>
+        </div>
+      `;
+    }
+
+    window.showHrCalendarDayDetails = async function showHrCalendarDayDetails(employeeId, dateValue, code) {
+      try {
+        const employee = hrEmployeesCache.find(row => Number(row.id) === Number(employeeId));
+        const details = await loadHrCalendarDayDetails(employeeId, dateValue);
+        renderHrCalendarDayDetailsPanel({
+          employeeName: employee?.fullName || '-',
+          date: dateValue,
+          code,
+          attendance: details.attendance,
+          leave: details.leave,
+        });
+      } catch (err) {
+        showMessage('Erreur chargement detail jour: ' + err.message, 'error');
+      }
+    };
 
     function setHrEmployeeFormOpen(isOpen) {
       const modal = document.getElementById('hr-employee-modal');
@@ -17400,7 +17495,14 @@
       if (attendanceFormCard) {
         attendanceFormCard.style.display = canManageHrAttendance() ? '' : 'none';
       }
-      const selectedDate = document.getElementById('hr-attendance-date')?.value || formatDateForInput();
+      const dateInput = document.getElementById('hr-attendance-date');
+      const ciToday = getAbidjanNowParts(new Date()).date;
+      if (dateInput) {
+        dateInput.value = ciToday;
+        dateInput.min = ciToday;
+        dateInput.max = ciToday;
+      }
+      const selectedDate = dateInput?.value || ciToday;
       hrAttendanceCache = await fetchJson(`/api/hr/attendance?date=${encodeURIComponent(selectedDate)}`).catch(() => []);
       renderHrAttendanceList();
     }
@@ -17716,6 +17818,14 @@
         : `month=${encodeURIComponent(monthValue)}`;
       const payload = await fetchJson(`/api/hr/leave-calendar?${query}`).catch(() => ({ employees: [] }));
       renderHrCalendarTable(payload);
+
+      const detailsPanel = document.getElementById('hr-calendar-day-details');
+      if (detailsPanel) {
+        detailsPanel.innerHTML = `
+          <div style="font-weight:800; color:#1e3a8a; margin-bottom:6px;">Détail du jour</div>
+          <div style="font-size:13px; color:#475569;">Cliquez sur un code (R, P, A, CA...) dans le calendrier pour afficher les détails de pointage.</div>
+        `;
+      }
     }
 
     window.editHrEmployee = async function editHrEmployee(id) {
@@ -24508,8 +24618,15 @@
         try {
           const employeeId = Number(document.getElementById('hr-attendance-employee').value || 0);
           const attendanceDate = document.getElementById('hr-attendance-date').value;
+          const ciToday = getAbidjanNowParts(new Date()).date;
           if (!employeeId || !attendanceDate) {
             showMessage('Employé et date obligatoires', 'error');
+            return;
+          }
+          if (attendanceDate !== ciToday) {
+            showMessage(`Le pointage est verrouille sur la date du jour (heure CI): ${ciToday}`, 'error');
+            const dateInput = document.getElementById('hr-attendance-date');
+            if (dateInput) dateInput.value = ciToday;
             return;
           }
 
@@ -24518,14 +24635,14 @@
             body: JSON.stringify({
               employeeId,
               attendanceDate,
-              checkInTime: document.getElementById('hr-attendance-checkin').value,
-              checkOutTime: document.getElementById('hr-attendance-checkout').value,
+              punchType: document.getElementById('hr-attendance-action')?.value || 'auto',
               statusCode: document.getElementById('hr-attendance-status').value,
               note: document.getElementById('hr-attendance-note').value.trim(),
             }),
           });
 
-          showMessage('Pointage enregistré');
+          const nowCi = getAbidjanNowParts(new Date());
+          showMessage(`Pointage enregistre a ${nowCi.time} (heure CI)`);
           await loadHrAttendanceModule();
           await loadHrCalendarModule();
         } catch (err) {
@@ -27938,7 +28055,7 @@
       document.getElementById('revenue-date').value = formatDateForInput();
       document.getElementById('auto-transport-date').value = formatDateForInput();
       if (document.getElementById('hr-attendance-date')) {
-        document.getElementById('hr-attendance-date').value = formatDateForInput();
+        document.getElementById('hr-attendance-date').value = getAbidjanNowParts(new Date()).date;
       }
       if (document.getElementById('hr-leave-start')) {
         document.getElementById('hr-leave-start').value = formatDateForInput();
