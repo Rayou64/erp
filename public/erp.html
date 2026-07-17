@@ -20281,7 +20281,32 @@
     }
 
     function getStockIssueCatalogEntries() {
-      details.innerHTML = buildPurchaseOrderDetailsHtml(order, { includeDecisionActions: true });
+      const rows = getStockIssueCandidateRows();
+      const projectName = String(rows[0]?.nomProjet || '').trim();
+      if (!projectName) return [];
+
+      return (Array.isArray(materialCatalogCache) ? materialCatalogCache : []).filter(entry => {
+        return normalizeText(entry?.projectFolder || '') === normalizeText(projectName);
+      });
+    }
+
+    function getDebourseMatchedStockIssueRows() {
+      const candidateRows = getStockIssueCandidateRows();
+      const catalogEntries = getStockIssueCatalogEntries();
+      if (!catalogEntries.length) return [];
+
+      const resolvedRows = [];
+      const seen = new Set();
+
+      candidateRows.forEach(row => {
+        const itemKey = normalizeText(row?.itemName || '');
+        const matchingEntries = catalogEntries.filter(entry => normalizeText(entry?.materialName || '') === itemKey);
+
+        matchingEntries.forEach(entry => {
+          const catalogStage = String(getCatalogEntryStage(entry) || '').trim();
+          if (!catalogStage) return;
+          const resolvedStage = catalogStage;
+          const dedupeKey = `${Number(row?.id || 0)}__${normalizeStageKey(resolvedStage)}`;
           if (seen.has(dedupeKey)) return;
           seen.add(dedupeKey);
 
