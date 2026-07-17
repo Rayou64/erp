@@ -17,6 +17,7 @@ const { PDFDocument: PdfLibDocument, StandardFonts: PdfLibStandardFonts, rgb: pd
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
+const archiver = require('archiver');
 const { spawn } = require('child_process');
 const { createDbClient } = require('./db/client');
 
@@ -1221,6 +1222,33 @@ function sanitizeFileName(fileName) {
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 120) || 'document';
+}
+
+function resolveExistingGuideAbsolutePath(row) {
+  const relativePath = String(row?.relativePath || '').trim();
+  if (relativePath) {
+    const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
+    if (fs.existsSync(absolutePath)) {
+      return {
+        absolutePath,
+        relativePath,
+      };
+    }
+  }
+
+  const fallbackFileName = String(row?.fileName || '').trim();
+  if (fallbackFileName) {
+    const fallbackRelative = getArchiveRelativePath('guides', fallbackFileName);
+    const fallbackAbsolute = path.join(ARCHIVE_ROOT, fallbackRelative);
+    if (fs.existsSync(fallbackAbsolute)) {
+      return {
+        absolutePath: fallbackAbsolute,
+        relativePath: fallbackRelative,
+      };
+    }
+  }
+
+  return null;
 }
 
 function buildProjectDocumentTitle(projectName, numberValue) {
@@ -7039,6 +7067,50 @@ app.get('/api/guide-documents', async (_req, res) => {
       });
     }
 
+    if (String(_req.query?.download || '').trim().toLowerCase() === 'all') {
+      const docsToArchive = (Array.isArray(rows) ? rows : []).map(row => {
+        const resolved = resolveExistingGuideAbsolutePath(row);
+        if (!resolved) return null;
+        const fileName = sanitizeFileName(String(row?.fileName || path.basename(resolved.absolutePath) || 'guide-document'));
+        return {
+          id: Number(row?.id || 0),
+          title: String(row?.title || '').trim(),
+          fileName,
+          absolutePath: resolved.absolutePath,
+          mimeType: String(row?.mimeType || 'application/octet-stream').trim() || 'application/octet-stream',
+        };
+      }).filter(Boolean);
+
+      if (!docsToArchive.length) {
+        return res.status(404).json({ error: 'Aucun document guide disponible au telechargement' });
+      }
+
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const archiveName = `guide-erp-${stamp}.zip`;
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', `attachment; filename="${archiveName}"`);
+
+      const archive = archiver('zip', { zlib: { level: 9 } });
+      archive.on('error', err => {
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Erreur generation archive guide', details: String(err?.message || err) });
+        } else {
+          res.destroy(err);
+        }
+      });
+
+      archive.pipe(res);
+      docsToArchive.forEach((doc, index) => {
+        const prefix = String(doc.title || `document-${index + 1}`).trim();
+        const safePrefix = sanitizeFileName(prefix).slice(0, 60) || `document-${index + 1}`;
+        const entryName = `${String(index + 1).padStart(2, '0')}-${safePrefix}-${doc.fileName}`;
+        archive.file(doc.absolutePath, { name: entryName });
+      });
+
+      await archive.finalize();
+      return;
+    }
+
     const normalizedRows = (Array.isArray(rows) ? rows : []).map(row => ({
       ...row,
       audienceScope: String(row?.audienceScope || 'all').trim().toLowerCase() === 'selected' ? 'selected' : 'all',
@@ -7227,17 +7299,16 @@ app.get('/api/guide-documents/:id/download', async (req, res) => {
       }
     }
 
-    const relativePath = String(row.relativePath || '').trim();
-    const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
-    if (!relativePath || !fs.existsSync(absolutePath)) {
+    const resolvedPath = resolveExistingGuideAbsolutePath(row);
+    if (!resolvedPath) {
       return res.status(404).json({ error: 'Fichier introuvable' });
     }
 
-    const fileName = sanitizeFileName(String(row.fileName || path.basename(relativePath) || 'guide-document'));
+    const fileName = sanitizeFileName(String(row.fileName || path.basename(resolvedPath.absolutePath) || 'guide-document'));
     const mimeType = String(row.mimeType || 'application/octet-stream').trim() || 'application/octet-stream';
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Type', mimeType);
-    return res.sendFile(absolutePath);
+    return res.sendFile(resolvedPath.absolutePath);
   } catch (err) {
     return res.status(500).json({ error: 'Erreur telechargement document guide', details: String(err?.message || err) });
   }

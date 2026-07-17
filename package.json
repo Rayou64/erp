@@ -28,13 +28,12 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "chokidar-cli": "^3.0.0",
-    "xlsx": "^0.18.5"
+    "chokidar-cli": "^3.0.0"
   },
   "dependencies": {
     "@fontsource/great-vibes": "^5.2.8",
+    "archiver": "^8.0.0",
     "bcryptjs": "^2.4.3",
-    "cors": "^2.8.6",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.2",
     "helmet": "^8.1.0",
@@ -42,7 +41,6 @@
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.18.0",
     "pg": "^8.16.3",
-    "sqlite3": "^5.1.6",
-    "web-push": "^3.6.7"
+    "sqlite3": "^5.1.6"
   }
 }
