@@ -429,6 +429,23 @@
       box-shadow: 0 4px 10px rgba(239, 68, 68, 0.24);
     }
 
+    .button-warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+      color: white;
+      box-shadow: 0 6px 14px rgba(245, 158, 11, 0.28);
+    }
+
+    .button-warning:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(245, 158, 11, 0.36);
+      filter: brightness(1.05);
+    }
+
+    .button-warning:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.24);
+    }
+
     .button-success {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: white;
@@ -4120,7 +4137,8 @@
 
       .button-primary,
       .button-success,
-      .button-danger {
+      .button-danger,
+      .button-warning {
         color: #ffffff;
       }
 
@@ -6685,6 +6703,12 @@
       border-color: transparent;
     }
 
+    body.app-layout-mode .button-warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
     body.app-layout-mode .button:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
     body.app-layout-mode .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary) {
       background: linear-gradient(145deg, #ffffff 0%, #eef5ff 100%);
@@ -6874,6 +6898,12 @@
 
     body.browser-layout-mode .button-primary {
       background: linear-gradient(135deg, #5f6af2 0%, #4dabf7 48%, #2ec4b6 100%);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    body.browser-layout-mode .button-warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
       color: #ffffff;
       border-color: transparent;
     }
@@ -8094,10 +8124,10 @@
               
               <!-- Mode selector for admin/stock managers -->
               <div id="material-mode-selector" style="display:none; margin-bottom:15px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                <button type="button" id="material-mode-site" class="button button-secondary" style="padding:8px; font-size:13px; border:2px solid #cbd5e1; background:#fff;" data-mode="site">
+                <button type="button" id="material-mode-site" class="button button-secondary" style="padding:8px; font-size:13px;" data-mode="site">
                   🏢 Par Site
                 </button>
-                <button type="button" id="material-mode-zone" class="button button-secondary" style="padding:8px; font-size:13px; border:2px solid #cbd5e1; background:#fff;" data-mode="zone">
+                <button type="button" id="material-mode-zone" class="button button-secondary" style="padding:8px; font-size:13px;" data-mode="zone">
                   📍 Par Zone
                 </button>
               </div>
@@ -20737,7 +20767,7 @@
                 </div>
                 <div class="action-buttons">
                   ${canMarkArrived
-                    ? `<button class="button button-small button-primary" onclick="markStockOrderArrived(${order.id})">Marquer arrivé</button>`
+                    ? `<button class="button button-small button-warning" onclick="markStockOrderArrived(${order.id})">Marquer arrivé</button>`
                     : `<span class="badge ${getInventoryBadgeClass(order.statut)}">${escapeHtml(statusLabel)}</span>`}
                 </div>
               </li>
