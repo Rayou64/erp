@@ -1200,11 +1200,15 @@ function resolveExistingGuideAbsolutePath(row) {
   const relativePath = String(row?.relativePath || '').trim();
   if (relativePath) {
     const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
-    if (fs.existsSync(absolutePath)) {
-      return {
-        absolutePath,
-        relativePath,
-      };
+    try {
+      if (fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile() && fs.statSync(absolutePath).size > 0) {
+        return {
+          absolutePath,
+          relativePath,
+        };
+      }
+    } catch (e) {
+      console.warn(`Guide file validation failed for ${absolutePath}:`, e.message);
     }
   }
 
@@ -1214,27 +1218,42 @@ function resolveExistingGuideAbsolutePath(row) {
   const candidateNames = Array.from(new Set([fallbackFileName, relativeBaseName].filter(Boolean)));
 
   for (const candidateName of candidateNames) {
-    const fallbackRelative = getArchiveRelativePath('guides', candidateName);
-    const fallbackAbsolute = path.join(ARCHIVE_ROOT, fallbackRelative);
-    if (fs.existsSync(fallbackAbsolute)) {
-      return {
-        absolutePath: fallbackAbsolute,
-        relativePath: fallbackRelative,
-      };
+    try {
+      const fallbackRelative = getArchiveRelativePath('guides', candidateName);
+      const fallbackAbsolute = path.join(ARCHIVE_ROOT, fallbackRelative);
+      if (fs.existsSync(fallbackAbsolute) && fs.statSync(fallbackAbsolute).isFile() && fs.statSync(fallbackAbsolute).size > 0) {
+        return {
+          absolutePath: fallbackAbsolute,
+          relativePath: fallbackRelative,
+        };
+      }
+    } catch (e) {
+      console.warn(`Guide file validation failed for ${candidateName}:`, e.message);
+      continue;
     }
   }
 
   if (fs.existsSync(guideDir)) {
-    const guideFileNames = fs.readdirSync(guideDir, { withFileTypes: true })
-      .filter(entry => entry.isFile())
-      .map(entry => entry.name);
+    try {
+      const guideFileNames = fs.readdirSync(guideDir, { withFileTypes: true })
+        .filter(entry => {
+          try {
+            return entry.isFile() && fs.statSync(path.join(guideDir, entry.name)).size > 0;
+          } catch (e) {
+            return false;
+          }
+        })
+        .map(entry => entry.name);
 
-    const matchedName = guideFileNames.find(name => candidateNames.some(candidateName => name === candidateName || name.endsWith(`-${candidateName}`)));
-    if (matchedName) {
-      return {
-        absolutePath: path.join(guideDir, matchedName),
-        relativePath: getArchiveRelativePath('guides', matchedName),
-      };
+      const matchedName = guideFileNames.find(name => candidateNames.some(candidateName => name === candidateName || name.endsWith(`-${candidateName}`)));
+      if (matchedName) {
+        return {
+          absolutePath: path.join(guideDir, matchedName),
+          relativePath: getArchiveRelativePath('guides', matchedName),
+        };
+      }
+    } catch (e) {
+      console.warn(`Guide directory validation failed for ${guideDir}:`, e.message);
     }
   }
 
