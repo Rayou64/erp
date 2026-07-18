@@ -23085,11 +23085,29 @@
 
         const blob = await resp.blob();
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
         const disp = resp.headers.get('Content-Disposition') || '';
         const match = disp.match(/filename="([^"]+)"/);
-        a.download = match ? match[1] : 'guide-document';
+        const fileName = match ? match[1] : 'guide-document';
+
+        if (isLikelyMobileRuntime) {
+          const opened = window.open(url, '_blank', 'noopener');
+          if (!opened) {
+            const fallbackAnchor = document.createElement('a');
+            fallbackAnchor.href = url;
+            fallbackAnchor.target = '_blank';
+            fallbackAnchor.rel = 'noopener';
+            document.body.appendChild(fallbackAnchor);
+            fallbackAnchor.click();
+            document.body.removeChild(fallbackAnchor);
+          }
+          showMessage(`Téléchargement lancé: ${fileName}`);
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+          return;
+        }
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -23113,11 +23131,29 @@
 
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
         const contentDisposition = response.headers.get('Content-Disposition') || '';
         const match = contentDisposition.match(/filename="([^"]+)"/);
-        anchor.download = match ? match[1] : `guide-erp-${new Date().toISOString().slice(0, 10)}.zip`;
+        const fileName = match ? match[1] : `guide-erp-${new Date().toISOString().slice(0, 10)}.zip`;
+
+        if (isLikelyMobileRuntime) {
+          const opened = window.open(url, '_blank', 'noopener');
+          if (!opened) {
+            const fallbackAnchor = document.createElement('a');
+            fallbackAnchor.href = url;
+            fallbackAnchor.target = '_blank';
+            fallbackAnchor.rel = 'noopener';
+            document.body.appendChild(fallbackAnchor);
+            fallbackAnchor.click();
+            document.body.removeChild(fallbackAnchor);
+          }
+          showMessage(`Téléchargement lancé: ${fileName}`);
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+          return;
+        }
+
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = fileName;
         document.body.appendChild(anchor);
         anchor.click();
         document.body.removeChild(anchor);
