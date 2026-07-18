@@ -7797,6 +7797,8 @@
                 <div class="form-group">
                   <label>Employé *</label>
                   <select id="hr-attendance-employee" required></select>
+                    <input type="hidden" id="hr-attendance-employee-locked" />
+                    <div id="hr-attendance-employee-display" style="display:none;padding:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-weight:600;color:#166534;">👤</div>
                 </div>
                 <div class="form-group">
                   <label>Date *</label>
@@ -17061,11 +17063,27 @@
       }
 
       const attendanceSelect = document.getElementById('hr-attendance-employee');
-      if (attendanceSelect) {
-        const prev = attendanceSelect.value;
-        attendanceSelect.innerHTML = `<option value="">Sélectionner un employé</option>${hrEmployeesCache.map(employee => `<option value="${employee.id}">${escapeHtml(employee.fullName)}</option>`).join('')}`;
-        if (prev) attendanceSelect.value = prev;
-      }
+        const attendanceDisplay = document.getElementById('hr-attendance-employee-display');
+        const attendanceHidden = document.getElementById('hr-attendance-employee-locked');
+      
+        if (attendanceSelect && attendanceDisplay && attendanceHidden) {
+          if (isStandardEmployeeProfileRole()) {
+            const profileEmployee = getCurrentHrProfileEmployee();
+            if (profileEmployee && Number(profileEmployee.id) > 0) {
+              attendanceSelect.style.display = 'none';
+              attendanceDisplay.style.display = 'block';
+              attendanceDisplay.textContent = '👤 ' + escapeHtml(profileEmployee.fullName);
+              attendanceHidden.value = String(profileEmployee.id);
+              attendanceSelect.value = String(profileEmployee.id);
+            }
+          } else {
+            const prev = attendanceSelect.value;
+            attendanceSelect.style.display = '';
+            attendanceDisplay.style.display = 'none';
+            attendanceSelect.innerHTML = `<option value="">Sélectionner un employé</option>${hrEmployeesCache.map(employee => `<option value="${employee.id}">${escapeHtml(employee.fullName)}</option>`).join('')}`;
+            if (prev) attendanceSelect.value = prev;
+          }
+        }
 
       const leaveSelect = document.getElementById('hr-leave-employee');
       if (leaveSelect) {
@@ -25087,7 +25105,10 @@
           return;
         }
         try {
-          const employeeId = Number(document.getElementById('hr-attendance-employee').value || 0);
+          let employeeId = Number(document.getElementById('hr-attendance-employee').value || 0);
+          if (!employeeId) {
+            employeeId = Number(document.getElementById('hr-attendance-employee-locked').value || 0);
+          }
           const attendanceDate = document.getElementById('hr-attendance-date').value;
           const ciToday = getAbidjanNowParts(new Date()).date;
           if (!employeeId || !attendanceDate) {
