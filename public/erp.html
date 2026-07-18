@@ -11366,7 +11366,17 @@
         '- Demandes d\'approvisionnement',
         '- Inventaire et autorisations de sortie',
         '- Depenses et revenus',
-        '- Corbeille et documents archives',
+        '- Parc auto, transports et suivi GPS',
+        '- Affectations de projet et fournisseurs operationnels',
+        '',
+        'Cette action ne supprime pas :',
+        '- La liste des employes',
+        '- Le catalogue de materiaux',
+        '- Les projets, sites et zones crees',
+        '- Les entrepots crees',
+        '- Les journaux de chantier',
+        '- Le calendrier de presence, les pointages et les conges',
+        '- Le guide ERP et les archives',
         '',
         'Tape PURGE_ALL_DATA pour confirmer.'
       ].join('\n');
@@ -11382,20 +11392,6 @@
           method: 'POST',
           body: JSON.stringify({ confirm: 'PURGE_ALL_DATA' }),
         });
-
-        trashItems = [];
-        saveTrashItemsToStorage();
-        databaseTrashBySection = {
-          projects: [],
-          users: [],
-          assignments: [],
-          revenues: [],
-          expenses: [],
-          purchase_orders: [],
-          generated_documents: [],
-        };
-        saveDatabaseTrashToStorage();
-        saveDatabaseTrashHiddenIdsToStorage();
 
         selectedMaterialRequestId = null;
         selectedPurchaseOrderId = null;

@@ -230,14 +230,7 @@ const DATA_PURGE_TABLES = [
   'purchase_order_items',
   'purchase_orders',
   'material_requests',
-  'hr_document_signatures',
-  'hr_employee_documents',
-  'hr_leave_requests',
-  'hr_attendance',
-  'hr_employees',
-  'project_progress_updates',
   'project_assignments',
-  'generated_documents',
   'auto_vehicle_locations',
   'auto_tracking_devices',
   'auto_transport_costs',
@@ -245,12 +238,7 @@ const DATA_PURGE_TABLES = [
   'expenses',
   'revenues',
   'materials',
-  'building_material_catalog',
   'suppliers',
-  'projects',
-  'project_folders',
-  'project_catalog',
-  'custom_stock_warehouses'
 ];
 
 async function purgeBusinessData() {
@@ -273,21 +261,10 @@ async function purgeBusinessData() {
     try { await run('PRAGMA foreign_keys = ON'); } catch (_error) {}
   }
 
-  try {
-    if (fs.existsSync(ARCHIVE_ROOT)) {
-      fs.rmSync(ARCHIVE_ROOT, { recursive: true, force: true });
-    }
-    fs.mkdirSync(ARCHIVE_ROOT, { recursive: true });
-  } catch (_error) {}
-
-  try {
-    await run('DELETE FROM generated_documents');
-  } catch (_error) {}
-
   return {
     purgedAt: now,
     tables: DATA_PURGE_TABLES,
-    archivesCleared: true,
+    archivesCleared: false,
   };
 }
 
