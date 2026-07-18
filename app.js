@@ -8032,7 +8032,7 @@ function getHrLeaveTypeLabel(leaveType) {
 async function generateHrLeaveApprovalPdfBuffer({ employee, leaveRequest }) {
   return await new Promise((resolve, reject) => {
     const chunks = [];
-    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    const doc = new PDFDocument({ size: 'A4', margin: 44 });
     doc.on('data', chunk => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
@@ -8047,26 +8047,80 @@ async function generateHrLeaveApprovalPdfBuffer({ employee, leaveRequest }) {
     const reason = String(leaveRequest?.reason || '').trim() || 'Aucun motif renseigne';
     const decisionNote = String(leaveRequest?.decisionNote || '').trim();
 
-    doc.font('Helvetica-Bold').fontSize(18).fillColor('#0f172a').text('Decision de conge', { align: 'center' });
-    doc.moveDown(1);
-    doc.font('Helvetica').fontSize(11).fillColor('#334155');
-    doc.text(`Employe: ${employeeName}`);
-    doc.text(`Poste: ${jobTitle}`);
-    doc.text(`Type de conge: ${leaveTypeLabel}`);
-    doc.text(`Periode: du ${startDate} au ${endDate}`);
-    doc.text('Decision: Validee');
-    doc.text(`Validee par: ${decidedBy}`);
-    doc.text(`Date de validation: ${new Date(decidedAt).toLocaleString('fr-FR')}`);
-    doc.moveDown(1);
-    doc.font('Helvetica-Bold').text('Motif du conge');
-    doc.font('Helvetica').text(reason);
-    if (decisionNote) {
-      doc.moveDown(0.8);
-      doc.font('Helvetica-Bold').text('Note de decision');
-      doc.font('Helvetica').text(decisionNote);
+    const signatureFontPath = resolveSignatureFontPath();
+    const signatureFontName = signatureFontPath ? 'SignatureScript' : 'Helvetica-Oblique';
+    if (signatureFontPath) {
+      try {
+        doc.registerFont(signatureFontName, signatureFontPath);
+      } catch (_err) {
+        // Fallback to Helvetica-Oblique when custom script font is unavailable.
+      }
     }
-    doc.moveDown(2);
-    doc.text('Document genere automatiquement par Ryan ERP.', { align: 'right' });
+
+    const safeDecisionDate = Number.isNaN(new Date(decidedAt).getTime())
+      ? new Date().toLocaleString('fr-FR')
+      : new Date(decidedAt).toLocaleString('fr-FR');
+    const pageHeight = doc.page.height;
+    const contentWidth = doc.page.width - 88;
+    const footerBaseY = pageHeight - 118;
+
+    doc.rect(44, 44, contentWidth, 92).fill('#e2e8f0');
+    doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(20)
+      .text('DEMANDE DE CONGE', 44, 70, { width: contentWidth, align: 'center' });
+    doc.font('Helvetica').fontSize(10).fillColor('#334155')
+      .text('Document officiel de validation RH', 44, 100, { width: contentWidth, align: 'center' });
+
+    doc.roundedRect(44, 154, contentWidth, 156, 8).lineWidth(1).strokeColor('#cbd5e1').stroke();
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f172a').text('Informations employe', 58, 170);
+    doc.font('Helvetica').fontSize(11).fillColor('#1f2937');
+    doc.text(`Nom complet: ${employeeName}`, 58, 194, { width: contentWidth - 28 });
+    doc.text(`Poste: ${jobTitle}`, 58, 214, { width: contentWidth - 28 });
+    doc.text(`Type de conge: ${leaveTypeLabel}`, 58, 234, { width: contentWidth - 28 });
+    doc.text(`Periode: du ${startDate} au ${endDate}`, 58, 254, { width: contentWidth - 28 });
+
+    doc.roundedRect(44, 326, contentWidth, 130, 8).lineWidth(1).strokeColor('#cbd5e1').stroke();
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f172a').text('Motif de la demande', 58, 342);
+    doc.font('Helvetica').fontSize(10.5).fillColor('#111827').text(reason, 58, 364, {
+      width: contentWidth - 28,
+      height: 80,
+      ellipsis: true,
+    });
+
+    if (decisionNote) {
+      doc.roundedRect(44, 468, contentWidth, 86, 8).lineWidth(1).strokeColor('#cbd5e1').stroke();
+      doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f172a').text('Note de decision RH', 58, 484);
+      doc.font('Helvetica').fontSize(10.5).fillColor('#111827').text(decisionNote, 58, 506, {
+        width: contentWidth - 28,
+        height: 38,
+        ellipsis: true,
+      });
+    }
+
+    doc.font('Helvetica').fontSize(10).fillColor('#1f2937')
+      .text('Decision: VALIDE', 58, footerBaseY - 26, { width: 250, align: 'left' });
+    doc.text(`Validee par: ${decidedBy}`, 58, footerBaseY - 10, { width: 250, align: 'left' });
+    doc.text(`Date de validation: ${safeDecisionDate}`, 58, footerBaseY + 6, { width: 300, align: 'left' });
+
+    doc.lineWidth(2).strokeColor('#166534').fillColor('#166534');
+    doc.roundedRect(48, footerBaseY + 26, 148, 52, 8).stroke();
+    doc.font('Helvetica-Bold').fontSize(18).fillColor('#166534').text('VALIDE', 48, footerBaseY + 40, {
+      width: 148,
+      align: 'center',
+    });
+
+    doc.font('Helvetica').fontSize(9).fillColor('#0f172a').text('Signature directeur RH', 336, footerBaseY + 10, {
+      width: 216,
+      align: 'right',
+    });
+    doc.font(signatureFontName).fontSize(27).fillColor('#111827').text('directeur_rh', 336, footerBaseY + 24, {
+      width: 216,
+      align: 'right',
+    });
+
+    doc.font('Helvetica').fontSize(9).fillColor('#475569').text('Document genere automatiquement par Ryan ERP.', 44, pageHeight - 36, {
+      width: contentWidth,
+      align: 'center',
+    });
     doc.end();
   });
 }
@@ -8079,7 +8133,7 @@ async function archiveOrUpdateHrLeaveDecisionDocument(leaveRequestRow, employeeR
   const leaveTypeLabel = getHrLeaveTypeLabel(leaveRequestRow?.leaveType);
   const employeeNameSafe = sanitizeFileName(String(employeeRow?.fullName || `employe-${employeeId}`));
   const periodToken = `${String(leaveRequestRow?.startDate || '').slice(0, 10)}-${String(leaveRequestRow?.endDate || '').slice(0, 10)}`.replace(/[^0-9-]/g, '');
-  const fileName = sanitizeFileName(`decision-conge-${employeeNameSafe}-${periodToken || leaveRequestId}.pdf`);
+  const fileName = sanitizeFileName(`Demande de conge - ${employeeNameSafe} - ${periodToken || leaveRequestId}.pdf`);
   const relativePath = path.join('construction', 'hr-presence', `employee-${employeeId}`, fileName);
   const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
   fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
