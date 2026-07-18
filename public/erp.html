@@ -4114,20 +4114,20 @@
         color: #ffffff !important;
       }
 
-      .button,
-      .button-primary,
-      .button-secondary,
-      .button-small {
+      .button {
         color: #0f172a;
       }
 
-      .button-primary {
+      .button-primary,
+      .button-success,
+      .button-danger {
         color: #ffffff;
       }
 
       .button-secondary {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.16);
+        color: #1d4ed8;
+        background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
+        border-color: #bfdbfe;
       }
 
       .dashboard-grid {
@@ -4563,12 +4563,17 @@
         background: linear-gradient(145deg, rgba(255, 209, 102, 0.34), rgba(77, 171, 247, 0.24));
       }
 
-      .module:not(#dashboard) .button:not(.button-primary),
-      .module:not(#dashboard) .button-secondary,
-      .module:not(#dashboard) .button-small {
+      .module:not(#dashboard) .button:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
+      .module:not(#dashboard) .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary) {
         color: #0f172a;
         border-color: rgba(31, 41, 55, 0.16);
         background: rgba(255, 255, 255, 0.90);
+      }
+
+      .module:not(#dashboard) .button-secondary {
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+        background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
       }
 
       .module:not(#dashboard) .button-primary {
@@ -5751,11 +5756,17 @@
     /* Base de donnee: forcer un contraste lisible pour les actions */
     #database .action-buttons .button,
     #database .action-buttons a.button,
-    #database .button.button-small,
+    #database .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
     #database .button.button-secondary {
       color: #0f172a;
       border-color: #c7dbff;
       background: linear-gradient(145deg, #ffffff 0%, #eef4ff 100%);
+    }
+
+    #database .button.button-secondary {
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+      background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
     }
 
     #database .action-buttons .button.button-primary,
@@ -6674,12 +6685,17 @@
       border-color: transparent;
     }
 
-    body.app-layout-mode .button-secondary,
-    body.app-layout-mode .button:not(.button-primary),
-    body.app-layout-mode .button-small {
+    body.app-layout-mode .button:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
+    body.app-layout-mode .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary) {
       background: linear-gradient(145deg, #ffffff 0%, #eef5ff 100%);
       color: #1f2937;
       border-color: rgba(95, 106, 242, 0.14);
+    }
+
+    body.app-layout-mode .button-secondary {
+      background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
+      color: #1d4ed8;
+      border-color: #bfdbfe;
     }
 
     body.app-layout-mode .global-search-input {
@@ -6862,12 +6878,17 @@
       border-color: transparent;
     }
 
-    body.browser-layout-mode .button-secondary,
-    body.browser-layout-mode .button:not(.button-primary),
-    body.browser-layout-mode .button-small {
+    body.browser-layout-mode .button:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
+    body.browser-layout-mode .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary) {
       background: linear-gradient(145deg, #ffffff 0%, #eef5ff 100%);
       color: #1f2937;
       border-color: rgba(95, 106, 242, 0.14);
+    }
+
+    body.browser-layout-mode .button-secondary {
+      background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
+      color: #1d4ed8;
+      border-color: #bfdbfe;
     }
 
     body.browser-layout-mode .global-search-input {
