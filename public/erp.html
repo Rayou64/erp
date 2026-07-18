@@ -9711,6 +9711,7 @@
     let auditCurrentPage = 1;
 
     const HR_CODE_META = {
+      '-': { label: 'Néant', color: '#475569', bg: '#e2e8f0' },
       P: { label: 'Présence', color: '#166534', bg: '#dcfce7' },
       R: { label: 'Retard', color: '#92400e', bg: '#fef3c7' },
       MS: { label: 'Congé maladie', color: '#9f1239', bg: '#ffe4e6' },
@@ -17410,7 +17411,7 @@
 
       tbody.innerHTML = hrAttendanceCache.slice(0, 20).map(row => {
         const dateValue = row.effectiveDate || row.attendanceDate || row.dayDate;
-        const codeValue = row.statusCode || row.status || 'P';
+        const codeValue = row.statusCode || row.status || '-';
         return `
           <tr>
             <td>${escapeHtml(row.fullName || '-')}</td>
@@ -17435,7 +17436,7 @@
       tbody.innerHTML = hrLeaveRequestsCache.map(row => {
         const statusLabel = formatHrStatusLabel(row.status);
         const actions = canDecideHrLeave() && String(row.status || '').toUpperCase() === 'EN_ATTENTE'
-          ? `<button type="button" class="button button-small button-success" onclick="setHrLeaveStatus(${Number(row.id)}, 'APPROUVEE')">Approuver</button>
+          ? `<button type="button" class="button button-small button-success" onclick="setHrLeaveStatus(${Number(row.id)}, 'APPROUVEE')">Valider</button>
              <button type="button" class="button button-small button-danger" onclick="setHrLeaveStatus(${Number(row.id)}, 'REJETEE')">Rejeter</button>`
           : '<span style="color:#94a3b8;">-</span>';
         return `

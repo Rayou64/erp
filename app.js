@@ -231,14 +231,9 @@ const DATA_PURGE_TABLES = [
   'purchase_orders',
   'material_requests',
   'project_assignments',
-  'auto_vehicle_locations',
-  'auto_tracking_devices',
-  'auto_transport_costs',
-  'auto_vehicles',
   'expenses',
   'revenues',
   'materials',
-  'suppliers',
 ];
 
 async function purgeBusinessData() {
@@ -1213,14 +1208,32 @@ function resolveExistingGuideAbsolutePath(row) {
     }
   }
 
-  const fallbackFileName = String(row?.fileName || '').trim();
-  if (fallbackFileName) {
-    const fallbackRelative = getArchiveRelativePath('guides', fallbackFileName);
+  const guideDir = path.join(ARCHIVE_ROOT, 'guides');
+  const fallbackFileName = sanitizeFileName(String(row?.fileName || '').trim());
+  const relativeBaseName = sanitizeFileName(path.basename(relativePath || ''));
+  const candidateNames = Array.from(new Set([fallbackFileName, relativeBaseName].filter(Boolean)));
+
+  for (const candidateName of candidateNames) {
+    const fallbackRelative = getArchiveRelativePath('guides', candidateName);
     const fallbackAbsolute = path.join(ARCHIVE_ROOT, fallbackRelative);
     if (fs.existsSync(fallbackAbsolute)) {
       return {
         absolutePath: fallbackAbsolute,
         relativePath: fallbackRelative,
+      };
+    }
+  }
+
+  if (fs.existsSync(guideDir)) {
+    const guideFileNames = fs.readdirSync(guideDir, { withFileTypes: true })
+      .filter(entry => entry.isFile())
+      .map(entry => entry.name);
+
+    const matchedName = guideFileNames.find(name => candidateNames.some(candidateName => name === candidateName || name.endsWith(`-${candidateName}`)));
+    if (matchedName) {
+      return {
+        absolutePath: path.join(guideDir, matchedName),
+        relativePath: getArchiveRelativePath('guides', matchedName),
       };
     }
   }
@@ -7088,12 +7101,16 @@ app.get('/api/guide-documents', async (_req, res) => {
       return;
     }
 
-    const normalizedRows = (Array.isArray(rows) ? rows : []).map(row => ({
-      ...row,
-      audienceScope: String(row?.audienceScope || 'all').trim().toLowerCase() === 'selected' ? 'selected' : 'all',
-      recipientEmployeeIds: normalizeNumericIdList(row?.recipientEmployeeIds),
-      fileUrl: `/archives/${String(row.relativePath || '').replace(/\\/g, '/')}`,
-    }));
+    const normalizedRows = (Array.isArray(rows) ? rows : []).map(row => {
+      const resolved = resolveExistingGuideAbsolutePath(row);
+      const resolvedRelativePath = String(resolved?.relativePath || row?.relativePath || '').replace(/\\/g, '/');
+      return {
+        ...row,
+        audienceScope: String(row?.audienceScope || 'all').trim().toLowerCase() === 'selected' ? 'selected' : 'all',
+        recipientEmployeeIds: normalizeNumericIdList(row?.recipientEmployeeIds),
+        fileUrl: resolvedRelativePath ? `/archives/${resolvedRelativePath}` : '',
+      };
+    });
     return res.json(normalizedRows);
   } catch (err) {
     return res.status(500).json({ error: 'Erreur lors du chargement du guide ERP', details: String(err?.message || err) });
@@ -7982,6 +7999,130 @@ function getHrAttendanceStatusLabel(code, isWeekend, leaveTypeLabel = '') {
   return isWeekend ? 'Weekend' : 'Absent';
 }
 
+function getHrLeaveTypeLabel(leaveType) {
+  const leaveCode = normalizeLeaveTypeCode(leaveType);
+  return {
+    MS: 'Conge maladie',
+    CA: 'Conge annuel',
+    CM: 'Conge maternite',
+    CP: 'Conge paternite',
+    A: 'Absence autorisee',
+  }[leaveCode] || 'Conge';
+}
+
+async function generateHrLeaveApprovalPdfBuffer({ employee, leaveRequest }) {
+  return await new Promise((resolve, reject) => {
+    const chunks = [];
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    doc.on('data', chunk => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const employeeName = String(employee?.fullName || `Employe #${Number(employee?.id || 0)}`).trim();
+    const jobTitle = String(employee?.jobTitle || '-').trim() || '-';
+    const leaveTypeLabel = getHrLeaveTypeLabel(leaveRequest?.leaveType);
+    const startDate = String(leaveRequest?.startDate || '').slice(0, 10) || '-';
+    const endDate = String(leaveRequest?.endDate || '').slice(0, 10) || '-';
+    const decidedBy = String(leaveRequest?.decidedBy || 'directeur_rh').trim() || 'directeur_rh';
+    const decidedAt = String(leaveRequest?.decidedAt || new Date().toISOString()).trim();
+    const reason = String(leaveRequest?.reason || '').trim() || 'Aucun motif renseigne';
+    const decisionNote = String(leaveRequest?.decisionNote || '').trim();
+
+    doc.font('Helvetica-Bold').fontSize(18).fillColor('#0f172a').text('Decision de conge', { align: 'center' });
+    doc.moveDown(1);
+    doc.font('Helvetica').fontSize(11).fillColor('#334155');
+    doc.text(`Employe: ${employeeName}`);
+    doc.text(`Poste: ${jobTitle}`);
+    doc.text(`Type de conge: ${leaveTypeLabel}`);
+    doc.text(`Periode: du ${startDate} au ${endDate}`);
+    doc.text('Decision: Validee');
+    doc.text(`Validee par: ${decidedBy}`);
+    doc.text(`Date de validation: ${new Date(decidedAt).toLocaleString('fr-FR')}`);
+    doc.moveDown(1);
+    doc.font('Helvetica-Bold').text('Motif du conge');
+    doc.font('Helvetica').text(reason);
+    if (decisionNote) {
+      doc.moveDown(0.8);
+      doc.font('Helvetica-Bold').text('Note de decision');
+      doc.font('Helvetica').text(decisionNote);
+    }
+    doc.moveDown(2);
+    doc.text('Document genere automatiquement par Ryan ERP.', { align: 'right' });
+    doc.end();
+  });
+}
+
+async function archiveOrUpdateHrLeaveDecisionDocument(leaveRequestRow, employeeRow) {
+  const leaveRequestId = Number(leaveRequestRow?.id || 0);
+  const employeeId = Number(employeeRow?.id || leaveRequestRow?.employeeId || 0);
+  if (!leaveRequestId || !employeeId) return null;
+
+  const leaveTypeLabel = getHrLeaveTypeLabel(leaveRequestRow?.leaveType);
+  const employeeNameSafe = sanitizeFileName(String(employeeRow?.fullName || `employe-${employeeId}`));
+  const periodToken = `${String(leaveRequestRow?.startDate || '').slice(0, 10)}-${String(leaveRequestRow?.endDate || '').slice(0, 10)}`.replace(/[^0-9-]/g, '');
+  const fileName = sanitizeFileName(`decision-conge-${employeeNameSafe}-${periodToken || leaveRequestId}.pdf`);
+  const relativePath = path.join('construction', 'hr-presence', `employee-${employeeId}`, fileName);
+  const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+
+  const pdfBuffer = await generateHrLeaveApprovalPdfBuffer({ employee: employeeRow, leaveRequest: leaveRequestRow });
+  await fs.promises.writeFile(absolutePath, pdfBuffer);
+
+  const title = `${leaveTypeLabel} - ${String(employeeRow?.fullName || `Employe ${employeeId}`)} - ${String(leaveRequestRow?.startDate || '').slice(0, 10)}`;
+  const nowIso = new Date().toISOString();
+  const existing = await get(
+    'SELECT id, relativePath FROM generated_documents WHERE sectionCode = ? AND entityType = ? AND entityId = ? ORDER BY id DESC LIMIT 1',
+    ['hr_presence', 'hr_leave_request', leaveRequestId]
+  );
+
+  if (existing?.relativePath) {
+    const oldAbsolutePath = path.join(ARCHIVE_ROOT, String(existing.relativePath));
+    if (oldAbsolutePath !== absolutePath && fs.existsSync(oldAbsolutePath)) {
+      try { await fs.promises.unlink(oldAbsolutePath); } catch (_error) {}
+    }
+  }
+
+  if (existing?.id) {
+    await run(
+      `UPDATE generated_documents
+       SET sectionLabel = ?, title = ?, fileName = ?, relativePath = ?, updatedAt = ?
+       WHERE id = ?`,
+      ['Presence RH', title, fileName, relativePath, nowIso, Number(existing.id)]
+    );
+  } else {
+    const nextDocumentId = await getNextTableId('generated_documents');
+    await run(
+      `INSERT INTO generated_documents
+        (id, sectionCode, sectionLabel, entityType, entityId, title, fileName, relativePath, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nextDocumentId, 'hr_presence', 'Presence RH', 'hr_leave_request', leaveRequestId, title, fileName, relativePath, nowIso, nowIso]
+    );
+  }
+
+  return { title, fileName, relativePath, sectionCode: 'hr_presence' };
+}
+
+async function deleteHrLeaveDecisionDocument(leaveRequestId) {
+  const numericLeaveRequestId = Number(leaveRequestId || 0);
+  if (!numericLeaveRequestId) return;
+
+  const rows = await all(
+    'SELECT id, relativePath FROM generated_documents WHERE sectionCode = ? AND entityType = ? AND entityId = ?',
+    ['hr_presence', 'hr_leave_request', numericLeaveRequestId]
+  );
+
+  for (const row of rows || []) {
+    const relativePath = String(row?.relativePath || '').trim();
+    if (relativePath) {
+      const absolutePath = path.join(ARCHIVE_ROOT, relativePath);
+      if (fs.existsSync(absolutePath)) {
+        try { await fs.promises.unlink(absolutePath); } catch (_error) {}
+      }
+    }
+    await run('DELETE FROM generated_documents WHERE id = ?', [Number(row.id)]);
+  }
+}
+
 async function generateHrAttendanceSheetPdfBuffer({ employee, range, rows, monthLabel }) {
   return await new Promise((resolve, reject) => {
     const chunks = [];
@@ -8132,10 +8273,15 @@ async function generateOrUpdateHrAttendanceSheet(employeeId, monthValue) {
     const isWeekend = weekday === 0 || weekday === 6;
 
     const leaveEntry = leaveByDate.get(dateValue) || null;
+    const hasAttendanceEntry = attendanceByDate.has(dateValue);
     const code = leaveEntry?.code || attendanceByDate.get(dateValue) || '';
     const normalizedCode = code ? normalizeHrCode(code) : '';
-    const effectiveCode = normalizedCode || (isWeekend ? '-' : 'A');
-    const statusLabel = getHrAttendanceStatusLabel(effectiveCode, isWeekend, leaveEntry?.label || '');
+    const effectiveCode = normalizedCode || '-';
+    const statusLabel = leaveEntry
+      ? getHrAttendanceStatusLabel(effectiveCode, isWeekend, leaveEntry?.label || '')
+      : hasAttendanceEntry
+        ? getHrAttendanceStatusLabel(effectiveCode, isWeekend, '')
+        : (isWeekend ? 'Weekend' : 'Neant');
 
     rows.push({
       dateLabel: dateValue,
@@ -9007,6 +9153,14 @@ app.patch('/api/hr/leave-requests/:id/status', async (req, res) => {
   }
 
   const row = await get('SELECT * FROM hr_leave_requests WHERE id = ?', [id]);
+  if (status === 'APPROUVEE') {
+    const employeeRow = await get('SELECT id, fullName, jobTitle FROM hr_employees WHERE id = ?', [Number(row?.employeeId || 0)]);
+    if (employeeRow) {
+      await archiveOrUpdateHrLeaveDecisionDocument(row, employeeRow);
+    }
+  } else {
+    await deleteHrLeaveDecisionDocument(id);
+  }
   res.json(row);
 });
 
