@@ -7596,7 +7596,7 @@
         <div id="journal-chantier" class="module">
           <div class="page-header">
             <h1>Journal de chantier</h1>
-            <p>Journal automatique des suivis d'étapes par site</p>
+            <p>Journal automatique des suivis d'étapes par LOT</p>
           </div>
 
           <div class="card form-card" style="margin-bottom: 16px;">
@@ -7619,7 +7619,7 @@
                 <select id="progress-project-folder" required></select>
               </div>
               <div class="form-group">
-                <label>Site *</label>
+                <label>LOT *</label>
                 <select id="progress-project" required></select>
               </div>
               <div class="form-group">
@@ -7680,7 +7680,7 @@
                 <select id="journal-folder-filter"></select>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label>Site</label>
+                <label>LOT</label>
                 <select id="journal-site-filter"></select>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
@@ -7698,7 +7698,7 @@
           </div>
 
           <div class="card">
-            <h3 style="margin-bottom: 12px;">Entrées du journal par site</h3>
+            <h3 style="margin-bottom: 12px;">Entrées du journal par LOT</h3>
             <div id="journal-summary" style="font-size: 12px; color: #64748b; margin-bottom: 12px;"></div>
             <div id="journal-site-list"></div>
           </div>
@@ -8378,7 +8378,7 @@
                   <input type="hidden" id="stock-issue-project-folder" value="">
                 </div>
                 <div class="form-group">
-                  <label>Site destinataire *</label>
+                  <label>LOT destinataire *</label>
                   <select id="stock-issue-project" required></select>
                 </div>
                 <div class="form-group" id="stock-issue-stage-group">
@@ -8400,7 +8400,7 @@
                 <div class="form-group">
                   <label>Matériaux liés à l'étape</label>
                   <div id="stock-issue-lines" style="display: grid; gap: 8px;"></div>
-                  <div id="stock-issue-lines-hint" style="margin-top: 8px; color: #64748b; font-size: 12px;">Sélectionne un site puis une étape pour afficher les matériaux disponibles.</div>
+                  <div id="stock-issue-lines-hint" style="margin-top: 8px; color: #64748b; font-size: 12px;">Sélectionne un LOT pour afficher automatiquement les matériaux en stock.</div>
                 </div>
                 <div class="form-group">
                   <label>Note</label>
@@ -11800,17 +11800,34 @@
       const stageSelect = document.getElementById('progress-stage');
       if (!stageSelect) return;
 
+      const defaultMainStages = [
+        'Implantation',
+        'Terrassement',
+        'Fondations',
+        'Élévation',
+        'Charpente',
+        'Toiture',
+        'Second oeuvre',
+        'Finitions',
+        'Contrôle qualité',
+        'Réception',
+      ];
+
       const pid = Number(projectId || 0);
       if (!pid) {
-        stageSelect.innerHTML = '<option value="">Sélectionner d\'abord un site</option>';
+        stageSelect.innerHTML = '<option value="">Sélectionner d\'abord un LOT</option>' +
+          defaultMainStages.map(stage => `<option value="${escapeHtml(stage)}">${escapeHtml(stage)}</option>`).join('');
         return;
       }
 
-      const stages = getProgressAvailableStages(pid);
-      if (!stages.length) {
-        stageSelect.innerHTML = '<option value="">Aucune étape disponible depuis l\'inventaire</option>';
-        return;
-      }
+      const inferredStages = getProgressAvailableStages(pid);
+      const stages = [...defaultMainStages];
+      inferredStages.forEach(stage => {
+        const key = normalizeStageKey(stage);
+        if (!stages.some(item => normalizeStageKey(item) === key)) {
+          stages.push(stage);
+        }
+      });
 
       const wantedKey = normalizeStageKey(selectedStage || stageSelect.value || '');
       stageSelect.innerHTML = '<option value="">Sélectionner une étape</option>' +
@@ -11923,16 +11940,16 @@
 
       if (summaryEl) {
         if (!projectId) {
-          summaryEl.textContent = 'Sélectionne un site pour voir les stocks restants par matériau.';
+          summaryEl.textContent = 'Sélectionne un LOT pour voir les stocks restants par matériau.';
         } else if (!linesSummary.length) {
           const availableCount = getProgressAvailableMaterials(projectId, stageValue).length;
           summaryEl.textContent = availableCount
-            ? `${availableCount} matériau${availableCount > 1 ? 'x' : ''} disponible${availableCount > 1 ? 's' : ''} pour ce site et cette étape.`
-            : 'Aucun stock disponible pour ce site et cette étape.';
+            ? `${availableCount} matériau${availableCount > 1 ? 'x' : ''} disponible${availableCount > 1 ? 's' : ''} pour ce LOT et cette étape.`
+            : 'Aucun stock disponible pour ce LOT et cette étape.';
         } else {
           summaryEl.textContent = linesSummary.map(line => {
             const availability = findProgressMaterialAvailability(projectId, line.itemName, stageValue);
-            if (!availability) return `${line.itemName}: introuvable dans le stock du site`;
+            if (!availability) return `${line.itemName}: introuvable dans le stock du LOT`;
             const remaining = Number(availability.quantiteRestante || 0);
             const isValid = Number(line.quantite || 0) <= remaining;
             return `${line.itemName}: ${Number(line.quantite || 0).toFixed(2)} / ${remaining.toFixed(2)} restant${isValid ? '' : ' - dépassement'}`;
@@ -11948,7 +11965,7 @@
         if (!hint) return;
 
         if (!projectIdValue || !itemName) {
-          hint.textContent = projectIdValue ? 'Choisis un matériau disponible' : 'Sélectionne un site';
+          hint.textContent = projectIdValue ? 'Choisis un matériau disponible' : 'Sélectionne un LOT';
           hint.style.color = '#64748b';
           return;
         }
@@ -14517,7 +14534,7 @@
         });
 
       const totalEntries = siteRows.reduce((sum, row) => sum + row.entries.length, 0);
-      summary.textContent = `${siteRows.length} site${siteRows.length > 1 ? 's' : ''} • ${totalEntries} entrée${totalEntries > 1 ? 's' : ''} du journal`;
+      summary.textContent = `${siteRows.length} LOT${siteRows.length > 1 ? 's' : ''} • ${totalEntries} entrée${totalEntries > 1 ? 's' : ''} du journal`;
 
       container.innerHTML = siteRows.length
         ? siteRows.map(row => `
@@ -15258,6 +15275,18 @@
 
     function isStockIssueAllSubStagesSelected() {
       return Boolean(document.getElementById('stock-issue-stage-all-sub')?.checked);
+    }
+
+    function isZoneStockIssue() {
+      const warehouseId = String(document.getElementById('stock-issue-warehouse')?.value || selectedStockWarehouseId || '').trim();
+      if (!warehouseId) return false;
+
+      const warehouse = getWarehouseById(warehouseId);
+      const warehouseName = normalizeText(String(warehouse?.name || ''));
+      if (warehouseName.includes('zone')) return true;
+
+      const warehouseRows = getRowsByWarehouse(stockAvailableCache, warehouseId);
+      return warehouseRows.some(row => String(row?.sourceType || '').trim().toUpperCase() === 'ZONE_STOCK');
     }
 
     function syncStockIssueRequestedStageInput() {
@@ -20439,12 +20468,12 @@
       });
 
       if (!houses.length) {
-        projectSelect.innerHTML = '<option value="">Aucun site disponible dans cette zone</option>';
+        projectSelect.innerHTML = '<option value="">Aucun LOT disponible dans cette zone</option>';
         return;
       }
 
-      projectSelect.innerHTML = '<option value="">Sélectionner un site</option>' +
-        houses.map((house, index) => `<option value="${house.projetId}">Site N°${escapeHtml(house.numeroMaison || index + 1)} - ${escapeHtml(house.typeMaison || 'Type libre')}</option>`).join('');
+      projectSelect.innerHTML = '<option value="">Sélectionner un LOT</option>' +
+        houses.map((house, index) => `<option value="${house.projetId}">LOT N°${escapeHtml(house.numeroMaison || index + 1)} - ${escapeHtml(house.typeMaison || 'Type libre')}</option>`).join('');
 
       const projectExists = houses.some(house => String(house.projetId) === String(selectedProjectId));
       projectSelect.value = projectExists ? String(selectedProjectId) : String(houses[0].projetId);
@@ -20638,13 +20667,13 @@
         rows = getDebourseMatchedStockIssueRows();
       } else {
         if (!stageKey) {
-          linesContainer.innerHTML = '';
-          hint.textContent = 'Sélectionne une étape pour afficher les matériaux disponibles.';
-          return;
+          rows = getDebourseMatchedStockIssueRows();
+          hint.textContent = 'Catalogue chargé automatiquement depuis le stock du LOT sélectionné.';
+        } else {
+          rows = getDebourseMatchedStockIssueRows().filter(row => {
+            return isCatalogEntryMatchingStage({ notes: String(row.etapeApprovisionnement || '').trim() }, stageKey);
+          });
         }
-        rows = getDebourseMatchedStockIssueRows().filter(row => {
-          return isCatalogEntryMatchingStage({ notes: String(row.etapeApprovisionnement || '').trim() }, stageKey);
-        });
       }
 
       const groupedRowsMap = new Map();
@@ -20674,10 +20703,10 @@
       if (!groupedRows.length) {
         linesContainer.innerHTML = zoneMode
           ? '<div class="empty-state"><p>Aucun matériau en stock de zone pour cet entrepôt.</p></div>'
-          : '<div class="empty-state"><p>Aucun matériau disponible pour cette étape.</p></div>';
+          : '<div class="empty-state"><p>Aucun matériau en stock pour ce LOT.</p></div>';
         hint.textContent = zoneMode
           ? 'Aucun matériau en stock de zone disponible.'
-          : "Aucun matériau disponible pour l'étape sélectionnée.";
+          : "Aucun matériau disponible pour ce LOT.";
         return;
       }
 
@@ -20691,7 +20720,7 @@
           <input type="number" class="stock-issue-line-qty" min="0" step="0.01" max="${Number(row.totalRemaining || 0)}" placeholder="Qté à sortir" />
         </div>
       `).join('');
-      hint.textContent = `${groupedRows.length} matériau(x) disponibles${zoneMode ? ' (stock de zone)' : ' pour cette étape'}.`;
+      hint.textContent = `${groupedRows.length} matériau(x) disponibles${zoneMode ? ' (stock de zone)' : ' pour ce LOT'}.`;
 
       updateStockIssueRemainingPreview();
 
