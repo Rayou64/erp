@@ -7510,12 +7510,15 @@ app.post('/api/auto-vehicles', async (req, res) => {
     return res.status(400).json({ error: 'Nom, marque, valeur et etat du vehicule sont obligatoires' });
   }
 
+  const nextId = await getNextTableId('auto_vehicles');
+
   const result = await run(
-    'INSERT INTO auto_vehicles (nomVehicule, marqueVehicule, immatriculation, chauffeurNom, gpsActif, valeurVehicule, etatVehicule, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [nom, marque, plaque, chauffeur, gpsEnabled, valeur, etat, new Date().toISOString()]
+    'INSERT INTO auto_vehicles (id, nomVehicule, marqueVehicule, immatriculation, chauffeurNom, gpsActif, valeurVehicule, etatVehicule, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [nextId, nom, marque, plaque, chauffeur, gpsEnabled, valeur, etat, new Date().toISOString()]
   );
 
-  const vehicle = await get('SELECT * FROM auto_vehicles WHERE id = ?', [result.lastID]);
+  const vehicleId = Number(result.lastID || nextId);
+  const vehicle = await get('SELECT * FROM auto_vehicles WHERE id = ?', [vehicleId]);
   res.status(201).json(vehicle);
 });
 
