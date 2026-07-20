@@ -3776,6 +3776,7 @@ const MODULE_ACCESS_ROUTE_RULES = {
     { method: 'GET', pattern: /^\/purchase-orders$/ },
   ],
   database: [{ method: 'GET', pattern: /^\/database-documents(?:\/\d+\/download)?$/ }],
+  'hr-employee-search': [{ method: 'GET', pattern: /^\/hr\/employees\/directory$/ }],
   users: [{ method: 'GET', pattern: /^\/users$/ }],
   assignments: [{ method: 'GET', pattern: /^\/project-assignments$/ }],
   trash: [
@@ -3978,6 +3979,7 @@ async function authorizeRoleAccess(req, res, next) {
       { method: 'GET', pattern: /^\/guide-documents\/\d+\/download$/ },
       { method: 'GET', pattern: /^\/hr\/dashboard-summary$/ },
       { method: 'GET', pattern: /^\/hr\/employees$/ },
+      { method: 'GET', pattern: /^\/hr\/employees\/directory$/ },
       { method: 'PATCH', pattern: /^\/hr\/employees\/\d+$/ },
       { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
       { method: 'POST', pattern: /^\/hr\/employees\/\d+\/documents$/ },
@@ -9005,6 +9007,20 @@ app.get('/api/hr/employees', async (_req, res) => {
      ${whereClause}
      ORDER BY fullName ASC, id ASC`,
     scopedEmployeeIds || []
+  );
+  res.json(rows);
+});
+
+app.get('/api/hr/employees/directory', async (_req, res) => {
+  const rows = await all(
+    `SELECT id, fullName, jobTitle,
+            COALESCE(NULLIF(sexe, ''), 'Neant') AS sexe,
+            COALESCE(NULLIF(typeContrat, ''), 'Neant') AS typeContrat,
+            COALESCE(NULLIF(dateEmbauche, ''), SUBSTR(createdAt, 1, 10)) AS dateEmbauche,
+            phoneNumber, address, maritalStatus, COALESCE(NULLIF(email, ''), '') AS email,
+            COALESCE(username, createdBy, '') AS username, createdBy, createdAt, updatedAt
+     FROM hr_employees
+     ORDER BY fullName ASC, id ASC`
   );
   res.json(rows);
 });
