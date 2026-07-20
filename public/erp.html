@@ -7091,6 +7091,7 @@
           <div class="menu-item" data-module="hr-employees">👥 Liste des employés</div>
           <div class="menu-item" data-module="hr-employee-search" style="display:none;">🔎 Recherche d'employé</div>
           <div class="menu-item" data-module="hr-attendance">🕘 Pointage journalier</div>
+          <div class="menu-item" data-module="hr-contracts">📄 Contrats RH</div>
           <div class="menu-item" data-module="hr-calendar">🗓️ Calendrier présence/congé</div>
           <div class="menu-item" data-module="hr-leave">📝 Demandes de congé</div>
           <div class="menu-item" data-module="hr-signatures">✍️ Demandes de signature</div>
@@ -7890,6 +7891,14 @@
                   <input type="date" id="hr-attendance-date" required readonly />
                 </div>
                 <div class="form-group">
+                  <label>Localisation *</label>
+                  <select id="hr-attendance-location" required>
+                    <option value="bureau">Bureau</option>
+                    <option value="autres">Autres</option>
+                  </select>
+                  <div style="margin-top:6px;font-size:12px;color:#64748b;">Lieu du pointage journalier.</div>
+                </div>
+                <div class="form-group">
                   <label>Action de pointage *</label>
                   <select id="hr-attendance-action" required>
                     <option value="checkin">Arrivée (pointer maintenant)</option>
@@ -7912,6 +7921,133 @@
                   <textarea id="hr-attendance-note" placeholder="Optionnel"></textarea>
                 </div>
                 <button type="submit" class="button button-primary" style="width:100%;">Pointer maintenant</button>
+              </form>
+            </div>
+            <div class="erp-section-sep">Historique récent</div>
+            <div class="card">
+              <h3 style="margin-bottom: 15px;">Pointages récents</h3>
+              <div class="table-wrapper" style="overflow-x:auto;">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Employé</th>
+                      <th>Date</th>
+                      <th>Localisation</th>
+                      <th>Arrivée</th>
+                      <th>Sortie</th>
+                      <th>Code</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hr-attendance-list-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HR Contracts Module -->
+        <div id="hr-contracts" class="module">
+          <div class="page-header">
+            <h1>Contrats RH</h1>
+            <p>Gérez les débuts, fins de contrat et rappels pour chaque employé</p>
+          </div>
+          <div class="grid-2">
+            <div class="card form-card">
+              <h3 style="margin-bottom: 15px;">Nouveau contrat</h3>
+              <form id="hr-contract-form">
+                <div class="form-group">
+                  <label>Employé *</label>
+                  <select id="hr-contract-employee" required></select>
+                </div>
+                <div class="form-group">
+                  <label>Date début contrat *</label>
+                  <input type="date" id="hr-contract-start" required />
+                </div>
+                <div class="form-group">
+                  <label>Date fin contrat *</label>
+                  <input type="date" id="hr-contract-end" required />
+                </div>
+                <div class="form-group">
+                  <label>Date rappel</label>
+                  <input type="date" id="hr-contract-reminder" />
+                </div>
+                <div class="form-group">
+                  <label>Note rappel</label>
+                  <textarea id="hr-contract-note" placeholder="Ex: prévenir 30 jours avant la fin"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Statut</label>
+                  <select id="hr-contract-status">
+                    <option value="ACTIF">Actif</option>
+                    <option value="A_RENOUVELER">À renouveler</option>
+                    <option value="TERMINE">Terminé</option>
+                  </select>
+                </div>
+                <button type="submit" class="button button-primary" style="width:100%;">Enregistrer le contrat</button>
+              </form>
+            </div>
+            <div class="erp-section-sep">Contrats récents</div>
+            <div class="card">
+              <h3 style="margin-bottom: 15px;">Suivi des contrats</h3>
+              <div class="table-wrapper" style="overflow-x:auto;">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Employé</th>
+                      <th>Début</th>
+                      <th>Fin</th>
+                      <th>Rappel</th>
+                      <th>Statut</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hr-contracts-list-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HR Leave Module -->
+        <div id="hr-leave" class="module">
+          <div class="page-header">
+            <h1>Demandes de congé</h1>
+            <p>Chaque demande doit être approuvée ou rejetée avant d'être considérée comme traitée.</p>
+          </div>
+          <div class="grid-2">
+            <div class="card form-card">
+              <h3 style="margin-bottom: 15px;">Nouvelle demande de congé</h3>
+              <p style="margin:-6px 0 14px;color:#64748b;font-size:13px;">La demande sera enregistrée en attente, puis devra recevoir une décision d'approbation ou de rejet.</p>
+              <form id="hr-leave-form">
+                <div class="form-group">
+                  <label>Employé *</label>
+                  <select id="hr-leave-employee" required></select>
+                </div>
+                <div class="form-group">
+                  <label>Type de congé *</label>
+                  <select id="hr-leave-type" required>
+                    <option value="annuel">Congé annuel</option>
+                    <option value="maladie">Congé maladie</option>
+                    <option value="maternite">Congé maternité</option>
+                    <option value="paternite">Congé paternité</option>
+                    <option value="absence">Absence</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Date début *</label>
+                  <input type="date" id="hr-leave-start" required />
+                </div>
+                <div class="form-group">
+                  <label>Date fin *</label>
+                  <input type="date" id="hr-leave-end" required />
+                </div>
+                <div class="form-group">
+                  <label>Motif</label>
+                  <textarea id="hr-leave-reason" placeholder="Motif de la demande"></textarea>
+                </div>
+                <button type="submit" class="button button-primary" style="width:100%;">Envoyer la demande</button>
+              </form>
+            </div>
               </form>
             </div>
             <div class="erp-section-sep">Historique récent</div>
@@ -9894,6 +10030,7 @@
     let hrEmployeeDirectorySearchTerm = '';
     let hrProfileInlineEditState = {};
     let hrAttendanceCache = [];
+    let hrContractsCache = [];
     let hrLeaveRequestsCache = [];
     let hrSignatureRequestsCache = [];
     let usersAdminCache = [];
@@ -18120,17 +18257,19 @@
       if (!tbody) return;
 
       if (!hrAttendanceCache.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">Aucun pointage</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">Aucun pointage</td></tr>';
         return;
       }
 
       tbody.innerHTML = hrAttendanceCache.slice(0, 20).map(row => {
         const dateValue = row.effectiveDate || row.attendanceDate || row.dayDate;
         const codeValue = row.statusCode || row.status || '-';
+        const locationLabel = String(row.location || 'bureau').trim() === 'autres' ? 'Autres' : 'Bureau';
         return `
           <tr>
             <td>${escapeHtml(row.fullName || '-')}</td>
             <td>${escapeHtml(dateValue || '-')}</td>
+            <td>${escapeHtml(locationLabel)}</td>
             <td>${escapeHtml(row.checkInTime || '-')}</td>
             <td>${escapeHtml(row.checkOutTime || '-')}</td>
             <td>${getHrCodeBadge(codeValue)}</td>
@@ -18560,6 +18699,47 @@
         input.value = hrEmployeeDirectorySearchTerm;
       }
       renderHrEmployeeSearchModule();
+    }
+
+    function renderHrContractsList() {
+      const tbody = document.getElementById('hr-contracts-list-body');
+      if (!tbody) return;
+
+      if (!hrContractsCache.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">Aucun contrat</td></tr>';
+        return;
+      }
+
+      const today = new Date().toISOString().slice(0, 10);
+      tbody.innerHTML = hrContractsCache.map(row => {
+        const reminderSoon = row.reminderDate && row.reminderDate <= today ? 'style="background:#fef3c7;"' : '';
+        const actions = `
+          <button type="button" class="button button-small button-secondary" onclick="editHrContract(${Number(row.id)})">Modifier</button>
+          <button type="button" class="button button-small button-danger" onclick="deleteHrContract(${Number(row.id)})">Supprimer</button>
+        `;
+        return `
+          <tr ${reminderSoon}>
+            <td>${escapeHtml(row.fullName || '-')}</td>
+            <td>${escapeHtml(row.contractStartDate || '-')}</td>
+            <td>${escapeHtml(row.contractEndDate || '-')}</td>
+            <td>${escapeHtml(row.reminderDate || '-')}<br><span style="font-size:12px;color:#64748b;">${escapeHtml(row.reminderNote || '')}</span></td>
+            <td>${escapeHtml(row.status || '-')}</td>
+            <td><div class="action-buttons">${actions}</div></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadHrContractsModule() {
+      if (!hrEmployeesCache.length) {
+        await loadHrEmployeesModule();
+      }
+      hrContractsCache = await fetchJson('/api/hr/contracts').catch(() => []);
+      const employeeSelect = document.getElementById('hr-contract-employee');
+      if (employeeSelect) {
+        employeeSelect.innerHTML = '<option value="">-- Choisir un employé --</option>' + hrEmployeesCache.map(e => `<option value="${e.id}">${escapeHtml(e.fullName || '-')}</option>`).join('');
+      }
+      renderHrContractsList();
     }
 
     async function loadHrAttendanceModule() {
@@ -19101,6 +19281,7 @@
         'hr-employees': ['Ressources humaines', 'Liste des employés'],
         'hr-employee-search': ['Ressources humaines', 'Recherche d\'employé'],
         'hr-attendance': ['Ressources humaines', 'Pointage journalier'],
+        'hr-contracts': ['Ressources humaines', 'Contrats RH'],
         assignments: ['Construction', 'Assignations de projet'],
         'hr-calendar': ['Ressources humaines', 'Calendrier présence/congé'],
         'hr-leave': ['Ressources humaines', 'Demandes de congé'],
@@ -25804,6 +25985,7 @@
               attendanceDate,
               punchType: document.getElementById('hr-attendance-action')?.value || 'auto',
               statusCode: document.getElementById('hr-attendance-status').value,
+              location: document.getElementById('hr-attendance-location').value || 'bureau',
               note: document.getElementById('hr-attendance-note').value.trim(),
             }),
           });
@@ -25812,6 +25994,40 @@
           showMessage(`Pointage enregistre a ${nowCi.time} (heure CI)`);
           await loadHrAttendanceModule();
           await loadHrCalendarModule();
+        } catch (err) {
+          showMessage('Erreur: ' + err.message, 'error');
+        }
+      });
+    }
+
+    const hrContractForm = document.getElementById('hr-contract-form');
+    if (hrContractForm) {
+      hrContractForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        try {
+          const employeeId = Number(document.getElementById('hr-contract-employee').value || 0);
+          const contractStartDate = document.getElementById('hr-contract-start').value;
+          const contractEndDate = document.getElementById('hr-contract-end').value;
+          if (!employeeId || !contractStartDate || !contractEndDate) {
+            showMessage('Champs contrat obligatoires', 'error');
+            return;
+          }
+
+          await fetchJson('/api/hr/contracts', {
+            method: 'POST',
+            body: JSON.stringify({
+              employeeId,
+              contractStartDate,
+              contractEndDate,
+              reminderDate: document.getElementById('hr-contract-reminder').value || '',
+              reminderNote: document.getElementById('hr-contract-note').value.trim(),
+              status: document.getElementById('hr-contract-status').value || 'ACTIF',
+            }),
+          });
+
+          e.target.reset();
+          showMessage('Contrat enregistré');
+          await loadHrContractsModule();
         } catch (err) {
           showMessage('Erreur: ' + err.message, 'error');
         }
@@ -27440,7 +27656,7 @@
         tone: 'rh',
         description: 'Employes, conges, signatures',
         subtitle: 'Ressources humaines, pointage, conges et signatures.',
-        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures'],
+        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures'],
       },
       {
         key: 'admin',
@@ -27471,6 +27687,7 @@
       'hr-employees': 'Effectif et fiches employes',
       'hr-employee-search': 'Recherche d employe par nom',
       'hr-attendance': 'Pointage journalier',
+      'hr-contracts': 'Contrats RH',
       'hr-calendar': 'Calendrier presence et absence',
       'hr-leave': 'Demandes de conge',
       'hr-signatures': 'Documents a signer',
@@ -27990,6 +28207,9 @@
         }
         else if (resolvedModule === 'hr-attendance') {
           loadHrAttendanceModule();
+        }
+        else if (resolvedModule === 'hr-contracts') {
+          loadHrContractsModule();
         }
         else if (resolvedModule === 'assignments') {
           loadProjects();

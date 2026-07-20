@@ -3210,10 +3210,34 @@ async function initDb() {
   try { await run('ALTER TABLE hr_attendance ADD COLUMN checkOutTime TEXT'); } catch (e) {}
   try { await run("ALTER TABLE hr_attendance ADD COLUMN statusCode TEXT NOT NULL DEFAULT 'P'"); } catch (e) {}
   try { await run("ALTER TABLE hr_attendance ADD COLUMN status TEXT NOT NULL DEFAULT 'P'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_attendance ADD COLUMN location TEXT NOT NULL DEFAULT 'bureau'"); } catch (e) {}
   try { await run("ALTER TABLE hr_attendance ADD COLUMN note TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_attendance ADD COLUMN createdBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
   try { await run("ALTER TABLE hr_attendance ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE hr_attendance ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+
+  await run(`CREATE TABLE IF NOT EXISTS hr_contracts (
+    id INTEGER PRIMARY KEY,
+    employeeId INTEGER NOT NULL,
+    contractStartDate TEXT NOT NULL,
+    contractEndDate TEXT NOT NULL,
+    reminderDate TEXT NOT NULL DEFAULT '',
+    reminderNote TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'ACTIF',
+    createdBy TEXT NOT NULL DEFAULT 'admin',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    FOREIGN KEY(employeeId) REFERENCES hr_employees(id) ON DELETE CASCADE
+  )`);
+  try { await run('ALTER TABLE hr_contracts ADD COLUMN employeeId INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
+  try { await run("ALTER TABLE hr_contracts ADD COLUMN contractStartDate TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_contracts ADD COLUMN contractEndDate TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_contracts ADD COLUMN reminderDate TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_contracts ADD COLUMN reminderNote TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_contracts ADD COLUMN status TEXT NOT NULL DEFAULT 'ACTIF'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_contracts ADD COLUMN createdBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
+  try { await run("ALTER TABLE hr_contracts ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE hr_contracts ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
 
   await run(`CREATE TABLE IF NOT EXISTS hr_leave_requests (
     id INTEGER PRIMARY KEY,
@@ -3989,6 +4013,10 @@ async function authorizeRoleAccess(req, res, next) {
       { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
       { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
       { method: 'PATCH', pattern: /^\/hr\/leave-requests\/\d+\/status$/ },
+      { method: 'GET', pattern: /^\/hr\/contracts$/ },
+      { method: 'POST', pattern: /^\/hr\/contracts$/ },
+      { method: 'PATCH', pattern: /^\/hr\/contracts\/\d+$/ },
+      { method: 'DELETE', pattern: /^\/hr\/contracts\/\d+$/ },
       { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
       { method: 'GET', pattern: /^\/hr\/signature-requests$/ },
       { method: 'POST', pattern: /^\/hr\/signature-requests$/ },
@@ -9479,6 +9507,7 @@ app.post('/api/hr/attendance', async (req, res) => {
     attendanceDate,
     dayDate,
     statusCode = '',
+    location = 'bureau',
     note = '',
     punchType = 'auto',
   } = req.body || {};
@@ -9527,7 +9556,7 @@ app.post('/api/hr/attendance', async (req, res) => {
     await run(
       `UPDATE hr_attendance
        SET attendanceDate = ?, dayDate = ?, checkInTime = ?, checkOutTime = ?,
-           statusCode = ?, status = ?, note = ?, updatedAt = ?
+           statusCode = ?, status = ?, location = ?, note = ?, updatedAt = ?
        WHERE id = ?`,
       [
         effectiveDate,
@@ -9536,6 +9565,7 @@ app.post('/api/hr/attendance', async (req, res) => {
         computedCheckOut,
         codeValue,
         codeValue,
+        String(location || existing.location || 'bureau').trim() || 'bureau',
         String(note || existing.note || '').trim(),
         now,
         Number(existing.id),
@@ -9757,6 +9787,131 @@ app.patch('/api/hr/leave-requests/:id/status', async (req, res) => {
     await deleteHrLeaveDecisionDocument(id);
   }
   res.json(row);
+});
+
+app.get('/api/hr/contracts', async (req, res) => {
+  const employeeId = Number(req.query.employeeId || 0);
+  const scopedEmployeeIds = await getHrScopedEmployeeIdsForUser(req.user);
+  if (scopedEmployeeIds && !scopedEmployeeIds.length) {
+    return res.json([]);
+  }
+
+  const conditions = [];
+  const params = [];
+  if (scopedEmployeeIds) {
+    conditions.push(`hc.employeeId IN (${scopedEmployeeIds.map(() => '?').join(', ')})`);
+    params.push(...scopedEmployeeIds);
+  }
+  if (employeeId > 0) {
+    conditions.push('hc.employeeId = ?');
+    params.push(employeeId);
+  }
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const rows = await all(
+    `SELECT hc.*, e.fullName, e.jobTitle, e.phoneNumber, e.username
+     FROM hr_contracts hc
+     JOIN hr_employees e ON e.id = hc.employeeId
+     ${whereClause}
+     ORDER BY hc.contractEndDate ASC, hc.contractStartDate ASC, hc.id ASC`,
+    params
+  );
+  res.json(rows);
+});
+
+app.post('/api/hr/contracts', async (req, res) => {
+  const {
+    employeeId,
+    contractStartDate,
+    contractEndDate,
+    reminderDate = '',
+    reminderNote = '',
+    status = 'ACTIF',
+  } = req.body || {};
+  const numericEmployeeId = Number(employeeId || 0);
+  const startDateValue = String(contractStartDate || '').trim();
+  const endDateValue = String(contractEndDate || '').trim();
+  const reminderDateValue = String(reminderDate || '').trim();
+  const statusValue = String(status || 'ACTIF').trim().toUpperCase();
+
+  if (!numericEmployeeId || !isValidIsoDate(startDateValue) || !isValidIsoDate(endDateValue)) {
+    return res.status(400).json({ error: 'Champs contrat invalides' });
+  }
+  if (endDateValue < startDateValue) {
+    return res.status(400).json({ error: 'Date de fin de contrat inferieure a la date de debut' });
+  }
+  if (reminderDateValue && !isValidIsoDate(reminderDateValue)) {
+    return res.status(400).json({ error: 'Date de rappel invalide' });
+  }
+
+  const employee = await get('SELECT id FROM hr_employees WHERE id = ?', [numericEmployeeId]);
+  if (!employee) {
+    return res.status(404).json({ error: 'Employe introuvable' });
+  }
+
+  const nextId = await getNextTableId('hr_contracts');
+  const now = new Date().toISOString();
+  await run(
+    `INSERT INTO hr_contracts
+      (id, employeeId, contractStartDate, contractEndDate, reminderDate, reminderNote, status, createdBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+    [
+      nextId,
+      numericEmployeeId,
+      startDateValue,
+      endDateValue,
+      reminderDateValue,
+      String(reminderNote || '').trim(),
+      statusValue || 'ACTIF',
+      String(req.user?.username || 'admin').trim() || 'admin',
+      now,
+      now,
+    ]
+  );
+
+  const row = await get('SELECT * FROM hr_contracts WHERE id = ?', [nextId]);
+  res.status(201).json(row);
+});
+
+app.patch('/api/hr/contracts/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  const current = await get('SELECT * FROM hr_contracts WHERE id = ?', [id]);
+  if (!current) {
+    return res.status(404).json({ error: 'Contrat introuvable' });
+  }
+
+  const contractStartDate = String(req.body?.contractStartDate || current.contractStartDate || '').trim();
+  const contractEndDate = String(req.body?.contractEndDate || current.contractEndDate || '').trim();
+  const reminderDate = String(req.body?.reminderDate || current.reminderDate || '').trim();
+  const reminderNote = String(req.body?.reminderNote || current.reminderNote || '').trim();
+  const status = String(req.body?.status || current.status || 'ACTIF').trim().toUpperCase();
+
+  if (!isValidIsoDate(contractStartDate) || !isValidIsoDate(contractEndDate)) {
+    return res.status(400).json({ error: 'Dates de contrat invalides' });
+  }
+  if (contractEndDate < contractStartDate) {
+    return res.status(400).json({ error: 'Date de fin de contrat inferieure a la date de debut' });
+  }
+  if (reminderDate && !isValidIsoDate(reminderDate)) {
+    return res.status(400).json({ error: 'Date de rappel invalide' });
+  }
+
+  await run(
+    `UPDATE hr_contracts
+     SET contractStartDate = ?, contractEndDate = ?, reminderDate = ?, reminderNote = ?, status = ?, updatedAt = ?
+     WHERE id = ?`,
+    [contractStartDate, contractEndDate, reminderDate, reminderNote, status, new Date().toISOString(), id]
+  );
+  const row = await get('SELECT * FROM hr_contracts WHERE id = ?', [id]);
+  res.json(row);
+});
+
+app.delete('/api/hr/contracts/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  const result = await run('DELETE FROM hr_contracts WHERE id = ?', [id]);
+  if (!result.changes) {
+    return res.status(404).json({ error: 'Contrat introuvable' });
+  }
+  res.json({ ok: true });
 });
 
 app.get('/api/hr/leave-calendar', async (req, res) => {
