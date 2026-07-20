@@ -3029,7 +3029,7 @@ async function initDb() {
     relativePath TEXT NOT NULL,
     mimeType TEXT NOT NULL,
     sizeBytes INTEGER NOT NULL DEFAULT 0,
-    contentBlob BLOB,
+    contentBlob ${DB_DRIVER === 'postgres' ? 'BYTEA' : 'BLOB'},
     uploadedBy TEXT NOT NULL,
     audienceScope TEXT NOT NULL DEFAULT 'all',
     recipientEmployeeIds TEXT NOT NULL DEFAULT '',
@@ -3096,7 +3096,11 @@ async function initDb() {
   try { await run("ALTER TABLE guide_documents ADD COLUMN relativePath TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN mimeType TEXT NOT NULL DEFAULT 'application/octet-stream'"); } catch (e) {}
   try { await run('ALTER TABLE guide_documents ADD COLUMN sizeBytes INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
-  try { await run('ALTER TABLE guide_documents ADD COLUMN contentBlob BLOB'); } catch (e) {}
+  if (DB_DRIVER === 'postgres') {
+    try { await run('ALTER TABLE guide_documents ADD COLUMN contentBlob BYTEA'); } catch (_e) {}
+  } else {
+    try { await run('ALTER TABLE guide_documents ADD COLUMN contentBlob BLOB'); } catch (_e) {}
+  }
   try { await run("ALTER TABLE guide_documents ADD COLUMN uploadedBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN audienceScope TEXT NOT NULL DEFAULT 'all'"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN recipientEmployeeIds TEXT NOT NULL DEFAULT ''"); } catch (e) {}
@@ -3594,6 +3598,31 @@ async function initDb() {
 const INIT_DB_TIMEOUT_MS = Number(process.env.INIT_DB_TIMEOUT_MS || 120_000);
 let hasRunBackgroundReconciliations = false;
 
+async function backfillGuideDocumentBlobs() {
+  try {
+    const rows = await all('SELECT id, relativePath, sizeBytes FROM guide_documents WHERE contentBlob IS NULL OR sizeBytes = 0');
+    if (!Array.isArray(rows) || !rows.length) return;
+    let backfilled = 0;
+    for (const row of rows) {
+      const relPath = String(row?.relativePath || '').trim();
+      if (!relPath) continue;
+      try {
+        const absPath = path.join(ARCHIVE_ROOT, relPath);
+        if (fs.existsSync(absPath)) {
+          const buf = await fs.promises.readFile(absPath);
+          if (buf && buf.length > 0) {
+            await run('UPDATE guide_documents SET contentBlob = ?, sizeBytes = ? WHERE id = ?', [buf, buf.length, Number(row.id || 0)]);
+            backfilled++;
+          }
+        }
+      } catch (_e) {}
+    }
+    if (backfilled > 0) {
+      console.log(`Guide blobs backfilles depuis le disque: ${backfilled}`);
+    }
+  } catch (_e) {}
+}
+
 function initDbWithTimeout() {
   return Promise.race([
     initDb(),
@@ -3619,6 +3648,12 @@ function runBackgroundReconciliationsOnce() {
   setImmediate(() => {
     reconcileDocumentArchives().catch(err => {
       console.error('Erreur reconciliation archives:', err);
+    });
+  });
+
+  setImmediate(() => {
+    backfillGuideDocumentBlobs().catch(err => {
+      console.error('Erreur backfill guide blobs:', err);
     });
   });
 }
