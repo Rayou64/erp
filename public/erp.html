@@ -6961,6 +6961,8 @@
           <div class="menu-section-title">Admin</div>
           <div class="menu-item" data-module="database">🗂️ Base de donnée</div>
           <div class="menu-item" data-module="guide-erp">📘 Guide ERP</div>
+          <div class="menu-item" data-module="access-profiles">🗃️ Dossiers profils</div>
+          <div class="menu-item" data-module="admin-mail">✉️ Courriels</div>
           <div class="menu-item" data-module="trash">🗑️ Corbeille</div>
           <div class="menu-item" data-module="users">🔑 Utilisateurs</div>
           <div class="menu-item" data-module="settings">⚙️ Paramètres</div>
@@ -9118,6 +9120,137 @@
           </div>
         </div>
 
+        <div id="access-profiles" class="module">
+          <div class="page-header">
+            <h1>Dossiers profils</h1>
+            <p>Accréditations, interdictions, restrictions et ouverture ciblée des modules</p>
+          </div>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+              <div>
+                <h3 style="margin:0;">Gouvernance d'accès</h3>
+                <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Module admin pour piloter les droits de tous les profils.</p>
+              </div>
+              <div class="action-buttons" style="gap:8px;">
+                <button type="button" class="button button-small" onclick="loadAccessProfilesModule()">Actualiser</button>
+              </div>
+            </div>
+
+            <div class="grid-2" style="gap:14px; align-items:start;">
+              <div>
+                <label style="display:block; margin-bottom:6px; font-weight:600;">Profils</label>
+                <ul id="access-profiles-list" class="list"></ul>
+              </div>
+
+              <div>
+                <label style="display:block; margin-bottom:6px; font-weight:600;">Dossier sélectionné</label>
+                <div id="access-profile-editor-empty" style="font-size:13px; color:#64748b; padding:10px; border:1px dashed #cbd5e1; border-radius:10px;">Sélectionne un profil pour configurer ses accréditations.</div>
+                <form id="access-profile-editor" style="display:none; margin-top:8px;">
+                  <div class="grid-2" style="gap:12px; align-items:start;">
+                    <div class="form-group">
+                      <label>Profil</label>
+                      <input type="text" id="access-profile-username" readonly />
+                    </div>
+                    <div class="form-group">
+                      <label>Rôle</label>
+                      <input type="text" id="access-profile-role" readonly />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Accréditation</label>
+                    <select id="access-profile-accreditation">
+                      <option value="standard">Standard RH + Guide</option>
+                      <option value="extended">Étendu</option>
+                      <option value="restricted">Restreint strict</option>
+                    </select>
+                  </div>
+
+                  <div class="grid-2" style="gap:12px; align-items:start;">
+                    <div>
+                      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px;">
+                        <label style="display:block; font-weight:600; margin:0;">Modules autorisés</label>
+                        <button type="button" class="button button-secondary button-small" id="access-profile-restore-role">Restaurer modules du rôle</button>
+                      </div>
+                      <div id="access-profile-allowed-modules-list" style="display:grid; gap:8px; max-height:320px; overflow:auto; padding:10px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc;"></div>
+                    </div>
+                    <div>
+                      <label style="display:block; font-weight:600; margin-bottom:6px;">Modules interdits</label>
+                      <div id="access-profile-denied-modules-list" style="display:grid; gap:8px; max-height:320px; overflow:auto; padding:10px; border:1px solid #e2e8f0; border-radius:12px; background:#fff7ed;"></div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Ouverture forcée d'un module</label>
+                    <select id="access-profile-forced-module"></select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Notes / restrictions</label>
+                    <textarea id="access-profile-notes" rows="4" placeholder="Ex: lecture seule, accès temporaire, interdiction exports"></textarea>
+                  </div>
+
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button type="submit" class="button button-primary">Enregistrer</button>
+                    <button type="button" class="button button-secondary" id="access-profile-ensure-hr">Créer/garantir profil RH</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="admin-mail" class="module">
+          <div class="page-header">
+            <h1>Courriels utilisateurs</h1>
+            <p>Envoi automatique de messages aux utilisateurs selon le champ Courriel RH</p>
+          </div>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+              <div>
+                <h3 style="margin:0;">Destinataires</h3>
+                <p id="admin-mail-summary" style="font-size:12px; color:#64748b; margin:4px 0 0;">Chargement...</p>
+              </div>
+              <div class="action-buttons" style="gap:8px;">
+                <button type="button" class="button button-small button-secondary" onclick="loadAdminMailModule()">Actualiser</button>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:10px;">
+              <label style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="admin-mail-send-all" checked />
+                <span>Envoyer à tous les utilisateurs avec une adresse courriel valide</span>
+              </label>
+            </div>
+
+            <div class="form-group" id="admin-mail-recipient-group" style="margin-bottom:12px; display:none;">
+              <label>Choisir les destinataires</label>
+              <select id="admin-mail-recipient-select" multiple size="10"></select>
+              <p style="font-size:12px; color:#64748b; margin-top:6px;">Maintiens Ctrl (Windows) pour sélectionner plusieurs profils.</p>
+            </div>
+
+            <form id="admin-mail-form">
+              <div class="form-group" style="margin-bottom:10px;">
+                <label for="admin-mail-subject">Sujet</label>
+                <input type="text" id="admin-mail-subject" placeholder="Ex: Information importante ERP" required />
+              </div>
+              <div class="form-group" style="margin-bottom:10px;">
+                <label for="admin-mail-message">Message</label>
+                <textarea id="admin-mail-message" rows="7" placeholder="Rédige ton message ici..." required></textarea>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="submit" class="button button-primary">Envoyer les courriels</button>
+              </div>
+            </form>
+
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
+            <div>
+              <h3 style="margin:0 0 8px;">Résultats d'envoi</h3>
+              <div id="admin-mail-results" style="font-size:13px; color:#475569;">Aucun envoi pour le moment.</div>
+            </div>
+          </div>
+        </div>
+
         <div id="database" class="module">
           <div class="page-header">
             <h1>Base de donnée</h1>
@@ -9702,6 +9835,8 @@
     let lastNotifToggleAt = 0;
     let pushSetupStarted = false;
     let pushSetupReady = false;
+    let profileStreamSource = null;
+    let profileStreamRetryTimer = null;
     let auditLogEntries = [];
     let poCurrentPage = 1;
     let poQuickFilter = 'all';
@@ -9746,7 +9881,7 @@
     const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search', 'guide-erp']);
     const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave']);
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
-    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
+    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
     const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp']);
     const STANDARD_EMPLOYEE_USERNAMES = new Set([
       'agbodjro123',
@@ -11018,7 +11153,7 @@
     }
 
     function getAllowedModules() {
-      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
+      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'trash', 'assignments', 'hr-employees', 'hr-employee-search', 'hr-contracts', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
       if (isHrDirector()) return HR_DIRECTOR_ALLOWED_MODULES;
       if (isStandardEmployeeProfileRole()) return STANDARD_EMPLOYEE_ALLOWED_MODULES;
       if (isExecutive()) return EXECUTIVE_ALLOWED_MODULES;
@@ -26667,7 +26802,7 @@
         tone: 'rh',
         description: 'Employes, conges, signatures',
         subtitle: 'Ressources humaines, pointage, conges et signatures.',
-        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures'],
+        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'access-profiles'],
       },
       {
         key: 'admin',
@@ -26701,6 +26836,7 @@
       'hr-calendar': 'Calendrier presence et absence',
       'hr-leave': 'Demandes de conge',
       'hr-signatures': 'Documents a signer',
+      'access-profiles': 'Dossiers profils',
       database: 'Base documentaire ERP',
       'guide-erp': 'Guides et procédures ERP',
       trash: 'Elements supprimes',
@@ -26768,7 +26904,74 @@
       syncHrMenuLabelsAndVisibility();
     }
 
+    async function refreshMobileAccessProfileFromServer() {
+      try {
+        const me = await fetchJson('/api/auth/me');
+        if (!me) return false;
+        currentUserUsername = me.username || currentUserUsername;
+        currentUserRole = me.role || currentUserRole;
+        currentUserAccessProfile = me.accessProfile || null;
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function closeProfileStreamConnection() {
+      if (profileStreamRetryTimer) {
+        clearTimeout(profileStreamRetryTimer);
+        profileStreamRetryTimer = null;
+      }
+      if (profileStreamSource) {
+        try {
+          profileStreamSource.close();
+        } catch (_) {}
+        profileStreamSource = null;
+      }
+    }
+
+    function openProfileStreamConnection() {
+      closeProfileStreamConnection();
+      const tokenValue = String(localStorage.getItem('erp_token') || '').trim();
+      if (!tokenValue) return;
+
+      const source = new EventSource(`/api/auth/profile-stream?mobileAuth=${encodeURIComponent(tokenValue)}`);
+      profileStreamSource = source;
+
+      source.addEventListener('access-profile', event => {
+        try {
+          const payload = JSON.parse(String(event.data || '{}'));
+          if (String(payload?.username || '').trim().toLowerCase() !== String(currentUserUsername || '').trim().toLowerCase()) {
+            return;
+          }
+
+          if (!payload || !payload.accessProfile) return;
+
+          currentUserAccessProfile = payload.accessProfile;
+          currentUserRole = payload.role || currentUserRole;
+          syncMobilePremiumIdentity();
+          applyRoleAccess();
+          renderMobilePremiumHome();
+          if (mobilePremiumCurrentGroupKey) {
+            openMobilePremiumGroup(mobilePremiumCurrentGroupKey);
+          }
+          showMessage('Profil mis a jour en direct');
+        } catch (_) {}
+      });
+
+      source.addEventListener('error', () => {
+        closeProfileStreamConnection();
+        if (!profileStreamRetryTimer) {
+          profileStreamRetryTimer = setTimeout(() => {
+            profileStreamRetryTimer = null;
+            openProfileStreamConnection();
+          }, 4000);
+        }
+      });
+    }
+
     function performLogout() {
+      closeProfileStreamConnection();
       localStorage.removeItem('erp_token');
       window.location.href = 'index.html';
     }
@@ -27033,6 +27236,24 @@
         heroLogoutBtn.addEventListener('click', () => {
           performLogout();
         });
+      }
+
+      if (!window.mobilePremiumProfileRefreshTimer) {
+        window.mobilePremiumProfileRefreshTimer = window.setInterval(() => {
+          refreshMobileAccessProfileFromServer().then(updated => {
+            if (!updated) return;
+            syncMobilePremiumIdentity();
+            renderMobilePremiumHome();
+            if (mobilePremiumCurrentGroupKey) {
+              openMobilePremiumGroup(mobilePremiumCurrentGroupKey);
+            }
+          });
+        }, 45000);
+      }
+
+      if (!window.mobilePremiumProfileStreamInit) {
+        window.mobilePremiumProfileStreamInit = true;
+        openProfileStreamConnection();
       }
 
       const backBtn = document.getElementById('mph-back-btn');
