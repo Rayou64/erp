@@ -9244,7 +9244,7 @@
                     <th>Profil</th>
                     <th>Role</th>
                     <th>Employe lie</th>
-                    <th>Mot de passe</th>
+                    <th>Mot de passe initial</th>
                     <th>Premiere connexion</th>
                     <th>Derniere connexion</th>
                     <th>Actions</th>
@@ -11649,13 +11649,7 @@
             <td>${escapeHtml(String(row?.username || '-'))}</td>
             <td>${escapeHtml(getRoleDisplayLabel(row?.role || ''))}</td>
             <td>${escapeHtml(String(row?.linkedEmployeeName || '').trim() || 'Non lie')}</td>
-            <td>${(() => {
-              const hint = String(row?.initialPasswordHint || '').trim() || '-';
-              const isReset = hint !== '-' && row?.lastResetPassword && String(row.lastResetPassword || '').trim() === hint;
-              return isReset
-                ? `<span style="color:#15803d;font-weight:700;" title="Réinitialisé par l'utilisateur">${escapeHtml(hint)} 🔄</span>`
-                : escapeHtml(hint);
-            })()}</td>
+            <td>${escapeHtml(String(row?.initialPasswordHint || '').trim() || '-')}</td>
             <td>${loginLabel}</td>
             <td>${lastLoginAt ? escapeHtml(formatDateWithTime(lastLoginAt)) : '-'}</td>
             <td>
@@ -18557,7 +18551,7 @@
       const pageTitle = document.querySelector('#hr-employee-search .page-header h1');
       const pageSubtitle = document.querySelector('#hr-employee-search .page-header p');
       if (pageTitle) pageTitle.textContent = 'Recherche d\'employé';
-      if (pageSubtitle) pageSubtitle.textContent = "Trouvez rapidement un nom dans le registre RH et affichez téléphone et courriel s'ils sont renseignés.";
+      if (pageSubtitle) pageSubtitle.textContent = 'Trouvez un employé par son nom et récupérez son téléphone et son courriel.';
 
       const input = document.getElementById('hr-employee-directory-search');
       if (input && input.value !== hrEmployeeDirectorySearchTerm) {

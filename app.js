@@ -2381,7 +2381,6 @@ async function initDb() {
     role TEXT NOT NULL,
     createdAt TEXT NOT NULL
   )`);
-  try { await run("ALTER TABLE users ADD COLUMN lastResetPassword TEXT NOT NULL DEFAULT ''"); } catch (_e) {}
   console.log('[initDb] Table users créée');
 
   await run(`CREATE TABLE IF NOT EXISTS projects (
@@ -3776,7 +3775,6 @@ const MODULE_ACCESS_ROUTE_RULES = {
     { method: 'GET', pattern: /^\/purchase-orders$/ },
   ],
   database: [{ method: 'GET', pattern: /^\/database-documents(?:\/\d+\/download)?$/ }],
-  'hr-employee-search': [{ method: 'GET', pattern: /^\/hr\/employees\/directory$/ }],
   users: [{ method: 'GET', pattern: /^\/users$/ }],
   assignments: [{ method: 'GET', pattern: /^\/project-assignments$/ }],
   trash: [
@@ -4331,43 +4329,6 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   res.json({ token, username: user.username });
 });
 
-app.post('/api/auth/reset-password', authRateLimiter, async (req, res) => {
-  const { resetCode, username, newPassword, confirmPassword } = req.body || {};
-
-  const RESET_CODE = process.env.PASSWORD_RESET_CODE || 'SAFARI2026';
-
-  if (!resetCode || String(resetCode).trim() !== RESET_CODE) {
-    return res.status(401).json({ error: 'Code de sécurité incorrect' });
-  }
-
-  const cleanUsername = String(username || '').trim();
-  const cleanPassword = String(newPassword || '').trim();
-  const cleanConfirm = String(confirmPassword || '').trim();
-
-  if (!cleanUsername) {
-    return res.status(400).json({ error: 'Nom d\'utilisateur obligatoire' });
-  }
-  if (!cleanPassword || cleanPassword.length < 4) {
-    return res.status(400).json({ error: 'Nouveau mot de passe trop court (minimum 4 caractères)' });
-  }
-  if (cleanPassword !== cleanConfirm) {
-    return res.status(400).json({ error: 'Les deux mots de passe ne correspondent pas' });
-  }
-
-  const user = await get('SELECT id FROM users WHERE username = ?', [cleanUsername]);
-  if (!user) {
-    return res.status(404).json({ error: 'Utilisateur introuvable' });
-  }
-
-  const hashed = await bcrypt.hash(cleanPassword, 10);
-  await run(
-    "UPDATE users SET password = ?, lastResetPassword = ? WHERE username = ?",
-    [hashed, cleanPassword, cleanUsername]
-  );
-
-  return res.json({ ok: true, message: 'Mot de passe réinitialisé avec succès' });
-});
-
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   const role = String(req.user?.role || '').trim();
   const scope = role === 'gestionnaire_stock_songon'
@@ -4748,7 +4709,6 @@ app.get('/api/users', async (_req, res) => {
       COALESCE(NULLIF(TRIM(he.fullName), ''), '') AS linkedEmployeeName,
       CASE
         WHEN u.id IS NULL THEN '-'
-        WHEN COALESCE(TRIM(u.lastResetPassword), '') <> '' THEN TRIM(u.lastResetPassword)
         WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' AND COALESCE(TRIM(u.role), '') = 'employe_standard' AND COALESCE(TRIM(u.username), '') <> '' THEN TRIM(u.username) || '@2026'
         WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' THEN '-'
         ELSE COALESCE(NULLIF(TRIM(u.password), ''), '-')
@@ -4768,7 +4728,6 @@ app.get('/api/users', async (_req, res) => {
       COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
       '' AS linkedEmployeeName,
       CASE
-        WHEN COALESCE(TRIM(u.lastResetPassword), '') <> '' THEN TRIM(u.lastResetPassword)
         WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' AND COALESCE(TRIM(u.role), '') = 'employe_standard' AND COALESCE(TRIM(u.username), '') <> '' THEN TRIM(u.username) || '@2026'
         WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' THEN '-'
         ELSE COALESCE(NULLIF(TRIM(u.password), ''), '-')
@@ -4785,14 +4744,10 @@ app.get('/api/users', async (_req, res) => {
     )
     ORDER BY username
   `);
-
-  const normalizedRows0 = (Array.isArray(rows) ? rows : []).map(row => ({
+  const normalizedRows = (Array.isArray(rows) ? rows : []).map(row => ({
     ...row,
-    lastResetPassword: String(row?.lastResetPassword || '').trim(),
     initialPasswordHint: resolveKnownUserPasswordHint(row?.username, row?.role, row?.initialPasswordHint),
   }));
-
-  const normalizedRows = normalizedRows0;
 
   const scoreRow = row => {
     let score = 0;
@@ -9011,7 +8966,16 @@ app.get('/api/hr/employees', async (_req, res) => {
   res.json(rows);
 });
 
-app.get('/api/hr/employees/directory', async (_req, res) => {
+app.get('/api/hr/employees/directory', async (req, res) => {
+  const scopedEmployeeIds = await getHrScopedEmployeeIdsForUser(req.user);
+  if (scopedEmployeeIds && !scopedEmployeeIds.length) {
+    return res.json([]);
+  }
+
+  const whereClause = scopedEmployeeIds
+    ? `WHERE id IN (${scopedEmployeeIds.map(() => '?').join(', ')})`
+    : '';
+
   const rows = await all(
     `SELECT id, fullName, jobTitle,
             COALESCE(NULLIF(sexe, ''), 'Neant') AS sexe,
@@ -9020,9 +8984,12 @@ app.get('/api/hr/employees/directory', async (_req, res) => {
             phoneNumber, address, maritalStatus, COALESCE(NULLIF(email, ''), '') AS email,
             COALESCE(username, createdBy, '') AS username, createdBy, createdAt, updatedAt
      FROM hr_employees
-     ORDER BY fullName ASC, id ASC`
+     ${whereClause}
+     ORDER BY fullName ASC, id ASC`,
+    scopedEmployeeIds || []
   );
-  res.json(rows);
+
+  return res.json(rows);
 });
 
 app.get('/api/hr/dashboard-summary', async (req, res) => {
