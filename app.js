@@ -1194,8 +1194,8 @@ function renderPurchaseOrderPdf(doc, order) {
   const supplierLabel = String(order.fournisseur || '').trim() || 'Fournisseur non renseigne';
   const siteValueRaw = String(order.numeroMaison || order.nomSiteManuel || '').trim();
   const siteLabel = siteValueRaw
-    ? (siteValueRaw.toLowerCase().includes('site') ? siteValueRaw : `Site Numero ${siteValueRaw}`)
-    : 'Site non renseigne';
+    ? (siteValueRaw.toLowerCase().includes('lot') ? siteValueRaw : `Lot Numero ${siteValueRaw}`)
+    : 'Lot non renseigne';
   const orderDate = new Date(order.dateCommande || Date.now());
   const orderDateLabel = Number.isNaN(orderDate.getTime()) ? new Date().toLocaleDateString('fr-FR') : orderDate.toLocaleDateString('fr-FR');
   const signatureFontPath = resolveSignatureFontPath();
@@ -1223,7 +1223,7 @@ function renderPurchaseOrderPdf(doc, order) {
   doc.font('Helvetica-Bold').fontSize(10).text('Titre :', 40, 104);
   doc.font('Helvetica').fontSize(10).text(purchaseOrderTitle, 110, 104, { width: 430 });
 
-  doc.font('Helvetica-Bold').fontSize(10).text('Site :', 40, 122);
+  doc.font('Helvetica-Bold').fontSize(10).text('Lot :', 40, 122);
   doc.font('Helvetica').fontSize(10).text(siteLabel, 110, 122, { width: 430 });
 
   doc.moveTo(40, 142).lineTo(555, 142).lineWidth(1).strokeColor('#d1d5db').stroke();
@@ -1515,7 +1515,7 @@ function extractSiteNumberLabel(value) {
   if (!raw || /^(-|non\s*renseigne)$/i.test(raw)) {
     return '-';
   }
-  const stripped = raw.replace(/^site\s*(numero|n°|no)?\s*/i, '').trim();
+  const stripped = raw.replace(/^lot\s*(numero|n°|no)?\s*/i, '').trim();
   const numberMatch = stripped.match(/\d+/);
   if (numberMatch && numberMatch[0]) {
     return numberMatch[0];
@@ -1597,8 +1597,8 @@ function renderMaterialAuthorizationPdf(doc, payload) {
   const projectTitle = String(request?.nomProjet || request?.projetNom || order?.nomProjet || '').trim() || 'Projet';
   const siteValueRaw = String(request.numeroMaison || request.nomSite || '').trim();
   const siteLabel = siteValueRaw
-    ? (siteValueRaw.toLowerCase().includes('site') ? siteValueRaw : `Site Numero ${siteValueRaw}`)
-    : 'Site non renseigne';
+    ? (siteValueRaw.toLowerCase().includes('lot') ? siteValueRaw : `Lot Numero ${siteValueRaw}`)
+    : 'Lot non renseigne';
   const normalizedDecision = String(decisionStatus || 'VALIDEE').toUpperCase();
   const isRejected = !isRequestDocument && (normalizedDecision === 'REJETEE' || normalizedDecision === 'ANNULEE');
   const stampLabel = isRequestDocument ? 'Demande' : (isRejected ? 'Rejet\u00e9' : 'Valid\u00e9');
@@ -1631,7 +1631,7 @@ function renderMaterialAuthorizationPdf(doc, payload) {
   // Info line: project / site / date / BC# in two columns
   doc.font('Helvetica-Bold').fontSize(10).fillColor('#000000').text('Projet :', 40, 66);
   doc.font('Helvetica').fontSize(10).text(projectTitle, 105, 66);
-  doc.font('Helvetica-Bold').fontSize(10).text('Site :', 300, 66);
+  doc.font('Helvetica-Bold').fontSize(10).text('Lot :', 300, 66);
   doc.font('Helvetica').fontSize(10).text(siteLabel, 340, 66);
 
   doc.font('Helvetica-Bold').fontSize(10).text('Date :', 40, 82);
@@ -4649,7 +4649,7 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
       user: req.user,
       projectId,
       stage: stageRaw,
-      title: `Nouvelle demande approvisionnement (site ${siteLabel})`,
+      title: `Nouvelle demande approvisionnement (lot ${siteLabel})`,
       note: `${itemCount} ligne(s) creee(s) par le chef chantier ${String(req.user?.username || '').trim() || 'inconnu'}.`,
     });
   }
@@ -5505,7 +5505,7 @@ app.post('/api/material-requests', async (req, res) => {
       user: req.user,
       projectId: Number(projetId),
       stage: String(etapeApprovisionnement || '').trim(),
-      title: `Demande materiau creee (site ${siteLabel})`,
+      title: `Demande materiau creee (lot ${siteLabel})`,
       note: `Article: ${itemLabel} | Quantite: ${quantite.toFixed(2)} | Demandeur: ${String(demandeur || '').trim()}`,
     });
   }

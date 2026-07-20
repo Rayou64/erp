@@ -7263,19 +7263,19 @@
             </div>
             <div class="card stat-card">
               <h3 id="stat-establishments">0</h3>
-              <p>Sites</p>
+              <p>Lots</p>
             </div>
             <div class="card stat-card">
               <h3 id="stat-sites-construction">0</h3>
-              <p>Sites en construction</p>
+              <p>Lots en construction</p>
             </div>
             <div class="card stat-card">
               <h3 id="stat-sites-not-started">0</h3>
-              <p>Sites pas encore débutés</p>
+              <p>Lots pas encore débutés</p>
             </div>
             <div class="card stat-card">
               <h3 id="stat-sites-built">0</h3>
-              <p>Sites déjà construits</p>
+              <p>Lots déjà construits</p>
             </div>
             <div class="card stat-card">
               <h3 id="stat-assignments">0</h3>
@@ -7384,7 +7384,7 @@
               <div class="exec-top-metrics">
                 <div class="exec-mini">
                   <strong id="exec-metric-sites-total">0</strong>
-                  <span>Total sites</span>
+                  <span>Total lots</span>
                 </div>
                 <div class="exec-mini">
                   <strong id="exec-metric-started">0</strong>
@@ -7434,14 +7434,14 @@
                 <h3>Distribution par zone</h3>
                 <div class="exec-donut-wrap">
                   <div id="exec-zone-donut" class="exec-donut" style="--z1:0deg; --z2:0deg; --z3:0deg;">
-                    <div class="exec-donut-center"><span id="exec-donut-total">0</span><small>Sites</small></div>
+                    <div class="exec-donut-center"><span id="exec-donut-total">0</span><small>Lots</small></div>
                   </div>
                   <ul class="exec-list" id="exec-zone-legend"></ul>
                 </div>
               </div>
 
               <div class="exec-card">
-                <h3>Localisation des sites</h3>
+                <h3>Localisation des lots</h3>
                 <div class="exec-map" id="exec-map-points"></div>
               </div>
             </div>
@@ -7474,7 +7474,7 @@
           </div>
           <div id="project-folder-selector-card" class="card" style="margin-bottom: 20px;">
             <h3 style="margin-bottom: 8px;">Choix rapide des projets par préfecture</h3>
-            <p style="margin-bottom: 12px; color: #64748b; font-size: 13px;">Clique sur un dossier projet pour ouvrir sa préfecture et ajouter des sites.</p>
+            <p style="margin-bottom: 12px; color: #64748b; font-size: 13px;">Clique sur un dossier projet pour ouvrir sa préfecture et ajouter des lots.</p>
             <div id="project-folder-quick-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;"></div>
             <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
               <button type="button" id="project-create-new-folder-quick" class="button button-secondary">Créer un nouveau dossier</button>
@@ -7525,9 +7525,9 @@
                 <button type="submit" class="button button-primary" style="width: 100%;">Ajouter la zone</button>
               </form>
 
-              <h3 id="project-form-title" style="margin-bottom: 15px;">3) Ajouter un site dans une zone</h3>
+              <h3 id="project-form-title" style="margin-bottom: 15px;">3) Ajouter un lot dans une zone</h3>
               <div id="project-site-form-locked" class="card" style="margin-bottom: 12px; background: #fffbeb; border: 1px solid #fcd34d; color:#92400e; display:none;">
-                Sélectionnez ou créez d'abord une zone (préfecture) pour activer l'ajout des sites.
+                Sélectionnez ou créez d'abord une zone (préfecture) pour activer l'ajout des lots.
               </div>
               <form id="project-form">
                 <div id="project-site-form-fields">
@@ -7536,19 +7536,19 @@
                   <select id="project-existing-folder">
                     <option value="">Sélectionner un dossier projet</option>
                   </select>
-                  <p id="project-folder-helper" style="font-size: 12px; color: #64748b; margin-top: 6px;">Sélectionne d'abord une zone, puis ajoute les sites qui lui appartiennent.</p>
+                  <p id="project-folder-helper" style="font-size: 12px; color: #64748b; margin-top: 6px;">Sélectionne d'abord une zone, puis ajoute les lots qui lui appartiennent.</p>
                 </div>
                 <div class="form-group">
-                  <label>Numéro du site (début) *</label>
+                  <label>Numéro du lot (début) *</label>
                   <input type="text" id="project-site-number-start" required placeholder="Ex: 001" />
                 </div>
                 <div class="form-group">
-                  <label>Numéro du site (fin)</label>
+                  <label>Numéro du lot (fin)</label>
                   <input type="text" id="project-site-number-end" placeholder="Ex: 004" />
-                  <p style="font-size: 12px; color: #64748b; margin-top: 6px;">Laissez vide pour créer un seul site. Exemple: 001 à 004 crée automatiquement 001, 002, 003, 004.</p>
+                  <p style="font-size: 12px; color: #64748b; margin-top: 6px;">Laissez vide pour créer un seul lot. Exemple: 001 à 004 crée automatiquement 001, 002, 003, 004.</p>
                 </div>
                 <div class="form-group">
-                  <label>Description du site</label>
+                  <label>Description du lot</label>
                   <textarea id="project-establishment-desc"></textarea>
                 </div>
                 <div class="form-group">
@@ -7561,7 +7561,7 @@
                   </select>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                  <button type="submit" id="project-submit-button" class="button button-primary" style="width: 100%;">Ajouter le site</button>
+                  <button type="submit" id="project-submit-button" class="button button-primary" style="width: 100%;">Ajouter le lot</button>
                   <button type="button" id="project-clear-folder" class="button button-secondary" style="display: none; white-space: nowrap;">Changer</button>
                 </div>
                 </div>
@@ -7571,7 +7571,7 @@
             <div class="card">
               <h3 id="projects-list-title" style="margin-bottom: 15px;">Liste des projets</h3>
               <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="project-search" placeholder="Rechercher un projet (nom, site, type, numero, description)" />
+                <input type="text" id="project-search" placeholder="Rechercher un projet (nom, lot, type, numero, description)" />
               </div>
               <ul id="projects-list" class="list"></ul>
               <div id="project-details" class="card" style="margin-top: 12px; background-color: #f8fafc;"></div>
@@ -7950,7 +7950,7 @@
                   <select id="assignment-project" required></select>
                 </div>
                 <div class="form-group">
-                  <label>Site *</label>
+                  <label>Lot *</label>
                   <select id="assignment-house" required></select>
                 </div>
                 <div class="form-group">
@@ -8159,7 +8159,7 @@
               <!-- Mode selector for admin/stock managers -->
               <div id="material-mode-selector" style="display:none; margin-bottom:15px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                 <button type="button" id="material-mode-site" class="button button-secondary" style="padding:8px; font-size:13px;" data-mode="site">
-                  🏢 Par Site
+                  🏢 Par Lot
                 </button>
                 <button type="button" id="material-mode-zone" class="button button-secondary" style="padding:8px; font-size:13px;" data-mode="zone">
                   📍 Par Zone
@@ -8192,7 +8192,7 @@
                     <select id="material-zone" required></select>
                   </div>
                   <div class="form-group">
-                    <label>Site *</label>
+                    <label>Lot *</label>
                     <select id="material-project" required></select>
                   </div>
                 </div>
@@ -8260,8 +8260,8 @@
                 <div style="font-size:12px; opacity:0.92;">Concentre-toi sur un entrepôt donné</div>
               </button>
               <button type="button" id="inventory-mode-site" style="border:none; border-radius:14px; padding:16px; text-align:left; cursor:pointer; background:linear-gradient(135deg,#b45309,#f59e0b); color:#ffffff;">
-                <div style="font-weight:700; font-size:15px; margin-bottom:4px;">Site précis</div>
-                <div style="font-size:12px; opacity:0.92;">Choisis une zone puis un site à inspecter</div>
+                <div style="font-weight:700; font-size:15px; margin-bottom:4px;">Lot précis</div>
+                <div style="font-size:12px; opacity:0.92;">Choisis une zone puis un lot à inspecter</div>
               </button>
             </div>
 
@@ -8297,7 +8297,7 @@
                 <label>Mode détaillé</label>
                 <select id="inventory-view-search">
                   <option value="product_warehouse">Entrepôt précis</option>
-                  <option value="building">Site précis</option>
+                  <option value="building">Lot précis</option>
                 </select>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
@@ -8305,7 +8305,7 @@
                 <select id="inventory-project-filter"></select>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label id="inventory-house-label">Site (filtre)</label>
+                <label id="inventory-house-label">Lot (filtre)</label>
                 <select id="inventory-house-filter"></select>
               </div>
             </div>
@@ -8320,7 +8320,7 @@
                     <th id="inventory-col-stage">Étape</th>
                     <th>Entrepôt</th>
                     <th>Projet</th>
-                    <th>Site</th>
+                    <th>Lot</th>
                     <th>Total demande</th>
                     <th>Total restant</th>
                     <th id="inventory-col-used">Total sorti</th>
@@ -8499,8 +8499,8 @@
                 </div>
                 <div class="po-site-grid">
                   <div class="form-group" style="margin-bottom:0;">
-                    <label>Site</label>
-                    <select id="po-proj-site"><option value="">-- Site --</option></select>
+                    <label>Lot</label>
+                      <select id="po-proj-site"><option value="">-- Lot --</option></select>
                   </div>
                   <label style="display:flex;align-items:center;gap:8px;padding-bottom:10px;font-size:13px;color:#475569;">
                     <input type="checkbox" id="po-zone-only" />
@@ -8508,7 +8508,7 @@
                   </label>
                 </div>
                 <div id="po-villa-type-info" style="display:none;margin:-2px 0 10px;padding:8px 10px;border-radius:8px;border:1px solid #bbf7d0;background:#f0fdf4;color:#166534;font-size:12px;font-weight:700;"></div>
-                <div id="po-delivery-hint" style="margin:-4px 0 10px;color:#64748b;font-size:12px;">Choisis un site précis, ou active le mode zone pour réceptionner d'abord au stock de zone.</div>
+                <div id="po-delivery-hint" style="margin:-4px 0 10px;color:#64748b;font-size:12px;">Choisis un lot précis, ou active le mode zone pour réceptionner d'abord au stock de zone.</div>
                 <div class="form-group" style="margin-bottom:10px;">
                   <label>Étape (pour bon sans demande)</label>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -9368,12 +9368,12 @@
                   <select id="database-upload-project-folder" required></select>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                  <label>Site *</label>
+                  <label>Lot *</label>
                   <select id="database-upload-project" required></select>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
                   <label>Titre (auto)</label>
-                  <input type="text" id="database-upload-title" placeholder="NomProjet-NumeroSite" readonly />
+                  <input type="text" id="database-upload-title" placeholder="NomProjet-NumeroLot" readonly />
                 </div>
               </div>
               <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
@@ -9547,7 +9547,7 @@
         <input type="text" id="edit-project-prefecture" />
       </div>
       <div class="form-group">
-        <label>Nom du site *</label>
+        <label>Nom du lot *</label>
         <input type="text" id="edit-project-site" />
       </div>
       <div class="form-group">
@@ -12031,7 +12031,7 @@
         'Cette action ne supprime pas :',
         '- La liste des employes',
         '- Le catalogue de materiaux',
-        '- Les projets, sites et zones crees',
+        '- Les projets, lots et zones crees',
         '- Les entrepots crees',
         '- Les journaux de chantier',
         '- Le calendrier de presence, les pointages et les conges',
@@ -13803,7 +13803,7 @@
         projectLabel.textContent = inventoryViewMode === 'building' ? 'Zone (filtre)' : 'Zone (optionnel)';
       }
       if (houseLabel) {
-        houseLabel.textContent = inventoryViewMode === 'building' ? 'Site précis' : 'Site (optionnel)';
+        houseLabel.textContent = inventoryViewMode === 'building' ? 'Lot précis' : 'Lot (optionnel)';
       }
 
       if (projectFilter) {
@@ -13876,8 +13876,8 @@
         subtitleEl.textContent = `Vue ciblée sur ${scopedMaterials.length} ligne${scopedMaterials.length > 1 ? 's' : ''} de stock pour cet entrepôt.`;
       } else if (inventoryViewMode === 'building') {
         titleEl.textContent = selectedHouseLabel
-          ? `Site précis • ${selectedHouseLabel}`
-          : 'Site précis';
+          ? `Lot précis • ${selectedHouseLabel}`
+          : 'Lot précis';
         subtitleEl.textContent = selectedHouseLabel
           ? `Zone: ${selectedZoneLabel || 'Non renseignée'} • inventaire ciblé pour le site choisi.`
           : 'Choisis une zone puis un site pour isoler l\'inventaire exact du chantier.';
@@ -13981,10 +13981,10 @@
           villaTypeSelect.value = inferredVillaType;
         }
         if (helper) {
-          helper.textContent = `Dossier sélectionné: ${getProjectFolderLabel(selectedFolder)}. Renseignez le numéro du site (ou une plage) puis validez.`;
+          helper.textContent = `Dossier sélectionné: ${getProjectFolderLabel(selectedFolder)}. Renseignez le numéro du lot (ou une plage) puis validez.`;
         }
         if (title) title.textContent = 'Ajouter un site';
-        if (submitButton) submitButton.textContent = 'Ajouter le site';
+        if (submitButton) submitButton.textContent = 'Ajouter le lot';
         if (clearButton) clearButton.style.display = 'inline-flex';
 
         if (scrollToForm && formCard) {
@@ -14003,7 +14003,7 @@
         helper.textContent = 'Sélectionne une zone existante pour ajouter un site.';
       }
       if (title) title.textContent = 'Ajouter un site';
-      if (submitButton) submitButton.textContent = 'Ajouter le site';
+      if (submitButton) submitButton.textContent = 'Ajouter le lot';
       if (clearButton) clearButton.style.display = 'none';
     }
 
@@ -14176,7 +14176,7 @@
       const isSearchActive = Boolean(searchValue);
 
       if (listTitle) {
-        listTitle.textContent = isSearchActive ? 'Résultats Projet > Zone > Sites' : 'Navigation Projet > Zone > Sites';
+        listTitle.textContent = isSearchActive ? 'Résultats Projet > Zone > Lots' : 'Navigation Projet > Zone > Lots';
       }
 
       list.innerHTML = hierarchy.length
@@ -14607,7 +14607,7 @@
               <button type="button" class="progress-folder-card" data-project-id="${Number(project.id)}" style="height: 110px; border: ${isActive ? '3px solid #0f172a' : 'none'}; border-radius: 12px; background: ${background}; color: #ffffff; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:6px; text-align:left; padding: 12px; cursor:pointer;">
                 <div style="font-weight:700; font-size:14px;">${escapeHtml(project.nomProjet || 'Projet')}</div>
                 <div style="font-size:12px; opacity:0.92;">${escapeHtml(project.typeProjet || 'Type non renseigné')}</div>
-                <div style="font-size:12px; opacity:0.95;">${project.zones.length} zone${project.zones.length > 1 ? 's' : ''} • ${totalSites} site${totalSites > 1 ? 's' : ''}</div>
+                <div style="font-size:12px; opacity:0.95;">${project.zones.length} zone${project.zones.length > 1 ? 's' : ''} • ${totalSites} lot${totalSites > 1 ? 's' : ''}</div>
               </button>
             `;
           }).join('')
@@ -14639,7 +14639,7 @@
               <button type="button" class="material-folder-card" data-project-id="${Number(project.id)}" style="height: 110px; border: ${isActive ? '3px solid #0f172a' : 'none'}; border-radius: 12px; background: ${background}; color: #ffffff; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:6px; text-align:left; padding: 12px; cursor:pointer;">
                 <div style="font-weight:700; font-size:14px;">${escapeHtml(project.nomProjet || 'Projet')}</div>
                 <div style="font-size:12px; opacity:0.92;">${escapeHtml(project.typeProjet || 'Type non renseigné')}</div>
-                <div style="font-size:12px; opacity:0.95;">${project.zones.length} zone${project.zones.length > 1 ? 's' : ''} • ${totalSites} site${totalSites > 1 ? 's' : ''}</div>
+                <div style="font-size:12px; opacity:0.95;">${project.zones.length} zone${project.zones.length > 1 ? 's' : ''} • ${totalSites} lot${totalSites > 1 ? 's' : ''}</div>
               </button>
             `;
           }).join('')
@@ -14981,7 +14981,7 @@
 
       candidateSites.sort((a, b) => String(getProjectSiteLabel(a)).localeCompare(String(getProjectSiteLabel(b)), 'fr', { numeric: true }));
 
-      select.innerHTML = '<option value="">Tous les sites</option>' +
+      select.innerHTML = '<option value="">Tous les lots</option>' +
         candidateSites.map(site => `<option value="${Number(site.id)}">${escapeHtml(getProjectDisplayName(site) || getProjectSiteLabel(site))}</option>`).join('');
 
       if (selectedJournalSiteId && candidateSites.some(site => String(site.id) === String(selectedJournalSiteId))) {
@@ -15620,10 +15620,10 @@
       if (zoneOnly) {
         siteSelect.value = '';
         hint.textContent = zoneSelect.value
-          ? `Le bon sera reçu dans le stock de zone ${zoneSelect.value}, puis réparti plus tard vers les sites.`
+          ? `Le bon sera reçu dans le stock de zone ${zoneSelect.value}, puis réparti plus tard vers les lots.`
           : 'Sélectionne une zone avant d\'activer la réception en stock de zone.';
       } else {
-        hint.textContent = 'Choisis un site précis, ou active le mode zone pour réceptionner d\'abord au stock de zone.';
+        hint.textContent = 'Choisis un lot précis, ou active le mode zone pour réceptionner d\'abord au stock de zone.';
       }
     }
 
@@ -16125,7 +16125,7 @@
 
       const selectedSite = String(siteSel?.value || '').trim();
       if (!selectedSite && !opts.silentIfEmpty) {
-        showMessage('Sélectionne le numéro du site avant de charger les articles', 'error');
+        showMessage('Sélectionne le numéro du lot avant de charger les articles', 'error');
         return 0;
       }
 
@@ -16846,7 +16846,7 @@
       return;
 
       if (!folder) {
-        details.innerHTML = '<p style="color: #64748b;">Clique sur un dossier pour voir les sites de ce projet.</p>';
+        details.innerHTML = '<p style="color: #64748b;">Clique sur un dossier pour voir les lots de ce projet.</p>';
         return;
       }
 
@@ -16886,7 +16886,7 @@
         <p style="margin-bottom: 8px;"><strong>Préfecture:</strong> ${escapeHtml(folder.prefecture || 'Non renseigne')}</p>
         <p style="margin-bottom: 8px;"><strong>Type de villa:</strong> ${escapeHtml(folderVillaType)}</p>
         <p style="margin-bottom: 8px;"><strong>Type de projet:</strong> ${projectType}</p>
-        <p style="margin-bottom: 10px;"><strong>Sites à construire:</strong> ${folder.houses.length}</p>
+        <p style="margin-bottom: 10px;"><strong>Lots à construire:</strong> ${folder.houses.length}</p>
         ${housesHtml}
       `;
     }
@@ -25013,7 +25013,7 @@
     window.deleteProjectFolder = async (id, siteCount = 0) => {
       const totalSites = Number(siteCount || 0);
       const warning = totalSites > 0
-        ? `Supprimer cette zone et ses ${totalSites} site${totalSites > 1 ? 's' : ''} ? Cette action est irreversible.`
+        ? `Supprimer cette zone et ses ${totalSites} lot${totalSites > 1 ? 's' : ''} ? Cette action est irreversible.`
         : 'Supprimer cette zone ? Cette action est irreversible.';
       if (!confirm(warning)) return;
 
@@ -25196,7 +25196,7 @@
       const constructionStatus = document.getElementById('edit-project-construction-status').value;
 
       if (!name || !prefecture || !site) {
-        showMessage('Nom du projet, préfecture et nom du site sont obligatoires', 'error');
+        showMessage('Nom du projet, préfecture et nom du lot sont obligatoires', 'error');
         return;
       }
 
@@ -25523,7 +25523,7 @@
         const siteStart = document.getElementById('project-site-number-start').value.trim();
         const siteEnd = document.getElementById('project-site-number-end').value.trim();
         if (!siteStart) {
-          showMessage('Le numéro du site (début) est obligatoire', 'error');
+          showMessage('Le numéro du lot (début) est obligatoire', 'error');
           return;
         }
 
@@ -25544,7 +25544,7 @@
             return;
           }
           if ((endNumber - startNumber + 1) > 500) {
-            showMessage('La plage est trop grande (max 500 sites).', 'error');
+            showMessage('La plage est trop grande (max 500 lots).', 'error');
             return;
           }
           generatedSiteNumbers = [];
@@ -25588,7 +25588,7 @@
         e.target.reset();
         updateProjectCreationMode(selectedProjectCreationFolderKey);
         showMessage(createdSites.length > 1
-          ? `${createdSites.length} sites créés automatiquement avec succès`
+          ? `${createdSites.length} lots créés automatiquement avec succès`
           : 'Site ajouté au dossier projet avec succès');
         loadProjects();
         loadDashboard();
@@ -26280,7 +26280,7 @@
         const effectiveZoneOnly = zoneOnly || (!siteId && Boolean(zoneName));
 
         if (!effectiveZoneOnly && (!siteId || !projetId)) {
-          showMessage('Sélectionne un site précis ou active le mode zone', 'error');
+          showMessage('Sélectionne un lot précis ou active le mode zone', 'error');
           return;
         }
 
@@ -27453,7 +27453,7 @@
 
     const MOBILE_PREMIUM_MODULE_DESCRIPTIONS = {
       dashboard: 'Retour a l accueil mobile premium',
-      projects: 'Sites, zones et dossiers projets',
+      projects: 'Lots, zones et dossiers projets',
       'project-progress': 'Progression et etapes terrain',
       'journal-chantier': 'Notes terrain et rapports',
       assignments: 'Equipes et responsabilites',
