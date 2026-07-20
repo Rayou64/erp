@@ -8618,7 +8618,7 @@
                 <button type="button" class="po-quick-filter" data-po-quick-filter="mine">Mes bons</button>
               </div>
               <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="po-search" placeholder="Rechercher un bon (site, fournisseur, statut)" />
+                <input type="text" id="po-search" placeholder="Rechercher un bon (lot, fournisseur, statut)" />
               </div>
               <ul id="po-list" class="list"></ul>
               <div id="po-details" class="card" style="margin-top: 12px; background-color: #f8fafc;"></div>
@@ -8669,7 +8669,7 @@
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
               <div>
                 <h3 style="margin:0;" id="mc-editor-title">Liste des matériaux</h3>
-                <p style="margin:4px 0 0;font-size:12px;color:#64748b;" id="mc-editor-subtitle">Cette liste s'applique à chaque site du type sélectionné</p>
+                <p style="margin:4px 0 0;font-size:12px;color:#64748b;" id="mc-editor-subtitle">Cette liste s'applique à chaque lot du type sélectionné</p>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button type="button" id="mc-new-document-btn" class="button button-secondary" style="padding:6px 14px;">+ Nouveau déboursé sec</button>
@@ -9537,7 +9537,7 @@
 
   <div id="project-edit-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="project-edit-title">
     <div class="modal-card">
-      <h3 id="project-edit-title" style="margin-bottom: 12px;">Modifier le site</h3>
+      <h3 id="project-edit-title" style="margin-bottom: 12px;">Modifier le lot</h3>
       <div class="form-group">
         <label>Nom du projet *</label>
         <input type="text" id="edit-project-name" />
@@ -9551,11 +9551,11 @@
         <input type="text" id="edit-project-site" />
       </div>
       <div class="form-group">
-        <label>Type de site</label>
+        <label>Type de lot</label>
         <input type="text" id="edit-project-house-type" />
       </div>
       <div class="form-group">
-        <label>Référence du site</label>
+        <label>Référence du lot</label>
         <input type="text" id="edit-project-house-number" />
       </div>
       <div class="form-group">
@@ -9563,7 +9563,7 @@
         <textarea id="edit-project-description"></textarea>
       </div>
       <div class="form-group">
-        <label>Statut du site</label>
+        <label>Statut du lot</label>
         <select id="edit-project-construction-status">
           <option value="">Pas encore débuté</option>
           <option value="EN_CONSTRUCTION">En construction</option>
@@ -12521,7 +12521,7 @@
 
         const availability = findProgressMaterialAvailability(projectIdValue, itemName, stageValue);
         if (!availability) {
-          hint.textContent = 'Matériau introuvable dans le stock du site';
+          hint.textContent = 'Matériau introuvable dans le stock du lot';
           hint.style.color = '#b91c1c';
           return;
         }
@@ -12532,7 +12532,7 @@
         const remaining = Number(availability.quantiteRestante || 0);
         const ok = requested <= remaining && (!(qty > 0) || qty <= remaining);
 
-        hint.textContent = `Restant site: ${remaining.toFixed(2)}${requested > 0 ? ` • Saisi total: ${requested.toFixed(2)}` : ''}`;
+        hint.textContent = `Restant lot: ${remaining.toFixed(2)}${requested > 0 ? ` • Saisi total: ${requested.toFixed(2)}` : ''}`;
         hint.style.color = ok ? '#475569' : '#b91c1c';
       });
     }
@@ -13488,9 +13488,9 @@
     }
 
     function getProjectSiteLabel(project) {
-      const siteName = String(project?.nomSite || '').trim() || String(project?.numeroMaison || '').trim() || `Site ${project?.id || ''}`.trim();
+      const siteName = String(project?.nomSite || '').trim() || String(project?.numeroMaison || '').trim() || `Lot ${project?.id || ''}`.trim();
       const siteType = getProjectVillaTypeLabel(project);
-      const base = `Site N°${siteName}`;
+      const base = `Lot N°${siteName}`;
       return siteType ? `${base} (${siteType})` : base;
     }
 
@@ -13879,8 +13879,8 @@
           ? `Lot précis • ${selectedHouseLabel}`
           : 'Lot précis';
         subtitleEl.textContent = selectedHouseLabel
-          ? `Zone: ${selectedZoneLabel || 'Non renseignée'} • inventaire ciblé pour le site choisi.`
-          : 'Choisis une zone puis un site pour isoler l\'inventaire exact du chantier.';
+          ? `Zone: ${selectedZoneLabel || 'Non renseignée'} • inventaire ciblé pour le lot choisi.`
+          : 'Choisis une zone puis un lot pour isoler l\'inventaire exact du chantier.';
       }
 
       productsEl.textContent = String(productsCount);
@@ -14002,7 +14002,7 @@
       if (helper) {
         helper.textContent = 'Sélectionne une zone existante pour ajouter un site.';
       }
-      if (title) title.textContent = 'Ajouter un site';
+      if (title) title.textContent = 'Ajouter un lot';
       if (submitButton) submitButton.textContent = 'Ajouter le lot';
       if (clearButton) clearButton.style.display = 'none';
     }
@@ -14018,7 +14018,7 @@
         return;
       }
 
-      label.textContent = `${getProjectFolderLabel(selectedFolder)} (${selectedFolder.houses.length} site${selectedFolder.houses.length > 1 ? 's' : ''})`;
+      label.textContent = `${getProjectFolderLabel(selectedFolder)} (${selectedFolder.houses.length} lot${selectedFolder.houses.length > 1 ? 's' : ''})`;
     }
 
     function showProjectFolderChooser() {
