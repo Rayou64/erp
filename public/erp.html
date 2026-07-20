@@ -9886,6 +9886,7 @@
     };
     let assignmentsCache = [];
     let hrEmployeesCache = [];
+    let hrEmployeeDirectoryCache = [];
     let hrEmployeeDocumentsCache = {};
     let hrUserProfilesCache = [];
     let hrEmployeeEditingId = null;
@@ -18502,8 +18503,9 @@
       if (!container || !countNode || !searchInput) return;
 
       const searchValue = normalizeText(String(hrEmployeeDirectorySearchTerm || '').trim());
+      const directory = Array.isArray(hrEmployeeDirectoryCache) ? hrEmployeeDirectoryCache : [];
       const employees = searchValue
-        ? hrEmployeesCache.filter(employee => {
+        ? directory.filter(employee => {
             const haystack = normalizeText([
               employee.fullName,
               employee.jobTitle,
@@ -18514,7 +18516,7 @@
             ].join(' '));
             return haystack.includes(searchValue);
           })
-        : hrEmployeesCache;
+        : directory;
 
       countNode.textContent = `${employees.length} résultat${employees.length > 1 ? 's' : ''}`;
 
@@ -18545,8 +18547,8 @@
     }
 
     async function loadHrEmployeeSearchModule() {
-      if (!hrEmployeesCache.length) {
-        hrEmployeesCache = await fetchJson('/api/hr/employees/directory').catch(() => []);
+      if (!hrEmployeeDirectoryCache.length) {
+        hrEmployeeDirectoryCache = await fetchJson('/api/hr/employees/directory').catch(() => []);
       }
       const pageTitle = document.querySelector('#hr-employee-search .page-header h1');
       const pageSubtitle = document.querySelector('#hr-employee-search .page-header p');
