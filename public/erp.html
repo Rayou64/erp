@@ -6722,6 +6722,39 @@
       border-color: #bfdbfe;
     }
 
+    body.mobile-runtime .button-primary,
+    body.mobile-runtime .btn-export-excel:hover,
+    body.mobile-runtime .actions-menu summary:hover {
+      background: linear-gradient(135deg, #5f6af2 0%, #4dabf7 48%, #2ec4b6 100%);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    body.mobile-runtime .button-warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    body.mobile-runtime .button:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
+    body.mobile-runtime .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary) {
+      background: linear-gradient(145deg, #ffffff 0%, #eef5ff 100%);
+      color: #1f2937;
+      border-color: rgba(95, 106, 242, 0.14);
+    }
+
+    body.mobile-runtime .button-secondary {
+      background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+
+    body.mobile-runtime .actions-menu summary {
+      color: #1e3a8a;
+      border-color: #c7dbff;
+      background: #f1f6ff;
+    }
+
     body.app-layout-mode .global-search-input {
       background: rgba(255, 255, 255, 0.94);
       border-color: rgba(95, 106, 242, 0.18);
@@ -9755,6 +9788,46 @@
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     };
+
+    function buildAuthenticatedDownloadUrl(pathname, extraParams = {}) {
+      const url = new URL(pathname, window.location.origin);
+      if (mobileAuthToken) {
+        url.searchParams.set('mobileAuth', mobileAuthToken);
+      }
+      Object.entries(extraParams || {}).forEach(([key, value]) => {
+        const normalized = String(value === null || value === undefined ? '' : value).trim();
+        if (normalized) {
+          url.searchParams.set(key, normalized);
+        }
+      });
+      return url.toString();
+    }
+
+    function triggerDirectDownload(url, fileName) {
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      if (fileName) {
+        anchor.download = fileName;
+      }
+      anchor.rel = 'noopener';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    }
+
+    function openOrDownloadStoredFile(fileUrl, fileName = '') {
+      if (!fileUrl) return;
+      const resolvedUrl = fileUrl.startsWith('/api/')
+        ? buildAuthenticatedDownloadUrl(fileUrl)
+        : new URL(fileUrl, window.location.origin).toString();
+
+      if (isLikelyMobileRuntime) {
+        triggerDirectDownload(resolvedUrl, fileName || undefined);
+        return;
+      }
+
+      window.open(resolvedUrl, '_blank', 'noopener');
+    }
 
     let currentModule = 'dashboard';
     let selectedProjectId = null;
@@ -13214,7 +13287,7 @@
                     <div class="list-item-meta">${escapeHtml(item.meta || '-')} • Supprimé le ${formatAutoLocationTimestamp(item.deletedAt)}</div>
                   </div>
                   ${item.fileUrl
-                    ? `<div class="action-buttons"><button type="button" class="button button-small button-primary" onclick="window.open('${escapeHtml(item.fileUrl)}', '_blank')">Ouvrir PDF</button></div>`
+                    ? `<div class="action-buttons"><button type="button" class="button button-small button-primary" onclick="openOrDownloadStoredFile('${escapeHtml(item.fileUrl)}', '${escapeHtml(item.fileName || item.title || 'document.pdf')}')">Ouvrir PDF</button></div>`
                     : ''}
                 </li>
               `).join('')}
@@ -13336,7 +13409,7 @@
                       <div class="list-item-meta">${escapeHtml(item.fileName || '-')} • Supprimé le ${formatAutoLocationTimestamp(item.deletedAt)}</div>
                     </div>
                     ${item.fileUrl
-                      ? `<div class="action-buttons"><button type="button" class="button button-small button-primary" onclick="window.open('${escapeHtml(item.fileUrl)}', '_blank')">Ouvrir PDF</button></div>`
+                      ? `<div class="action-buttons"><button type="button" class="button button-small button-primary" onclick="openOrDownloadStoredFile('${escapeHtml(item.fileUrl)}', '${escapeHtml(item.fileName || item.title || 'document.pdf')}')">Ouvrir PDF</button></div>`
                       : ''}
                   </li>
                 `).join('')}</ul>`
@@ -17960,6 +18033,11 @@
 
     window.downloadHrEmployeeDocument = async function downloadHrEmployeeDocument(docId) {
       try {
+        if (isLikelyMobileRuntime) {
+          triggerDirectDownload(buildAuthenticatedDownloadUrl(`/api/hr/employees/documents/${Number(docId)}/download`), `document-employe-${Number(docId)}.pdf`);
+          return;
+        }
+
         const authToken = localStorage.getItem('erp_token');
         const resp = await fetch(`/api/hr/employees/documents/${Number(docId)}/download`, {
           headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
@@ -18724,6 +18802,11 @@
 
     window.downloadHrSignatureDocument = async function downloadHrSignatureDocument(requestId) {
       try {
+        if (isLikelyMobileRuntime) {
+          triggerDirectDownload(buildAuthenticatedDownloadUrl(`/api/hr/signature-requests/${Number(requestId)}/download`), `document-signe-${Number(requestId)}.pdf`);
+          return;
+        }
+
         const token = localStorage.getItem('erp_token');
         const response = await fetch(`/api/hr/signature-requests/${Number(requestId)}/download`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -23725,6 +23808,12 @@
 
     window.downloadGuideDocument = async function(id) {
       try {
+        if (isLikelyMobileRuntime) {
+          triggerDirectDownload(buildAuthenticatedDownloadUrl(`/api/guide-documents/${Number(id)}/download`));
+          showMessage('Téléchargement lancé');
+          return;
+        }
+
         const token = localStorage.getItem('erp_token');
         const resp = await fetch(`/api/guide-documents/${id}/download`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -23770,6 +23859,12 @@
 
     window.downloadAllGuideDocuments = async function downloadAllGuideDocuments() {
       try {
+        if (isLikelyMobileRuntime) {
+          triggerDirectDownload(buildAuthenticatedDownloadUrl('/api/guide-documents', { download: 'all' }));
+          showMessage('Téléchargement lancé');
+          return;
+        }
+
         const token = localStorage.getItem('erp_token');
         const response = await fetch('/api/guide-documents?download=all', {
           headers: token ? { Authorization: `Bearer ${token}` } : {},

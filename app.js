@@ -3807,7 +3807,7 @@ function getAccessProfileBaselineModules(role, username) {
     gestionnaire_stock_zone: ['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search', 'guide-erp'],
     gestionnaire_stock_songon: ['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp'],
     chef_chantier_site: ['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
-    employe_standard: ['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp'],
+    employe_standard: ['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'database', 'trash', 'guide-erp'],
   };
 
   const preset = presets[normalizedRole] || [];
@@ -3888,11 +3888,17 @@ async function ensureHrProfileForUserAccount(userRow, actor = 'system') {
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ error: 'Token manquant' });
+  const queryToken = String(req.query?.mobileAuth || req.query?.accessToken || req.query?.token || '').trim();
+  let token = '';
+
+  if (authHeader) {
+    token = authHeader.split(' ')[1] || '';
   }
 
-  const token = authHeader.split(' ')[1];
+  if (!token && queryToken) {
+    token = queryToken;
+  }
+
   if (!token) {
     return res.status(401).json({ error: 'Token manquant' });
   }
