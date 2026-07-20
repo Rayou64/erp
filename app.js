@@ -18,6 +18,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const archiver = require('archiver');
+const nodemailer = require('nodemailer');
 const { spawn } = require('child_process');
 const { createDbClient } = require('./db/client');
 
@@ -319,6 +320,13 @@ const ACHAT_USERNAME = process.env.ACHAT_USERNAME || 'achat';
 const ACHAT_PASSWORD = process.env.ACHAT_PASSWORD || 'achat123';
 const KOKAN_USERNAME = process.env.KOKAN_USERNAME || 'Kokan_SK';
 const KOKAN_PASSWORD = process.env.KOKAN_PASSWORD || 'Stock_SK123';
+const SMTP_HOST = String(process.env.SMTP_HOST || '').trim();
+const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
+const SMTP_SECURE = String(process.env.SMTP_SECURE || '0').trim() === '1';
+const SMTP_USER = String(process.env.SMTP_USER || '').trim();
+const SMTP_PASS = String(process.env.SMTP_PASS || '').trim();
+const MAIL_FROM = String(process.env.MAIL_FROM || SMTP_USER || '').trim();
+let mailTransport = null;
 const IDENTITY_ROSTER = [
   { fullName: 'AGBODJRO BEUGRE AWO ELFRIED JOSEPH', hrUsername: 'AGBODJRO123', userUsername: 'AGBODJRO123', role: 'employe_standard', password: 'AGBODJRO123@2026' },
   { fullName: 'APPIA ROBERT NICAISE', hrUsername: 'APPIA123', userUsername: 'APPIA123', role: 'employe_standard', password: 'APPIA123@2026' },
@@ -490,6 +498,7 @@ let localhostFallbackServer = null;
 let autoBackupTimer = null;
 let autoBackupInProgress = false;
 let autoBackupPending = false;
+const profileStreamClients = new Set();
 
 fs.mkdirSync(ARCHIVE_ROOT, { recursive: true });
 app.use('/archives', express.static(ARCHIVE_ROOT));
@@ -3762,7 +3771,7 @@ process.on('unhandledRejection', reason => {
 });
 
 const PRIVILEGED_ROLES = new Set(['admin', 'directeur_rh']);
-const RH_GUIDE_BASE_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'guide-erp']);
+const RH_GUIDE_BASE_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'guide-erp']);
 const MODULE_ACCESS_ROUTE_RULES = {
   dashboard: [{ method: 'GET', pattern: /^\/auth\/me$/ }],
   projects: [
@@ -3779,6 +3788,13 @@ const MODULE_ACCESS_ROUTE_RULES = {
   ],
   inventory: [{ method: 'GET', pattern: /^\/stock-management\/(available|issues|orders)$/ }],
   'purchase-orders': [{ method: 'GET', pattern: /^\/purchase-orders(?:\/\d+\/pdf)?$/ }],
+  'hr-contracts': [
+    { method: 'GET', pattern: /^\/hr\/contracts$/ },
+    { method: 'POST', pattern: /^\/hr\/contracts$/ },
+    { method: 'PATCH', pattern: /^\/hr\/contracts\/\d+$/ },
+    { method: 'DELETE', pattern: /^\/hr\/contracts\/\d+$/ },
+  ],
+  'access-profiles': [],
   'stock-management': [
     { method: 'GET', pattern: /^\/stock-management\/(available|issues|orders)$/ },
     { method: 'PATCH', pattern: /^\/stock-management\/orders\/\d+\/arrive$/ },
@@ -3800,6 +3816,10 @@ const MODULE_ACCESS_ROUTE_RULES = {
   ],
   database: [{ method: 'GET', pattern: /^\/database-documents(?:\/\d+\/download)?$/ }],
   users: [{ method: 'GET', pattern: /^\/users$/ }],
+  'admin-mail': [
+    { method: 'GET', pattern: /^\/admin\/mail\/recipients$/ },
+    { method: 'POST', pattern: /^\/admin\/mail\/send$/ },
+  ],
   assignments: [{ method: 'GET', pattern: /^\/project-assignments$/ }],
   trash: [
     { method: 'DELETE', pattern: /^\/material-requests\/\d+$/ },
@@ -3853,10 +3873,10 @@ function getAccessProfileBaselineModules(role, username) {
   const presets = {
     admin: [
       'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations',
-      'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'trash', 'assignments',
+      'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments',
       'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'
     ],
-    directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp'],
+    directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp'],
     dirigeant: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp'],
     achat: ['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
     controle_achat: ['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
@@ -3981,6 +4001,55 @@ function isRouteAllowedByModuleSet(method, pathName, modulesSet) {
     }
   }
   return false;
+}
+
+function buildAccessProfilePayloadForUser(userRow, accessProfileRow) {
+  const role = String(userRow?.role || '').trim();
+  const username = String(userRow?.username || '').trim();
+  const baselineModules = Array.from(getAccessProfileBaselineModules(role, username));
+  const effectiveModules = Array.from(computeEffectiveModulesForAccessProfile(accessProfileRow || {
+    allowedModules: baselineModules.join(','),
+    deniedModules: '',
+    forcedModule: '',
+  }));
+
+  return {
+    username,
+    role,
+    accessProfile: {
+      accreditationLevel: String(accessProfileRow?.accreditationLevel || 'standard').trim() || 'standard',
+      allowedModules: Array.from(normalizeModuleList(accessProfileRow?.allowedModules || baselineModules.join(','))),
+      deniedModules: Array.from(normalizeModuleList(accessProfileRow?.deniedModules || '')),
+      forcedModule: String(accessProfileRow?.forcedModule || '').trim().toLowerCase(),
+      notes: String(accessProfileRow?.notes || '').trim(),
+      effectiveModules,
+    },
+  };
+}
+
+async function broadcastAccessProfileUpdate(username) {
+  const safeUsername = String(username || '').trim();
+  if (!safeUsername || !profileStreamClients.size) return;
+
+  const userRow = await get('SELECT id, username, role FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [safeUsername]);
+  if (!userRow) return;
+  const accessProfile = await getUserAccessProfileByUsername(safeUsername);
+  const payload = {
+    type: 'access-profile-updated',
+    updatedAt: new Date().toISOString(),
+    ...buildAccessProfilePayloadForUser(userRow, accessProfile),
+  };
+  const raw = `event: access-profile\ndata: ${JSON.stringify(payload)}\n\n`;
+
+  for (const client of Array.from(profileStreamClients)) {
+    if (String(client?.username || '').toLowerCase() !== safeUsername.toLowerCase()) continue;
+    try {
+      client.res.write(raw);
+    } catch (_err) {
+      try { client.res.end(); } catch (_endErr) {}
+      profileStreamClients.delete(client);
+    }
+  }
 }
 
 async function authorizeRoleAccess(req, res, next) {
@@ -4367,27 +4436,48 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
       }
     : null;
 
-  const accessProfile = roleCanBypassRestrictedProfile(role)
-    ? null
-    : await getUserAccessProfileByUsername(req.user?.username);
-  const effectiveModules = roleCanBypassRestrictedProfile(role)
-    ? []
-    : Array.from(computeEffectiveModulesForAccessProfile(accessProfile || {}));
+  const accessProfile = await getUserAccessProfileByUsername(req.user?.username);
+  const profilePayload = buildAccessProfilePayloadForUser(
+    { username: req.user?.username, role },
+    accessProfile
+  );
 
   res.json({
     username: req.user.username,
     role: req.user.role,
     scope,
-    accessProfile: roleCanBypassRestrictedProfile(role)
-      ? null
-      : {
-          accreditationLevel: String(accessProfile?.accreditationLevel || 'standard').trim() || 'standard',
-          allowedModules: Array.from(normalizeModuleList(accessProfile?.allowedModules || '')),
-          deniedModules: Array.from(normalizeModuleList(accessProfile?.deniedModules || '')),
-          forcedModule: String(accessProfile?.forcedModule || '').trim().toLowerCase(),
-          notes: String(accessProfile?.notes || '').trim(),
-          effectiveModules,
-        },
+    accessProfile: profilePayload.accessProfile,
+  });
+});
+
+app.get('/api/auth/profile-stream', authenticateToken, async (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
+  }
+
+  const username = String(req.user?.username || '').trim();
+  const client = { username, res };
+  profileStreamClients.add(client);
+
+  res.write(`event: ping\ndata: ${JSON.stringify({ ts: new Date().toISOString() })}\n\n`);
+
+  const keepAliveTimer = setInterval(() => {
+    try {
+      res.write(`event: ping\ndata: ${JSON.stringify({ ts: new Date().toISOString() })}\n\n`);
+    } catch (_err) {
+      clearInterval(keepAliveTimer);
+      profileStreamClients.delete(client);
+      try { res.end(); } catch (_endErr) {}
+    }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(keepAliveTimer);
+    profileStreamClients.delete(client);
   });
 });
 
@@ -4735,6 +4825,7 @@ app.get('/api/users', async (_req, res) => {
       COALESCE(NULLIF(TRIM(u.username), ''), NULLIF(TRIM(he.username), ''), '') AS username,
       COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
       COALESCE(NULLIF(TRIM(he.fullName), ''), '') AS linkedEmployeeName,
+      COALESCE(NULLIF(TRIM(he.email), ''), '') AS email,
       CASE
         WHEN u.id IS NULL THEN '-'
         WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' AND COALESCE(TRIM(u.role), '') = 'employe_standard' AND COALESCE(TRIM(u.username), '') <> '' THEN TRIM(u.username) || '@2026'
@@ -4755,6 +4846,7 @@ app.get('/api/users', async (_req, res) => {
       COALESCE(NULLIF(TRIM(u.username), ''), '') AS username,
       COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
       '' AS linkedEmployeeName,
+      '' AS email,
       CASE
         WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' AND COALESCE(TRIM(u.role), '') = 'employe_standard' AND COALESCE(TRIM(u.username), '') <> '' THEN TRIM(u.username) || '@2026'
         WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' THEN '-'
@@ -4798,6 +4890,196 @@ app.get('/api/users', async (_req, res) => {
 
   const uniqueRows = Array.from(byUsername.values()).sort((a, b) => String(a?.username || '').localeCompare(String(b?.username || ''), 'fr', { sensitivity: 'base' }));
   res.json(uniqueRows);
+});
+
+function getMailTransport() {
+  if (mailTransport) return mailTransport;
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+    throw new Error('Configuration SMTP incomplète');
+  }
+
+  mailTransport = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_SECURE,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
+    },
+  });
+
+  return mailTransport;
+}
+
+function collectUniqueMailRecipients(rows) {
+  const byUsername = new Map();
+  for (const row of (rows || [])) {
+    const username = String(row?.username || '').trim();
+    if (!username) continue;
+    const email = normalizeHrEmail(row?.email || '');
+    const key = username.toLowerCase();
+    const existing = byUsername.get(key);
+    if (!existing || (!existing.email && email)) {
+      byUsername.set(key, {
+        username,
+        role: String(row?.role || '').trim(),
+        linkedEmployeeName: String(row?.linkedEmployeeName || '').trim(),
+        email,
+      });
+    }
+  }
+  return Array.from(byUsername.values()).sort((a, b) => a.username.localeCompare(b.username, 'fr', { sensitivity: 'base' }));
+}
+
+app.get('/api/admin/mail/recipients', async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+
+    const rows = await all(`
+      SELECT
+        COALESCE(u.id, -he.id) AS id,
+        COALESCE(NULLIF(TRIM(u.username), ''), NULLIF(TRIM(he.username), ''), '') AS username,
+        COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
+        COALESCE(NULLIF(TRIM(he.fullName), ''), '') AS linkedEmployeeName,
+        COALESCE(NULLIF(TRIM(he.email), ''), '') AS email
+      FROM hr_employees he
+      LEFT JOIN users u ON LOWER(TRIM(u.username)) = LOWER(TRIM(he.username))
+
+      UNION ALL
+
+      SELECT
+        u.id AS id,
+        COALESCE(NULLIF(TRIM(u.username), ''), '') AS username,
+        COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
+        '' AS linkedEmployeeName,
+        '' AS email
+      FROM users u
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM hr_employees he
+        WHERE LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
+      )
+      ORDER BY username
+    `);
+
+    const recipients = collectUniqueMailRecipients(rows);
+    const withEmailCount = recipients.filter(item => isValidHrEmail(item.email)).length;
+    return res.json({
+      recipients,
+      total: recipients.length,
+      withEmail: withEmailCount,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erreur chargement destinataires', details: String(error?.message || error) });
+  }
+});
+
+app.post('/api/admin/mail/send', async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+
+    const subject = String(req.body?.subject || '').trim();
+    const message = String(req.body?.message || '').trim();
+    const sendToAllWithEmail = Boolean(req.body?.sendToAllWithEmail);
+    const requestedUsernames = Array.isArray(req.body?.recipientUsernames)
+      ? req.body.recipientUsernames.map(item => String(item || '').trim()).filter(Boolean)
+      : [];
+
+    if (!subject || !message) {
+      return res.status(400).json({ error: 'Sujet et message obligatoires' });
+    }
+
+    if (!MAIL_FROM) {
+      return res.status(400).json({ error: 'MAIL_FROM manquant dans la configuration SMTP' });
+    }
+
+    const rows = await all(`
+      SELECT
+        COALESCE(NULLIF(TRIM(u.username), ''), NULLIF(TRIM(he.username), ''), '') AS username,
+        COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
+        COALESCE(NULLIF(TRIM(he.fullName), ''), '') AS linkedEmployeeName,
+        COALESCE(NULLIF(TRIM(he.email), ''), '') AS email
+      FROM hr_employees he
+      LEFT JOIN users u ON LOWER(TRIM(u.username)) = LOWER(TRIM(he.username))
+
+      UNION ALL
+
+      SELECT
+        COALESCE(NULLIF(TRIM(u.username), ''), '') AS username,
+        COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
+        '' AS linkedEmployeeName,
+        '' AS email
+      FROM users u
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM hr_employees he
+        WHERE LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
+      )
+      ORDER BY username
+    `);
+
+    const recipients = collectUniqueMailRecipients(rows);
+    const recipientByUsername = new Map(recipients.map(item => [item.username.toLowerCase(), item]));
+    let targetRecipients = [];
+
+    if (sendToAllWithEmail) {
+      targetRecipients = recipients.filter(item => isValidHrEmail(item.email));
+    } else {
+      const seen = new Set();
+      for (const requested of requestedUsernames) {
+        const key = requested.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const found = recipientByUsername.get(key);
+        if (found) targetRecipients.push(found);
+      }
+      targetRecipients = targetRecipients.filter(item => isValidHrEmail(item.email));
+    }
+
+    if (!targetRecipients.length) {
+      return res.status(400).json({ error: 'Aucun destinataire valide avec email' });
+    }
+
+    const transport = getMailTransport();
+    const results = [];
+    for (const recipient of targetRecipients) {
+      try {
+        await transport.sendMail({
+          from: MAIL_FROM,
+          to: recipient.email,
+          subject,
+          text: message,
+        });
+        results.push({ username: recipient.username, email: recipient.email, success: true });
+      } catch (error) {
+        results.push({
+          username: recipient.username,
+          email: recipient.email,
+          success: false,
+          error: String(error?.message || error),
+        });
+      }
+    }
+
+    const successCount = results.filter(item => item.success).length;
+    const failedCount = results.length - successCount;
+
+    return res.json({
+      subject,
+      totalAttempted: results.length,
+      successCount,
+      failedCount,
+      results,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erreur envoi courriels', details: String(error?.message || error) });
+  }
 });
 
 app.get('/api/admin/access-profiles', async (req, res) => {
@@ -4870,10 +5152,6 @@ app.patch('/api/admin/access-profiles/:username', async (req, res) => {
       return res.status(404).json({ error: 'Utilisateur introuvable' });
     }
 
-    if (roleCanBypassRestrictedProfile(target.role)) {
-      return res.status(400).json({ error: 'Profil privilegie non modifiable via ce module' });
-    }
-
     const accreditationLevel = String(req.body?.accreditationLevel || 'standard').trim().toLowerCase() || 'standard';
     const allowedModules = normalizeModuleList(Array.isArray(req.body?.allowedModules) ? req.body.allowedModules.join(',') : req.body?.allowedModules || '');
     const deniedModules = normalizeModuleList(Array.isArray(req.body?.deniedModules) ? req.body.deniedModules.join(',') : req.body?.deniedModules || '');
@@ -4937,6 +5215,8 @@ app.patch('/api/admin/access-profiles/:username', async (req, res) => {
         now,
       ]
     );
+
+    await broadcastAccessProfileUpdate(username).catch(() => {});
 
     return res.json({
       username,

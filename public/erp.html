@@ -7103,6 +7103,7 @@
           <div class="menu-item" data-module="database">🗂️ Base de donnée</div>
           <div class="menu-item" data-module="guide-erp">📘 Guide ERP</div>
           <div class="menu-item" data-module="access-profiles">🗃️ Dossiers profils</div>
+          <div class="menu-item" data-module="admin-mail">✉️ Courriels</div>
           <div class="menu-item" data-module="trash">🗑️ Corbeille</div>
           <div class="menu-item" data-module="users">🔑 Utilisateurs</div>
           <div class="menu-item" data-module="settings">⚙️ Paramètres</div>
@@ -9403,7 +9404,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
               <div>
                 <h3 style="margin:0;">Gouvernance d'accès</h3>
-                <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Module admin pour piloter les droits des profils non privilégiés.</p>
+                <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Module admin pour piloter les droits de tous les profils.</p>
               </div>
               <div class="action-buttons" style="gap:8px;">
                 <button type="button" class="button button-small" onclick="loadAccessProfilesModule()">Actualiser</button>
@@ -9470,6 +9471,57 @@
                   </div>
                 </form>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="admin-mail" class="module">
+          <div class="page-header">
+            <h1>Courriels utilisateurs</h1>
+            <p>Envoi automatique de messages aux utilisateurs selon le champ Courriel RH</p>
+          </div>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+              <div>
+                <h3 style="margin:0;">Destinataires</h3>
+                <p id="admin-mail-summary" style="font-size:12px; color:#64748b; margin:4px 0 0;">Chargement...</p>
+              </div>
+              <div class="action-buttons" style="gap:8px;">
+                <button type="button" class="button button-small button-secondary" onclick="loadAdminMailModule()">Actualiser</button>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:10px;">
+              <label style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="admin-mail-send-all" checked />
+                <span>Envoyer à tous les utilisateurs avec une adresse courriel valide</span>
+              </label>
+            </div>
+
+            <div class="form-group" id="admin-mail-recipient-group" style="margin-bottom:12px; display:none;">
+              <label>Choisir les destinataires</label>
+              <select id="admin-mail-recipient-select" multiple size="10"></select>
+              <p style="font-size:12px; color:#64748b; margin-top:6px;">Maintiens Ctrl (Windows) pour sélectionner plusieurs profils.</p>
+            </div>
+
+            <form id="admin-mail-form">
+              <div class="form-group" style="margin-bottom:10px;">
+                <label for="admin-mail-subject">Sujet</label>
+                <input type="text" id="admin-mail-subject" placeholder="Ex: Information importante ERP" required />
+              </div>
+              <div class="form-group" style="margin-bottom:10px;">
+                <label for="admin-mail-message">Message</label>
+                <textarea id="admin-mail-message" rows="7" placeholder="Rédige ton message ici..." required></textarea>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="submit" class="button button-primary">Envoyer les courriels</button>
+              </div>
+            </form>
+
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
+            <div>
+              <h3 style="margin:0 0 8px;">Résultats d'envoi</h3>
+              <div id="admin-mail-results" style="font-size:13px; color:#475569;">Aucun envoi pour le moment.</div>
             </div>
           </div>
         </div>
@@ -10104,6 +10156,8 @@
     let lastNotifToggleAt = 0;
     let pushSetupStarted = false;
     let pushSetupReady = false;
+    let profileStreamSource = null;
+    let profileStreamRetryTimer = null;
     let auditLogEntries = [];
     let poCurrentPage = 1;
     let poQuickFilter = 'all';
@@ -10149,7 +10203,7 @@
     const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search', 'guide-erp']);
     const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave']);
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
-    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
+    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
     const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp']);
     const STANDARD_EMPLOYEE_USERNAMES = new Set([
       'agbodjro123',
@@ -11537,7 +11591,7 @@
     }
 
     function getAllowedModules() {
-      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
+      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'trash', 'assignments', 'hr-employees', 'hr-employee-search', 'hr-contracts', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
       if (isHrDirector()) return HR_DIRECTOR_ALLOWED_MODULES;
       if (currentUserAccessProfile && Array.isArray(currentUserAccessProfile.effectiveModules) && currentUserAccessProfile.effectiveModules.length) {
         return new Set(currentUserAccessProfile.effectiveModules.map(item => String(item || '').trim()).filter(Boolean));
@@ -27703,7 +27757,7 @@
         tone: 'rh',
         description: 'Employes, conges, signatures',
         subtitle: 'Ressources humaines, pointage, conges et signatures.',
-        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures'],
+        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'access-profiles'],
       },
       {
         key: 'admin',
@@ -27738,6 +27792,7 @@
       'hr-calendar': 'Calendrier presence et absence',
       'hr-leave': 'Demandes de conge',
       'hr-signatures': 'Documents a signer',
+      'access-profiles': 'Dossiers profils',
       database: 'Base documentaire ERP',
       'guide-erp': 'Guides et procédures ERP',
       trash: 'Elements supprimes',
@@ -27805,7 +27860,74 @@
       syncHrMenuLabelsAndVisibility();
     }
 
+    async function refreshMobileAccessProfileFromServer() {
+      try {
+        const me = await fetchJson('/api/auth/me');
+        if (!me) return false;
+        currentUserUsername = me.username || currentUserUsername;
+        currentUserRole = me.role || currentUserRole;
+        currentUserAccessProfile = me.accessProfile || null;
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function closeProfileStreamConnection() {
+      if (profileStreamRetryTimer) {
+        clearTimeout(profileStreamRetryTimer);
+        profileStreamRetryTimer = null;
+      }
+      if (profileStreamSource) {
+        try {
+          profileStreamSource.close();
+        } catch (_) {}
+        profileStreamSource = null;
+      }
+    }
+
+    function openProfileStreamConnection() {
+      closeProfileStreamConnection();
+      const tokenValue = String(localStorage.getItem('erp_token') || '').trim();
+      if (!tokenValue) return;
+
+      const source = new EventSource(`/api/auth/profile-stream?mobileAuth=${encodeURIComponent(tokenValue)}`);
+      profileStreamSource = source;
+
+      source.addEventListener('access-profile', event => {
+        try {
+          const payload = JSON.parse(String(event.data || '{}'));
+          if (String(payload?.username || '').trim().toLowerCase() !== String(currentUserUsername || '').trim().toLowerCase()) {
+            return;
+          }
+
+          if (!payload || !payload.accessProfile) return;
+
+          currentUserAccessProfile = payload.accessProfile;
+          currentUserRole = payload.role || currentUserRole;
+          syncMobilePremiumIdentity();
+          applyRoleAccess();
+          renderMobilePremiumHome();
+          if (mobilePremiumCurrentGroupKey) {
+            openMobilePremiumGroup(mobilePremiumCurrentGroupKey);
+          }
+          showMessage('Profil mis a jour en direct');
+        } catch (_) {}
+      });
+
+      source.addEventListener('error', () => {
+        closeProfileStreamConnection();
+        if (!profileStreamRetryTimer) {
+          profileStreamRetryTimer = setTimeout(() => {
+            profileStreamRetryTimer = null;
+            openProfileStreamConnection();
+          }, 4000);
+        }
+      });
+    }
+
     function performLogout() {
+      closeProfileStreamConnection();
       localStorage.removeItem('erp_token');
       window.location.href = 'index.html';
     }
@@ -28070,6 +28192,24 @@
         heroLogoutBtn.addEventListener('click', () => {
           performLogout();
         });
+      }
+
+      if (!window.mobilePremiumProfileRefreshTimer) {
+        window.mobilePremiumProfileRefreshTimer = window.setInterval(() => {
+          refreshMobileAccessProfileFromServer().then(updated => {
+            if (!updated) return;
+            syncMobilePremiumIdentity();
+            renderMobilePremiumHome();
+            if (mobilePremiumCurrentGroupKey) {
+              openMobilePremiumGroup(mobilePremiumCurrentGroupKey);
+            }
+          });
+        }, 45000);
+      }
+
+      if (!window.mobilePremiumProfileStreamInit) {
+        window.mobilePremiumProfileStreamInit = true;
+        openProfileStreamConnection();
       }
 
       const backBtn = document.getElementById('mph-back-btn');
