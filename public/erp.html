@@ -7068,6 +7068,7 @@
           <div class="menu-section-title">Admin</div>
           <div class="menu-item" data-module="database">🗂️ Base de donnée</div>
           <div class="menu-item" data-module="guide-erp">📘 Guide ERP</div>
+          <div class="menu-item" data-module="access-profiles">🗃️ Dossiers profils</div>
           <div class="menu-item" data-module="trash">🗑️ Corbeille</div>
           <div class="menu-item" data-module="users">🔑 Utilisateurs</div>
           <div class="menu-item" data-module="settings">⚙️ Paramètres</div>
@@ -9226,6 +9227,86 @@
           </div>
         </div>
 
+        <div id="access-profiles" class="module">
+          <div class="page-header">
+            <h1>Dossiers profils</h1>
+            <p>Accréditations, interdictions, restrictions et ouverture ciblée des modules</p>
+          </div>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+              <div>
+                <h3 style="margin:0;">Gouvernance d'accès</h3>
+                <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Module admin pour piloter les droits des profils non privilégiés.</p>
+              </div>
+              <div class="action-buttons" style="gap:8px;">
+                <button type="button" class="button button-small" onclick="loadAccessProfilesModule()">Actualiser</button>
+              </div>
+            </div>
+
+            <div class="grid-2" style="gap:14px; align-items:start;">
+              <div>
+                <label style="display:block; margin-bottom:6px; font-weight:600;">Profils</label>
+                <ul id="access-profiles-list" class="list"></ul>
+              </div>
+
+              <div>
+                <label style="display:block; margin-bottom:6px; font-weight:600;">Dossier sélectionné</label>
+                <div id="access-profile-editor-empty" style="font-size:13px; color:#64748b; padding:10px; border:1px dashed #cbd5e1; border-radius:10px;">Sélectionne un profil pour configurer ses accréditations.</div>
+                <form id="access-profile-editor" style="display:none; margin-top:8px;">
+                  <div class="grid-2" style="gap:12px; align-items:start;">
+                    <div class="form-group">
+                      <label>Profil</label>
+                      <input type="text" id="access-profile-username" readonly />
+                    </div>
+                    <div class="form-group">
+                      <label>Rôle</label>
+                      <input type="text" id="access-profile-role" readonly />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Accréditation</label>
+                    <select id="access-profile-accreditation">
+                      <option value="standard">Standard RH + Guide</option>
+                      <option value="extended">Étendu</option>
+                      <option value="restricted">Restreint strict</option>
+                    </select>
+                  </div>
+
+                  <div class="grid-2" style="gap:12px; align-items:start;">
+                    <div>
+                      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px;">
+                        <label style="display:block; font-weight:600; margin:0;">Modules autorisés</label>
+                        <button type="button" class="button button-secondary button-small" id="access-profile-restore-role">Restaurer modules du rôle</button>
+                      </div>
+                      <div id="access-profile-allowed-modules-list" style="display:grid; gap:8px; max-height:320px; overflow:auto; padding:10px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc;"></div>
+                    </div>
+                    <div>
+                      <label style="display:block; font-weight:600; margin-bottom:6px;">Modules interdits</label>
+                      <div id="access-profile-denied-modules-list" style="display:grid; gap:8px; max-height:320px; overflow:auto; padding:10px; border:1px solid #e2e8f0; border-radius:12px; background:#fff7ed;"></div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Ouverture forcée d'un module</label>
+                    <select id="access-profile-forced-module"></select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Notes / restrictions</label>
+                    <textarea id="access-profile-notes" rows="4" placeholder="Ex: lecture seule, accès temporaire, interdiction exports"></textarea>
+                  </div>
+
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button type="submit" class="button button-primary">Enregistrer</button>
+                    <button type="button" class="button button-secondary" id="access-profile-ensure-hr">Créer/garantir profil RH</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div id="database" class="module">
           <div class="page-header">
             <h1>Base de donnée</h1>
@@ -9703,6 +9784,7 @@
     let currentUserRole = null;
     let currentUserUsername = null;
     let currentUserScope = null;
+    let currentUserAccessProfile = null;
     let databaseGlobalSearchTerm = '';
     let databaseSection = 'achats';
     const databaseSectionSearchTerms = {
@@ -9741,6 +9823,9 @@
     let hrLeaveRequestsCache = [];
     let hrSignatureRequestsCache = [];
     let usersAdminCache = [];
+    let accessProfilesCache = [];
+    let selectedAccessProfileUsername = '';
+    let accessProfileModuleCatalog = [];
     let projectProgressCache = [];
     let projectProgressSearchTerm = '';
     let selectedProjectProgressProjectId = null;
@@ -9855,7 +9940,7 @@
     const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search', 'guide-erp']);
     const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave']);
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
-    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
+    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
     const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp']);
     const STANDARD_EMPLOYEE_USERNAMES = new Set([
       'agbodjro123',
@@ -9894,6 +9979,110 @@
     const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
     const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp']);
       const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
+    const RESTRICTED_DEFAULT_ALLOWED_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'guide-erp']);
+    const ACCESS_PROFILE_MODULE_OPTIONS = [
+      'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations',
+      'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'trash', 'assignments', 'hr-employees',
+      'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'
+    ];
+
+    function getAccessProfileModuleLabel(moduleKey) {
+      const key = String(moduleKey || '').trim();
+      if (!key) return '';
+      const normalized = key.toLowerCase();
+      const fallbackLabels = {
+        'access-profiles': 'Dossiers profils',
+        'audit-log': 'Journal audit',
+        'assignments': 'Affectations',
+        'database': 'Base de donnée',
+        'dashboard': 'Tableau de bord',
+        'documents': 'Documents',
+        'expenses': 'Dépenses',
+        'guide-erp': 'Guide ERP',
+        'hr-attendance': 'Présence RH',
+        'hr-calendar': 'Calendrier RH',
+        'hr-employees': 'Employés RH',
+        'hr-leave': 'Congés RH',
+        'hr-signatures': 'Signatures RH',
+        'inventory': 'Inventaire',
+        'journal-chantier': 'Journal chantier',
+        'maps': 'Cartographie',
+        'material-catalog': 'Catalogue matériaux',
+        'materials': 'Matériaux',
+        'parc-auto': 'Parc auto',
+        'projects': 'Projets',
+        'project-progress': 'Avancement projets',
+        'purchase-orders': 'Bons de commande',
+        'reports': 'Rapports',
+        'revenues': 'Revenus',
+        'settings': 'Paramètres',
+        'sortie-autorisations': 'Autorisations de sortie',
+        'stock-management': 'Gestion stock',
+        'trash': 'Corbeille',
+        'users': 'Utilisateurs',
+      };
+      const menuItem = document.querySelector(`.menu-item[data-module="${CSS.escape(normalized)}"]`);
+      if (menuItem) {
+        return String(menuItem.textContent || '').replace(/\s+/g, ' ').trim();
+      }
+      return fallbackLabels[normalized] || key;
+    }
+
+    function refreshAccessProfileModuleCatalog() {
+      const seen = new Set();
+      const catalog = [];
+      document.querySelectorAll('.menu-item[data-module]').forEach(item => {
+        const key = String(item.dataset.module || '').trim().toLowerCase();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        catalog.push({ key, label: String(item.textContent || '').replace(/\s+/g, ' ').trim() || getAccessProfileModuleLabel(key) });
+      });
+
+      ACCESS_PROFILE_MODULE_OPTIONS.forEach(key => {
+        const normalized = String(key || '').trim().toLowerCase();
+        if (!normalized || seen.has(normalized)) return;
+        seen.add(normalized);
+        catalog.push({ key: normalized, label: getAccessProfileModuleLabel(normalized) });
+      });
+
+      accessProfileModuleCatalog = catalog.filter(item => item.key !== '');
+      return accessProfileModuleCatalog;
+    }
+
+    function normalizeAccessProfileModuleList(value) {
+      if (Array.isArray(value)) {
+        return Array.from(new Set(value.map(item => String(item || '').trim().toLowerCase()).filter(Boolean)));
+      }
+      return Array.from(new Set(String(value || '')
+        .split(',')
+        .map(item => String(item || '').trim().toLowerCase())
+        .filter(Boolean)));
+    }
+
+    function getAccessProfileBaselineModules(role, username) {
+      const normalizedRole = String(role || '').trim().toLowerCase();
+      const normalizedUsername = normalizeText(String(username || '').trim());
+      const presets = {
+        admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'],
+        directeur_rh: Array.from(HR_DIRECTOR_ALLOWED_MODULES),
+        dirigeant: Array.from(EXECUTIVE_ALLOWED_MODULES),
+        achat: Array.from(ACHAT_ALLOWED_MODULES),
+        controle_achat: Array.from(PROCUREMENT_REVIEWER_ALLOWED_MODULES),
+        controle_achat_global: Array.from(PROCUREMENT_REVIEWER_ALLOWED_MODULES),
+        commis: Array.from(COMMIS_ALLOWED_MODULES),
+        gestionnaire_stock: Array.from(GEST_STOCK_ALLOWED_MODULES),
+        gestionnaire_stock_zone: Array.from(ZONE_STOCK_MANAGER_ALLOWED_MODULES),
+        gestionnaire_stock_songon: Array.from(KOKAN_ALLOWED_MODULES),
+        chef_chantier_site: Array.from(SITE_CHIEF_ALLOWED_MODULES),
+        employe_standard: Array.from(STANDARD_EMPLOYEE_ALLOWED_MODULES),
+      };
+
+      if (normalizedRole === 'gestionnaire_stock_songon' && normalizedUsername === 'kokan_sk') {
+        return new Set(Array.from(KOKAN_ALLOWED_MODULES));
+      }
+
+      return new Set(presets[normalizedRole] || []);
+    }
     const AUTO_MAP_REFRESH_MS = 10000;
     const AUTO_DASHBOARD_REFRESH_MS = 30000;
 
@@ -10045,7 +10234,7 @@
     }
 
     function canManageGuideDocuments() {
-      return isAdmin() || isExecutive();
+      return isAdmin();
     }
 
     function canManageTrashModule() {
@@ -10327,7 +10516,7 @@
     }
 
     function isRestrictedRole() {
-      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive() || isAchat() || isHrDirector() || isStandardEmployeeProfileRole();
+      return !isAdmin() && !isHrDirector();
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
@@ -10338,6 +10527,18 @@
       if (!isRestrictedRole()) return true;
       const allowed = getAllowedModules();
       return Boolean(allowed && allowed.has('purchase-orders'));
+    }
+
+    function canLoadMaterialRequestsForCurrentRole() {
+      if (!isRestrictedRole()) return true;
+      const allowed = getAllowedModules();
+      return Boolean(allowed && allowed.has('materials'));
+    }
+
+    function canLoadStockIssueAuthorizationsForCurrentRole() {
+      if (!isRestrictedRole()) return true;
+      const allowed = getAllowedModules();
+      return Boolean(allowed && allowed.has('sortie-autorisations'));
     }
 
     function buildAutoVehicleLabel(vehicle) {
@@ -11127,18 +11328,12 @@
     }
 
     function getAllowedModules() {
-      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
+      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
       if (isHrDirector()) return HR_DIRECTOR_ALLOWED_MODULES;
-      if (isStandardEmployeeProfileRole()) return STANDARD_EMPLOYEE_ALLOWED_MODULES;
-      if (isExecutive()) return EXECUTIVE_ALLOWED_MODULES;
-      if (isProcurementReviewer()) return PROCUREMENT_REVIEWER_ALLOWED_MODULES;
-      if (isKokanStockManager()) return KOKAN_ALLOWED_MODULES;
-      if (isOpsReviewer()) return OPS_REVIEWER_ALLOWED_MODULES;
-      if (isSiteChief()) return SITE_CHIEF_ALLOWED_MODULES;
-      if (isZoneStockManager()) return ZONE_STOCK_MANAGER_ALLOWED_MODULES;
-      if (isGestStock()) return GEST_STOCK_ALLOWED_MODULES;
-      if (isCommis()) return COMMIS_ALLOWED_MODULES;
-      if (isAchat()) return ACHAT_ALLOWED_MODULES;
+      if (currentUserAccessProfile && Array.isArray(currentUserAccessProfile.effectiveModules) && currentUserAccessProfile.effectiveModules.length) {
+        return new Set(currentUserAccessProfile.effectiveModules.map(item => String(item || '').trim()).filter(Boolean));
+      }
+      return new Set(RESTRICTED_DEFAULT_ALLOWED_MODULES);
       return null;
     }
 
@@ -11402,7 +11597,7 @@
         resetAllButton.style.display = isAdmin() ? 'inline-flex' : 'none';
       }
       if (purgeButton) {
-        purgeButton.style.display = isAdmin() ? 'inline-flex' : 'none';
+        purgeButton.style.display = (isAdmin() || isExecutive()) ? 'inline-flex' : 'none';
       }
       if (tbody) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">Chargement...</td></tr>';
@@ -11418,6 +11613,287 @@
           tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#b91c1c;">Erreur de chargement des utilisateurs</td></tr>';
         }
       }
+    }
+
+    function populateAccessProfileForcedModuleOptions(selectedValue = '') {
+      const select = document.getElementById('access-profile-forced-module');
+      if (!select) return;
+      const options = ['<option value="">Aucun</option>']
+        .concat(ACCESS_PROFILE_MODULE_OPTIONS.map(key => `<option value="${escapeHtml(key)}">${escapeHtml(key)}</option>`))
+        .join('');
+      select.innerHTML = options;
+      const wanted = String(selectedValue || '').trim().toLowerCase();
+      select.value = wanted && ACCESS_PROFILE_MODULE_OPTIONS.includes(wanted) ? wanted : '';
+    }
+
+    function renderAccessProfileModulePickers(row) {
+      const allowedHost = document.getElementById('access-profile-allowed-modules-list');
+      const deniedHost = document.getElementById('access-profile-denied-modules-list');
+      if (!allowedHost || !deniedHost) return;
+
+      const catalog = refreshAccessProfileModuleCatalog();
+      const allowedSet = new Set(normalizeAccessProfileModuleList(row?.allowedModules || ''));
+      const deniedSet = new Set(normalizeAccessProfileModuleList(row?.deniedModules || ''));
+      const baselineSet = getAccessProfileBaselineModules(row?.role || '', row?.username || '');
+
+      const renderChoice = (item, kind) => {
+        const checked = kind === 'allowed' ? allowedSet.has(item.key) : deniedSet.has(item.key);
+        const disabled = kind === 'allowed' && deniedSet.has(item.key) || kind === 'denied' && allowedSet.has(item.key);
+        const inputId = `access-profile-${kind}-${item.key}`;
+        return `
+          <label for="${escapeHtml(inputId)}" style="display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border:1px solid ${kind === 'allowed' ? '#dbeafe' : '#fed7aa'}; border-radius:10px; background:${kind === 'allowed' ? '#eff6ff' : '#fffaf0'}; opacity:${disabled ? '0.55' : '1'}; cursor:${disabled ? 'not-allowed' : 'pointer'};">
+            <input type="checkbox" id="${escapeHtml(inputId)}" data-kind="${kind}" data-module-key="${escapeHtml(item.key)}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} style="margin-top:2px;" />
+            <span>
+              <span style="display:block; font-weight:600;">${escapeHtml(item.label)}</span>
+              <span style="display:block; font-size:12px; color:#64748b;">${escapeHtml(item.key)}</span>
+            </span>
+          </label>
+        `;
+      };
+
+      allowedHost.innerHTML = catalog.map(item => renderChoice(item, 'allowed')).join('');
+      deniedHost.innerHTML = catalog.map(item => renderChoice(item, 'denied')).join('');
+
+      const syncCheckboxes = () => {
+        const allowedChecked = new Set(Array.from(allowedHost.querySelectorAll('input[type="checkbox"][data-kind="allowed"]:checked')).map(input => String(input.dataset.moduleKey || '').trim().toLowerCase()).filter(Boolean));
+        const deniedChecked = new Set(Array.from(deniedHost.querySelectorAll('input[type="checkbox"][data-kind="denied"]:checked')).map(input => String(input.dataset.moduleKey || '').trim().toLowerCase()).filter(Boolean));
+
+        allowedHost.querySelectorAll('input[type="checkbox"][data-kind="allowed"]').forEach(input => {
+          const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+          const other = deniedChecked.has(key);
+          input.disabled = other;
+          input.closest('label')?.style && (input.closest('label').style.opacity = other ? '0.55' : '1');
+        });
+        deniedHost.querySelectorAll('input[type="checkbox"][data-kind="denied"]').forEach(input => {
+          const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+          const other = allowedChecked.has(key);
+          input.disabled = other;
+          input.closest('label')?.style && (input.closest('label').style.opacity = other ? '0.55' : '1');
+        });
+      };
+
+      allowedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) {
+            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+            const deniedInput = deniedHost.querySelector(`input[data-module-key="${CSS.escape(key)}"]`);
+            if (deniedInput) deniedInput.checked = false;
+          }
+          syncCheckboxes();
+        });
+      });
+      deniedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) {
+            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+            const allowedInput = allowedHost.querySelector(`input[data-module-key="${CSS.escape(key)}"]`);
+            if (allowedInput) allowedInput.checked = false;
+          }
+          syncCheckboxes();
+        });
+      });
+
+      syncCheckboxes();
+
+      const restoreBtn = document.getElementById('access-profile-restore-role');
+      if (restoreBtn) {
+        restoreBtn.onclick = () => {
+          const baseline = Array.from(baselineSet);
+          allowedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
+            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+            input.checked = baseline.includes(key);
+          });
+          deniedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
+            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+            input.checked = false;
+          });
+          syncCheckboxes();
+          showMessage('Modules restaurés depuis le profil de rôle');
+        };
+      }
+    }
+
+    function renderAccessProfilesList() {
+      const list = document.getElementById('access-profiles-list');
+      if (!list) return;
+
+      const rows = Array.isArray(accessProfilesCache) ? accessProfilesCache.slice() : [];
+      rows.sort((a, b) => String(a?.username || '').localeCompare(String(b?.username || ''), 'fr', { sensitivity: 'base' }));
+
+      if (!rows.length) {
+        list.innerHTML = '<li class="list-item"><div class="list-item-title">Aucun profil</div></li>';
+        return;
+      }
+
+      list.innerHTML = rows.map(row => {
+        const username = String(row?.username || '').trim();
+        const isSelected = username.toLowerCase() === String(selectedAccessProfileUsername || '').trim().toLowerCase();
+        const linked = String(row?.linkedEmployee?.fullName || '').trim();
+        const roleLabel = getRoleDisplayLabel(String(row?.role || '').trim());
+        const modules = Array.isArray(row?.effectiveModules) ? row.effectiveModules : [];
+        return `
+          <li class="list-item" style="cursor:pointer; border:${isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0'};" onclick="selectAccessProfile('${escapeHtml(username)}')">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <div>
+                <div class="list-item-title">${escapeHtml(username || '-')}</div>
+                <div class="list-item-meta">${escapeHtml(roleLabel)} • ${escapeHtml(linked || 'Profil RH manquant')}</div>
+                <div class="list-item-meta">Modules visibles: ${escapeHtml(modules.map(getAccessProfileModuleLabel).join(', ') || 'Aucun')}</div>
+              </div>
+              <button type="button" class="button button-small button-secondary" onclick="event.stopPropagation(); window.restoreAccessProfileBaseline('${escapeHtml(username)}')">Restaurer</button>
+            </div>
+          </li>
+        `;
+      }).join('');
+    }
+
+    window.restoreAccessProfileBaseline = async function restoreAccessProfileBaseline(username) {
+      const safeUsername = String(username || '').trim();
+      if (!safeUsername || !isAdmin()) return;
+      const row = (Array.isArray(accessProfilesCache) ? accessProfilesCache : []).find(item => String(item?.username || '').trim().toLowerCase() === safeUsername.toLowerCase());
+      if (!row) return;
+      const baselineModules = Array.from(getAccessProfileBaselineModules(row.role, row.username));
+      const payload = {
+        accreditationLevel: String(row.accreditationLevel || 'standard').trim(),
+        allowedModules: baselineModules.join(','),
+        deniedModules: '',
+        forcedModule: '',
+        notes: String(row.notes || '').trim(),
+      };
+      try {
+        await fetchJson(`/api/admin/access-profiles/${encodeURIComponent(safeUsername)}`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload),
+        });
+        showMessage(`Modules restaurés pour ${safeUsername}`);
+        await loadAccessProfilesModule();
+      } catch (err) {
+        showMessage('Impossible de restaurer le profil: ' + err.message, 'error');
+      }
+    };
+
+    window.selectAccessProfile = function selectAccessProfile(username) {
+      selectedAccessProfileUsername = String(username || '').trim();
+      const editor = document.getElementById('access-profile-editor');
+      const emptyNode = document.getElementById('access-profile-editor-empty');
+      const row = (Array.isArray(accessProfilesCache) ? accessProfilesCache : []).find(item => String(item?.username || '').trim().toLowerCase() === selectedAccessProfileUsername.toLowerCase());
+      if (!row) {
+        if (editor) editor.style.display = 'none';
+        if (emptyNode) emptyNode.style.display = '';
+        renderAccessProfilesList();
+        return;
+      }
+
+      if (editor) editor.style.display = '';
+      if (emptyNode) emptyNode.style.display = 'none';
+
+      const allowedInput = document.getElementById('access-profile-allowed-modules');
+      const deniedInput = document.getElementById('access-profile-denied-modules');
+      const notesInput = document.getElementById('access-profile-notes');
+      const accreditationInput = document.getElementById('access-profile-accreditation');
+      const usernameInput = document.getElementById('access-profile-username');
+      const roleInput = document.getElementById('access-profile-role');
+
+      if (usernameInput) usernameInput.value = String(row?.username || '').trim();
+      if (roleInput) roleInput.value = getRoleDisplayLabel(String(row?.role || '').trim());
+      if (accreditationInput) accreditationInput.value = String(row?.accreditationLevel || 'standard').trim() || 'standard';
+      if (allowedInput) allowedInput.value = Array.isArray(row?.allowedModules) ? row.allowedModules.join(',') : '';
+      if (deniedInput) deniedInput.value = Array.isArray(row?.deniedModules) ? row.deniedModules.join(',') : '';
+      if (notesInput) notesInput.value = String(row?.notes || '').trim();
+      populateAccessProfileForcedModuleOptions(String(row?.forcedModule || '').trim());
+      renderAccessProfileModulePickers(row);
+
+      renderAccessProfilesList();
+    };
+
+    async function loadAccessProfilesModule() {
+      const list = document.getElementById('access-profiles-list');
+      if (list) {
+        list.innerHTML = '<li class="list-item"><div class="list-item-title">Chargement...</div></li>';
+      }
+
+      try {
+        const rows = await fetchJson('/api/admin/access-profiles');
+        accessProfilesCache = Array.isArray(rows) ? rows : [];
+        populateAccessProfileForcedModuleOptions('');
+        refreshAccessProfileModuleCatalog();
+        if (!selectedAccessProfileUsername && accessProfilesCache.length) {
+          selectedAccessProfileUsername = String(accessProfilesCache[0]?.username || '').trim();
+        }
+        renderAccessProfilesList();
+        if (selectedAccessProfileUsername) {
+          window.selectAccessProfile(selectedAccessProfileUsername);
+        }
+      } catch (err) {
+        accessProfilesCache = [];
+        if (list) {
+          list.innerHTML = `<li class="list-item"><div class="list-item-title" style="color:#b91c1c;">Erreur: ${escapeHtml(err.message || 'chargement impossible')}</div></li>`;
+        }
+      }
+    }
+
+    window.loadAccessProfilesModule = loadAccessProfilesModule;
+
+    const accessProfileEditorForm = document.getElementById('access-profile-editor');
+    if (accessProfileEditorForm) {
+      accessProfileEditorForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!isAdmin()) {
+          showMessage('Acces refuse: admin uniquement', 'error');
+          return;
+        }
+
+        const username = String(document.getElementById('access-profile-username')?.value || '').trim();
+        if (!username) {
+          showMessage('Profil non sélectionné', 'error');
+          return;
+        }
+
+        const allowedModules = Array.from((document.getElementById('access-profile-allowed-modules-list')?.querySelectorAll('input[type="checkbox"][data-kind="allowed"]:checked') || []))
+          .map(input => String(input.dataset.moduleKey || '').trim().toLowerCase())
+          .filter(Boolean);
+        const deniedModules = Array.from((document.getElementById('access-profile-denied-modules-list')?.querySelectorAll('input[type="checkbox"][data-kind="denied"]:checked') || []))
+          .map(input => String(input.dataset.moduleKey || '').trim().toLowerCase())
+          .filter(Boolean);
+
+        const payload = {
+          accreditationLevel: String(document.getElementById('access-profile-accreditation')?.value || 'standard').trim(),
+          allowedModules,
+          deniedModules,
+          forcedModule: String(document.getElementById('access-profile-forced-module')?.value || '').trim(),
+          notes: String(document.getElementById('access-profile-notes')?.value || '').trim(),
+        };
+
+        try {
+          await fetchJson(`/api/admin/access-profiles/${encodeURIComponent(username)}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload),
+          });
+          showMessage(`Dossier profil mis à jour: ${username}`);
+          await loadAccessProfilesModule();
+        } catch (err) {
+          showMessage('Erreur sauvegarde dossier: ' + err.message, 'error');
+        }
+      });
+    }
+
+    const ensureProfileButton = document.getElementById('access-profile-ensure-hr');
+    if (ensureProfileButton) {
+      ensureProfileButton.addEventListener('click', async () => {
+        const username = String(document.getElementById('access-profile-username')?.value || '').trim();
+        if (!username) {
+          showMessage('Profil non sélectionné', 'error');
+          return;
+        }
+        try {
+          await fetchJson(`/api/admin/access-profiles/${encodeURIComponent(username)}/ensure-hr-profile`, {
+            method: 'POST',
+          });
+          showMessage(`Profil RH garanti pour ${username}`);
+          await loadAccessProfilesModule();
+        } catch (err) {
+          showMessage('Erreur création profil RH: ' + err.message, 'error');
+        }
+      });
     }
 
     window.resetUserLoginState = async function resetUserLoginState(userId) {
@@ -11465,8 +11941,8 @@
     };
 
     window.purgeErpBusinessData = async function purgeErpBusinessData() {
-      if (!isAdmin()) {
-        showMessage('Acces refuse: admin uniquement', 'error');
+      if (!isAdmin() && !isExecutive()) {
+        showMessage('Acces refuse: admin ou dirigeant uniquement', 'error');
         return;
       }
 
@@ -14292,10 +14768,13 @@
 
     async function loadProjectProgress() {
       try {
+        const materialsPromise = canLoadMaterialRequestsForCurrentRole()
+          ? fetchJson('/api/material-requests').catch(() => materialRequestsCache)
+          : Promise.resolve(Array.isArray(materialRequestsCache) ? materialRequestsCache : []);
         const [updates, projects, materials, stockIssues, projectFolders, projectCatalog] = await Promise.all([
           fetchJson('/api/project-progress').catch(() => []),
           fetchJson('/api/projects').catch(() => projectsCache),
-          fetchJson('/api/material-requests').catch(() => materialRequestsCache),
+          materialsPromise,
           fetchJson('/api/stock-management/issues').catch(() => stockIssuesCache),
           fetchJson('/api/project-folders').catch(() => projectFoldersCache),
           fetchJson('/api/project-catalog').catch(() => projectCatalogCache),
@@ -14587,10 +15066,13 @@
     async function loadJournalChantier() {
       try {
         if (!projectProgressCache.length || !projectsCache.length || !materialRequestsCache.length || !stockIssuesCache.length) {
+          const materialsPromise = canLoadMaterialRequestsForCurrentRole()
+            ? fetchJson('/api/material-requests').catch(() => [])
+            : Promise.resolve([]);
           const [updates, projects, materials, stockIssues] = await Promise.all([
             fetchJson('/api/project-progress').catch(() => []),
             fetchJson('/api/projects').catch(() => []),
-            fetchJson('/api/material-requests').catch(() => []),
+            materialsPromise,
             fetchJson('/api/stock-management/issues').catch(() => []),
           ]);
 
@@ -18554,6 +19036,7 @@
         trash: ['Corbeille', 'Éléments supprimés classés par module'],
         'audit-log': ['Historique des actions', 'Traçabilité des opérations ERP'],
         users: ['Utilisateurs', 'Gestion des comptes'],
+        'access-profiles': ['Dossiers profils', 'Accréditations et restrictions des accès'],
         settings: ['Paramètres', 'Configuration du système'],
       };
 
@@ -19067,7 +19550,9 @@
 
         const projectCatalog = await fetchJson('/api/project-catalog').catch(() => []);
         const projects = await fetchJson('/api/projects').catch(() => []);
-        const materialRequests = await fetchJson('/api/material-requests').catch(() => []);
+        const materialRequests = canLoadMaterialRequestsForCurrentRole()
+          ? await fetchJson('/api/material-requests').catch(() => [])
+          : [];
         const assignments = await fetchJson('/api/project-assignments').catch(() => []);
         const orders = await fetchJson('/api/purchase-orders').catch(() => []);
         const expenses = await fetchJson('/api/expenses').catch(() => []);
@@ -19158,12 +19643,16 @@
 
     async function loadProjects() {
       try {
+        const materialRequestsPromise = canLoadMaterialRequestsForCurrentRole()
+          ? fetchJson('/api/material-requests').catch(() => materialRequestsCache)
+          : Promise.resolve(Array.isArray(materialRequestsCache) ? materialRequestsCache : []);
+
         const [projects, assignments, projectFolders, projectCatalog, materialRequests, orders] = await Promise.all([
           fetchJson('/api/projects'),
           isSiteChief() ? Promise.resolve([]) : fetchJson('/api/project-assignments').catch(() => []),
           fetchJson('/api/project-folders').catch(() => []),
           fetchJson('/api/project-catalog').catch(() => []),
-          fetchJson('/api/material-requests').catch(() => materialRequestsCache),
+          materialRequestsPromise,
           fetchJson('/api/purchase-orders').catch(() => purchaseOrdersCache),
         ]);
         projectsCache = projects;
@@ -19426,12 +19915,17 @@
 
     async function loadInventory() {
       try {
+        const inventoryMaterialsPromise = canLoadMaterialRequestsForCurrentRole()
+          ? fetchJson('/api/material-requests').catch(() => fetchJson('/api/stock-management/available')).catch(() => [])
+          : fetchJson('/api/stock-management/available').catch(() => []);
         const [materials, projects, stockIssues, purchaseOrders, stockAuthorizations] = await Promise.all([
-          fetchJson('/api/material-requests'),
+          inventoryMaterialsPromise,
           fetchJson('/api/projects').catch(() => projectsCache),
           fetchJson('/api/stock-management/issues').catch(() => []),
           fetchJson('/api/stock-management/orders').catch(() => []),
-          fetchJson('/api/stock-issue-authorizations').catch(() => []),
+          canLoadStockIssueAuthorizationsForCurrentRole()
+            ? fetchJson('/api/stock-issue-authorizations').catch(() => [])
+            : Promise.resolve([]),
         ]);
         if (Array.isArray(projects) && projects.length) {
           projectsCache = projects;
@@ -20236,9 +20730,12 @@
       }
 
       try {
+        const materialsPromise = (isExecutive() || isStatusOnlyView || !canLoadMaterialRequestsForCurrentRole())
+          ? Promise.resolve(Array.isArray(materialRequestsCache) ? materialRequestsCache : [])
+          : fetchJson('/api/material-requests').catch(() => materialRequestsCache);
         const [orders, materials, catalogEntries] = await Promise.all([
           fetchJson('/api/purchase-orders'),
-          fetchJson('/api/material-requests'),
+          materialsPromise,
           fetchJson('/api/material-catalog').catch(() => materialCatalogCache),
         ]);
         const recentOrders = sortRecent(orders, row => row?.dateCommande || row?.updatedAt || row?.createdAt || row?.id);
@@ -23880,6 +24377,7 @@
         currentUserUsername = user.username || null;
         currentUserRole = user.role || null;
         currentUserScope = user.scope || null;
+        currentUserAccessProfile = user.accessProfile || null;
         if (isHrDirector()) {
           databaseSection = 'hr_presence';
         }
@@ -27440,6 +27938,8 @@
           loadGuideDocuments();
         } else if (resolvedModule === 'users') {
           loadUsersModule();
+        } else if (resolvedModule === 'access-profiles') {
+          loadAccessProfilesModule();
         } else if (resolvedModule === 'trash') {
           loadTrashModule();
         } else if (resolvedModule === 'audit-log') {
@@ -28224,9 +28724,12 @@
 
     async function pollRealtimeNotifications() {
       try {
+        const allowed = getAllowedModules();
+        const canPollPurchaseOrders = !isRestrictedRole() || Boolean(allowed && allowed.has('purchase-orders'));
+        const canPollStockAuthorizations = canLoadStockIssueAuthorizationsForCurrentRole();
         const [orders, auths, pendingSignatures] = await Promise.all([
-          fetchJson('/api/purchase-orders').catch(() => []),
-          fetchJson('/api/stock-issue-authorizations').catch(() => []),
+          canPollPurchaseOrders ? fetchJson('/api/purchase-orders').catch(() => []) : Promise.resolve([]),
+          canPollStockAuthorizations ? fetchJson('/api/stock-issue-authorizations').catch(() => []) : Promise.resolve([]),
           fetchJson('/api/hr/employee-profile/pending-signatures').catch(() => []),
         ]);
         const poPending = Array.isArray(orders) ? orders.filter(o => String(o?.statut || '').toLowerCase().includes('attente')).length : 0;

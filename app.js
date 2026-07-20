@@ -319,6 +319,162 @@ const ACHAT_USERNAME = process.env.ACHAT_USERNAME || 'achat';
 const ACHAT_PASSWORD = process.env.ACHAT_PASSWORD || 'achat123';
 const KOKAN_USERNAME = process.env.KOKAN_USERNAME || 'Kokan_SK';
 const KOKAN_PASSWORD = process.env.KOKAN_PASSWORD || 'Stock_SK123';
+const IDENTITY_ROSTER = [
+  { fullName: 'AGBODJRO BEUGRE AWO ELFRIED JOSEPH', hrUsername: 'AGBODJRO123', userUsername: 'AGBODJRO123', role: 'employe_standard', password: 'AGBODJRO123@2026' },
+  { fullName: 'APPIA ROBERT NICAISE', hrUsername: 'APPIA123', userUsername: 'APPIA123', role: 'employe_standard', password: 'APPIA123@2026' },
+  { fullName: 'ARMEL KOUDOU RODRIGUE', hrUsername: '', userUsername: '', role: '', password: '' },
+  { fullName: 'ATTA BINDE GREGOIRE MARC', hrUsername: 'ATTA123', userUsername: 'ATTA123', role: 'employe_standard', password: 'ATTA123@2026' },
+  { fullName: 'BADO NARCISSE BONDIALI', hrUsername: 'BADO123', userUsername: 'BADO123', role: 'employe_standard', password: 'BADO123@2026' },
+  { fullName: 'BALMA MOHAMED', hrUsername: 'BALMA123', userUsername: 'BALMA123', role: 'employe_standard', password: 'BALMA123@2026' },
+  { fullName: 'BEAKA DAVY WILFRIED', hrUsername: 'BEAKA123', userUsername: 'BEAKA123', role: 'employe_standard', password: 'BEAKA123@2026' },
+  { fullName: 'BOSSIO KEHATON JEAN MARC', hrUsername: 'BOSSIO123', userUsername: 'BOSSIO123', role: 'employe_standard', password: 'BOSSIO123@2026' },
+  { fullName: 'Chef chantier SK', hrUsername: 'Chef_chantier_SK', userUsername: 'Chef_chantier_SK', role: 'chef_chantier_site', password: 'chefsite15@123' },
+  { fullName: 'Contrôle Achat', hrUsername: 'controle_achat_global', userUsername: 'controle_achat_global', role: 'controle_achat', password: 'achatglobal123' },
+  { fullName: 'COULIBALY MALICK', hrUsername: 'COULIBALY123', userUsername: 'COULIBALY123', role: 'employe_standard', password: 'COULIBALY123@2026' },
+  { fullName: 'DABIE VALENTINE EPSE DJINA', hrUsername: 'DABIE123', userUsername: 'DABIE123', role: 'employe_standard', password: 'DABIE123@2026' },
+  { fullName: 'DJE BI IRIE JEAN CLAUDE', hrUsername: 'DJE123', userUsername: 'DJE123', role: 'employe_standard', password: 'DJE123@2026' },
+  { fullName: 'DOUDOU ALEXANDRE', hrUsername: 'DOUDOU123', userUsername: 'DOUDOU123', role: 'employe_standard', password: 'DOUDOU123@2026' },
+  { fullName: 'DOUMBIA BRAHIM', hrUsername: 'DOUMBIA123', userUsername: 'DOUMBIA123', role: 'employe_standard', password: 'DOUMBIA123@2026' },
+  { fullName: 'GNEKPO AKOULA YANNICK ZEGBEHI', hrUsername: 'GNEKPO123', userUsername: 'GNEKPO123', role: 'employe_standard', password: 'GNEKPO123@2026' },
+  { fullName: 'KENDREBEOGO EMILE', hrUsername: 'KENDREBEOGO123', userUsername: 'KENDREBEOGO123', role: 'employe_standard', password: 'KENDREBEOGO123@2026' },
+  { fullName: 'KOAUSSI YAO MAURICE', hrUsername: 'KOAUSSI123', userUsername: 'KOAUSSI123', role: 'employe_standard', password: 'KOAUSSI123@2026' },
+  { fullName: 'KOFFI KOUAKOU KRA', hrUsername: 'KOFFI123', userUsername: 'KOFFI123', role: 'employe_standard', password: 'KOFFI123@2026' },
+  { fullName: 'KOKAN', hrUsername: 'Kokan_SK', userUsername: 'Kokan_SK', role: 'gestionnaire_stock_songon', password: 'Stock_SK123' },
+  { fullName: 'KONE ABOUBACAR', hrUsername: 'KONE123', userUsername: 'KONE123', role: 'employe_standard', password: 'KONE123@2026' },
+  { fullName: 'KONE YAYA', hrUsername: 'KONE124', userUsername: 'KONE124', role: 'employe_standard', password: 'KONE124@2026' },
+  { fullName: 'KOUAME ROLAND', hrUsername: 'KOUAME123', userUsername: 'KOUAME123', role: 'employe_standard', password: 'KOUAME123@2026' },
+  { fullName: 'KOUAME YAFFI BROU FELIX', hrUsername: 'KOUAME124', userUsername: 'KOUAME124', role: 'employe_standard', password: 'KOUAME124@2026' },
+  { fullName: 'KOUASSI KOUAME ANDERSON FRANCK O.', hrUsername: 'KOUASSI123', userUsername: 'KOUASSI123', role: 'employe_standard', password: 'KOUASSI123@2026' },
+  { fullName: 'KPANKOUN ACONASSOU Bienvenu Bernabé', hrUsername: 'KPANKOUN123', userUsername: 'KPANKOUN123', role: 'employe_standard', password: 'KPANKOUN123@2026' },
+  { fullName: 'MME GUIEGUIE EPSE MAKOUBI NADIA', hrUsername: 'MME123', userUsername: 'MME123', role: 'employe_standard', password: 'MME123@2026' },
+  { fullName: 'N’GUESSAN KOUASSI CELESTIN', hrUsername: 'NGUESSAN123', userUsername: 'NGUESSAN123', role: 'employe_standard', password: 'NGUESSAN123@2026' },
+  { fullName: 'NDJIE ABOMO ELI', hrUsername: 'NDJIE123', userUsername: 'NDJIE123', role: 'employe_standard', password: 'NDJIE123@2026' },
+  { fullName: 'NOELLE AGNELLA', hrUsername: 'controle_achat_global', userUsername: 'controle_achat_global', role: 'controle_achat', password: 'achatglobal123' },
+  { fullName: 'OGOU MARIE DANIELLE', hrUsername: 'dirigeant', userUsername: 'dirigeant', role: 'dirigeant', password: 'dirigeant123' },
+  { fullName: 'OULAI OSWALD', hrUsername: 'OULAI123', userUsername: 'OULAI123', role: 'employe_standard', password: 'OULAI123@2026' },
+  { fullName: "RUBEN N'DAH", hrUsername: 'directeur_rh', userUsername: 'directeur_rh', role: 'directeur_rh', password: 'rh123' },
+  { fullName: 'SAI JEAN CLAUDE HILAIRE', hrUsername: 'SAI123', userUsername: 'SAI123', role: 'employe_standard', password: 'SAI123@2026' },
+  { fullName: 'SORO KARNA PRI CI', hrUsername: 'SORO123', userUsername: 'SORO123', role: 'employe_standard', password: 'SORO123@2026' },
+  { fullName: 'SORO ZANA FRANCOIS', hrUsername: 'SORO124', userUsername: 'SORO124', role: 'employe_standard', password: 'SORO124@2026' },
+  { fullName: 'YAO FOFFIE', hrUsername: 'Conducteur_de_travaux', userUsername: 'Conducteur_de_travaux', role: 'chef_chantier_site', password: 'Yaofoffie_SK' },
+  { fullName: 'YEO YARDJOUMA', hrUsername: 'YEO123', userUsername: 'YEO123', role: 'employe_standard', password: 'YEO123@2026' },
+  { fullName: 'ZRAN GUE FABRICE', hrUsername: 'ZRAN123', userUsername: 'ZRAN123', role: 'employe_standard', password: 'ZRAN123@2026' },
+];
+const IDENTITY_KEEP_ALWAYS = new Set(['admin', 'dirigeant']);
+const IDENTITY_PASSWORD_HINTS = new Map(
+  IDENTITY_ROSTER
+    .filter(row => String(row.userUsername || '').trim() && String(row.password || '').trim())
+    .map(row => [String(row.userUsername || '').trim().toLowerCase(), String(row.password || '').trim()])
+);
+
+function resolveKnownUserPasswordHint(username, role, fallback = '-') {
+  const key = String(username || '').trim().toLowerCase();
+  if (key && IDENTITY_PASSWORD_HINTS.has(key)) {
+    return IDENTITY_PASSWORD_HINTS.get(key);
+  }
+  if (String(role || '').trim().toLowerCase() === 'employe_standard' && key) {
+    return `${String(username || '').trim()}@2026`;
+  }
+  return String(fallback || '-').trim() || '-';
+}
+
+async function reconcileIdentityDirectory() {
+  const now = new Date().toISOString();
+  const desiredUsers = new Map();
+  for (const row of IDENTITY_ROSTER) {
+    const username = String(row.userUsername || '').trim();
+    const role = String(row.role || '').trim();
+    const password = String(row.password || '').trim();
+    if (!username || !role || !password) continue;
+    desiredUsers.set(username.toLowerCase(), {
+      username,
+      role,
+      password,
+    });
+  }
+
+  let createdUsers = 0;
+  let updatedUsers = 0;
+  for (const { username, role, password } of desiredUsers.values()) {
+    const existing = await get('SELECT id, role FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [username]);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    if (!existing) {
+      const nextUserId = await getNextTableId('users');
+      await run(
+        'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+        [nextUserId, username, hashedPassword, role, now]
+      );
+      createdUsers += 1;
+    } else {
+      await run(
+        'UPDATE users SET username = ?, password = ?, role = ? WHERE id = ?',
+        [username, hashedPassword, role, Number(existing.id)]
+      );
+      updatedUsers += 1;
+    }
+  }
+
+  const keepUsernames = new Set(Array.from(IDENTITY_KEEP_ALWAYS));
+  for (const row of desiredUsers.values()) {
+    keepUsernames.add(String(row.username || '').trim().toLowerCase());
+  }
+
+  const allUsersRows = await all('SELECT id, username FROM users');
+  let deletedUsers = 0;
+  for (const userRow of allUsersRows) {
+    const username = String(userRow?.username || '').trim();
+    const key = username.toLowerCase();
+    if (!username || keepUsernames.has(key)) continue;
+    await run('DELETE FROM project_assignments WHERE userId = ?', [Number(userRow.id)]).catch(() => {});
+    await run('DELETE FROM user_access_profiles WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [username]).catch(() => {});
+    await run('DELETE FROM user_access_profile_audit WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [username]).catch(() => {});
+    await run('DELETE FROM users WHERE id = ?', [Number(userRow.id)]);
+    deletedUsers += 1;
+  }
+
+  let createdHr = 0;
+  let updatedHr = 0;
+  for (const row of IDENTITY_ROSTER) {
+    const fullName = String(row.fullName || '').trim();
+    if (!fullName) continue;
+    const hrUsername = String(row.hrUsername || '').trim();
+    const role = String(row.role || '').trim();
+    const jobTitle = getRoleDefaultJobTitle(role || 'employe_standard');
+    const createdBy = String(hrUsername || row.userUsername || 'admin').trim() || 'admin';
+
+    const existing = await get('SELECT id FROM hr_employees WHERE LOWER(TRIM(fullName)) = LOWER(TRIM(?)) LIMIT 1', [fullName]);
+    if (!existing) {
+      const nextHrId = await getNextTableId('hr_employees');
+      await run(
+        'INSERT INTO hr_employees (id, fullName, jobTitle, username, createdBy, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [nextHrId, fullName, jobTitle, hrUsername, createdBy, now, now]
+      );
+      createdHr += 1;
+    } else {
+      await run(
+        'UPDATE hr_employees SET username = ?, jobTitle = ?, createdBy = ?, updatedAt = ? WHERE id = ?',
+        [hrUsername, jobTitle, createdBy, now, Number(existing.id)]
+      );
+      updatedHr += 1;
+    }
+  }
+
+  const keepHrNames = new Set(IDENTITY_ROSTER.map(row => normalizeUserKey(row.fullName || '')).filter(Boolean));
+  const keepHrUsernames = new Set(IDENTITY_ROSTER.map(row => String(row.hrUsername || '').trim().toLowerCase()).filter(Boolean));
+  const hrRows = await all('SELECT id, fullName, username FROM hr_employees');
+  let deletedHr = 0;
+  for (const hrRow of hrRows) {
+    const hrNameKey = normalizeUserKey(hrRow?.fullName || '');
+    const hrUsernameKey = String(hrRow?.username || '').trim().toLowerCase();
+    if (keepHrNames.has(hrNameKey) || (hrUsernameKey && keepHrUsernames.has(hrUsernameKey))) {
+      continue;
+    }
+    await run('DELETE FROM hr_employees WHERE id = ?', [Number(hrRow.id)]);
+    deletedHr += 1;
+  }
+
+  return { createdUsers, updatedUsers, deletedUsers, createdHr, updatedHr, deletedHr };
+}
 const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS || 60_000);
 const API_RATE_MAX = Number(process.env.API_RATE_MAX || 600);
 const AUTH_RATE_WINDOW_MS = Number(process.env.AUTH_RATE_WINDOW_MS || 15 * 60_000);
@@ -555,6 +711,25 @@ app.get('/healthz', (_req, res) => {
     return res.status(503).json({ status: 'shutting-down' });
   }
   res.json({ status: 'ok' });
+});
+
+app.get('/api/push/public-key', (_req, res) => {
+  const publicKey = String(
+    process.env.PUSH_VAPID_PUBLIC_KEY
+      || process.env.VAPID_PUBLIC_KEY
+      || process.env.PUSH_PUBLIC_KEY
+      || ''
+  ).trim();
+
+  res.json({
+    publicKey,
+    enabled: Boolean(publicKey),
+  });
+});
+
+app.post('/api/push/subscribe', (_req, res) => {
+  // Localhost fallback: accept subscription payload even if push is not configured.
+  return res.status(204).end();
 });
 
 app.get('/readyz', async (_req, res) => {
@@ -1212,6 +1387,25 @@ function resolveExistingGuideAbsolutePath(row) {
     }
   }
 
+  const blobBuffer = row?.contentBlob ? Buffer.from(row.contentBlob) : null;
+  if (blobBuffer && blobBuffer.length > 0) {
+    const fallbackFileName = sanitizeFileName(String(row?.fileName || '').trim() || 'guide-document');
+    const persistedRelative = relativePath || getArchiveRelativePath('guides', fallbackFileName);
+    const persistedAbsolute = path.join(ARCHIVE_ROOT, persistedRelative);
+    try {
+      fs.mkdirSync(path.dirname(persistedAbsolute), { recursive: true });
+      fs.writeFileSync(persistedAbsolute, blobBuffer);
+      if (fs.existsSync(persistedAbsolute) && fs.statSync(persistedAbsolute).isFile() && fs.statSync(persistedAbsolute).size > 0) {
+        return {
+          absolutePath: persistedAbsolute,
+          relativePath: persistedRelative,
+        };
+      }
+    } catch (e) {
+      console.warn(`Guide blob restore failed for ${persistedAbsolute}:`, e.message);
+    }
+  }
+
   const guideDir = path.join(ARCHIVE_ROOT, 'guides');
   const fallbackFileName = sanitizeFileName(String(row?.fileName || '').trim());
   const relativeBaseName = sanitizeFileName(path.basename(relativePath || ''));
@@ -1842,6 +2036,7 @@ async function archiveGuideDocument({ title, fileName, fileBuffer, mimeType = 'a
   const guideColumns = await ensureGuideDocumentAudienceColumns();
   const hasAudienceScopeColumn = hasTableColumn(guideColumns, 'audienceScope');
   const hasRecipientIdsColumn = hasTableColumn(guideColumns, 'recipientEmployeeIds');
+  const hasContentBlobColumn = hasTableColumn(guideColumns, 'contentBlob');
 
   if (normalizedAudienceScope === 'selected' && (!hasAudienceScopeColumn || !hasRecipientIdsColumn)) {
     throw new Error('Configuration guide incomplète: colonnes de ciblage absentes');
@@ -1871,6 +2066,9 @@ async function archiveGuideDocument({ title, fileName, fileBuffer, mimeType = 'a
   pushColumn('mimeType', safeMimeType);
   pushColumn('sizeBytes', sizeBytes);
   pushColumn('uploadedBy', safeUploadedBy);
+  if (hasContentBlobColumn) {
+    pushColumn('contentBlob', fileBuffer);
+  }
   if (hasAudienceScopeColumn) {
     pushColumn('audienceScope', normalizedAudienceScope);
   }
@@ -2831,11 +3029,35 @@ async function initDb() {
     relativePath TEXT NOT NULL,
     mimeType TEXT NOT NULL,
     sizeBytes INTEGER NOT NULL DEFAULT 0,
+    contentBlob BLOB,
     uploadedBy TEXT NOT NULL,
     audienceScope TEXT NOT NULL DEFAULT 'all',
     recipientEmployeeIds TEXT NOT NULL DEFAULT '',
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL
+  )`);
+
+  await run(`CREATE TABLE IF NOT EXISTS user_access_profiles (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    roleSnapshot TEXT NOT NULL DEFAULT '',
+    accreditationLevel TEXT NOT NULL DEFAULT 'standard',
+    allowedModules TEXT NOT NULL DEFAULT '',
+    deniedModules TEXT NOT NULL DEFAULT '',
+    forcedModule TEXT NOT NULL DEFAULT '',
+    notes TEXT NOT NULL DEFAULT '',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    updatedBy TEXT NOT NULL DEFAULT 'system'
+  )`);
+
+  await run(`CREATE TABLE IF NOT EXISTS user_access_profile_audit (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL,
+    action TEXT NOT NULL,
+    payloadJson TEXT NOT NULL,
+    changedBy TEXT NOT NULL,
+    createdAt TEXT NOT NULL
   )`);
 
   if (DB_DRIVER === 'postgres') {
@@ -2874,11 +3096,22 @@ async function initDb() {
   try { await run("ALTER TABLE guide_documents ADD COLUMN relativePath TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN mimeType TEXT NOT NULL DEFAULT 'application/octet-stream'"); } catch (e) {}
   try { await run('ALTER TABLE guide_documents ADD COLUMN sizeBytes INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
+  try { await run('ALTER TABLE guide_documents ADD COLUMN contentBlob BLOB'); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN uploadedBy TEXT NOT NULL DEFAULT 'admin'"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN audienceScope TEXT NOT NULL DEFAULT 'all'"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN recipientEmployeeIds TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN roleSnapshot TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN accreditationLevel TEXT NOT NULL DEFAULT 'standard'"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN allowedModules TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN deniedModules TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN forcedModule TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN notes TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN updatedBy TEXT NOT NULL DEFAULT 'system'"); } catch (e) {}
 
   await run(`CREATE TABLE IF NOT EXISTS project_assignments (
     id INTEGER PRIMARY KEY,
@@ -3353,14 +3586,8 @@ async function initDb() {
     createdBy: 'admin',
   });
 
-  // Supprimer les profils retires du lien public et de Railway.
-  const removedPublicProfiles = await run(
-    'DELETE FROM users WHERE role = ? OR username IN (?, ?, ?)',
-    ['gestionnaire_stock', GEST_STOCK_USERNAME, 'chef_adzope_site15', 'gest_zone_adzope']
-  );
-  if (Number(removedPublicProfiles?.changes || 0) > 0) {
-    console.log(`Profils publics supprimes: ${Number(removedPublicProfiles.changes || 0)}`);
-  }
+  const identitySync = await reconcileIdentityDirectory();
+  console.log(`Annuaire profils synchronise: users +${identitySync.createdUsers}/~${identitySync.updatedUsers}/-${identitySync.deletedUsers}, RH +${identitySync.createdHr}/~${identitySync.updatedHr}/-${identitySync.deletedHr || 0}`);
 }
 
 // Keep HTTP reachable immediately; DB init runs in background once.
@@ -3475,6 +3702,190 @@ process.on('unhandledRejection', reason => {
   console.error('Promesse rejetee non geree:', reason);
 });
 
+const PRIVILEGED_ROLES = new Set(['admin', 'directeur_rh']);
+const RH_GUIDE_BASE_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'guide-erp']);
+const MODULE_ACCESS_ROUTE_RULES = {
+  dashboard: [{ method: 'GET', pattern: /^\/auth\/me$/ }],
+  projects: [
+    { method: 'GET', pattern: /^\/projects$/ },
+    { method: 'GET', pattern: /^\/project-folders$/ },
+    { method: 'GET', pattern: /^\/project-catalog$/ },
+    { method: 'GET', pattern: /^\/project-assignments$/ },
+  ],
+  'project-progress': [{ method: 'GET', pattern: /^\/project-progress$/ }],
+  'journal-chantier': [{ method: 'GET', pattern: /^\/project-progress$/ }],
+  materials: [
+    { method: 'GET', pattern: /^\/material-requests$/ },
+    { method: 'POST', pattern: /^\/material-requests$/ },
+  ],
+  inventory: [{ method: 'GET', pattern: /^\/stock-management\/(available|issues|orders)$/ }],
+  'purchase-orders': [{ method: 'GET', pattern: /^\/purchase-orders(?:\/\d+\/pdf)?$/ }],
+  'stock-management': [
+    { method: 'GET', pattern: /^\/stock-management\/(available|issues|orders)$/ },
+    { method: 'PATCH', pattern: /^\/stock-management\/orders\/\d+\/arrive$/ },
+  ],
+  'sortie-autorisations': [
+    { method: 'GET', pattern: /^\/stock-issue-authorizations(?:\/\d+\/pdf)?$/ },
+    { method: 'POST', pattern: /^\/stock-issue-authorizations$/ },
+    { method: 'PATCH', pattern: /^\/stock-issue-authorizations\/\d+\/decision$/ },
+  ],
+  'material-catalog': [{ method: 'GET', pattern: /^\/material-catalog$/ }],
+  'parc-auto': [{ method: 'GET', pattern: /^\/(vehicles|auto-vehicle-locations|auto-transport-costs)$/ }],
+  maps: [{ method: 'GET', pattern: /^\/(vehicles|auto-vehicle-locations|auto-transport-costs)$/ }],
+  expenses: [{ method: 'GET', pattern: /^\/expenses$/ }],
+  revenues: [{ method: 'GET', pattern: /^\/revenues$/ }],
+  reports: [
+    { method: 'GET', pattern: /^\/expenses$/ },
+    { method: 'GET', pattern: /^\/revenues$/ },
+    { method: 'GET', pattern: /^\/purchase-orders$/ },
+  ],
+  database: [{ method: 'GET', pattern: /^\/database-documents(?:\/\d+\/download)?$/ }],
+  users: [{ method: 'GET', pattern: /^\/users$/ }],
+  assignments: [{ method: 'GET', pattern: /^\/project-assignments$/ }],
+  trash: [
+    { method: 'DELETE', pattern: /^\/material-requests\/\d+$/ },
+    { method: 'DELETE', pattern: /^\/database-documents\/\d+$/ },
+  ],
+};
+
+function roleCanBypassRestrictedProfile(role) {
+  return PRIVILEGED_ROLES.has(String(role || '').trim());
+}
+
+function parseCsvSet(value) {
+  return new Set(
+    String(value || '')
+      .split(',')
+      .map(item => String(item || '').trim())
+      .filter(Boolean)
+  );
+}
+
+function serializeCsvSet(values) {
+  return Array.from(new Set(Array.from(values || []).map(item => String(item || '').trim()).filter(Boolean))).join(',');
+}
+
+function normalizeModuleList(value) {
+  return new Set(
+    Array.from(parseCsvSet(value)).map(item => item.toLowerCase()).filter(item => Object.prototype.hasOwnProperty.call(MODULE_ACCESS_ROUTE_RULES, item) || RH_GUIDE_BASE_MODULES.has(item))
+  );
+}
+
+function computeEffectiveModulesForAccessProfile(profileRow) {
+  const allowed = normalizeModuleList(profileRow?.allowedModules || '');
+  const denied = normalizeModuleList(profileRow?.deniedModules || '');
+  const effective = new Set(RH_GUIDE_BASE_MODULES);
+  for (const moduleKey of allowed) {
+    effective.add(moduleKey);
+  }
+  for (const moduleKey of denied) {
+    effective.delete(moduleKey);
+  }
+  const forcedModule = String(profileRow?.forcedModule || '').trim().toLowerCase();
+  if (forcedModule && !denied.has(forcedModule)) {
+    effective.add(forcedModule);
+  }
+  return effective;
+}
+
+function getAccessProfileBaselineModules(role, username) {
+  const normalizedRole = String(role || '').trim().toLowerCase();
+  const normalizedUsername = normalizeUserKey(username || '');
+  const presets = {
+    admin: [
+      'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations',
+      'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'trash', 'assignments',
+      'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'
+    ],
+    directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp'],
+    dirigeant: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp'],
+    achat: ['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
+    controle_achat: ['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
+    controle_achat_global: ['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
+    commis: ['stock-management', 'inventory', 'hr-employee-search', 'guide-erp'],
+    gestionnaire_stock: ['stock-management', 'inventory', 'sortie-autorisations', 'hr-employee-search', 'guide-erp'],
+    gestionnaire_stock_zone: ['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search', 'guide-erp'],
+    gestionnaire_stock_songon: ['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp'],
+    chef_chantier_site: ['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
+    employe_standard: ['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp'],
+  };
+
+  const preset = presets[normalizedRole] || [];
+  const normalizedPreset = Array.from(new Set(preset.map(item => String(item || '').trim().toLowerCase()).filter(Boolean)));
+  if (normalizedRole === 'gestionnaire_stock_songon' && normalizedUsername === 'kokan_sk') {
+    return new Set(normalizedPreset);
+  }
+  return new Set(normalizedPreset);
+}
+
+function serializeModuleSetForResponse(value) {
+  return Array.from(normalizeModuleList(Array.from(value || []).join(',')));
+}
+
+async function getUserAccessProfileByUsername(username) {
+  const safeUsername = String(username || '').trim();
+  if (!safeUsername) return null;
+  return get('SELECT * FROM user_access_profiles WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [safeUsername]);
+}
+
+function getRoleDefaultJobTitle(role) {
+  const normalizedRole = String(role || '').trim().toLowerCase();
+  const labels = {
+    admin: 'Administrateur',
+    directeur_rh: 'Directeur RH',
+    dirigeant: 'Dirigeant',
+    achat: 'Achat',
+    commis: 'Commis',
+    controle_achat: 'Controle achat',
+    controle_achat_global: 'Controle achat global',
+    chef_chantier_site: 'Chef chantier site',
+    gestionnaire_stock: 'Gestionnaire stock',
+    gestionnaire_stock_zone: 'Gestionnaire stock zone',
+    gestionnaire_stock_songon: 'Gestionnaire stock Songon',
+    employe_standard: 'Employe standard',
+  };
+  return labels[normalizedRole] || 'Employe';
+}
+
+async function ensureHrProfileForUserAccount(userRow, actor = 'system') {
+  const username = String(userRow?.username || '').trim();
+  if (!username) return null;
+
+  const existingProfile = await get(
+    `SELECT id, fullName, username, createdBy
+     FROM hr_employees
+     WHERE LOWER(TRIM(COALESCE(username, ''))) = LOWER(TRIM(?))
+        OR LOWER(TRIM(COALESCE(createdBy, ''))) = LOWER(TRIM(?))
+     ORDER BY updatedAt DESC, id DESC
+     LIMIT 1`,
+    [username, username]
+  );
+  if (existingProfile?.id) return existingProfile;
+
+  const now = new Date().toISOString();
+  const nextId = await getNextTableId('hr_employees');
+  const defaultRoleLabel = getRoleDefaultJobTitle(userRow?.role);
+  await run(
+    `INSERT INTO hr_employees (id, fullName, jobTitle, phoneNumber, address, maritalStatus, email, username, createdBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      nextId,
+      String(userRow?.fullName || username).trim(),
+      defaultRoleLabel,
+      '',
+      '',
+      '',
+      '',
+      username,
+      String(actor || username).trim() || username,
+      now,
+      now,
+    ]
+  );
+
+  return get('SELECT id, fullName, username, createdBy FROM hr_employees WHERE id = ?', [nextId]);
+}
+
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
@@ -3495,322 +3906,71 @@ function authenticateToken(req, res, next) {
   });
 }
 
-function authorizeRoleAccess(req, res, next) {
-  const role = req.user && req.user.role;
-  if (
-    role !== 'commis'
-    && role !== 'gestionnaire_stock'
-    && role !== 'gestionnaire_stock_songon'
-    && role !== 'chef_chantier_site'
-    && role !== 'directeur_rh'
-    && role !== 'dirigeant'
-    && role !== 'achat'
-    && role !== 'controle_achat'
-    && role !== 'controle_achat_global'
-  ) {
-    return next();
+function isRouteAllowedByModuleSet(method, pathName, modulesSet) {
+  const safeMethod = String(method || '').toUpperCase();
+  const safePath = String(pathName || '');
+  for (const moduleKey of modulesSet) {
+    const rules = MODULE_ACCESS_ROUTE_RULES[moduleKey] || [];
+    if (rules.some(rule => rule.method === safeMethod && rule.pattern.test(safePath))) {
+      return true;
+    }
   }
+  return false;
+}
 
-  const method = String(req.method || '').toUpperCase();
-  const pathName = String(req.path || '');
-
-  if (
-    method === 'GET'
-    && (/^\/guide-documents$/.test(pathName) || /^\/guide-documents\/\d+\/download$/.test(pathName) || /^\/guide-documents\/recipients\/employees$/.test(pathName))
-  ) {
-    return next();
-  }
-
-  if (
-    (method === 'POST' && /^\/guide-documents\/upload$/.test(pathName))
-    || (method === 'PATCH' && /^\/guide-documents\/\d+\/rename$/.test(pathName))
-    || (method === 'DELETE' && /^\/guide-documents\/\d+$/.test(pathName))
-  ) {
-    const normalizedRole = String(role || '').trim();
-    if (normalizedRole === 'dirigeant' || normalizedRole === 'admin') {
+async function authorizeRoleAccess(req, res, next) {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (!role || roleCanBypassRestrictedProfile(role)) {
       return next();
     }
-    return res.status(403).json({ error: 'Acces refuse pour ce role' });
+
+    const method = String(req.method || '').toUpperCase();
+    const pathName = String(req.path || '');
+
+    const alwaysAllowedRules = [
+      { method: 'GET', pattern: /^\/auth\/me$/ },
+      { method: 'GET', pattern: /^\/push\/public-key$/ },
+      { method: 'POST', pattern: /^\/push\/subscribe$/ },
+      { method: 'GET', pattern: /^\/guide-documents$/ },
+      { method: 'GET', pattern: /^\/guide-documents\/\d+\/download$/ },
+      { method: 'GET', pattern: /^\/hr\/dashboard-summary$/ },
+      { method: 'GET', pattern: /^\/hr\/employees$/ },
+      { method: 'PATCH', pattern: /^\/hr\/employees\/\d+$/ },
+      { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+      { method: 'POST', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+      { method: 'DELETE', pattern: /^\/hr\/employees\/documents\/\d+$/ },
+      { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
+      { method: 'GET', pattern: /^\/hr\/attendance$/ },
+      { method: 'POST', pattern: /^\/hr\/attendance$/ },
+      { method: 'PATCH', pattern: /^\/hr\/attendance\/\d+$/ },
+      { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
+      { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
+      { method: 'PATCH', pattern: /^\/hr\/leave-requests\/\d+\/status$/ },
+      { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
+      { method: 'GET', pattern: /^\/hr\/signature-requests$/ },
+      { method: 'POST', pattern: /^\/hr\/signature-requests$/ },
+      { method: 'DELETE', pattern: /^\/hr\/signature-requests\/\d+$/ },
+      { method: 'POST', pattern: /^\/hr\/signature-requests\/\d+\/sign$/ },
+      { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
+      { method: 'GET', pattern: /^\/hr\/employee-profile\/pending-signatures$/ },
+      { method: 'GET', pattern: /^\/hr\/document-signatures\/\d+$/ },
+    ];
+
+    if (alwaysAllowedRules.some(rule => rule.method === method && rule.pattern.test(pathName))) {
+      return next();
+    }
+
+    const profile = await getUserAccessProfileByUsername(req.user?.username);
+    const effectiveModules = computeEffectiveModulesForAccessProfile(profile || {});
+    if (isRouteAllowedByModuleSet(method, pathName, effectiveModules)) {
+      return next();
+    }
+
+    return res.status(403).json({ error: 'Acces limite au bloc RH et Guide ERP pour ce profil' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erreur controle acces profil', details: String(error?.message || error) });
   }
-
-  const commisRules = [
-    { method: 'GET', pattern: /^\/projects$/ },
-    { method: 'GET', pattern: /^\/hr\/employees$/ },
-    { method: 'GET', pattern: /^\/material-requests$/ },
-    { method: 'POST', pattern: /^\/material-requests$/ },
-    { method: 'POST', pattern: /^\/material-requests\/auto-stage$/ },
-    { method: 'GET', pattern: /^\/stock-management\/orders$/ },
-    { method: 'PATCH', pattern: /^\/stock-management\/orders\/\d+\/arrive$/ },
-    { method: 'GET', pattern: /^\/stock-management\/available$/ },
-    { method: 'GET', pattern: /^\/stock-management\/issues$/ },
-    { method: 'POST', pattern: /^\/stock-management\/issues$/ },
-    { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
-    { method: 'GET', pattern: /^\/transfer-authorizations$/ },
-  ];
-
-  const gestStockRules = [
-    { method: 'GET',   pattern: /^\/projects$/ },
-    { method: 'GET',   pattern: /^\/hr\/employees$/ },
-    { method: 'GET',   pattern: /^\/material-requests$/ },
-    { method: 'POST',  pattern: /^\/material-requests\/auto-stage$/ },
-    { method: 'GET',   pattern: /^\/purchase-orders$/ },
-    { method: 'PATCH', pattern: /^\/purchase-orders\/\d+\/validation$/ },
-    { method: 'GET',   pattern: /^\/stock-management\/orders$/ },
-    { method: 'PATCH', pattern: /^\/stock-management\/orders\/\d+\/arrive$/ },
-    { method: 'GET',   pattern: /^\/stock-management\/available$/ },
-    { method: 'GET',   pattern: /^\/stock-management\/issues$/ },
-    { method: 'POST',  pattern: /^\/stock-management\/issues$/ },
-    { method: 'GET',   pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
-    { method: 'GET',   pattern: /^\/transfer-authorizations$/ },
-  ];
-
-  const gestStockSongonRules = [
-    { method: 'GET',   pattern: /^\/auth\/me$/ },
-    { method: 'GET',   pattern: /^\/projects$/ },
-    { method: 'GET',   pattern: /^\/project-progress$/ },
-    { method: 'GET',   pattern: /^\/project-folders$/ },
-    { method: 'GET',   pattern: /^\/project-catalog$/ },
-    { method: 'GET',   pattern: /^\/material-requests$/ },
-    { method: 'GET',   pattern: /^\/material-requests\/\d+\/authorization-documents$/ },
-    { method: 'GET',   pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'GET',   pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
-    { method: 'GET',   pattern: /^\/material-catalog$/ },
-    { method: 'GET',   pattern: /^\/database-documents$/ },
-    { method: 'GET',   pattern: /^\/database-documents\/\d+\/download$/ },
-    { method: 'GET',   pattern: /^\/hr\/employees$/ },
-    // Gestion de stock: memes capacites qu'admin sur ce module
-    { method: 'GET',   pattern: /^\/stock-management\/orders$/ },
-    { method: 'PATCH', pattern: /^\/stock-management\/orders\/\d+\/arrive$/ },
-    { method: 'GET',   pattern: /^\/stock-management\/available$/ },
-    { method: 'GET',   pattern: /^\/stock-management\/issues$/ },
-    { method: 'POST',  pattern: /^\/stock-management\/issues$/ },
-    { method: 'GET',   pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'POST',  pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'PATCH', pattern: /^\/stock-issue-authorizations\/\d+\/decision$/ },
-    { method: 'GET',   pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
-    { method: 'GET',   pattern: /^\/transfer-authorizations$/ },
-  ];
-
-  const siteChiefRules = [
-    { method: 'GET',  pattern: /^\/projects$/ },
-    { method: 'GET',  pattern: /^\/project-assignments$/ },
-    { method: 'POST', pattern: /^\/project-assignments$/ },
-    { method: 'PATCH', pattern: /^\/project-assignments\/\d+$/ },
-    { method: 'DELETE', pattern: /^\/project-assignments\/\d+$/ },
-    { method: 'GET', pattern: /^\/hr\/employees$/ },
-    { method: 'POST', pattern: /^\/hr\/employees$/ },
-    { method: 'PATCH', pattern: /^\/hr\/employees\/\d+$/ },
-    { method: 'DELETE', pattern: /^\/hr\/employees\/\d+$/ },
-    { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
-    { method: 'POST', pattern: /^\/hr\/employees\/\d+\/documents$/ },
-    { method: 'DELETE', pattern: /^\/hr\/employees\/documents\/\d+$/ },
-    { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
-    { method: 'GET', pattern: /^\/hr\/attendance$/ },
-    { method: 'POST', pattern: /^\/hr\/attendance$/ },
-    { method: 'PATCH', pattern: /^\/hr\/attendance\/\d+$/ },
-    { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
-    { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
-    { method: 'PATCH', pattern: /^\/hr\/leave-requests\/\d+\/status$/ },
-    { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
-    { method: 'GET', pattern: /^\/hr\/signature-requests$/ },
-    { method: 'POST', pattern: /^\/hr\/signature-requests$/ },
-    { method: 'GET', pattern: /^\/hr\/employee-profile\/pending-signatures$/ },
-    { method: 'POST', pattern: /^\/hr\/signature-requests\/\d+\/sign$/ },
-    { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
-    { method: 'GET', pattern: /^\/hr\/document-signatures\/\d+$/ },
-    { method: 'GET',  pattern: /^\/project-progress$/ },
-    { method: 'POST', pattern: /^\/project-progress$/ },
-    { method: 'GET',  pattern: /^\/project-folders$/ },
-    { method: 'GET',  pattern: /^\/project-catalog$/ },
-    { method: 'GET',  pattern: /^\/material-catalog$/ },
-    { method: 'GET',  pattern: /^\/material-requests$/ },
-    { method: 'POST', pattern: /^\/material-requests$/ },
-    { method: 'POST', pattern: /^\/material-requests\/auto-stage$/ },
-    { method: 'DELETE', pattern: /^\/material-requests\/\d+$/ },
-    { method: 'GET',  pattern: /^\/material-requests\/\d+\/authorization-documents$/ },
-    { method: 'GET',  pattern: /^\/material-requests\/group\/pdf$/ },
-    { method: 'GET',  pattern: /^\/stock-management\/orders$/ },
-    { method: 'GET',  pattern: /^\/stock-management\/available$/ },
-    { method: 'GET',  pattern: /^\/stock-management\/issues$/ },
-    { method: 'POST', pattern: /^\/stock-management\/issues$/ },
-    { method: 'GET',  pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'POST', pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'GET',  pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
-    { method: 'GET',  pattern: /^\/database-documents$/ },
-    { method: 'GET',  pattern: /^\/database-documents\/\d+\/download$/ },
-  ];
-
-  const hrDirectorRules = [
-    { method: 'GET', pattern: /^\/auth\/me$/ },
-    { method: 'GET', pattern: /^\/users$/ },
-    { method: 'GET', pattern: /^\/hr\/dashboard-summary$/ },
-    { method: 'GET', pattern: /^\/hr\/employees$/ },
-    { method: 'POST', pattern: /^\/hr\/employees$/ },
-    { method: 'PATCH', pattern: /^\/hr\/employees\/[^/]+\/?$/ },
-    { method: 'DELETE', pattern: /^\/hr\/employees\/[^/]+\/?$/ },
-    { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
-    { method: 'POST', pattern: /^\/hr\/employees\/\d+\/documents$/ },
-    { method: 'DELETE', pattern: /^\/hr\/employees\/documents\/\d+$/ },
-    { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
-    { method: 'GET', pattern: /^\/hr\/attendance$/ },
-    { method: 'POST', pattern: /^\/hr\/attendance$/ },
-    { method: 'PATCH', pattern: /^\/hr\/attendance\/\d+$/ },
-    { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
-    { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
-    { method: 'PATCH', pattern: /^\/hr\/leave-requests\/\d+\/status$/ },
-    { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
-    { method: 'GET', pattern: /^\/(?:api\/)?hr\/signature-requests\/?$/ },
-    { method: 'POST', pattern: /^\/(?:api\/)?hr\/signature-requests\/?$/ },
-    { method: 'GET', pattern: /^\/(?:api\/)?hr\/employee-profile\/pending-signatures\/?$/ },
-    { method: 'POST', pattern: /^\/(?:api\/)?hr\/signature-requests\/\d+\/sign\/?$/ },
-    { method: 'DELETE', pattern: /^\/(?:api\/)?hr\/signature-requests\/\d+\/?$/ },
-    { method: 'GET', pattern: /^\/(?:api\/)?hr\/signature-requests\/\d+\/download\/?$/ },
-    { method: 'GET', pattern: /^\/hr\/document-signatures\/\d+$/ },
-    { method: 'GET', pattern: /^\/database-documents$/ },
-    { method: 'GET', pattern: /^\/database-documents\/\d+\/download$/ },
-    { method: 'POST', pattern: /^\/database-documents\/upload$/ },
-    { method: 'DELETE', pattern: /^\/database-documents\/\d+$/ },
-  ];
-
-  const executiveRules = [
-    { method: 'GET', pattern: /^\/auth\/me$/ },
-    { method: 'GET', pattern: /^\/projects$/ },
-    { method: 'GET', pattern: /^\/project-assignments$/ },
-    { method: 'GET', pattern: /^\/hr\/employees$/ },
-    { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
-    { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
-    { method: 'GET', pattern: /^\/hr\/attendance$/ },
-    { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
-    { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
-    { method: 'GET', pattern: /^\/project-progress$/ },
-    { method: 'GET', pattern: /^\/project-folders$/ },
-    { method: 'GET', pattern: /^\/project-catalog$/ },
-    { method: 'GET', pattern: /^\/material-catalog$/ },
-    { method: 'GET', pattern: /^\/material-requests$/ },
-    { method: 'GET', pattern: /^\/purchase-orders$/ },
-    { method: 'GET', pattern: /^\/purchase-orders\/\d+\/pdf$/ },
-    { method: 'PATCH', pattern: /^\/purchase-orders\/\d+\/validation$/ },
-    { method: 'GET', pattern: /^\/stock-management\/available$/ },
-    { method: 'GET', pattern: /^\/stock-management\/issues$/ },
-    { method: 'GET', pattern: /^\/stock-management\/orders$/ },
-    { method: 'GET', pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'PATCH', pattern: /^\/stock-issue-authorizations\/\d+\/decision$/ },
-    { method: 'GET', pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
-    { method: 'GET', pattern: /^\/database-documents$/ },
-    { method: 'GET', pattern: /^\/database-documents\/\d+\/download$/ },
-    { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
-    { method: 'GET', pattern: /^\/expenses$/ },
-    { method: 'GET', pattern: /^\/revenues$/ },
-    { method: 'GET', pattern: /^\/vehicles$/ },
-    { method: 'GET', pattern: /^\/vehicles\/\d+\/locations$/ },
-    { method: 'GET', pattern: /^\/vehicles\/\d+$/ },
-    { method: 'GET', pattern: /^\/auto-vehicle-locations$/ },
-    { method: 'GET', pattern: /^\/auto-transport-costs$/ },
-  ];
-
-  const procurementReviewerRules = [
-    { method: 'GET', pattern: /^\/auth\/me$/ },
-    { method: 'GET', pattern: /^\/projects$/ },
-    { method: 'GET', pattern: /^\/project-assignments$/ },
-    { method: 'GET', pattern: /^\/hr\/employees$/ },
-    { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
-    { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
-    { method: 'GET', pattern: /^\/hr\/attendance$/ },
-    { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
-    { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
-    { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
-    { method: 'GET', pattern: /^\/hr\/signature-requests$/ },
-    { method: 'POST', pattern: /^\/hr\/signature-requests$/ },
-    { method: 'GET', pattern: /^\/hr\/employee-profile\/pending-signatures$/ },
-    { method: 'POST', pattern: /^\/hr\/signature-requests\/\d+\/sign$/ },
-    { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
-    { method: 'GET', pattern: /^\/hr\/document-signatures\/\d+$/ },
-    { method: 'GET', pattern: /^\/project-folders$/ },
-    { method: 'GET', pattern: /^\/project-catalog$/ },
-    { method: 'GET', pattern: /^\/material-catalog$/ },
-    { method: 'GET', pattern: /^\/material-requests$/ },
-    { method: 'GET', pattern: /^\/purchase-orders$/ },
-    { method: 'POST', pattern: /^\/purchase-orders$/ },
-    { method: 'DELETE', pattern: /^\/purchase-orders\/\d+$/ },
-    { method: 'GET', pattern: /^\/purchase-orders\/\d+\/pdf$/ },
-    { method: 'GET', pattern: /^\/purchase-orders\/\d+\/authorization-documents$/ },
-    { method: 'GET', pattern: /^\/stock-management\/available$/ },
-    { method: 'GET', pattern: /^\/stock-management\/issues$/ },
-    { method: 'GET', pattern: /^\/stock-management\/orders$/ },
-    { method: 'GET', pattern: /^\/database-documents$/ },
-    { method: 'GET', pattern: /^\/database-documents\/\d+\/download$/ },
-    { method: 'GET', pattern: /^\/transfer-authorizations$/ },
-  ];
-
-  const achatRules = [
-    { method: 'GET',    pattern: /^\/auth\/me$/ },
-    { method: 'GET',    pattern: /^\/projects$/ },
-    { method: 'GET',    pattern: /^\/hr\/employees$/ },
-    { method: 'POST',   pattern: /^\/hr\/employees$/ },
-    { method: 'PATCH',  pattern: /^\/hr\/employees\/[^/]+\/?$/ },
-    { method: 'DELETE', pattern: /^\/hr\/employees\/[^/]+\/?$/ },
-    { method: 'GET',    pattern: /^\/hr\/employees\/\d+\/documents$/ },
-    { method: 'POST',   pattern: /^\/hr\/employees\/\d+\/documents$/ },
-    { method: 'DELETE', pattern: /^\/hr\/employees\/documents\/\d+$/ },
-    { method: 'GET',    pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
-    { method: 'GET',    pattern: /^\/hr\/attendance$/ },
-    { method: 'POST',   pattern: /^\/hr\/attendance$/ },
-    { method: 'PATCH',  pattern: /^\/hr\/attendance\/\d+$/ },
-    { method: 'GET',    pattern: /^\/hr\/leave-requests$/ },
-    { method: 'POST',   pattern: /^\/hr\/leave-requests$/ },
-    { method: 'PATCH',  pattern: /^\/hr\/leave-requests\/\d+\/status$/ },
-    { method: 'GET',    pattern: /^\/hr\/leave-calendar$/ },
-    { method: 'GET',    pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
-    { method: 'GET',    pattern: /^\/material-catalog$/ },
-    { method: 'GET',    pattern: /^\/material-requests$/ },
-    // Bons de commande – accès complet
-    { method: 'GET',    pattern: /^\/purchase-orders$/ },
-    { method: 'POST',   pattern: /^\/purchase-orders$/ },
-    { method: 'PATCH',  pattern: /^\/purchase-orders\/\d+\/validation$/ },
-    { method: 'PATCH',  pattern: /^\/purchase-orders\/\d+$/ },
-    { method: 'DELETE', pattern: /^\/purchase-orders\/\d+$/ },
-    { method: 'GET',    pattern: /^\/purchase-orders\/\d+\/pdf$/ },
-    { method: 'GET',    pattern: /^\/purchase-orders\/\d+\/authorization-documents$/ },
-    // Inventaire (toutes zones)
-    { method: 'GET',    pattern: /^\/stock-management\/available$/ },
-    { method: 'GET',    pattern: /^\/stock-management\/issues$/ },
-    { method: 'GET',    pattern: /^\/stock-management\/orders$/ },
-    // Autorisations de sortie – créer, valider/rejeter, PDF
-    { method: 'GET',    pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'POST',   pattern: /^\/stock-issue-authorizations$/ },
-    { method: 'PATCH',  pattern: /^\/stock-issue-authorizations\/\d+\/decision$/ },
-    { method: 'GET',    pattern: /^\/stock-issue-authorizations\/\d+\/pdf$/ },
-    // Base de données – accès complet + téléchargements
-    { method: 'GET',    pattern: /^\/database-documents$/ },
-    { method: 'GET',    pattern: /^\/database-documents\/\d+\/download$/ },
-    { method: 'POST',   pattern: /^\/database-documents\/upload$/ },
-    { method: 'DELETE', pattern: /^\/database-documents\/\d+$/ },
-    // Corbeille – suppression d'éléments
-    { method: 'DELETE', pattern: /^\/material-requests\/\d+$/ },
-    { method: 'GET',    pattern: /^\/transfer-authorizations$/ },
-  ];
-
-  const rules = role === 'gestionnaire_stock'
-    ? gestStockRules
-    : role === 'gestionnaire_stock_songon'
-      ? gestStockSongonRules
-    : role === 'chef_chantier_site'
-      ? siteChiefRules
-      : role === 'directeur_rh'
-        ? hrDirectorRules
-        : role === 'controle_achat' || role === 'controle_achat_global'
-        ? procurementReviewerRules
-      : role === 'dirigeant'
-        ? executiveRules
-      : role === 'achat'
-        ? achatRules
-        : commisRules;
-  const isAllowed = rules.some(rule => rule.method === method && rule.pattern.test(pathName));
-  if (isAllowed) {
-    return next();
-  }
-
-  return res.status(403).json({ error: 'Acces refuse pour ce role' });
 }
 
 function hashTrackingToken(rawToken) {
@@ -4112,6 +4272,14 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
     return res.status(401).json({ error: 'Utilisateur ou mot de passe invalide' });
   }
 
+  if (!roleCanBypassRestrictedProfile(user.role)) {
+    try {
+      await ensureHrProfileForUserAccount(user, req.body?.username || user.username || 'system');
+    } catch (profileErr) {
+      console.warn('Auto-create HR profile failed at login:', profileErr?.message || profileErr);
+    }
+  }
+
   const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, {
     expiresIn: '6h'
   });
@@ -4129,7 +4297,28 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
       }
     : null;
 
-  res.json({ username: req.user.username, role: req.user.role, scope });
+  const accessProfile = roleCanBypassRestrictedProfile(role)
+    ? null
+    : await getUserAccessProfileByUsername(req.user?.username);
+  const effectiveModules = roleCanBypassRestrictedProfile(role)
+    ? []
+    : Array.from(computeEffectiveModulesForAccessProfile(accessProfile || {}));
+
+  res.json({
+    username: req.user.username,
+    role: req.user.role,
+    scope,
+    accessProfile: roleCanBypassRestrictedProfile(role)
+      ? null
+      : {
+          accreditationLevel: String(accessProfile?.accreditationLevel || 'standard').trim() || 'standard',
+          allowedModules: Array.from(normalizeModuleList(accessProfile?.allowedModules || '')),
+          deniedModules: Array.from(normalizeModuleList(accessProfile?.deniedModules || '')),
+          forcedModule: String(accessProfile?.forcedModule || '').trim().toLowerCase(),
+          notes: String(accessProfile?.notes || '').trim(),
+          effectiveModules,
+        },
+  });
 });
 
 app.post('/api/gps/ingest', async (req, res) => {
@@ -4513,7 +4702,210 @@ app.get('/api/users', async (_req, res) => {
     )
     ORDER BY username
   `);
-  res.json(rows);
+  const normalizedRows = (Array.isArray(rows) ? rows : []).map(row => ({
+    ...row,
+    initialPasswordHint: resolveKnownUserPasswordHint(row?.username, row?.role, row?.initialPasswordHint),
+  }));
+
+  const scoreRow = row => {
+    let score = 0;
+    if (Number(row?.hasUserAccount || 0) === 1) score += 10;
+    if (String(row?.linkedEmployeeName || '').trim()) score += 3;
+    if (String(row?.initialPasswordHint || '').trim() && String(row?.initialPasswordHint || '').trim() !== '-') score += 1;
+    return score;
+  };
+
+  const byUsername = new Map();
+  for (const row of normalizedRows) {
+    const username = String(row?.username || '').trim();
+    if (!username) continue;
+    const key = username.toLowerCase();
+    const existing = byUsername.get(key);
+    if (!existing || scoreRow(row) > scoreRow(existing)) {
+      byUsername.set(key, row);
+    }
+  }
+
+  const uniqueRows = Array.from(byUsername.values()).sort((a, b) => String(a?.username || '').localeCompare(String(b?.username || ''), 'fr', { sensitivity: 'base' }));
+  res.json(uniqueRows);
+});
+
+app.get('/api/admin/access-profiles', async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+
+    const users = await all('SELECT id, username, role, createdAt FROM users ORDER BY username ASC');
+    const profiles = await all('SELECT * FROM user_access_profiles ORDER BY username ASC');
+    const profileByUsername = new Map((profiles || []).map(row => [String(row?.username || '').trim().toLowerCase(), row]));
+
+    const rows = [];
+    for (const user of (users || [])) {
+      const username = String(user?.username || '').trim();
+      if (!username) continue;
+
+      const linkedEmployee = await get(
+        `SELECT id, fullName, jobTitle, username, createdBy
+         FROM hr_employees
+         WHERE LOWER(TRIM(COALESCE(username, ''))) = LOWER(TRIM(?))
+            OR LOWER(TRIM(COALESCE(createdBy, ''))) = LOWER(TRIM(?))
+         ORDER BY updatedAt DESC, id DESC
+         LIMIT 1`,
+        [username, username]
+      );
+
+      const profile = profileByUsername.get(username.toLowerCase()) || null;
+      const baselineModules = Array.from(getAccessProfileBaselineModules(user?.role || user?.roleSnapshot || profile?.roleSnapshot || '', username));
+      const effectiveModules = roleCanBypassRestrictedProfile(user?.role)
+        ? baselineModules
+        : Array.from(computeEffectiveModulesForAccessProfile(profile || {}));
+
+      rows.push({
+        username,
+        role: String(user?.role || '').trim(),
+        createdAt: String(user?.createdAt || '').trim(),
+        linkedEmployee,
+        baselineModules,
+        accreditationLevel: String(profile?.accreditationLevel || 'standard').trim() || 'standard',
+        allowedModules: Array.from(normalizeModuleList(profile?.allowedModules || '')),
+        deniedModules: Array.from(normalizeModuleList(profile?.deniedModules || '')),
+        forcedModule: String(profile?.forcedModule || '').trim().toLowerCase(),
+        notes: String(profile?.notes || '').trim(),
+        effectiveModules,
+      });
+    }
+
+    return res.json(rows);
+  } catch (err) {
+    return res.status(500).json({ error: 'Erreur chargement dossiers profils', details: String(err?.message || err) });
+  }
+});
+
+app.patch('/api/admin/access-profiles/:username', async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+
+    const username = String(req.params.username || '').trim();
+    if (!username) {
+      return res.status(400).json({ error: 'username requis' });
+    }
+
+    const target = await get('SELECT id, username, role FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [username]);
+    if (!target) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    if (roleCanBypassRestrictedProfile(target.role)) {
+      return res.status(400).json({ error: 'Profil privilegie non modifiable via ce module' });
+    }
+
+    const accreditationLevel = String(req.body?.accreditationLevel || 'standard').trim().toLowerCase() || 'standard';
+    const allowedModules = normalizeModuleList(Array.isArray(req.body?.allowedModules) ? req.body.allowedModules.join(',') : req.body?.allowedModules || '');
+    const deniedModules = normalizeModuleList(Array.isArray(req.body?.deniedModules) ? req.body.deniedModules.join(',') : req.body?.deniedModules || '');
+    const forcedModule = String(req.body?.forcedModule || '').trim().toLowerCase();
+    const notes = String(req.body?.notes || '').trim();
+    const now = new Date().toISOString();
+    const actor = String(req.user?.username || 'admin').trim() || 'admin';
+
+    const existing = await get('SELECT id FROM user_access_profiles WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [username]);
+    if (existing?.id) {
+      await run(
+        `UPDATE user_access_profiles
+         SET roleSnapshot = ?, accreditationLevel = ?, allowedModules = ?, deniedModules = ?, forcedModule = ?, notes = ?, updatedAt = ?, updatedBy = ?
+         WHERE id = ?`,
+        [
+          String(target.role || '').trim(),
+          accreditationLevel,
+          serializeCsvSet(allowedModules),
+          serializeCsvSet(deniedModules),
+          forcedModule,
+          notes,
+          now,
+          actor,
+          Number(existing.id),
+        ]
+      );
+    } else {
+      const nextId = await getNextTableId('user_access_profiles');
+      await run(
+        `INSERT INTO user_access_profiles
+         (id, username, roleSnapshot, accreditationLevel, allowedModules, deniedModules, forcedModule, notes, createdAt, updatedAt, updatedBy)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          nextId,
+          username,
+          String(target.role || '').trim(),
+          accreditationLevel,
+          serializeCsvSet(allowedModules),
+          serializeCsvSet(deniedModules),
+          forcedModule,
+          notes,
+          now,
+          now,
+          actor,
+        ]
+      );
+    }
+
+    const saved = await getUserAccessProfileByUsername(username);
+    const baselineModules = Array.from(getAccessProfileBaselineModules(target.role, username));
+    const effectiveModules = Array.from(computeEffectiveModulesForAccessProfile(saved || {}));
+
+    await run(
+      'INSERT INTO user_access_profile_audit (id, username, action, payloadJson, changedBy, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
+      [
+        await getNextTableId('user_access_profile_audit'),
+        username,
+        'update_access_profile',
+        JSON.stringify({ accreditationLevel, allowedModules: Array.from(allowedModules), deniedModules: Array.from(deniedModules), forcedModule, notes }),
+        actor,
+        now,
+      ]
+    );
+
+    return res.json({
+      username,
+      role: String(target.role || '').trim(),
+      baselineModules,
+      accreditationLevel: String(saved?.accreditationLevel || 'standard').trim(),
+      allowedModules: Array.from(normalizeModuleList(saved?.allowedModules || '')),
+      deniedModules: Array.from(normalizeModuleList(saved?.deniedModules || '')),
+      forcedModule: String(saved?.forcedModule || '').trim().toLowerCase(),
+      notes: String(saved?.notes || '').trim(),
+      effectiveModules,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Erreur sauvegarde dossier profil', details: String(err?.message || err) });
+  }
+});
+
+app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+
+    const username = String(req.params.username || '').trim();
+    if (!username) {
+      return res.status(400).json({ error: 'username requis' });
+    }
+
+    const userRow = await get('SELECT id, username, role FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [username]);
+    if (!userRow) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const profile = await ensureHrProfileForUserAccount(userRow, String(req.user?.username || 'admin').trim() || 'admin');
+    return res.json({ message: 'Profil RH garanti', profile });
+  } catch (err) {
+    return res.status(500).json({ error: 'Erreur creation profil RH', details: String(err?.message || err) });
+  }
 });
 
 app.post('/api/project-catalog', async (req, res) => {
@@ -7063,7 +7455,7 @@ app.get('/api/guide-documents', async (_req, res) => {
   try {
     let rows = await all('SELECT * FROM guide_documents ORDER BY updatedAt DESC, id DESC');
     const role = String(_req.user?.role || '').trim();
-    const canManage = role === 'admin' || role === 'dirigeant';
+    const canManage = role === 'admin';
     if (!canManage) {
       const profile = await getHrProfileEmployeeForUser(_req.user);
       const currentEmployeeId = Number(profile?.id || 0);
@@ -7139,7 +7531,7 @@ app.get('/api/guide-documents', async (_req, res) => {
 app.post('/api/guide-documents/upload', async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
-    if (role !== 'dirigeant' && role !== 'admin') {
+    if (role !== 'admin') {
       return res.status(403).json({ error: 'Seul l\'admin peut importer des documents guide' });
     }
 
@@ -7194,7 +7586,7 @@ app.post('/api/guide-documents/upload', async (req, res) => {
 app.get('/api/guide-documents/recipients/employees', async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
-    if (role !== 'dirigeant' && role !== 'admin') {
+    if (role !== 'admin') {
       return res.status(403).json({ error: 'Seul l\'admin peut choisir des destinataires' });
     }
 
@@ -7219,7 +7611,7 @@ app.get('/api/guide-documents/recipients/employees', async (req, res) => {
 app.patch('/api/guide-documents/:id/rename', async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
-    if (role !== 'dirigeant' && role !== 'admin') {
+    if (role !== 'admin') {
       return res.status(403).json({ error: 'Seul l\'admin peut renommer les documents guide' });
     }
 
@@ -7253,7 +7645,7 @@ app.patch('/api/guide-documents/:id/rename', async (req, res) => {
 app.delete('/api/guide-documents/:id', async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
-    if (role !== 'dirigeant' && role !== 'admin') {
+    if (role !== 'admin') {
       return res.status(403).json({ error: 'Seul l\'admin peut supprimer les documents guide' });
     }
 
@@ -7299,7 +7691,7 @@ app.get('/api/guide-documents/:id/download', async (req, res) => {
     }
 
     const role = String(req.user?.role || '').trim();
-    const canManage = role === 'admin' || role === 'dirigeant';
+    const canManage = role === 'admin';
     if (!canManage) {
       const scope = String(row?.audienceScope || 'all').trim().toLowerCase() === 'selected' ? 'selected' : 'all';
       if (scope === 'selected') {
@@ -8478,6 +8870,36 @@ async function archiveHrEmployeeDocument({ employeeId, title = '', fileName = ''
 }
 
 app.get('/api/hr/employees', async (_req, res) => {
+  const role = String(_req.user?.role || '').trim();
+  if (!roleCanBypassRestrictedProfile(role)) {
+    let profileEmployee = await getHrProfileEmployeeForUser(_req.user);
+    if (!profileEmployee?.id) {
+      const userRow = await get('SELECT id, username, role FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [String(_req.user?.username || '').trim()]);
+      if (userRow?.username) {
+        profileEmployee = await ensureHrProfileForUserAccount(userRow, 'auto_profile_sync');
+      }
+    }
+
+    if (!profileEmployee?.id) {
+      return res.json([]);
+    }
+
+    const row = await get(
+      `SELECT id, fullName, jobTitle,
+              COALESCE(NULLIF(sexe, ''), 'Neant') AS sexe,
+              COALESCE(NULLIF(typeContrat, ''), 'Neant') AS typeContrat,
+              COALESCE(NULLIF(dateEmbauche, ''), SUBSTR(createdAt, 1, 10)) AS dateEmbauche,
+              phoneNumber, address, maritalStatus, COALESCE(NULLIF(email, ''), '') AS email,
+              COALESCE(username, createdBy, '') AS username, createdBy, createdAt, updatedAt
+       FROM hr_employees
+       WHERE id = ?
+       LIMIT 1`,
+      [Number(profileEmployee.id)]
+    );
+
+    return res.json(row ? [row] : []);
+  }
+
   const scopedEmployeeIds = await getHrScopedEmployeeIdsForUser(_req.user);
   if (scopedEmployeeIds && !scopedEmployeeIds.length) {
     return res.json([]);
@@ -8650,6 +9072,10 @@ function normalizeHrHireDate(value) {
 }
 
 app.post('/api/hr/employees', async (req, res) => {
+  if (!roleCanBypassRestrictedProfile(req.user?.role)) {
+    return res.status(403).json({ error: 'Creation employe reservee a admin/directeur_rh' });
+  }
+
   const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', email = '', username = '' } = req.body || {};
   const nameValue = String(fullName || '').trim();
   const hireDateValue = normalizeHrHireDate(dateEmbauche);
@@ -8702,6 +9128,13 @@ app.get('/api/hr/employees/:id/documents', async (req, res) => {
     return res.status(404).json({ error: 'Employe introuvable' });
   }
 
+  if (!roleCanBypassRestrictedProfile(req.user?.role)) {
+    const profileEmployee = await getHrProfileEmployeeForUser(req.user);
+    if (!profileEmployee?.id || Number(profileEmployee.id) !== employeeId) {
+      return res.status(403).json({ error: 'Acces refuse a ce dossier employe' });
+    }
+  }
+
   const includeSignature = String(req.query.includeSignature || '').trim() === '1';
   const whereClauses = ['employeeId = ?'];
   const params = [employeeId];
@@ -8732,6 +9165,13 @@ app.post('/api/hr/employees/:id/documents', async (req, res) => {
   const employee = await get('SELECT id FROM hr_employees WHERE id = ?', [employeeId]);
   if (!employee) {
     return res.status(404).json({ error: 'Employe introuvable' });
+  }
+
+  if (!roleCanBypassRestrictedProfile(req.user?.role)) {
+    const profileEmployee = await getHrProfileEmployeeForUser(req.user);
+    if (!profileEmployee?.id || Number(profileEmployee.id) !== employeeId) {
+      return res.status(403).json({ error: 'Acces refuse a ce dossier employe' });
+    }
   }
 
   const { title = '', fileName = '', contentBase64 = '', mimeType = '', sourceModule = 'employee_dossier' } = req.body || {};
@@ -8774,6 +9214,13 @@ app.delete('/api/hr/employees/documents/:docId', async (req, res) => {
     return res.status(404).json({ error: 'Document introuvable' });
   }
 
+  if (!roleCanBypassRestrictedProfile(req.user?.role)) {
+    const profileEmployee = await getHrProfileEmployeeForUser(req.user);
+    if (!profileEmployee?.id || Number(profileEmployee.id) !== Number(row.employeeId)) {
+      return res.status(403).json({ error: 'Acces refuse a ce document' });
+    }
+  }
+
   await run('DELETE FROM hr_employee_documents WHERE id = ?', [docId]);
   const filePath = path.join(ARCHIVE_ROOT, String(row.relativePath || ''));
   if (String(row.relativePath || '').trim() && fs.existsSync(filePath)) {
@@ -8792,6 +9239,13 @@ app.get('/api/hr/employees/documents/:docId/download', async (req, res) => {
   const row = await get('SELECT * FROM hr_employee_documents WHERE id = ?', [docId]);
   if (!row) {
     return res.status(404).json({ error: 'Document introuvable' });
+  }
+
+  if (!roleCanBypassRestrictedProfile(req.user?.role)) {
+    const profileEmployee = await getHrProfileEmployeeForUser(req.user);
+    if (!profileEmployee?.id || Number(profileEmployee.id) !== Number(row.employeeId)) {
+      return res.status(403).json({ error: 'Acces refuse a ce document' });
+    }
   }
 
   const filePath = path.join(ARCHIVE_ROOT, String(row.relativePath || ''));
