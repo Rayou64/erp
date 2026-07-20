@@ -7783,15 +7783,15 @@
                 </div>
                 <div class="form-group">
                   <label>Poste *</label>
-                  <input type="text" id="hr-employee-job" required placeholder="Ex: Gestionnaire achat" />
+                  <input type="text" id="hr-employee-job" placeholder="Ex: Gestionnaire achat" />
                 </div>
                 <div class="form-group">
                   <label>Date d'embauche *</label>
-                  <input type="date" id="hr-employee-hire-date" required />
+                  <input type="date" id="hr-employee-hire-date" />
                 </div>
                 <div class="form-group">
                   <label>Sexe *</label>
-                  <select id="hr-employee-sexe" required>
+                  <select id="hr-employee-sexe">
                     <option value="">Sélectionner</option>
                     <option value="M">Masculin</option>
                     <option value="F">Féminin</option>
@@ -7799,7 +7799,7 @@
                 </div>
                 <div class="form-group">
                   <label>Type de contrat *</label>
-                  <select id="hr-employee-contract-type" required>
+                  <select id="hr-employee-contract-type">
                     <option value="">Sélectionner</option>
                     <option value="CDI">CDI</option>
                     <option value="CDD">CDD</option>
@@ -17893,6 +17893,11 @@
       }
 
       const valueByField = {
+        fullName: employee.fullName,
+        jobTitle: employee.jobTitle,
+        dateEmbauche: String(employee.dateEmbauche || '').trim().slice(0, 10),
+        sexe: employee.sexe,
+        typeContrat: employee.typeContrat,
         phoneNumber: employee.phoneNumber,
         maritalStatus: employee.maritalStatus,
         address: employee.address,
@@ -17916,6 +17921,23 @@
           editControlHtml = `
             <select class="hr-inline-edit-select" data-hr-profile-edit-input="${escapeHtml(fieldKey)}">
               ${maritalOptions.map(option => `<option value="${escapeHtml(option)}"${option === value ? ' selected' : ''}>${escapeHtml(option || 'Non renseignée')}</option>`).join('')}
+            </select>
+          `;
+        } else if (fieldKey === 'sexe') {
+          const sexeOptions = ['', 'M', 'F'];
+          editControlHtml = `
+            <select class="hr-inline-edit-select" data-hr-profile-edit-input="${escapeHtml(fieldKey)}">
+              ${sexeOptions.map(option => {
+                const label = option === 'M' ? 'Masculin' : option === 'F' ? 'Féminin' : 'Non renseigné';
+                return `<option value="${escapeHtml(option)}"${option === value ? ' selected' : ''}>${escapeHtml(label)}</option>`;
+              }).join('')}
+            </select>
+          `;
+        } else if (fieldKey === 'typeContrat') {
+          const contractOptions = ['', 'CDI', 'CDD', 'Stage', 'Freelance', 'Intérim', 'Consultant', 'Autre'];
+          editControlHtml = `
+            <select class="hr-inline-edit-select" data-hr-profile-edit-input="${escapeHtml(fieldKey)}">
+              ${contractOptions.map(option => `<option value="${escapeHtml(option)}"${option === value ? ' selected' : ''}>${escapeHtml(option || 'Non renseigné')}</option>`).join('')}
             </select>
           `;
         } else {
@@ -18062,6 +18084,21 @@
 
               const projectSite = parseHrProjectSiteLabel(employee.address);
               const canAttachDocuments = profileMode ? canUploadHrProfileDocuments() : canManageHrData();
+              const fullNameInfoItem = profileMode
+                ? renderHrProfileEditableInfoItem(employee, 'fullName', 'Nom complet', employee.fullName, { inputType: 'text' })
+                : '';
+              const jobInfoItem = profileMode
+                ? renderHrProfileEditableInfoItem(employee, 'jobTitle', 'Poste', employee.jobTitle, { inputType: 'text' })
+                : `<div class="hr-info-item"><span class="hr-info-label">Poste</span><span class="hr-info-value">${escapeHtml(employee.jobTitle || '-')}</span></div>`;
+              const hireDateInfoItem = profileMode
+                ? renderHrProfileEditableInfoItem(employee, 'dateEmbauche', 'Date d\'embauche', String(employee.dateEmbauche || '').trim().slice(0, 10), { inputType: 'date' })
+                : `<div class="hr-info-item"><span class="hr-info-label">Date d'embauche</span><span class="hr-info-value">${escapeHtml(employee.dateEmbauche || '-')}</span></div>`;
+              const sexeInfoItem = profileMode
+                ? renderHrProfileEditableInfoItem(employee, 'sexe', 'Sexe', employee.sexe)
+                : `<div class="hr-info-item"><span class="hr-info-label">Sexe</span><span class="hr-info-value">${escapeHtml(employee.sexe || '-')}</span></div>`;
+              const contractTypeInfoItem = profileMode
+                ? renderHrProfileEditableInfoItem(employee, 'typeContrat', 'Type de contrat', employee.typeContrat)
+                : `<div class="hr-info-item"><span class="hr-info-label">Type de contrat</span><span class="hr-info-value">${escapeHtml(employee.typeContrat || '-')}</span></div>`;
               const phoneInfoItem = profileMode
                 ? renderHrProfileEditableInfoItem(employee, 'phoneNumber', 'Téléphone', employee.phoneNumber, { inputType: 'tel' })
                 : `<div class="hr-info-item"><span class="hr-info-label">Téléphone</span><span class="hr-info-value">${escapeHtml(employee.phoneNumber || '-')}</span></div>`;
@@ -18096,10 +18133,11 @@
                     `}
                   </div>
                   <div class="hr-employee-dossier-grid">
-                    <div class="hr-info-item"><span class="hr-info-label">Poste</span><span class="hr-info-value">${escapeHtml(employee.jobTitle || '-')}</span></div>
-                    <div class="hr-info-item"><span class="hr-info-label">Date d'embauche</span><span class="hr-info-value">${escapeHtml(employee.dateEmbauche || '-')}</span></div>
-                    <div class="hr-info-item"><span class="hr-info-label">Sexe</span><span class="hr-info-value">${escapeHtml(employee.sexe || '-')}</span></div>
-                    <div class="hr-info-item"><span class="hr-info-label">Type de contrat</span><span class="hr-info-value">${escapeHtml(employee.typeContrat || '-')}</span></div>
+                    ${fullNameInfoItem}
+                    ${jobInfoItem}
+                    ${hireDateInfoItem}
+                    ${sexeInfoItem}
+                    ${contractTypeInfoItem}
                     <div class="hr-info-item"><span class="hr-info-label">Projet</span><span class="hr-info-value">${escapeHtml(employee.projet || projectSite.project || '-')}</span></div>
                     <div class="hr-info-item"><span class="hr-info-label">Site</span><span class="hr-info-value">${escapeHtml(projectSite.site || '-')}</span></div>
                     ${phoneInfoItem}
@@ -19130,10 +19168,21 @@
         return;
       }
 
+      const sexeAllowed = new Set(['', 'M', 'F']);
+      if (fieldKey === 'sexe' && !sexeAllowed.has(draftValue)) {
+        showMessage('Valeur de sexe invalide', 'error');
+        return;
+      }
+
       const key = getHrProfileInlineStateKey(employeeId, fieldKey);
       hrProfileInlineEditState[key] = { editing: true, draft: draftValue };
 
       const payload = {
+        fullName: getHrProfileInlineDraft(employee, 'fullName'),
+        jobTitle: getHrProfileInlineDraft(employee, 'jobTitle'),
+        dateEmbauche: getHrProfileInlineDraft(employee, 'dateEmbauche'),
+        sexe: getHrProfileInlineDraft(employee, 'sexe'),
+        typeContrat: getHrProfileInlineDraft(employee, 'typeContrat'),
         phoneNumber: getHrProfileInlineDraft(employee, 'phoneNumber'),
         maritalStatus: getHrProfileInlineDraft(employee, 'maritalStatus'),
         address: getHrProfileInlineDraft(employee, 'address'),
@@ -25922,8 +25971,8 @@
           const address = document.getElementById('hr-employee-address').value.trim();
           const maritalStatus = document.getElementById('hr-employee-marital-status').value.trim();
           const linkedUsername = String(document.getElementById('hr-employee-linked-username')?.value || '').trim();
-          if (!fullName || !jobTitle || !dateEmbauche || !sexe || !typeContrat) {
-            showMessage('Nom, poste, date d\'embauche, sexe et type de contrat sont obligatoires', 'error');
+          if (!fullName) {
+            showMessage('Le nom complet est obligatoire', 'error');
             return;
           }
 

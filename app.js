@@ -9174,13 +9174,14 @@ app.post('/api/hr/employees', async (req, res) => {
 
   const { fullName, jobTitle = '', sexe = '', typeContrat = '', dateEmbauche = '', phoneNumber = '', address = '', maritalStatus = '', email = '', username = '' } = req.body || {};
   const nameValue = String(fullName || '').trim();
+  const rawHireDateValue = String(dateEmbauche || '').trim();
   const hireDateValue = normalizeHrHireDate(dateEmbauche);
   const normalizedEmail = normalizeHrEmail(email);
   if (!nameValue) {
     return res.status(400).json({ error: 'Nom employe obligatoire' });
   }
-  if (!hireDateValue) {
-    return res.status(400).json({ error: "Date d'embauche obligatoire (format AAAA-MM-JJ)" });
+  if (rawHireDateValue && !hireDateValue) {
+    return res.status(400).json({ error: "Date d'embauche invalide (format AAAA-MM-JJ)" });
   }
   if (!isValidHrEmail(normalizedEmail)) {
     return res.status(400).json({ error: 'Adresse email invalide' });
@@ -9375,13 +9376,30 @@ app.patch('/api/hr/employees/:id', async (req, res) => {
       return res.status(400).json({ error: 'Adresse email invalide' });
     }
 
+    const nameValue = String(fullName || profileEmployee.fullName || '').trim();
+    if (!nameValue) {
+      return res.status(400).json({ error: 'Nom employe obligatoire' });
+    }
+
+    const rawHireDateValue = String(dateEmbauche || '').trim();
+    const hireDateValue = normalizeHrHireDate(dateEmbauche);
+    if (rawHireDateValue && !hireDateValue) {
+      return res.status(400).json({ error: "Date d'embauche invalide (format AAAA-MM-JJ)" });
+    }
+
     const result = await run(
-      'UPDATE hr_employees SET phoneNumber = ?, address = ?, maritalStatus = ?, email = ?, updatedAt = ? WHERE id = ?',
+      'UPDATE hr_employees SET fullName = ?, jobTitle = ?, sexe = ?, typeContrat = ?, dateEmbauche = ?, phoneNumber = ?, address = ?, maritalStatus = ?, email = ?, username = ?, updatedAt = ? WHERE id = ?',
       [
+        nameValue,
+        String(jobTitle || '').trim(),
+        normalizeHrSexe(sexe),
+        normalizeHrContractType(typeContrat),
+        hireDateValue,
         String(phoneNumber || '').trim(),
         String(address || '').trim(),
         normalizedMarital,
         normalizedEmail,
+        String(username || profileEmployee.username || '').trim(),
         new Date().toISOString(),
         id,
       ]
@@ -9396,13 +9414,14 @@ app.patch('/api/hr/employees/:id', async (req, res) => {
   }
 
   const nameValue = String(fullName || '').trim();
+  const rawHireDateValue = String(dateEmbauche || '').trim();
   const hireDateValue = normalizeHrHireDate(dateEmbauche);
   const normalizedEmail = normalizeHrEmail(email);
   if (!id || !nameValue) {
     return res.status(400).json({ error: 'Employe invalide' });
   }
-  if (!hireDateValue) {
-    return res.status(400).json({ error: "Date d'embauche obligatoire (format AAAA-MM-JJ)" });
+  if (rawHireDateValue && !hireDateValue) {
+    return res.status(400).json({ error: "Date d'embauche invalide (format AAAA-MM-JJ)" });
   }
   if (!isValidHrEmail(normalizedEmail)) {
     return res.status(400).json({ error: 'Adresse email invalide' });
