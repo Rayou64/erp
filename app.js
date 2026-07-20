@@ -3876,7 +3876,7 @@ function getAccessProfileBaselineModules(role, username) {
       'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments',
       'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'
     ],
-    directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp'],
+    directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp', 'access-profiles'],
     dirigeant: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp'],
     achat: ['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
     controle_achat: ['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
@@ -5085,8 +5085,8 @@ app.post('/api/admin/mail/send', async (req, res) => {
 app.get('/api/admin/access-profiles', async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
-    if (role !== 'admin') {
-      return res.status(403).json({ error: 'Acces reserve a admin' });
+    if (role !== 'admin' && role !== 'directeur_rh') {
+      return res.status(403).json({ error: 'Acces reserve a admin/directeur_rh' });
     }
 
     const users = await all('SELECT id, username, role, createdAt FROM users ORDER BY username ASC');
@@ -5138,8 +5138,8 @@ app.get('/api/admin/access-profiles', async (req, res) => {
 app.patch('/api/admin/access-profiles/:username', async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
-    if (role !== 'admin') {
-      return res.status(403).json({ error: 'Acces reserve a admin' });
+    if (role !== 'admin' && role !== 'directeur_rh') {
+      return res.status(403).json({ error: 'Acces reserve a admin/directeur_rh' });
     }
 
     const username = String(req.params.username || '').trim();
@@ -5237,8 +5237,8 @@ app.patch('/api/admin/access-profiles/:username', async (req, res) => {
 app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
-    if (role !== 'admin') {
-      return res.status(403).json({ error: 'Acces reserve a admin' });
+    if (role !== 'admin' && role !== 'directeur_rh') {
+      return res.status(403).json({ error: 'Acces reserve a admin/directeur_rh' });
     }
 
     const username = String(req.params.username || '').trim();
