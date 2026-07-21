@@ -9486,9 +9486,14 @@
                 <h3 style="margin:0;">Destinataires</h3>
                 <p id="admin-mail-summary" style="font-size:12px; color:#64748b; margin:4px 0 0;">Chargement...</p>
               </div>
-              <div class="action-buttons" style="gap:8px;">
+              <div class="action-buttons" style="gap:8px; flex-wrap:wrap;">
                 <button type="button" class="button button-small button-secondary" onclick="loadAdminMailModule()">Actualiser</button>
+                <button type="button" class="button button-small button-primary" onclick="sendEmployeeAccessEmails()">Envoyer accès employés</button>
               </div>
+            </div>
+
+            <div style="margin-bottom:12px; padding:12px; border:1px solid #bfdbfe; background:#eff6ff; border-radius:12px; color:#1d4ed8; font-size:13px;">
+              Envoie un message automatique aux employés ayant un courriel RH, avec le lien public ERP, leur nom d'utilisateur et leur mot de passe connu.
             </div>
 
             <div class="form-group" style="margin-bottom:10px;">
@@ -11884,6 +11889,102 @@
           tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#b91c1c;">Erreur de chargement des utilisateurs</td></tr>';
         }
       }
+    }
+
+    async function loadAdminMailModule() {
+      const summary = document.getElementById('admin-mail-summary');
+      const results = document.getElementById('admin-mail-results');
+      const sendAllCheckbox = document.getElementById('admin-mail-send-all');
+      const recipientGroup = document.getElementById('admin-mail-recipient-group');
+      const recipientSelect = document.getElementById('admin-mail-recipient-select');
+
+      if (summary) summary.textContent = 'Chargement...';
+      if (results) results.textContent = 'Aucun envoi pour le moment.';
+
+      try {
+        const payload = await fetchJson('/api/admin/mail/recipients');
+        const recipients = Array.isArray(payload?.recipients) ? payload.recipients : [];
+        const withEmail = recipients.filter(item => String(item?.email || '').trim()).length;
+        if (summary) summary.textContent = `${recipients.length} destinataire(s) | ${withEmail} avec courriel`;
+
+        if (recipientSelect) {
+          recipientSelect.innerHTML = recipients.map(item => {
+            const username = String(item?.username || '').trim();
+            const label = `${String(item?.linkedEmployeeName || username || '-').trim()} (${username || '-'})`;
+            const email = String(item?.email || '').trim() || 'sans courriel';
+            return `<option value="${escapeHtml(username)}">${escapeHtml(label)} — ${escapeHtml(email)}</option>`;
+          }).join('');
+        }
+
+        const showPickList = sendAllCheckbox ? !sendAllCheckbox.checked : false;
+        if (recipientGroup) recipientGroup.style.display = showPickList ? '' : 'none';
+      } catch (err) {
+        if (summary) summary.textContent = 'Erreur de chargement';
+        if (results) results.textContent = `Erreur: ${err.message}`;
+      }
+    }
+
+    window.loadAdminMailModule = loadAdminMailModule;
+
+    window.sendEmployeeAccessEmails = async function sendEmployeeAccessEmails() {
+      const results = document.getElementById('admin-mail-results');
+      const subjectInput = document.getElementById('admin-mail-subject');
+
+      try {
+        if (results) results.textContent = 'Envoi en cours...';
+        const response = await fetchJson('/api/admin/mail/send-employee-access', {
+          method: 'POST',
+          body: JSON.stringify({ subject: String(subjectInput?.value || 'Accès ERP').trim() || 'Accès ERP' }),
+        });
+        const successCount = Number(response?.successCount || 0);
+        const failedCount = Number(response?.failedCount || 0);
+        const publicUrl = String(response?.publicUrl || '').trim();
+        if (results) {
+          results.innerHTML = `Envoi terminé: ${successCount} succès, ${failedCount} échec(s).${publicUrl ? `<br />Lien public utilisé: ${escapeHtml(publicUrl)}` : ''}`;
+        }
+        showMessage('Courriels employés envoyés');
+      } catch (err) {
+        if (results) results.textContent = `Erreur: ${err.message}`;
+        showMessage('Erreur envoi courriels employés: ' + err.message, 'error');
+      }
+    };
+
+    const adminMailSendAllCheckbox = document.getElementById('admin-mail-send-all');
+    if (adminMailSendAllCheckbox) {
+      adminMailSendAllCheckbox.addEventListener('change', () => {
+        const recipientGroup = document.getElementById('admin-mail-recipient-group');
+        if (recipientGroup) recipientGroup.style.display = adminMailSendAllCheckbox.checked ? 'none' : '';
+      });
+    }
+
+    const adminMailForm = document.getElementById('admin-mail-form');
+    if (adminMailForm) {
+      adminMailForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        const subject = String(document.getElementById('admin-mail-subject')?.value || '').trim();
+        const message = String(document.getElementById('admin-mail-message')?.value || '').trim();
+        const sendToAllWithEmail = Boolean(document.getElementById('admin-mail-send-all')?.checked);
+        const selectedRecipients = Array.from(document.getElementById('admin-mail-recipient-select')?.selectedOptions || []).map(option => String(option.value || '').trim()).filter(Boolean);
+
+        try {
+          const payload = await fetchJson('/api/admin/mail/send', {
+            method: 'POST',
+            body: JSON.stringify({
+              subject,
+              message,
+              sendToAllWithEmail,
+              recipientUsernames: selectedRecipients,
+            }),
+          });
+          const successCount = Number(payload?.successCount || 0);
+          const failedCount = Number(payload?.failedCount || 0);
+          document.getElementById('admin-mail-results').innerHTML = `Envoi terminé: ${successCount} succès, ${failedCount} échec(s).`;
+          showMessage('Courriels utilisateurs envoyés');
+        } catch (err) {
+          document.getElementById('admin-mail-results').textContent = `Erreur: ${err.message}`;
+          showMessage('Erreur envoi courriels utilisateurs: ' + err.message, 'error');
+        }
+      });
     }
 
     function populateAccessProfileForcedModuleOptions(selectedValue = '') {

@@ -326,6 +326,7 @@ const SMTP_SECURE = String(process.env.SMTP_SECURE || '0').trim() === '1';
 const SMTP_USER = String(process.env.SMTP_USER || '').trim();
 const SMTP_PASS = String(process.env.SMTP_PASS || '').trim();
 const MAIL_FROM = String(process.env.MAIL_FROM || SMTP_USER || '').trim();
+const PUBLIC_APP_URL = String(process.env.PUBLIC_APP_URL || 'https://ryanerp-hn5zd.ondigitalocean.app/erp.html').trim();
 let mailTransport = null;
 const IDENTITY_ROSTER = [
   { fullName: 'AGBODJRO BEUGRE AWO ELFRIED JOSEPH', hrUsername: 'AGBODJRO123', userUsername: 'AGBODJRO123', role: 'employe_standard', password: 'AGBODJRO123@2026' },
@@ -4954,6 +4955,134 @@ function collectUniqueMailRecipients(rows) {
   }
   return Array.from(byUsername.values()).sort((a, b) => a.username.localeCompare(b.username, 'fr', { sensitivity: 'base' }));
 }
+
+function buildEmployeeAccessMailRecipient(row) {
+  const username = String(row?.username || '').trim();
+  const fullName = String(row?.fullName || '').trim();
+  const email = normalizeHrEmail(row?.email || '');
+  const role = String(row?.role || 'employe_standard').trim().toLowerCase() || 'employe_standard';
+  const passwordHint = resolveKnownUserPasswordHint(username, role, '');
+  if (!username || !email || !passwordHint || passwordHint === '-') {
+    return null;
+  }
+
+  return {
+    username,
+    fullName,
+    role,
+    email,
+    passwordHint,
+  };
+}
+
+async function getEmployeeAccessMailRecipients() {
+  const rows = await all(`
+    SELECT
+      COALESCE(NULLIF(TRIM(he.username), ''), NULLIF(TRIM(u.username), ''), '') AS username,
+      COALESCE(NULLIF(TRIM(he.fullName), ''), COALESCE(NULLIF(TRIM(u.username), ''), 'Employé')) AS fullName,
+      COALESCE(NULLIF(TRIM(u.role), ''), 'employe_standard') AS role,
+      COALESCE(NULLIF(TRIM(he.email), ''), '') AS email
+    FROM hr_employees he
+    LEFT JOIN users u ON LOWER(TRIM(u.username)) = LOWER(TRIM(he.username))
+    WHERE COALESCE(NULLIF(TRIM(he.email), ''), '') <> ''
+    ORDER BY fullName ASC, username ASC
+  `);
+
+  return (Array.isArray(rows) ? rows : [])
+    .map(buildEmployeeAccessMailRecipient)
+    .filter(Boolean);
+}
+
+function buildEmployeeAccessMailText(recipient) {
+  const fullName = String(recipient?.fullName || '').trim() || 'Bonjour';
+  const username = String(recipient?.username || '').trim();
+  const passwordHint = String(recipient?.passwordHint || '').trim();
+  const publicUrl = PUBLIC_APP_URL || 'https://ryanerp-hn5zd.ondigitalocean.app/erp.html';
+
+  return [
+    `Bonjour ${fullName},`,
+    '',
+    'Votre accès au portail ERP est prêt.',
+    '',
+    `Lien public: ${publicUrl}`,
+    `Nom d'utilisateur: ${username}`,
+    `Mot de passe: ${passwordHint}`,
+    '',
+    'Connectez-vous avec ces identifiants puis changez votre mot de passe si cela vous est demandé par l’administrateur.',
+  ].join('\n');
+}
+
+app.get('/api/admin/mail/employee-access-recipients', async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+
+    const recipients = await getEmployeeAccessMailRecipients();
+    return res.json({
+      recipients,
+      total: recipients.length,
+      publicUrl: PUBLIC_APP_URL,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erreur chargement destinataires', details: String(error?.message || error) });
+  }
+});
+
+app.post('/api/admin/mail/send-employee-access', async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+
+    if (!MAIL_FROM) {
+      return res.status(400).json({ error: 'MAIL_FROM manquant dans la configuration SMTP' });
+    }
+
+    const subject = String(req.body?.subject || 'Accès ERP').trim() || 'Accès ERP';
+    const recipients = await getEmployeeAccessMailRecipients();
+    if (!recipients.length) {
+      return res.status(400).json({ error: 'Aucun employé avec adresse courriel valide et identifiants connus' });
+    }
+
+    const transport = getMailTransport();
+    const results = [];
+    for (const recipient of recipients) {
+      const text = buildEmployeeAccessMailText(recipient);
+      try {
+        await transport.sendMail({
+          from: MAIL_FROM,
+          to: recipient.email,
+          subject: `${subject} - ${recipient.fullName || recipient.username}`.trim(),
+          text,
+        });
+        results.push({ username: recipient.username, email: recipient.email, success: true });
+      } catch (error) {
+        results.push({
+          username: recipient.username,
+          email: recipient.email,
+          success: false,
+          error: String(error?.message || error),
+        });
+      }
+    }
+
+    const successCount = results.filter(item => item.success).length;
+    const failedCount = results.length - successCount;
+    return res.json({
+      publicUrl: PUBLIC_APP_URL,
+      subject,
+      totalAttempted: results.length,
+      successCount,
+      failedCount,
+      results,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erreur envoi courriels employés', details: String(error?.message || error) });
+  }
+});
 
 app.get('/api/admin/mail/recipients', async (req, res) => {
   try {
