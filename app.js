@@ -325,7 +325,7 @@ const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SMTP_SECURE = String(process.env.SMTP_SECURE || '0').trim() === '1';
 const SMTP_USER = String(process.env.SMTP_USER || '').trim();
 const SMTP_PASS = String(process.env.SMTP_PASS || '').trim();
-const MAIL_FROM = String(process.env.MAIL_FROM || SMTP_USER || '').trim();
+const MAIL_FROM = String(process.env.MAIL_FROM || SMTP_USER || `ERP <noreply@${process.env.PUBLIC_APP_HOST || 'ryanerp-hn5zd.ondigitalocean.app'}>`).trim();
 const PUBLIC_APP_URL = String(process.env.PUBLIC_APP_URL || 'https://ryanerp-hn5zd.ondigitalocean.app/erp.html').trim();
 let mailTransport = null;
 const IDENTITY_ROSTER = [
@@ -4919,19 +4919,23 @@ app.get('/api/users', async (_req, res) => {
 
 function getMailTransport() {
   if (mailTransport) return mailTransport;
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+  if (!SMTP_HOST || !SMTP_PORT) {
     throw new Error('Configuration SMTP incomplète');
   }
 
-  mailTransport = nodemailer.createTransport({
+  const transportOptions = {
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_SECURE,
-    auth: {
+  };
+  if (SMTP_USER && SMTP_PASS) {
+    transportOptions.auth = {
       user: SMTP_USER,
       pass: SMTP_PASS,
-    },
-  });
+    };
+  }
+
+  mailTransport = nodemailer.createTransport(transportOptions);
 
   return mailTransport;
 }
@@ -5035,10 +5039,6 @@ app.post('/api/admin/mail/send-employee-access', async (req, res) => {
     const role = String(req.user?.role || '').trim();
     if (role !== 'admin') {
       return res.status(403).json({ error: 'Acces reserve a admin' });
-    }
-
-    if (!MAIL_FROM) {
-      return res.status(400).json({ error: 'MAIL_FROM manquant dans la configuration SMTP' });
     }
 
     const subject = String(req.body?.subject || 'Accès ERP').trim() || 'Accès ERP';
@@ -5146,10 +5146,6 @@ app.post('/api/admin/mail/send', async (req, res) => {
 
     if (!subject || !message) {
       return res.status(400).json({ error: 'Sujet et message obligatoires' });
-    }
-
-    if (!MAIL_FROM) {
-      return res.status(400).json({ error: 'MAIL_FROM manquant dans la configuration SMTP' });
     }
 
     const rows = await all(`
