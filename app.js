@@ -9249,7 +9249,8 @@ async function archiveHrEmployeeDocument({ employeeId, title = '', fileName = ''
 
 app.get('/api/hr/employees', async (_req, res) => {
   const role = String(_req.user?.role || '').trim();
-  if (!roleCanBypassRestrictedProfile(role)) {
+  const isHrDirectorRole = role === 'directeur_rh';
+  if (!roleCanBypassRestrictedProfile(role) && !isHrDirectorRole) {
     let profileEmployee = await getHrProfileEmployeeForUser(_req.user);
     if (!profileEmployee?.id) {
       const userRow = await get('SELECT id, username, role FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [String(_req.user?.username || '').trim()]);
@@ -9303,6 +9304,22 @@ app.get('/api/hr/employees', async (_req, res) => {
 });
 
 app.get('/api/hr/employees/directory', async (req, res) => {
+  const role = String(req.user?.role || '').trim();
+  if (role === 'directeur_rh') {
+    const rows = await all(
+      `SELECT id, fullName, jobTitle,
+              COALESCE(NULLIF(sexe, ''), 'Neant') AS sexe,
+              COALESCE(NULLIF(typeContrat, ''), 'Neant') AS typeContrat,
+              COALESCE(NULLIF(dateEmbauche, ''), SUBSTR(createdAt, 1, 10)) AS dateEmbauche,
+              phoneNumber, address, maritalStatus, COALESCE(NULLIF(email, ''), '') AS email,
+              COALESCE(username, createdBy, '') AS username, createdBy, createdAt, updatedAt
+       FROM hr_employees
+       ORDER BY fullName ASC, id ASC`
+    );
+
+    return res.json(rows);
+  }
+
   const scopedEmployeeIds = await getHrScopedEmployeeIdsForUser(req.user);
   if (scopedEmployeeIds && !scopedEmployeeIds.length) {
     return res.json([]);
