@@ -10203,7 +10203,7 @@
     const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search', 'guide-erp']);
     const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave']);
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
-    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp', 'access-profiles']);
+    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
     const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp']);
     const STANDARD_EMPLOYEE_USERNAMES = new Set([
       'agbodjro123',
@@ -10243,9 +10243,10 @@
     const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp']);
       const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
     const RESTRICTED_DEFAULT_ALLOWED_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'guide-erp']);
+    const ADMIN_ONLY_MODULES = new Set(['access-profiles', 'admin-mail']);
     const ACCESS_PROFILE_MODULE_OPTIONS = [
       'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations',
-      'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'trash', 'assignments', 'hr-employees',
+      'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees',
       'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'
     ];
 
@@ -10326,7 +10327,7 @@
       const normalizedRole = String(role || '').trim().toLowerCase();
       const normalizedUsername = normalizeText(String(username || '').trim());
       const presets = {
-        admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'],
+        admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'],
         directeur_rh: Array.from(HR_DIRECTOR_ALLOWED_MODULES),
         dirigeant: Array.from(EXECUTIVE_ALLOWED_MODULES),
         achat: Array.from(ACHAT_ALLOWED_MODULES),
@@ -10779,7 +10780,7 @@
     }
 
     function isRestrictedRole() {
-      return !isAdmin() && !isHrDirector();
+      return !isAdmin();
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
@@ -11591,13 +11592,20 @@
     }
 
     function getAllowedModules() {
-      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'trash', 'assignments', 'hr-employees', 'hr-employee-search', 'hr-contracts', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
-      if (isHrDirector()) return HR_DIRECTOR_ALLOWED_MODULES;
-      if (currentUserAccessProfile && Array.isArray(currentUserAccessProfile.effectiveModules) && currentUserAccessProfile.effectiveModules.length) {
-        return new Set(currentUserAccessProfile.effectiveModules.map(item => String(item || '').trim()).filter(Boolean));
+      let allowed = null;
+      if (isAdmin()) {
+        allowed = new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees', 'hr-employee-search', 'hr-contracts', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
+      } else if (currentUserAccessProfile && Array.isArray(currentUserAccessProfile.effectiveModules) && currentUserAccessProfile.effectiveModules.length) {
+        allowed = new Set(currentUserAccessProfile.effectiveModules.map(item => String(item || '').trim().toLowerCase()).filter(Boolean));
+      } else {
+        allowed = new Set(RESTRICTED_DEFAULT_ALLOWED_MODULES);
       }
-      return new Set(RESTRICTED_DEFAULT_ALLOWED_MODULES);
-      return null;
+
+      if (!isAdmin()) {
+        ADMIN_ONLY_MODULES.forEach(moduleKey => allowed.delete(moduleKey));
+      }
+
+      return allowed;
     }
 
     function applyExecutiveReadOnlyState() {
@@ -12015,11 +12023,17 @@
       const row = (Array.isArray(accessProfilesCache) ? accessProfilesCache : []).find(item => String(item?.username || '').trim().toLowerCase() === safeUsername.toLowerCase());
       if (!row) return;
       const baselineModules = Array.from(getAccessProfileBaselineModules(row.role, row.username));
+      const nextAllowedModules = String(row?.role || '').trim().toLowerCase() === 'admin'
+        ? baselineModules
+        : baselineModules.filter(moduleKey => !ADMIN_ONLY_MODULES.has(String(moduleKey || '').trim().toLowerCase()));
+      const currentDeniedModules = normalizeAccessProfileModuleList(row.deniedModules || '');
+      const currentForcedModule = String(row.forcedModule || '').trim().toLowerCase();
+      const forcedModule = nextAllowedModules.includes(currentForcedModule) ? currentForcedModule : '';
       const payload = {
         accreditationLevel: String(row.accreditationLevel || 'standard').trim(),
-        allowedModules: baselineModules.join(','),
-        deniedModules: '',
-        forcedModule: '',
+        allowedModules: nextAllowedModules,
+        deniedModules: currentDeniedModules,
+        forcedModule,
         notes: String(row.notes || '').trim(),
       };
       try {
@@ -27757,7 +27771,7 @@
         tone: 'rh',
         description: 'Employes, conges, signatures',
         subtitle: 'Ressources humaines, pointage, conges et signatures.',
-        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'access-profiles'],
+        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures'],
       },
       {
         key: 'admin',
@@ -27766,7 +27780,7 @@
         tone: 'admin',
         description: 'Users, parametres, historique',
         subtitle: 'Administration, comptes et parametrage du systeme.',
-        modules: ['database', 'guide-erp', 'trash', 'users', 'settings', 'audit-log'],
+        modules: ['database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'users', 'settings', 'audit-log'],
       },
     ];
 
@@ -29653,9 +29667,23 @@
       loadProjects();
       addPoItemRow();
       updatePoOrderTotal();
-      returnToHomeScreen();
-      if (openModuleFromPush) {
+      const allowedModules = getAllowedModules();
+      const forcedModule = String(currentUserAccessProfile?.forcedModule || '').trim().toLowerCase();
+      const hasForcedModule = forcedModule && allowedModules.has(forcedModule);
+      const firstAllowedModule = hasForcedModule
+        ? forcedModule
+        : (allowedModules.has('dashboard')
+          ? 'dashboard'
+          : (Array.from(allowedModules)[0] || 'dashboard'));
+
+      if (openModuleFromPush && allowedModules.has(openModuleFromPush)) {
         showModule(openModuleFromPush);
+      } else {
+        showModule(firstAllowedModule);
+      }
+
+      if (window.innerWidth <= 900) {
+        setSidebarCollapsed(true);
       }
     })();
   </script>
