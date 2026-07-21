@@ -9881,7 +9881,7 @@
     const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search', 'guide-erp']);
     const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave']);
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
-    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp', 'access-profiles']);
+    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
     const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp']);
     const STANDARD_EMPLOYEE_USERNAMES = new Set([
       'agbodjro123',
@@ -9920,6 +9920,111 @@
     const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
     const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp']);
       const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
+    const RESTRICTED_DEFAULT_ALLOWED_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'guide-erp']);
+    const ADMIN_ONLY_MODULES = new Set(['access-profiles', 'admin-mail']);
+    const ACCESS_PROFILE_MODULE_OPTIONS = [
+      'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations',
+      'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees',
+      'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'
+    ];
+
+    function getAccessProfileModuleLabel(moduleKey) {
+      const key = String(moduleKey || '').trim();
+      if (!key) return '';
+      const normalized = key.toLowerCase();
+      const fallbackLabels = {
+        'access-profiles': 'Dossiers profils',
+        'audit-log': 'Journal audit',
+        'assignments': 'Affectations',
+        'database': 'Base de donnée',
+        'dashboard': 'Tableau de bord',
+        'documents': 'Documents',
+        'expenses': 'Dépenses',
+        'guide-erp': 'Guide ERP',
+        'hr-attendance': 'Présence RH',
+        'hr-calendar': 'Calendrier RH',
+        'hr-employees': 'Employés RH',
+        'hr-leave': 'Congés RH',
+        'hr-signatures': 'Signatures RH',
+        'inventory': 'Inventaire',
+        'journal-chantier': 'Journal chantier',
+        'maps': 'Cartographie',
+        'material-catalog': 'Catalogue matériaux',
+        'materials': 'Matériaux',
+        'parc-auto': 'Parc auto',
+        'projects': 'Projets',
+        'project-progress': 'Avancement projets',
+        'purchase-orders': 'Bons de commande',
+        'reports': 'Rapports',
+        'revenues': 'Revenus',
+        'settings': 'Paramètres',
+        'sortie-autorisations': 'Autorisations de sortie',
+        'stock-management': 'Gestion stock',
+        'trash': 'Corbeille',
+        'users': 'Utilisateurs',
+      };
+      const menuItem = document.querySelector(`.menu-item[data-module="${CSS.escape(normalized)}"]`);
+      if (menuItem) {
+        return String(menuItem.textContent || '').replace(/\s+/g, ' ').trim();
+      }
+      return fallbackLabels[normalized] || key;
+    }
+
+    function refreshAccessProfileModuleCatalog() {
+      const seen = new Set();
+      const catalog = [];
+      document.querySelectorAll('.menu-item[data-module]').forEach(item => {
+        const key = String(item.dataset.module || '').trim().toLowerCase();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        catalog.push({ key, label: String(item.textContent || '').replace(/\s+/g, ' ').trim() || getAccessProfileModuleLabel(key) });
+      });
+
+      ACCESS_PROFILE_MODULE_OPTIONS.forEach(key => {
+        const normalized = String(key || '').trim().toLowerCase();
+        if (!normalized || seen.has(normalized)) return;
+        seen.add(normalized);
+        catalog.push({ key: normalized, label: getAccessProfileModuleLabel(normalized) });
+      });
+
+      accessProfileModuleCatalog = catalog.filter(item => item.key !== '');
+      return accessProfileModuleCatalog;
+    }
+
+    function normalizeAccessProfileModuleList(value) {
+      if (Array.isArray(value)) {
+        return Array.from(new Set(value.map(item => String(item || '').trim().toLowerCase()).filter(Boolean)));
+      }
+      return Array.from(new Set(String(value || '')
+        .split(',')
+        .map(item => String(item || '').trim().toLowerCase())
+        .filter(Boolean)));
+    }
+
+    function getAccessProfileBaselineModules(role, username) {
+      const normalizedRole = String(role || '').trim().toLowerCase();
+      const normalizedUsername = normalizeText(String(username || '').trim());
+      const presets = {
+        admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'],
+        directeur_rh: Array.from(HR_DIRECTOR_ALLOWED_MODULES),
+        dirigeant: Array.from(EXECUTIVE_ALLOWED_MODULES),
+        achat: Array.from(ACHAT_ALLOWED_MODULES),
+        controle_achat: Array.from(PROCUREMENT_REVIEWER_ALLOWED_MODULES),
+        controle_achat_global: Array.from(PROCUREMENT_REVIEWER_ALLOWED_MODULES),
+        commis: Array.from(COMMIS_ALLOWED_MODULES),
+        gestionnaire_stock: Array.from(GEST_STOCK_ALLOWED_MODULES),
+        gestionnaire_stock_zone: Array.from(ZONE_STOCK_MANAGER_ALLOWED_MODULES),
+        gestionnaire_stock_songon: Array.from(KOKAN_ALLOWED_MODULES),
+        chef_chantier_site: Array.from(SITE_CHIEF_ALLOWED_MODULES),
+        employe_standard: Array.from(STANDARD_EMPLOYEE_ALLOWED_MODULES),
+      };
+
+      if (normalizedRole === 'gestionnaire_stock_songon' && normalizedUsername === 'kokan_sk') {
+        return new Set(Array.from(KOKAN_ALLOWED_MODULES));
+      }
+
+      return new Set(presets[normalizedRole] || []);
+    }
     const AUTO_MAP_REFRESH_MS = 10000;
     const AUTO_DASHBOARD_REFRESH_MS = 30000;
 
@@ -10353,7 +10458,7 @@
     }
 
     function isRestrictedRole() {
-      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive() || isAchat() || isHrDirector() || isStandardEmployeeProfileRole();
+      return !isAdmin();
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
@@ -11153,19 +11258,20 @@
     }
 
     function getAllowedModules() {
-      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'trash', 'assignments', 'hr-employees', 'hr-employee-search', 'hr-contracts', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
-      if (isHrDirector()) return HR_DIRECTOR_ALLOWED_MODULES;
-      if (isStandardEmployeeProfileRole()) return STANDARD_EMPLOYEE_ALLOWED_MODULES;
-      if (isExecutive()) return EXECUTIVE_ALLOWED_MODULES;
-      if (isProcurementReviewer()) return PROCUREMENT_REVIEWER_ALLOWED_MODULES;
-      if (isKokanStockManager()) return KOKAN_ALLOWED_MODULES;
-      if (isOpsReviewer()) return OPS_REVIEWER_ALLOWED_MODULES;
-      if (isSiteChief()) return SITE_CHIEF_ALLOWED_MODULES;
-      if (isZoneStockManager()) return ZONE_STOCK_MANAGER_ALLOWED_MODULES;
-      if (isGestStock()) return GEST_STOCK_ALLOWED_MODULES;
-      if (isCommis()) return COMMIS_ALLOWED_MODULES;
-      if (isAchat()) return ACHAT_ALLOWED_MODULES;
-      return null;
+      let allowed = null;
+      if (isAdmin()) {
+        allowed = new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees', 'hr-employee-search', 'hr-contracts', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
+      } else if (currentUserAccessProfile && Array.isArray(currentUserAccessProfile.effectiveModules) && currentUserAccessProfile.effectiveModules.length) {
+        allowed = new Set(currentUserAccessProfile.effectiveModules.map(item => String(item || '').trim().toLowerCase()).filter(Boolean));
+      } else {
+        allowed = new Set(RESTRICTED_DEFAULT_ALLOWED_MODULES);
+      }
+
+      if (!isAdmin()) {
+        ADMIN_ONLY_MODULES.forEach(moduleKey => allowed.delete(moduleKey));
+      }
+
+      return allowed;
     }
 
     function applyExecutiveReadOnlyState() {
@@ -11452,6 +11558,46 @@
         return;
       }
 
+      list.innerHTML = rows.map(row => {
+        const username = String(row?.username || '').trim();
+        const isSelected = username.toLowerCase() === String(selectedAccessProfileUsername || '').trim().toLowerCase();
+        const linked = String(row?.linkedEmployee?.fullName || '').trim();
+        const roleLabel = getRoleDisplayLabel(String(row?.role || '').trim());
+        const modules = Array.isArray(row?.effectiveModules) ? row.effectiveModules : [];
+        return `
+          <li class="list-item" style="cursor:pointer; border:${isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0'};" onclick="selectAccessProfile('${escapeHtml(username)}')">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <div>
+                <div class="list-item-title">${escapeHtml(username || '-')}</div>
+                <div class="list-item-meta">${escapeHtml(roleLabel)} • ${escapeHtml(linked || 'Profil RH manquant')}</div>
+                <div class="list-item-meta">Modules visibles: ${escapeHtml(modules.map(getAccessProfileModuleLabel).join(', ') || 'Aucun')}</div>
+              </div>
+              <button type="button" class="button button-small button-secondary" onclick="event.stopPropagation(); window.restoreAccessProfileBaseline('${escapeHtml(username)}')">Restaurer</button>
+            </div>
+          </li>
+        `;
+      }).join('');
+    }
+
+    window.restoreAccessProfileBaseline = async function restoreAccessProfileBaseline(username) {
+      const safeUsername = String(username || '').trim();
+      if (!safeUsername || !isAdmin()) return;
+      const row = (Array.isArray(accessProfilesCache) ? accessProfilesCache : []).find(item => String(item?.username || '').trim().toLowerCase() === safeUsername.toLowerCase());
+      if (!row) return;
+      const baselineModules = Array.from(getAccessProfileBaselineModules(row.role, row.username));
+      const nextAllowedModules = String(row?.role || '').trim().toLowerCase() === 'admin'
+        ? baselineModules
+        : baselineModules.filter(moduleKey => !ADMIN_ONLY_MODULES.has(String(moduleKey || '').trim().toLowerCase()));
+      const currentDeniedModules = normalizeAccessProfileModuleList(row.deniedModules || '');
+      const currentForcedModule = String(row.forcedModule || '').trim().toLowerCase();
+      const forcedModule = nextAllowedModules.includes(currentForcedModule) ? currentForcedModule : '';
+      const payload = {
+        accreditationLevel: String(row.accreditationLevel || 'standard').trim(),
+        allowedModules: nextAllowedModules,
+        deniedModules: currentDeniedModules,
+        forcedModule,
+        notes: String(row.notes || '').trim(),
+      };
       try {
         const result = await fetchJson('/api/admin/reconcile-hr-users', { method: 'POST' });
         showMessage(`Synchronisation RH effectuée: ${result?.created?.length || 0} créé(s), ${result?.updated?.length || 0} existant(s)`);
@@ -26802,7 +26948,7 @@
         tone: 'rh',
         description: 'Employes, conges, signatures',
         subtitle: 'Ressources humaines, pointage, conges et signatures.',
-        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'access-profiles'],
+        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures'],
       },
       {
         key: 'admin',
@@ -26811,7 +26957,7 @@
         tone: 'admin',
         description: 'Users, parametres, historique',
         subtitle: 'Administration, comptes et parametrage du systeme.',
-        modules: ['database', 'guide-erp', 'trash', 'users', 'settings', 'audit-log'],
+        modules: ['database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'users', 'settings', 'audit-log'],
       },
     ];
 
@@ -28689,9 +28835,23 @@
       loadProjects();
       addPoItemRow();
       updatePoOrderTotal();
-      returnToHomeScreen();
-      if (openModuleFromPush) {
+      const allowedModules = getAllowedModules();
+      const forcedModule = String(currentUserAccessProfile?.forcedModule || '').trim().toLowerCase();
+      const hasForcedModule = forcedModule && allowedModules.has(forcedModule);
+      const firstAllowedModule = hasForcedModule
+        ? forcedModule
+        : (allowedModules.has('dashboard')
+          ? 'dashboard'
+          : (Array.from(allowedModules)[0] || 'dashboard'));
+
+      if (openModuleFromPush && allowedModules.has(openModuleFromPush)) {
         showModule(openModuleFromPush);
+      } else {
+        showModule(firstAllowedModule);
+      }
+
+      if (window.innerWidth <= 900) {
+        setSidebarCollapsed(true);
       }
     })();
   </script>

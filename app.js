@@ -3632,7 +3632,8 @@ process.on('unhandledRejection', reason => {
   console.error('Promesse rejetee non geree:', reason);
 });
 
-const PRIVILEGED_ROLES = new Set(['admin', 'directeur_rh']);
+const PRIVILEGED_ROLES = new Set(['admin']);
+const ADMIN_ONLY_MODULES = new Set(['access-profiles', 'admin-mail']);
 const RH_GUIDE_BASE_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'guide-erp']);
 const MODULE_ACCESS_ROUTE_RULES = {
   dashboard: [{ method: 'GET', pattern: /^\/auth\/me$/ }],
@@ -3712,13 +3713,22 @@ function normalizeModuleList(value) {
   );
 }
 
+function sanitizeAccessProfileModulesForTargetRole(modulesSet, targetRole) {
+  const normalizedRole = String(targetRole || '').trim().toLowerCase();
+  const sanitized = new Set(Array.from(modulesSet || []).map(item => String(item || '').trim().toLowerCase()).filter(Boolean));
+  if (normalizedRole !== 'admin') {
+    for (const moduleKey of ADMIN_ONLY_MODULES) {
+      sanitized.delete(moduleKey);
+    }
+  }
+  return sanitized;
+}
+
 function computeEffectiveModulesForAccessProfile(profileRow) {
   const allowed = normalizeModuleList(profileRow?.allowedModules || '');
   const denied = normalizeModuleList(profileRow?.deniedModules || '');
-  const effective = new Set(RH_GUIDE_BASE_MODULES);
-  for (const moduleKey of allowed) {
-    effective.add(moduleKey);
-  }
+  const hasStrictAllowedModules = String(profileRow?.allowedModules || '').trim().length > 0;
+  const effective = hasStrictAllowedModules ? new Set(allowed) : new Set(RH_GUIDE_BASE_MODULES);
   for (const moduleKey of denied) {
     effective.delete(moduleKey);
   }
@@ -3738,7 +3748,7 @@ function getAccessProfileBaselineModules(role, username) {
       'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments',
       'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'
     ],
-    directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp', 'access-profiles'],
+    directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp'],
     dirigeant: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp'],
     achat: ['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
     controle_achat: ['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search', 'guide-erp'],
@@ -3919,11 +3929,61 @@ async function authorizeRoleAccess(req, res, next) {
       return next();
     }
 
-  if (
-    method === 'GET'
-    && (/^\/guide-documents$/.test(pathName) || /^\/guide-documents\/\d+\/download$/.test(pathName) || /^\/guide-documents\/recipients\/employees$/.test(pathName))
-  ) {
-    return next();
+    const method = String(req.method || '').toUpperCase();
+    const pathName = String(req.path || '');
+
+    const alwaysAllowedRules = [
+      { method: 'GET', pattern: /^\/auth\/me$/ },
+      { method: 'GET', pattern: /^\/push\/public-key$/ },
+      { method: 'POST', pattern: /^\/push\/subscribe$/ },
+      { method: 'GET', pattern: /^\/guide-documents$/ },
+      { method: 'GET', pattern: /^\/guide-documents\/\d+\/download$/ },
+      { method: 'GET', pattern: /^\/hr\/dashboard-summary$/ },
+      { method: 'GET', pattern: /^\/hr\/employees$/ },
+      { method: 'GET', pattern: /^\/hr\/employees\/directory$/ },
+      { method: 'PATCH', pattern: /^\/hr\/employees\/\d+$/ },
+      { method: 'GET', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+      { method: 'POST', pattern: /^\/hr\/employees\/\d+\/documents$/ },
+      { method: 'DELETE', pattern: /^\/hr\/employees\/documents\/\d+$/ },
+      { method: 'GET', pattern: /^\/hr\/employees\/documents\/\d+\/download$/ },
+      { method: 'GET', pattern: /^\/hr\/attendance$/ },
+      { method: 'POST', pattern: /^\/hr\/attendance$/ },
+      { method: 'PATCH', pattern: /^\/hr\/attendance\/\d+$/ },
+      { method: 'GET', pattern: /^\/hr\/leave-requests$/ },
+      { method: 'POST', pattern: /^\/hr\/leave-requests$/ },
+      { method: 'PATCH', pattern: /^\/hr\/leave-requests\/\d+\/status$/ },
+      { method: 'GET', pattern: /^\/hr\/contracts$/ },
+      { method: 'POST', pattern: /^\/hr\/contracts$/ },
+      { method: 'PATCH', pattern: /^\/hr\/contracts\/\d+$/ },
+      { method: 'DELETE', pattern: /^\/hr\/contracts\/\d+$/ },
+      { method: 'GET', pattern: /^\/hr\/leave-calendar$/ },
+      { method: 'GET', pattern: /^\/hr\/signature-requests$/ },
+      { method: 'POST', pattern: /^\/hr\/signature-requests$/ },
+      { method: 'DELETE', pattern: /^\/hr\/signature-requests\/\d+$/ },
+      { method: 'POST', pattern: /^\/hr\/signature-requests\/\d+\/sign$/ },
+      { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
+      { method: 'GET', pattern: /^\/hr\/employee-profile\/pending-signatures$/ },
+      { method: 'GET', pattern: /^\/hr\/document-signatures\/\d+$/ },
+    ];
+
+    if (alwaysAllowedRules.some(rule => rule.method === method && rule.pattern.test(pathName))) {
+      return next();
+    }
+
+    const profile = await getUserAccessProfileByUsername(req.user?.username);
+    const baselineModules = Array.from(getAccessProfileBaselineModules(role, req.user?.username));
+    const effectiveModules = computeEffectiveModulesForAccessProfile(profile || {
+      allowedModules: baselineModules.join(','),
+      deniedModules: '',
+      forcedModule: '',
+    });
+    if (isRouteAllowedByModuleSet(method, pathName, effectiveModules)) {
+      return next();
+    }
+
+    return res.status(403).json({ error: 'Acces limite au bloc RH et Guide ERP pour ce profil' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erreur controle acces profil', details: String(error?.message || error) });
   }
 
   if (
@@ -5214,8 +5274,8 @@ app.post('/api/admin/mail/send', async (req, res) => {
 app.get('/api/admin/access-profiles', async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
-    if (role !== 'admin' && role !== 'directeur_rh') {
-      return res.status(403).json({ error: 'Acces reserve a admin/directeur_rh' });
+    if (role !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
     }
 
     const users = await all('SELECT id, username, role, createdAt FROM users ORDER BY username ASC');
@@ -5267,8 +5327,8 @@ app.get('/api/admin/access-profiles', async (req, res) => {
 app.patch('/api/admin/access-profiles/:username', async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
-    if (role !== 'admin' && role !== 'directeur_rh') {
-      return res.status(403).json({ error: 'Acces reserve a admin/directeur_rh' });
+    if (role !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
     }
 
     const username = String(req.params.username || '').trim();
@@ -5282,9 +5342,13 @@ app.patch('/api/admin/access-profiles/:username', async (req, res) => {
     }
 
     const accreditationLevel = String(req.body?.accreditationLevel || 'standard').trim().toLowerCase() || 'standard';
-    const allowedModules = normalizeModuleList(Array.isArray(req.body?.allowedModules) ? req.body.allowedModules.join(',') : req.body?.allowedModules || '');
-    const deniedModules = normalizeModuleList(Array.isArray(req.body?.deniedModules) ? req.body.deniedModules.join(',') : req.body?.deniedModules || '');
-    const forcedModule = String(req.body?.forcedModule || '').trim().toLowerCase();
+    const requestedAllowedModules = normalizeModuleList(Array.isArray(req.body?.allowedModules) ? req.body.allowedModules.join(',') : req.body?.allowedModules || '');
+    const requestedDeniedModules = normalizeModuleList(Array.isArray(req.body?.deniedModules) ? req.body.deniedModules.join(',') : req.body?.deniedModules || '');
+    const requestedForcedModule = String(req.body?.forcedModule || '').trim().toLowerCase();
+    const allowedModules = sanitizeAccessProfileModulesForTargetRole(requestedAllowedModules, target.role);
+    const deniedModules = sanitizeAccessProfileModulesForTargetRole(requestedDeniedModules, target.role);
+    const forcedModuleAllowed = sanitizeAccessProfileModulesForTargetRole(new Set([requestedForcedModule]), target.role);
+    const forcedModule = requestedForcedModule && forcedModuleAllowed.has(requestedForcedModule) ? requestedForcedModule : '';
     const notes = String(req.body?.notes || '').trim();
     const now = new Date().toISOString();
     const actor = String(req.user?.username || 'admin').trim() || 'admin';
@@ -5366,8 +5430,8 @@ app.patch('/api/admin/access-profiles/:username', async (req, res) => {
 app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
-    if (role !== 'admin' && role !== 'directeur_rh') {
-      return res.status(403).json({ error: 'Acces reserve a admin/directeur_rh' });
+    if (role !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
     }
 
     const username = String(req.params.username || '').trim();
