@@ -3795,6 +3795,15 @@ const MODULE_ACCESS_ROUTE_RULES = {
     { method: 'PATCH', pattern: /^\/hr\/contracts\/\d+$/ },
     { method: 'DELETE', pattern: /^\/hr\/contracts\/\d+$/ },
   ],
+  'hr-signatures': [
+    { method: 'GET', pattern: /^\/hr\/signature-requests$/ },
+    { method: 'POST', pattern: /^\/hr\/signature-requests$/ },
+    { method: 'DELETE', pattern: /^\/hr\/signature-requests\/\d+$/ },
+    { method: 'POST', pattern: /^\/hr\/signature-requests\/\d+\/sign$/ },
+    { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
+    { method: 'GET', pattern: /^\/hr\/employee-profile\/pending-signatures$/ },
+    { method: 'GET', pattern: /^\/hr\/document-signatures\/\d+$/ },
+  ],
   'access-profiles': [],
   'stock-management': [
     { method: 'GET', pattern: /^\/stock-management\/(available|issues|orders)$/ },
