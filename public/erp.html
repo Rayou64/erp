@@ -24768,7 +24768,7 @@
       try {
         const user = await fetchJson('/api/auth/me');
         currentUserUsername = user.username || null;
-        currentUserRole = user.role || null;
+        currentUserRole = String(user.role || '').trim().toLowerCase() || null;
         currentUserScope = user.scope || null;
         currentUserAccessProfile = user.accessProfile || null;
         if (isHrDirector()) {
