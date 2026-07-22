@@ -11948,6 +11948,11 @@
       }
     }
 
+    async function refreshAdminMailRecipientsIfNeeded() {
+      if (currentModule !== 'admin-mail') return;
+      await loadAdminMailModule();
+    }
+
     window.loadAdminMailModule = loadAdminMailModule;
 
     window.sendEmployeeAccessEmails = async function sendEmployeeAccessEmails() {
@@ -19405,6 +19410,9 @@
 
         showMessage('Profil mis à jour');
         await loadHrEmployeesModule();
+        if (fieldKey === 'email' || fieldKey === 'fullName') {
+          await refreshAdminMailRecipientsIfNeeded();
+        }
       } catch (err) {
         showMessage('Erreur mise à jour profil: ' + err.message, 'error');
       }
@@ -19421,6 +19429,7 @@
         await loadHrAttendanceModule();
         await loadHrLeaveModule();
         await loadHrCalendarModule();
+        await refreshAdminMailRecipientsIfNeeded();
       } catch (err) {
         showMessage(`Erreur: ${err.message}`, 'error');
       }
@@ -19492,6 +19501,7 @@
 
       await loadHrEmployeesModule();
       await loadHrCalendarModule();
+      await refreshAdminMailRecipientsIfNeeded();
       showMessage(`Import terminé: ${imported} ajoutée(s), ${skipped} ignorée(s)`);
     }
 
@@ -26200,6 +26210,7 @@
           showMessage(isEditMode ? 'Employé mis à jour' : 'Employé ajouté');
           await loadHrEmployeesModule();
           await loadHrCalendarModule();
+          await refreshAdminMailRecipientsIfNeeded();
         } catch (err) {
           showMessage('Erreur: ' + err.message, 'error');
         }
