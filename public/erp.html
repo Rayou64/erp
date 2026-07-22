@@ -9488,12 +9488,17 @@
               </div>
               <div class="action-buttons" style="gap:8px; flex-wrap:wrap;">
                 <button type="button" class="button button-small button-secondary" onclick="loadAdminMailModule()">Actualiser</button>
-                <button type="button" class="button button-small button-primary" onclick="sendEmployeeAccessEmails()">Envoyer accès employés</button>
+                <button type="button" class="button button-small button-primary" onclick="sendEmployeeAccessEmails()">Envoyer identifiants + lien ERP</button>
               </div>
             </div>
 
             <div style="margin-bottom:12px; padding:12px; border:1px solid #bfdbfe; background:#eff6ff; border-radius:12px; color:#1d4ed8; font-size:13px;">
               Envoie un message automatique aux employés ayant un courriel RH, avec le lien public ERP, leur nom d'utilisateur et leur mot de passe connu.
+            </div>
+
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>Employés avec courriel RH (nom + courriel)</label>
+              <div id="admin-mail-employee-recipient-list" style="max-height:220px; overflow:auto; border:1px solid #e2e8f0; border-radius:10px; padding:10px; background:#f8fafc; font-size:13px; color:#334155;">Chargement...</div>
             </div>
 
             <div class="form-group" style="margin-bottom:10px;">
@@ -11897,20 +11902,39 @@
       const sendAllCheckbox = document.getElementById('admin-mail-send-all');
       const recipientGroup = document.getElementById('admin-mail-recipient-group');
       const recipientSelect = document.getElementById('admin-mail-recipient-select');
+      const employeeRecipientList = document.getElementById('admin-mail-employee-recipient-list');
 
       if (summary) summary.textContent = 'Chargement...';
       if (results) results.textContent = 'Aucun envoi pour le moment.';
+      if (employeeRecipientList) employeeRecipientList.textContent = 'Chargement...';
 
       try {
-        const payload = await fetchJson('/api/admin/mail/recipients');
+        const [payload, employeePayload] = await Promise.all([
+          fetchJson('/api/admin/mail/recipients'),
+          fetchJson('/api/admin/mail/employee-access-recipients'),
+        ]);
         const recipients = Array.isArray(payload?.recipients) ? payload.recipients : [];
+        const employeeRecipients = Array.isArray(employeePayload?.recipients) ? employeePayload.recipients : [];
         const withEmail = recipients.filter(item => String(item?.email || '').trim()).length;
-        if (summary) summary.textContent = `${recipients.length} destinataire(s) | ${withEmail} avec courriel`;
+        if (summary) summary.textContent = `${employeeRecipients.length} employé(s) RH avec courriel | ${withEmail} compte(s) avec courriel`;
+
+        if (employeeRecipientList) {
+          if (!employeeRecipients.length) {
+            employeeRecipientList.innerHTML = '<div style="color:#64748b;">Aucun employé avec courriel RH et identifiants connus.</div>';
+          } else {
+            employeeRecipientList.innerHTML = employeeRecipients.map(item => {
+              const fullName = String(item?.fullName || item?.username || '-').trim() || '-';
+              const email = String(item?.email || '').trim() || '-';
+              return `<div style="padding:6px 4px; border-bottom:1px solid #e2e8f0;"><strong>${escapeHtml(fullName)}</strong><div style="font-size:12px; color:#64748b;">${escapeHtml(email)}</div></div>`;
+            }).join('');
+          }
+        }
 
         if (recipientSelect) {
           recipientSelect.innerHTML = recipients.map(item => {
             const username = String(item?.username || '').trim();
-            const label = `${String(item?.linkedEmployeeName || username || '-').trim()} (${username || '-'})`;
+            const displayName = String(item?.linkedEmployeeName || username || '-').trim() || '-';
+            const label = `${displayName} (${username || '-'})`;
             const email = String(item?.email || '').trim() || 'sans courriel';
             return `<option value="${escapeHtml(username)}">${escapeHtml(label)} — ${escapeHtml(email)}</option>`;
           }).join('');
@@ -11939,8 +11963,19 @@
         const successCount = Number(response?.successCount || 0);
         const failedCount = Number(response?.failedCount || 0);
         const publicUrl = String(response?.publicUrl || '').trim();
+        const rows = Array.isArray(response?.results) ? response.results : [];
+        const rowsHtml = rows.length
+          ? `<div style="margin-top:8px; max-height:220px; overflow:auto; border:1px solid #e2e8f0; border-radius:8px; padding:8px;">${rows.map(row => {
+              const status = row?.success ? 'SUCCES' : 'ECHEC';
+              const color = row?.success ? '#166534' : '#b91c1c';
+              const email = String(row?.email || '-').trim() || '-';
+              const username = String(row?.username || '-').trim() || '-';
+              const error = row?.success ? '' : ` - ${String(row?.error || 'Erreur SMTP').trim()}`;
+              return `<div style="padding:5px 0; border-bottom:1px solid #e2e8f0;"><strong style="color:${color};">${status}</strong> - ${escapeHtml(username)} - ${escapeHtml(email)}${escapeHtml(error)}</div>`;
+            }).join('')}</div>`
+          : '';
         if (results) {
-          results.innerHTML = `Envoi terminé: ${successCount} succès, ${failedCount} échec(s).${publicUrl ? `<br />Lien public utilisé: ${escapeHtml(publicUrl)}` : ''}`;
+          results.innerHTML = `Envoi terminé: ${successCount} succès, ${failedCount} échec(s).${publicUrl ? `<br />Lien public utilisé: ${escapeHtml(publicUrl)}` : ''}${rowsHtml}`;
         }
         showMessage('Courriels employés envoyés');
       } catch (err) {
@@ -19485,6 +19520,9 @@
       }
       if (moduleName === 'hr-employee-search') {
         loadHrEmployeeSearchModule();
+      }
+      if (moduleName === 'admin-mail') {
+        loadAdminMailModule();
       }
       syncAutoMapLiveRefresh();
       syncAutoDashboardRefresh();

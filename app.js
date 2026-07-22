@@ -5007,12 +5007,13 @@ function buildEmployeeAccessMailText(recipient) {
     `Bonjour ${fullName},`,
     '',
     'Votre accès au portail ERP est prêt.',
+    'RyanERP est la plateforme interne pour suivre les activités, documents et opérations de l\'entreprise.',
     '',
     `Lien public: ${publicUrl}`,
     `Nom d'utilisateur: ${username}`,
     `Mot de passe: ${passwordHint}`,
     '',
-    'Connectez-vous avec ces identifiants puis changez votre mot de passe si cela vous est demandé par l’administrateur.',
+    'Connectez-vous avec ces identifiants puis changez votre mot de passe si cela vous est demandé par l\'administrateur.',
   ].join('\n');
 }
 
