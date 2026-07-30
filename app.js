@@ -4461,7 +4461,38 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
   });
 });
 
-app.get('/api/users', async (_req, res) => {
+app.get('/api/users', async (req, res) => {
+  const employees = await all(`
+    SELECT id, fullName, username
+    FROM hr_employees
+    WHERE COALESCE(NULLIF(TRIM(username), ''), '') <> ''
+    ORDER BY id ASC
+  `);
+
+  const missingAccounts = [];
+  for (const employee of employees || []) {
+    const employeeId = Number(employee?.id || 0);
+    const fullName = String(employee?.fullName || '').trim();
+    const username = String(employee?.username || '').trim();
+    if (!employeeId || !username) continue;
+
+    const existingUser = await get('SELECT id FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [username]);
+    if (!existingUser) {
+      missingAccounts.push({ id: employeeId, fullName, username });
+    }
+  }
+
+  for (const employee of missingAccounts) {
+    await ensureHrEmployeeUserAccount({
+      get,
+      run,
+      getNextTableId,
+      username: employee.username,
+      fullName: employee.fullName,
+      createdBy: String(req.user?.username || 'admin').trim() || 'admin',
+    });
+  }
+
   const rows = await all(`
     SELECT
       COALESCE(u.id, -he.id) AS id,

@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { normalizeHrUsernameCandidate, ensureHrEmployeeUserAccount } = require('../lib/hr-user-account');
+const { normalizeHrUsernameCandidate, ensureHrEmployeeUserAccount, reconcileHrEmployeesToUserAccounts } = require('../lib/hr-user-account');
 
 (async () => {
   const base = normalizeHrUsernameCandidate(' Jean Dupont ', 'Jean Dupont');
@@ -36,6 +36,23 @@ const { normalizeHrUsernameCandidate, ensureHrEmployeeUserAccount } = require('.
   assert.strictEqual(result.created, true);
   assert.strictEqual(result.username, 'jeandupont');
   assert.ok(result.initialPassword.endsWith('@2026'));
+
+  let nextId = 8;
+  const createdAccounts = await reconcileHrEmployeesToUserAccounts({
+    get,
+    run,
+    getNextTableId: async () => nextId++,
+    createdBy: 'admin',
+    employees: [
+      { id: 1, fullName: 'Jean Dupont', username: 'jeandupont' },
+      { id: 2, fullName: 'Boga', username: 'boga' },
+      { id: 3, fullName: 'Cissoko', username: 'cissoko' },
+    ],
+  });
+
+  assert.strictEqual(createdAccounts.length, 2);
+  assert.deepStrictEqual(createdAccounts.map(entry => entry.username), ['boga', 'cissoko']);
+  assert.strictEqual(store.get('boga').role, 'employe_standard');
   console.log('hr user account test passed');
 })().catch(err => {
   console.error(err);
