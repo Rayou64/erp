@@ -349,137 +349,64 @@
     }
 
     .button {
-      padding: 10px 16px;
+      padding: 10px;
       border: 0;
-      border-radius: 10px;
+      border-radius: 11px;
       min-height: 42px;
       cursor: pointer;
       font-size: 13px;
       font-weight: 700;
-      transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: transform 0.15s ease, filter 0.15s ease;
       text-transform: none;
-      letter-spacing: 0.3px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      user-select: none;
-      outline: none;
-    }
-
-    .button:focus-visible {
-      outline: 2px solid rgba(37, 99, 235, 0.5);
-      outline-offset: 2px;
-    }
-
-    .button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+      letter-spacing: 0.2px;
     }
 
     .button-primary {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      background: linear-gradient(120deg, #0ea5a5, #2563eb);
       color: white;
-      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.28);
     }
 
-    .button-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.36);
-      filter: brightness(1.05);
-    }
-
-    .button-primary:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.24);
+    .button-primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(0.98);
     }
 
     .button-secondary {
-      background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
+      background: #eaf2ff;
       color: #1d4ed8;
       border: 1px solid #bfdbfe;
-      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.08);
     }
 
-    .button-secondary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.14);
-    }
-
-    .button-secondary:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.08);
+    .button-secondary:hover {
+      transform: translateY(-1px);
+      filter: brightness(0.99);
     }
 
     .button-danger {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      color: white;
-      box-shadow: 0 6px 14px rgba(239, 68, 68, 0.28);
+      background: #fff1f2;
+      color: #dc2626;
+      border: 1px solid #fecdd3;
     }
 
-    .button-danger:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(239, 68, 68, 0.36);
-      filter: brightness(1.05);
-    }
-
-    .button-danger:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.24);
-    }
-
-    .button-warning {
-      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-      color: white;
-      box-shadow: 0 6px 14px rgba(245, 158, 11, 0.28);
-    }
-
-    .button-warning:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(245, 158, 11, 0.36);
-      filter: brightness(1.05);
-    }
-
-    .button-warning:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.24);
+    .button-danger:hover {
+      transform: translateY(-1px);
+      filter: brightness(0.99);
     }
 
     .button-success {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      box-shadow: 0 6px 14px rgba(16, 185, 129, 0.28);
+      background: #ecfdf5;
+      color: #0f766e;
+      border: 1px solid #99f6e4;
     }
 
-    .button-success:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(16, 185, 129, 0.36);
-      filter: brightness(1.05);
-    }
-
-    .button-success:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.24);
+    .button-success:hover {
+      transform: translateY(-1px);
+      filter: brightness(0.99);
     }
 
     .button-small {
-      padding: 7px 14px;
-      font-size: 12px;
-      min-height: 36px;
-    }
-
-    @media (max-width: 640px) {
-      .button {
-        padding: 10px 12px;
-        font-size: 12px;
-        min-height: 40px;
-      }
-      .button-small {
-        padding: 8px 12px;
-        font-size: 11px;
-        min-height: 38px;
-      }
+      padding: 6px 12px;
+      font-size: 11px;
     }
 
     .add-symbol-button {
@@ -4131,21 +4058,20 @@
         color: #ffffff !important;
       }
 
-      .button {
+      .button,
+      .button-primary,
+      .button-secondary,
+      .button-small {
         color: #0f172a;
       }
 
-      .button-primary,
-      .button-success,
-      .button-danger,
-      .button-warning {
+      .button-primary {
         color: #ffffff;
       }
 
       .button-secondary {
-        color: #1d4ed8;
-        background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
-        border-color: #bfdbfe;
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.16);
       }
 
       .dashboard-grid {
@@ -4581,17 +4507,12 @@
         background: linear-gradient(145deg, rgba(255, 209, 102, 0.34), rgba(77, 171, 247, 0.24));
       }
 
-      .module:not(#dashboard) .button:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
-      .module:not(#dashboard) .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary) {
+      .module:not(#dashboard) .button:not(.button-primary),
+      .module:not(#dashboard) .button-secondary,
+      .module:not(#dashboard) .button-small {
         color: #0f172a;
         border-color: rgba(31, 41, 55, 0.16);
         background: rgba(255, 255, 255, 0.90);
-      }
-
-      .module:not(#dashboard) .button-secondary {
-        color: #1d4ed8;
-        border-color: #bfdbfe;
-        background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
       }
 
       .module:not(#dashboard) .button-primary {
@@ -5774,17 +5695,11 @@
     /* Base de donnee: forcer un contraste lisible pour les actions */
     #database .action-buttons .button,
     #database .action-buttons a.button,
-    #database .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
+    #database .button.button-small,
     #database .button.button-secondary {
       color: #0f172a;
       border-color: #c7dbff;
       background: linear-gradient(145deg, #ffffff 0%, #eef4ff 100%);
-    }
-
-    #database .button.button-secondary {
-      color: #1d4ed8;
-      border-color: #bfdbfe;
-      background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
     }
 
     #database .action-buttons .button.button-primary,
@@ -6703,56 +6618,12 @@
       border-color: transparent;
     }
 
-    body.app-layout-mode .button-warning {
-      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-      color: #ffffff;
-      border-color: transparent;
-    }
-
-    body.app-layout-mode .button:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
-    body.app-layout-mode .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary) {
+    body.app-layout-mode .button-secondary,
+    body.app-layout-mode .button:not(.button-primary),
+    body.app-layout-mode .button-small {
       background: linear-gradient(145deg, #ffffff 0%, #eef5ff 100%);
       color: #1f2937;
       border-color: rgba(95, 106, 242, 0.14);
-    }
-
-    body.app-layout-mode .button-secondary {
-      background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
-      color: #1d4ed8;
-      border-color: #bfdbfe;
-    }
-
-    body.mobile-runtime .button-primary,
-    body.mobile-runtime .btn-export-excel:hover,
-    body.mobile-runtime .actions-menu summary:hover {
-      background: linear-gradient(135deg, #5f6af2 0%, #4dabf7 48%, #2ec4b6 100%);
-      color: #ffffff;
-      border-color: transparent;
-    }
-
-    body.mobile-runtime .button-warning {
-      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-      color: #ffffff;
-      border-color: transparent;
-    }
-
-    body.mobile-runtime .button:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
-    body.mobile-runtime .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary) {
-      background: linear-gradient(145deg, #ffffff 0%, #eef5ff 100%);
-      color: #1f2937;
-      border-color: rgba(95, 106, 242, 0.14);
-    }
-
-    body.mobile-runtime .button-secondary {
-      background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
-      color: #1d4ed8;
-      border-color: #bfdbfe;
-    }
-
-    body.mobile-runtime .actions-menu summary {
-      color: #1e3a8a;
-      border-color: #c7dbff;
-      background: #f1f6ff;
     }
 
     body.app-layout-mode .global-search-input {
@@ -6935,23 +6806,12 @@
       border-color: transparent;
     }
 
-    body.browser-layout-mode .button-warning {
-      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-      color: #ffffff;
-      border-color: transparent;
-    }
-
-    body.browser-layout-mode .button:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary),
-    body.browser-layout-mode .button.button-small:not(.button-primary):not(.button-success):not(.button-danger):not(.button-secondary) {
+    body.browser-layout-mode .button-secondary,
+    body.browser-layout-mode .button:not(.button-primary),
+    body.browser-layout-mode .button-small {
       background: linear-gradient(145deg, #ffffff 0%, #eef5ff 100%);
       color: #1f2937;
       border-color: rgba(95, 106, 242, 0.14);
-    }
-
-    body.browser-layout-mode .button-secondary {
-      background: linear-gradient(135deg, #eaf2ff 0%, #dbeafe 100%);
-      color: #1d4ed8;
-      border-color: #bfdbfe;
     }
 
     body.browser-layout-mode .global-search-input {
@@ -7091,7 +6951,6 @@
           <div class="menu-item" data-module="hr-employees">👥 Liste des employés</div>
           <div class="menu-item" data-module="hr-employee-search" style="display:none;">🔎 Recherche d'employé</div>
           <div class="menu-item" data-module="hr-attendance">🕘 Pointage journalier</div>
-          <div class="menu-item" data-module="hr-contracts">📄 Contrats RH</div>
           <div class="menu-item" data-module="hr-calendar">🗓️ Calendrier présence/congé</div>
           <div class="menu-item" data-module="hr-leave">📝 Demandes de congé</div>
           <div class="menu-item" data-module="hr-signatures">✍️ Demandes de signature</div>
@@ -7102,8 +6961,6 @@
           <div class="menu-section-title">Admin</div>
           <div class="menu-item" data-module="database">🗂️ Base de donnée</div>
           <div class="menu-item" data-module="guide-erp">📘 Guide ERP</div>
-          <div class="menu-item" data-module="access-profiles">🗃️ Dossiers profils</div>
-          <div class="menu-item" data-module="admin-mail">✉️ Courriels</div>
           <div class="menu-item" data-module="trash">🗑️ Corbeille</div>
           <div class="menu-item" data-module="users">🔑 Utilisateurs</div>
           <div class="menu-item" data-module="settings">⚙️ Paramètres</div>
@@ -7265,19 +7122,19 @@
             </div>
             <div class="card stat-card">
               <h3 id="stat-establishments">0</h3>
-              <p>Lots</p>
+              <p>Sites</p>
             </div>
             <div class="card stat-card">
               <h3 id="stat-sites-construction">0</h3>
-              <p>Lots en construction</p>
+              <p>Sites en construction</p>
             </div>
             <div class="card stat-card">
               <h3 id="stat-sites-not-started">0</h3>
-              <p>Lots pas encore débutés</p>
+              <p>Sites pas encore débutés</p>
             </div>
             <div class="card stat-card">
               <h3 id="stat-sites-built">0</h3>
-              <p>Lots déjà construits</p>
+              <p>Sites déjà construits</p>
             </div>
             <div class="card stat-card">
               <h3 id="stat-assignments">0</h3>
@@ -7386,7 +7243,7 @@
               <div class="exec-top-metrics">
                 <div class="exec-mini">
                   <strong id="exec-metric-sites-total">0</strong>
-                  <span>Total lots</span>
+                  <span>Total sites</span>
                 </div>
                 <div class="exec-mini">
                   <strong id="exec-metric-started">0</strong>
@@ -7436,14 +7293,14 @@
                 <h3>Distribution par zone</h3>
                 <div class="exec-donut-wrap">
                   <div id="exec-zone-donut" class="exec-donut" style="--z1:0deg; --z2:0deg; --z3:0deg;">
-                    <div class="exec-donut-center"><span id="exec-donut-total">0</span><small>Lots</small></div>
+                    <div class="exec-donut-center"><span id="exec-donut-total">0</span><small>Sites</small></div>
                   </div>
                   <ul class="exec-list" id="exec-zone-legend"></ul>
                 </div>
               </div>
 
               <div class="exec-card">
-                <h3>Localisation des lots</h3>
+                <h3>Localisation des sites</h3>
                 <div class="exec-map" id="exec-map-points"></div>
               </div>
             </div>
@@ -7476,7 +7333,7 @@
           </div>
           <div id="project-folder-selector-card" class="card" style="margin-bottom: 20px;">
             <h3 style="margin-bottom: 8px;">Choix rapide des projets par préfecture</h3>
-            <p style="margin-bottom: 12px; color: #64748b; font-size: 13px;">Clique sur un dossier projet pour ouvrir sa préfecture et ajouter des lots.</p>
+            <p style="margin-bottom: 12px; color: #64748b; font-size: 13px;">Clique sur un dossier projet pour ouvrir sa préfecture et ajouter des sites.</p>
             <div id="project-folder-quick-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;"></div>
             <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
               <button type="button" id="project-create-new-folder-quick" class="button button-secondary">Créer un nouveau dossier</button>
@@ -7527,9 +7384,9 @@
                 <button type="submit" class="button button-primary" style="width: 100%;">Ajouter la zone</button>
               </form>
 
-              <h3 id="project-form-title" style="margin-bottom: 15px;">3) Ajouter un lot dans une zone</h3>
+              <h3 id="project-form-title" style="margin-bottom: 15px;">3) Ajouter un site dans une zone</h3>
               <div id="project-site-form-locked" class="card" style="margin-bottom: 12px; background: #fffbeb; border: 1px solid #fcd34d; color:#92400e; display:none;">
-                Sélectionnez ou créez d'abord une zone (préfecture) pour activer l'ajout des lots.
+                Sélectionnez ou créez d'abord une zone (préfecture) pour activer l'ajout des sites.
               </div>
               <form id="project-form">
                 <div id="project-site-form-fields">
@@ -7538,19 +7395,19 @@
                   <select id="project-existing-folder">
                     <option value="">Sélectionner un dossier projet</option>
                   </select>
-                  <p id="project-folder-helper" style="font-size: 12px; color: #64748b; margin-top: 6px;">Sélectionne d'abord une zone, puis ajoute les lots qui lui appartiennent.</p>
+                  <p id="project-folder-helper" style="font-size: 12px; color: #64748b; margin-top: 6px;">Sélectionne d'abord une zone, puis ajoute les sites qui lui appartiennent.</p>
                 </div>
                 <div class="form-group">
-                  <label>Numéro du lot (début) *</label>
+                  <label>Numéro du site (début) *</label>
                   <input type="text" id="project-site-number-start" required placeholder="Ex: 001" />
                 </div>
                 <div class="form-group">
-                  <label>Numéro du lot (fin)</label>
+                  <label>Numéro du site (fin)</label>
                   <input type="text" id="project-site-number-end" placeholder="Ex: 004" />
-                  <p style="font-size: 12px; color: #64748b; margin-top: 6px;">Laissez vide pour créer un seul lot. Exemple: 001 à 004 crée automatiquement 001, 002, 003, 004.</p>
+                  <p style="font-size: 12px; color: #64748b; margin-top: 6px;">Laissez vide pour créer un seul site. Exemple: 001 à 004 crée automatiquement 001, 002, 003, 004.</p>
                 </div>
                 <div class="form-group">
-                  <label>Description du lot</label>
+                  <label>Description du site</label>
                   <textarea id="project-establishment-desc"></textarea>
                 </div>
                 <div class="form-group">
@@ -7563,7 +7420,7 @@
                   </select>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                  <button type="submit" id="project-submit-button" class="button button-primary" style="width: 100%;">Ajouter le lot</button>
+                  <button type="submit" id="project-submit-button" class="button button-primary" style="width: 100%;">Ajouter le site</button>
                   <button type="button" id="project-clear-folder" class="button button-secondary" style="display: none; white-space: nowrap;">Changer</button>
                 </div>
                 </div>
@@ -7573,7 +7430,7 @@
             <div class="card">
               <h3 id="projects-list-title" style="margin-bottom: 15px;">Liste des projets</h3>
               <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="project-search" placeholder="Rechercher un projet (nom, lot, type, numero, description)" />
+                <input type="text" id="project-search" placeholder="Rechercher un projet (nom, site, type, numero, description)" />
               </div>
               <ul id="projects-list" class="list"></ul>
               <div id="project-details" class="card" style="margin-top: 12px; background-color: #f8fafc;"></div>
@@ -7632,7 +7489,7 @@
         <div id="journal-chantier" class="module">
           <div class="page-header">
             <h1>Journal de chantier</h1>
-            <p>Journal automatique des suivis d'étapes par LOT</p>
+            <p>Journal automatique des suivis d'étapes par site</p>
           </div>
 
           <div class="card form-card" style="margin-bottom: 16px;">
@@ -7655,7 +7512,7 @@
                 <select id="progress-project-folder" required></select>
               </div>
               <div class="form-group">
-                <label>LOT *</label>
+                <label>Site *</label>
                 <select id="progress-project" required></select>
               </div>
               <div class="form-group">
@@ -7716,7 +7573,7 @@
                 <select id="journal-folder-filter"></select>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label>LOT</label>
+                <label>Site</label>
                 <select id="journal-site-filter"></select>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
@@ -7734,7 +7591,7 @@
           </div>
 
           <div class="card">
-            <h3 style="margin-bottom: 12px;">Entrées du journal par LOT</h3>
+            <h3 style="margin-bottom: 12px;">Entrées du journal par site</h3>
             <div id="journal-summary" style="font-size: 12px; color: #64748b; margin-bottom: 12px;"></div>
             <div id="journal-site-list"></div>
           </div>
@@ -7784,15 +7641,15 @@
                 </div>
                 <div class="form-group">
                   <label>Poste *</label>
-                  <input type="text" id="hr-employee-job" placeholder="Ex: Gestionnaire achat" />
+                  <input type="text" id="hr-employee-job" required placeholder="Ex: Gestionnaire achat" />
                 </div>
                 <div class="form-group">
                   <label>Date d'embauche *</label>
-                  <input type="date" id="hr-employee-hire-date" />
+                  <input type="date" id="hr-employee-hire-date" required />
                 </div>
                 <div class="form-group">
                   <label>Sexe *</label>
-                  <select id="hr-employee-sexe">
+                  <select id="hr-employee-sexe" required>
                     <option value="">Sélectionner</option>
                     <option value="M">Masculin</option>
                     <option value="F">Féminin</option>
@@ -7800,7 +7657,7 @@
                 </div>
                 <div class="form-group">
                   <label>Type de contrat *</label>
-                  <select id="hr-employee-contract-type">
+                  <select id="hr-employee-contract-type" required>
                     <option value="">Sélectionner</option>
                     <option value="CDI">CDI</option>
                     <option value="CDD">CDD</option>
@@ -7884,20 +7741,10 @@
                 <div class="form-group">
                   <label>Employé *</label>
                   <select id="hr-attendance-employee" required></select>
-                    <input type="hidden" id="hr-attendance-employee-locked" />
-                    <div id="hr-attendance-employee-display" style="display:none;padding:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-weight:600;color:#166534;">👤</div>
                 </div>
                 <div class="form-group">
                   <label>Date *</label>
                   <input type="date" id="hr-attendance-date" required readonly />
-                </div>
-                <div class="form-group">
-                  <label>Localisation *</label>
-                  <select id="hr-attendance-location" required>
-                    <option value="bureau">Bureau</option>
-                    <option value="autres">Autres</option>
-                  </select>
-                  <div style="margin-top:6px;font-size:12px;color:#64748b;">Lieu du pointage journalier.</div>
                 </div>
                 <div class="form-group">
                   <label>Action de pointage *</label>
@@ -7933,137 +7780,12 @@
                     <tr>
                       <th>Employé</th>
                       <th>Date</th>
-                      <th>Localisation</th>
                       <th>Arrivée</th>
                       <th>Sortie</th>
                       <th>Code</th>
                     </tr>
                   </thead>
                   <tbody id="hr-attendance-list-body"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- HR Contracts Module -->
-        <div id="hr-contracts" class="module">
-          <div class="page-header">
-            <h1>Contrats RH</h1>
-            <p>Gérez les débuts, fins de contrat et rappels pour chaque employé</p>
-          </div>
-          <div class="grid-2">
-            <div class="card form-card">
-              <h3 style="margin-bottom: 15px;">Nouveau contrat</h3>
-              <form id="hr-contract-form">
-                <div class="form-group">
-                  <label>Employé *</label>
-                  <select id="hr-contract-employee" required></select>
-                </div>
-                <div class="form-group">
-                  <label>Date début contrat *</label>
-                  <input type="date" id="hr-contract-start" required />
-                </div>
-                <div class="form-group">
-                  <label>Date fin contrat *</label>
-                  <input type="date" id="hr-contract-end" required />
-                </div>
-                <div class="form-group">
-                  <label>Date rappel</label>
-                  <input type="date" id="hr-contract-reminder" />
-                </div>
-                <div class="form-group">
-                  <label>Note rappel</label>
-                  <textarea id="hr-contract-note" placeholder="Ex: prévenir 30 jours avant la fin"></textarea>
-                </div>
-                <div class="form-group">
-                  <label>Statut</label>
-                  <select id="hr-contract-status">
-                    <option value="ACTIF">Actif</option>
-                    <option value="A_RENOUVELER">À renouveler</option>
-                    <option value="TERMINE">Terminé</option>
-                  </select>
-                </div>
-                <button type="submit" class="button button-primary" style="width:100%;">Enregistrer le contrat</button>
-              </form>
-            </div>
-            <div class="erp-section-sep">Contrats récents</div>
-            <div class="card">
-              <h3 style="margin-bottom: 15px;">Suivi des contrats</h3>
-              <div class="table-wrapper" style="overflow-x:auto;">
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>Employé</th>
-                      <th>Début</th>
-                      <th>Fin</th>
-                      <th>Rappel</th>
-                      <th>Statut</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody id="hr-contracts-list-body"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- HR Leave Module -->
-        <div id="hr-leave" class="module">
-          <div class="page-header">
-            <h1>Demandes de congé</h1>
-            <p>Chaque demande doit être approuvée ou rejetée avant d'être considérée comme traitée.</p>
-          </div>
-          <div class="grid-2">
-            <div class="card form-card">
-              <h3 style="margin-bottom: 15px;">Nouvelle demande de congé</h3>
-              <p style="margin:-6px 0 14px;color:#64748b;font-size:13px;">La demande sera enregistrée en attente, puis devra recevoir une décision d'approbation ou de rejet.</p>
-              <form id="hr-leave-form">
-                <div class="form-group">
-                  <label>Employé *</label>
-                  <select id="hr-leave-employee" required></select>
-                </div>
-                <div class="form-group">
-                  <label>Type de congé *</label>
-                  <select id="hr-leave-type" required>
-                    <option value="annuel">Congé annuel</option>
-                    <option value="maladie">Congé maladie</option>
-                    <option value="maternite">Congé maternité</option>
-                    <option value="paternite">Congé paternité</option>
-                    <option value="absence">Absence</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Date début *</label>
-                  <input type="date" id="hr-leave-start" required />
-                </div>
-                <div class="form-group">
-                  <label>Date fin *</label>
-                  <input type="date" id="hr-leave-end" required />
-                </div>
-                <div class="form-group">
-                  <label>Motif</label>
-                  <textarea id="hr-leave-reason" placeholder="Motif de la demande"></textarea>
-                </div>
-                <button type="submit" class="button button-primary" style="width:100%;">Envoyer la demande</button>
-              </form>
-            </div>
-            <div class="erp-section-sep">Historique récent</div>
-            <div class="card">
-              <h3 style="margin-bottom: 15px;">Historique des demandes</h3>
-              <div class="table-wrapper" style="overflow-x:auto;">
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>Employé</th>
-                      <th>Type</th>
-                      <th>Période</th>
-                      <th>Statut</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody id="hr-leave-list-body"></tbody>
                 </table>
               </div>
             </div>
@@ -8085,7 +7807,7 @@
                   <select id="assignment-project" required></select>
                 </div>
                 <div class="form-group">
-                  <label>Lot *</label>
+                  <label>Site *</label>
                   <select id="assignment-house" required></select>
                 </div>
                 <div class="form-group">
@@ -8293,10 +8015,10 @@
               
               <!-- Mode selector for admin/stock managers -->
               <div id="material-mode-selector" style="display:none; margin-bottom:15px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                <button type="button" id="material-mode-site" class="button button-secondary" style="padding:8px; font-size:13px;" data-mode="site">
-                  🏢 Par Lot
+                <button type="button" id="material-mode-site" class="button button-secondary" style="padding:8px; font-size:13px; border:2px solid #cbd5e1; background:#fff;" data-mode="site">
+                  🏢 Par Site
                 </button>
-                <button type="button" id="material-mode-zone" class="button button-secondary" style="padding:8px; font-size:13px;" data-mode="zone">
+                <button type="button" id="material-mode-zone" class="button button-secondary" style="padding:8px; font-size:13px; border:2px solid #cbd5e1; background:#fff;" data-mode="zone">
                   📍 Par Zone
                 </button>
               </div>
@@ -8327,7 +8049,7 @@
                     <select id="material-zone" required></select>
                   </div>
                   <div class="form-group">
-                    <label>Lot *</label>
+                    <label>Site *</label>
                     <select id="material-project" required></select>
                   </div>
                 </div>
@@ -8395,8 +8117,8 @@
                 <div style="font-size:12px; opacity:0.92;">Concentre-toi sur un entrepôt donné</div>
               </button>
               <button type="button" id="inventory-mode-site" style="border:none; border-radius:14px; padding:16px; text-align:left; cursor:pointer; background:linear-gradient(135deg,#b45309,#f59e0b); color:#ffffff;">
-                <div style="font-weight:700; font-size:15px; margin-bottom:4px;">Lot précis</div>
-                <div style="font-size:12px; opacity:0.92;">Choisis une zone puis un lot à inspecter</div>
+                <div style="font-weight:700; font-size:15px; margin-bottom:4px;">Site précis</div>
+                <div style="font-size:12px; opacity:0.92;">Choisis une zone puis un site à inspecter</div>
               </button>
             </div>
 
@@ -8432,7 +8154,7 @@
                 <label>Mode détaillé</label>
                 <select id="inventory-view-search">
                   <option value="product_warehouse">Entrepôt précis</option>
-                  <option value="building">Lot précis</option>
+                  <option value="building">Site précis</option>
                 </select>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
@@ -8440,7 +8162,7 @@
                 <select id="inventory-project-filter"></select>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label id="inventory-house-label">Lot (filtre)</label>
+                <label id="inventory-house-label">Site (filtre)</label>
                 <select id="inventory-house-filter"></select>
               </div>
             </div>
@@ -8455,7 +8177,7 @@
                     <th id="inventory-col-stage">Étape</th>
                     <th>Entrepôt</th>
                     <th>Projet</th>
-                    <th>Lot</th>
+                    <th>Site</th>
                     <th>Total demande</th>
                     <th>Total restant</th>
                     <th id="inventory-col-used">Total sorti</th>
@@ -8547,7 +8269,7 @@
                   <input type="hidden" id="stock-issue-project-folder" value="">
                 </div>
                 <div class="form-group">
-                  <label>LOT destinataire *</label>
+                  <label>Site destinataire *</label>
                   <select id="stock-issue-project" required></select>
                 </div>
                 <div class="form-group" id="stock-issue-stage-group">
@@ -8569,7 +8291,7 @@
                 <div class="form-group">
                   <label>Matériaux liés à l'étape</label>
                   <div id="stock-issue-lines" style="display: grid; gap: 8px;"></div>
-                  <div id="stock-issue-lines-hint" style="margin-top: 8px; color: #64748b; font-size: 12px;">Sélectionne un LOT pour afficher automatiquement les matériaux en stock.</div>
+                  <div id="stock-issue-lines-hint" style="margin-top: 8px; color: #64748b; font-size: 12px;">Sélectionne un site puis une étape pour afficher les matériaux disponibles.</div>
                 </div>
                 <div class="form-group">
                   <label>Note</label>
@@ -8634,8 +8356,8 @@
                 </div>
                 <div class="po-site-grid">
                   <div class="form-group" style="margin-bottom:0;">
-                    <label>Lot</label>
-                      <select id="po-proj-site"><option value="">-- Lot --</option></select>
+                    <label>Site</label>
+                    <select id="po-proj-site"><option value="">-- Site --</option></select>
                   </div>
                   <label style="display:flex;align-items:center;gap:8px;padding-bottom:10px;font-size:13px;color:#475569;">
                     <input type="checkbox" id="po-zone-only" />
@@ -8643,7 +8365,7 @@
                   </label>
                 </div>
                 <div id="po-villa-type-info" style="display:none;margin:-2px 0 10px;padding:8px 10px;border-radius:8px;border:1px solid #bbf7d0;background:#f0fdf4;color:#166534;font-size:12px;font-weight:700;"></div>
-                <div id="po-delivery-hint" style="margin:-4px 0 10px;color:#64748b;font-size:12px;">Choisis un lot précis, ou active le mode zone pour réceptionner d'abord au stock de zone.</div>
+                <div id="po-delivery-hint" style="margin:-4px 0 10px;color:#64748b;font-size:12px;">Choisis un site précis, ou active le mode zone pour réceptionner d'abord au stock de zone.</div>
                 <div class="form-group" style="margin-bottom:10px;">
                   <label>Étape (pour bon sans demande)</label>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -8753,7 +8475,7 @@
                 <button type="button" class="po-quick-filter" data-po-quick-filter="mine">Mes bons</button>
               </div>
               <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="po-search" placeholder="Rechercher un bon (lot, fournisseur, statut)" />
+                <input type="text" id="po-search" placeholder="Rechercher un bon (site, fournisseur, statut)" />
               </div>
               <ul id="po-list" class="list"></ul>
               <div id="po-details" class="card" style="margin-top: 12px; background-color: #f8fafc;"></div>
@@ -8804,7 +8526,7 @@
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
               <div>
                 <h3 style="margin:0;" id="mc-editor-title">Liste des matériaux</h3>
-                <p style="margin:4px 0 0;font-size:12px;color:#64748b;" id="mc-editor-subtitle">Cette liste s'applique à chaque lot du type sélectionné</p>
+                <p style="margin:4px 0 0;font-size:12px;color:#64748b;" id="mc-editor-subtitle">Cette liste s'applique à chaque site du type sélectionné</p>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button type="button" id="mc-new-document-btn" class="button button-secondary" style="padding:6px 14px;">+ Nouveau déboursé sec</button>
@@ -9367,6 +9089,7 @@
               </div>
               <div class="action-buttons" style="gap:8px;">
                 <button type="button" class="button button-small users-btn-refresh" onclick="loadUsersModule()">Actualiser</button>
+                <button type="button" class="button button-small users-btn-sync" onclick="reconcileHrUsersFromEmployees()">Synchroniser RH vers utilisateurs</button>
                 <button type="button" id="users-reset-all-login-state" class="button button-small users-btn-reset" onclick="resetAllUsersLoginState()">Reinitialiser tous les profils</button>
                 <button type="button" id="users-purge-business-data" class="button button-small users-btn-purge" onclick="purgeErpBusinessData()">Purge ERP</button>
               </div>
@@ -9391,147 +9114,6 @@
                   </tr>
                 </tbody>
               </table>
-            </div>
-          </div>
-        </div>
-
-        <div id="access-profiles" class="module">
-          <div class="page-header">
-            <h1>Dossiers profils</h1>
-            <p>Accréditations, interdictions, restrictions et ouverture ciblée des modules</p>
-          </div>
-          <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-              <div>
-                <h3 style="margin:0;">Gouvernance d'accès</h3>
-                <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Module pour piloter les droits de tous les profils. Admin et directeur RH peuvent restreindre les modules.</p>
-              </div>
-              <div class="action-buttons" style="gap:8px;">
-                <button type="button" class="button button-small" onclick="loadAccessProfilesModule()">Actualiser</button>
-              </div>
-            </div>
-
-            <div class="grid-2" style="gap:14px; align-items:start;">
-              <div>
-                <label style="display:block; margin-bottom:6px; font-weight:600;">Profils</label>
-                <ul id="access-profiles-list" class="list"></ul>
-              </div>
-
-              <div>
-                <label style="display:block; margin-bottom:6px; font-weight:600;">Dossier sélectionné</label>
-                <div id="access-profile-editor-empty" style="font-size:13px; color:#64748b; padding:10px; border:1px dashed #cbd5e1; border-radius:10px;">Sélectionne un profil pour configurer ses accréditations.</div>
-                <form id="access-profile-editor" style="display:none; margin-top:8px;">
-                  <div class="grid-2" style="gap:12px; align-items:start;">
-                    <div class="form-group">
-                      <label>Profil</label>
-                      <input type="text" id="access-profile-username" readonly />
-                    </div>
-                    <div class="form-group">
-                      <label>Rôle</label>
-                      <input type="text" id="access-profile-role" readonly />
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Accréditation</label>
-                    <select id="access-profile-accreditation">
-                      <option value="standard">Standard RH + Guide</option>
-                      <option value="extended">Étendu</option>
-                      <option value="restricted">Restreint strict</option>
-                    </select>
-                  </div>
-
-                  <div class="grid-2" style="gap:12px; align-items:start;">
-                    <div>
-                      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px;">
-                        <label style="display:block; font-weight:600; margin:0;">Modules autorisés</label>
-                        <button type="button" class="button button-secondary button-small" id="access-profile-restore-role">Restaurer modules du rôle</button>
-                      </div>
-                      <div id="access-profile-allowed-modules-list" style="display:grid; gap:8px; max-height:320px; overflow:auto; padding:10px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc;"></div>
-                    </div>
-                    <div>
-                      <label style="display:block; font-weight:600; margin-bottom:6px;">Modules interdits</label>
-                      <div id="access-profile-denied-modules-list" style="display:grid; gap:8px; max-height:320px; overflow:auto; padding:10px; border:1px solid #e2e8f0; border-radius:12px; background:#fff7ed;"></div>
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Ouverture forcée d'un module</label>
-                    <select id="access-profile-forced-module"></select>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Notes / restrictions</label>
-                    <textarea id="access-profile-notes" rows="4" placeholder="Ex: lecture seule, accès temporaire, interdiction exports"></textarea>
-                  </div>
-
-                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    <button type="submit" class="button button-primary">Enregistrer</button>
-                    <button type="button" class="button button-secondary" id="access-profile-ensure-hr">Créer/garantir profil RH</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="admin-mail" class="module">
-          <div class="page-header">
-            <h1>Courriels utilisateurs</h1>
-            <p>Envoi automatique de messages aux utilisateurs selon le champ Courriel RH</p>
-          </div>
-          <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-              <div>
-                <h3 style="margin:0;">Destinataires</h3>
-                <p id="admin-mail-summary" style="font-size:12px; color:#64748b; margin:4px 0 0;">Chargement...</p>
-              </div>
-              <div class="action-buttons" style="gap:8px; flex-wrap:wrap;">
-                <button type="button" class="button button-small button-secondary" onclick="loadAdminMailModule()">Actualiser</button>
-                <button type="button" class="button button-small button-primary" onclick="sendEmployeeAccessEmails()">Envoyer identifiants + lien ERP</button>
-              </div>
-            </div>
-
-            <div style="margin-bottom:12px; padding:12px; border:1px solid #bfdbfe; background:#eff6ff; border-radius:12px; color:#1d4ed8; font-size:13px;">
-              Envoie un message automatique aux employés ayant un courriel RH, avec le lien public ERP, leur nom d'utilisateur et leur mot de passe connu.
-            </div>
-
-            <div class="form-group" style="margin-bottom:12px;">
-              <label>Employés avec courriel RH (nom + courriel)</label>
-              <div id="admin-mail-employee-recipient-list" style="max-height:220px; overflow:auto; border:1px solid #e2e8f0; border-radius:10px; padding:10px; background:#f8fafc; font-size:13px; color:#334155;">Chargement...</div>
-            </div>
-
-            <div class="form-group" style="margin-bottom:10px;">
-              <label style="display:flex; align-items:center; gap:8px;">
-                <input type="checkbox" id="admin-mail-send-all" checked />
-                <span>Envoyer à tous les utilisateurs avec une adresse courriel valide</span>
-              </label>
-            </div>
-
-            <div class="form-group" id="admin-mail-recipient-group" style="margin-bottom:12px; display:none;">
-              <label>Choisir les destinataires</label>
-              <select id="admin-mail-recipient-select" multiple size="10"></select>
-              <p style="font-size:12px; color:#64748b; margin-top:6px;">Maintiens Ctrl (Windows) pour sélectionner plusieurs profils.</p>
-            </div>
-
-            <form id="admin-mail-form">
-              <div class="form-group" style="margin-bottom:10px;">
-                <label for="admin-mail-subject">Sujet</label>
-                <input type="text" id="admin-mail-subject" placeholder="Ex: Information importante ERP" required />
-              </div>
-              <div class="form-group" style="margin-bottom:10px;">
-                <label for="admin-mail-message">Message</label>
-                <textarea id="admin-mail-message" rows="7" placeholder="Rédige ton message ici..." required></textarea>
-              </div>
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button type="submit" class="button button-primary">Envoyer les courriels</button>
-              </div>
-            </form>
-
-            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
-            <div>
-              <h3 style="margin:0 0 8px;">Résultats d'envoi</h3>
-              <div id="admin-mail-results" style="font-size:13px; color:#475569;">Aucun envoi pour le moment.</div>
             </div>
           </div>
         </div>
@@ -9564,12 +9146,12 @@
                   <select id="database-upload-project-folder" required></select>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                  <label>Lot *</label>
+                  <label>Site *</label>
                   <select id="database-upload-project" required></select>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
                   <label>Titre (auto)</label>
-                  <input type="text" id="database-upload-title" placeholder="NomProjet-NumeroLot" readonly />
+                  <input type="text" id="database-upload-title" placeholder="NomProjet-NumeroSite" readonly />
                 </div>
               </div>
               <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
@@ -9733,7 +9315,7 @@
 
   <div id="project-edit-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="project-edit-title">
     <div class="modal-card">
-      <h3 id="project-edit-title" style="margin-bottom: 12px;">Modifier le lot</h3>
+      <h3 id="project-edit-title" style="margin-bottom: 12px;">Modifier le site</h3>
       <div class="form-group">
         <label>Nom du projet *</label>
         <input type="text" id="edit-project-name" />
@@ -9743,15 +9325,15 @@
         <input type="text" id="edit-project-prefecture" />
       </div>
       <div class="form-group">
-        <label>Nom du lot *</label>
+        <label>Nom du site *</label>
         <input type="text" id="edit-project-site" />
       </div>
       <div class="form-group">
-        <label>Type de lot</label>
+        <label>Type de site</label>
         <input type="text" id="edit-project-house-type" />
       </div>
       <div class="form-group">
-        <label>Référence du lot</label>
+        <label>Référence du site</label>
         <input type="text" id="edit-project-house-number" />
       </div>
       <div class="form-group">
@@ -9759,7 +9341,7 @@
         <textarea id="edit-project-description"></textarea>
       </div>
       <div class="form-group">
-        <label>Statut du lot</label>
+        <label>Statut du site</label>
         <select id="edit-project-construction-status">
           <option value="">Pas encore débuté</option>
           <option value="EN_CONSTRUCTION">En construction</option>
@@ -9985,46 +9567,6 @@
       Authorization: `Bearer ${token}`,
     };
 
-    function buildAuthenticatedDownloadUrl(pathname, extraParams = {}) {
-      const url = new URL(pathname, window.location.origin);
-      if (mobileAuthToken) {
-        url.searchParams.set('mobileAuth', mobileAuthToken);
-      }
-      Object.entries(extraParams || {}).forEach(([key, value]) => {
-        const normalized = String(value === null || value === undefined ? '' : value).trim();
-        if (normalized) {
-          url.searchParams.set(key, normalized);
-        }
-      });
-      return url.toString();
-    }
-
-    function triggerDirectDownload(url, fileName) {
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      if (fileName) {
-        anchor.download = fileName;
-      }
-      anchor.rel = 'noopener';
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-    }
-
-    function openOrDownloadStoredFile(fileUrl, fileName = '') {
-      if (!fileUrl) return;
-      const resolvedUrl = fileUrl.startsWith('/api/')
-        ? buildAuthenticatedDownloadUrl(fileUrl)
-        : new URL(fileUrl, window.location.origin).toString();
-
-      if (isLikelyMobileRuntime) {
-        triggerDirectDownload(resolvedUrl, fileName || undefined);
-        return;
-      }
-
-      window.open(resolvedUrl, '_blank', 'noopener');
-    }
-
     let currentModule = 'dashboard';
     let selectedProjectId = null;
     let selectedProjectGroupKey = null;
@@ -10053,7 +9595,6 @@
     let currentUserRole = null;
     let currentUserUsername = null;
     let currentUserScope = null;
-    let currentUserAccessProfile = null;
     let databaseGlobalSearchTerm = '';
     let databaseSection = 'achats';
     const databaseSectionSearchTerms = {
@@ -10082,7 +9623,6 @@
     };
     let assignmentsCache = [];
     let hrEmployeesCache = [];
-    let hrEmployeeDirectoryCache = [];
     let hrEmployeeDocumentsCache = {};
     let hrUserProfilesCache = [];
     let hrEmployeeEditingId = null;
@@ -10090,13 +9630,9 @@
     let hrEmployeeDirectorySearchTerm = '';
     let hrProfileInlineEditState = {};
     let hrAttendanceCache = [];
-    let hrContractsCache = [];
     let hrLeaveRequestsCache = [];
     let hrSignatureRequestsCache = [];
     let usersAdminCache = [];
-    let accessProfilesCache = [];
-    let selectedAccessProfileUsername = '';
-    let accessProfileModuleCatalog = [];
     let projectProgressCache = [];
     let projectProgressSearchTerm = '';
     let selectedProjectProgressProjectId = null;
@@ -10166,8 +9702,6 @@
     let lastNotifToggleAt = 0;
     let pushSetupStarted = false;
     let pushSetupReady = false;
-    let profileStreamSource = null;
-    let profileStreamRetryTimer = null;
     let auditLogEntries = [];
     let poCurrentPage = 1;
     let poQuickFilter = 'all';
@@ -10178,7 +9712,6 @@
     let auditCurrentPage = 1;
 
     const HR_CODE_META = {
-      '-': { label: 'Néant', color: '#475569', bg: '#e2e8f0' },
       P: { label: 'Présence', color: '#166534', bg: '#dcfce7' },
       R: { label: 'Retard', color: '#92400e', bg: '#fef3c7' },
       MS: { label: 'Congé maladie', color: '#9f1239', bg: '#ffe4e6' },
@@ -10213,7 +9746,7 @@
     const ZONE_STOCK_MANAGER_ALLOWED_MODULES = new Set(['stock-management', 'inventory', 'sortie-autorisations', 'purchase-orders', 'material-catalog', 'database', 'materials', 'trash', 'projects', 'journal-chantier', 'hr-employee-search', 'guide-erp']);
     const KOKAN_ALLOWED_MODULES = new Set([...ZONE_STOCK_MANAGER_ALLOWED_MODULES, 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave']);
     const SITE_CHIEF_ALLOWED_MODULES = new Set(['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
-    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
+    const HR_DIRECTOR_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp']);
     const STANDARD_EMPLOYEE_ALLOWED_MODULES = new Set(['dashboard', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-employee-search', 'guide-erp']);
     const STANDARD_EMPLOYEE_USERNAMES = new Set([
       'agbodjro123',
@@ -10252,111 +9785,6 @@
     const PROCUREMENT_REVIEWER_ALLOWED_MODULES = new Set(['purchase-orders', 'inventory', 'projects', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'material-catalog', 'stock-management', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
     const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp']);
       const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
-    const RESTRICTED_DEFAULT_ALLOWED_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'guide-erp']);
-    const ADMIN_ONLY_MODULES = new Set(['access-profiles', 'admin-mail']);
-    const ACCESS_PROFILE_MODULE_OPTIONS = [
-      'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations',
-      'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees',
-      'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'
-    ];
-
-    function getAccessProfileModuleLabel(moduleKey) {
-      const key = String(moduleKey || '').trim();
-      if (!key) return '';
-      const normalized = key.toLowerCase();
-      const fallbackLabels = {
-        'access-profiles': 'Dossiers profils',
-        'audit-log': 'Journal audit',
-        'assignments': 'Affectations',
-        'database': 'Base de donnée',
-        'dashboard': 'Tableau de bord',
-        'documents': 'Documents',
-        'expenses': 'Dépenses',
-        'guide-erp': 'Guide ERP',
-        'hr-attendance': 'Présence RH',
-        'hr-calendar': 'Calendrier RH',
-        'hr-employees': 'Employés RH',
-        'hr-leave': 'Congés RH',
-        'hr-signatures': 'Signatures RH',
-        'inventory': 'Inventaire',
-        'journal-chantier': 'Journal chantier',
-        'maps': 'Cartographie',
-        'material-catalog': 'Catalogue matériaux',
-        'materials': 'Matériaux',
-        'parc-auto': 'Parc auto',
-        'projects': 'Projets',
-        'project-progress': 'Avancement projets',
-        'purchase-orders': 'Bons de commande',
-        'reports': 'Rapports',
-        'revenues': 'Revenus',
-        'settings': 'Paramètres',
-        'sortie-autorisations': 'Autorisations de sortie',
-        'stock-management': 'Gestion stock',
-        'trash': 'Corbeille',
-        'users': 'Utilisateurs',
-      };
-      const menuItem = document.querySelector(`.menu-item[data-module="${CSS.escape(normalized)}"]`);
-      if (menuItem) {
-        return String(menuItem.textContent || '').replace(/\s+/g, ' ').trim();
-      }
-      return fallbackLabels[normalized] || key;
-    }
-
-    function refreshAccessProfileModuleCatalog() {
-      const seen = new Set();
-      const catalog = [];
-      document.querySelectorAll('.menu-item[data-module]').forEach(item => {
-        const key = String(item.dataset.module || '').trim().toLowerCase();
-        if (!key || seen.has(key)) return;
-        seen.add(key);
-        catalog.push({ key, label: String(item.textContent || '').replace(/\s+/g, ' ').trim() || getAccessProfileModuleLabel(key) });
-      });
-
-      ACCESS_PROFILE_MODULE_OPTIONS.forEach(key => {
-        const normalized = String(key || '').trim().toLowerCase();
-        if (!normalized || seen.has(normalized)) return;
-        seen.add(normalized);
-        catalog.push({ key: normalized, label: getAccessProfileModuleLabel(normalized) });
-      });
-
-      accessProfileModuleCatalog = catalog.filter(item => item.key !== '');
-      return accessProfileModuleCatalog;
-    }
-
-    function normalizeAccessProfileModuleList(value) {
-      if (Array.isArray(value)) {
-        return Array.from(new Set(value.map(item => String(item || '').trim().toLowerCase()).filter(Boolean)));
-      }
-      return Array.from(new Set(String(value || '')
-        .split(',')
-        .map(item => String(item || '').trim().toLowerCase())
-        .filter(Boolean)));
-    }
-
-    function getAccessProfileBaselineModules(role, username) {
-      const normalizedRole = String(role || '').trim().toLowerCase();
-      const normalizedUsername = normalizeText(String(username || '').trim());
-      const presets = {
-        admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'],
-        directeur_rh: Array.from(HR_DIRECTOR_ALLOWED_MODULES),
-        dirigeant: Array.from(EXECUTIVE_ALLOWED_MODULES),
-        achat: Array.from(ACHAT_ALLOWED_MODULES),
-        controle_achat: Array.from(PROCUREMENT_REVIEWER_ALLOWED_MODULES),
-        controle_achat_global: Array.from(PROCUREMENT_REVIEWER_ALLOWED_MODULES),
-        commis: Array.from(COMMIS_ALLOWED_MODULES),
-        gestionnaire_stock: Array.from(GEST_STOCK_ALLOWED_MODULES),
-        gestionnaire_stock_zone: Array.from(ZONE_STOCK_MANAGER_ALLOWED_MODULES),
-        gestionnaire_stock_songon: Array.from(KOKAN_ALLOWED_MODULES),
-        chef_chantier_site: Array.from(SITE_CHIEF_ALLOWED_MODULES),
-        employe_standard: Array.from(STANDARD_EMPLOYEE_ALLOWED_MODULES),
-      };
-
-      if (normalizedRole === 'gestionnaire_stock_songon' && normalizedUsername === 'kokan_sk') {
-        return new Set(Array.from(KOKAN_ALLOWED_MODULES));
-      }
-
-      return new Set(presets[normalizedRole] || []);
-    }
     const AUTO_MAP_REFRESH_MS = 10000;
     const AUTO_DASHBOARD_REFRESH_MS = 30000;
 
@@ -10508,7 +9936,7 @@
     }
 
     function canManageGuideDocuments() {
-      return isAdmin();
+      return isAdmin() || isExecutive();
     }
 
     function canManageTrashModule() {
@@ -10790,7 +10218,7 @@
     }
 
     function isRestrictedRole() {
-      return !isAdmin();
+      return isCommis() || isGestStock() || isZoneStockManager() || isSiteChief() || isOpsReviewer() || isProcurementReviewer() || isExecutive() || isAchat() || isHrDirector() || isStandardEmployeeProfileRole();
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
@@ -10801,18 +10229,6 @@
       if (!isRestrictedRole()) return true;
       const allowed = getAllowedModules();
       return Boolean(allowed && allowed.has('purchase-orders'));
-    }
-
-    function canLoadMaterialRequestsForCurrentRole() {
-      if (!isRestrictedRole()) return true;
-      const allowed = getAllowedModules();
-      return Boolean(allowed && allowed.has('materials'));
-    }
-
-    function canLoadStockIssueAuthorizationsForCurrentRole() {
-      if (!isRestrictedRole()) return true;
-      const allowed = getAllowedModules();
-      return Boolean(allowed && allowed.has('sortie-autorisations'));
     }
 
     function buildAutoVehicleLabel(vehicle) {
@@ -11602,20 +11018,19 @@
     }
 
     function getAllowedModules() {
-      let allowed = null;
-      if (isAdmin()) {
-        allowed = new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees', 'hr-employee-search', 'hr-contracts', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
-      } else if (currentUserAccessProfile && Array.isArray(currentUserAccessProfile.effectiveModules) && currentUserAccessProfile.effectiveModules.length) {
-        allowed = new Set(currentUserAccessProfile.effectiveModules.map(item => String(item || '').trim().toLowerCase()).filter(Boolean));
-      } else {
-        allowed = new Set(RESTRICTED_DEFAULT_ALLOWED_MODULES);
-      }
-
-      if (!isAdmin()) {
-        ADMIN_ONLY_MODULES.forEach(moduleKey => allowed.delete(moduleKey));
-      }
-
-      return allowed;
+      if (isAdmin()) return new Set([ 'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'expenses', 'revenues', 'reports', 'maps', 'database', 'guide-erp', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log' ]);
+      if (isHrDirector()) return HR_DIRECTOR_ALLOWED_MODULES;
+      if (isStandardEmployeeProfileRole()) return STANDARD_EMPLOYEE_ALLOWED_MODULES;
+      if (isExecutive()) return EXECUTIVE_ALLOWED_MODULES;
+      if (isProcurementReviewer()) return PROCUREMENT_REVIEWER_ALLOWED_MODULES;
+      if (isKokanStockManager()) return KOKAN_ALLOWED_MODULES;
+      if (isOpsReviewer()) return OPS_REVIEWER_ALLOWED_MODULES;
+      if (isSiteChief()) return SITE_CHIEF_ALLOWED_MODULES;
+      if (isZoneStockManager()) return ZONE_STOCK_MANAGER_ALLOWED_MODULES;
+      if (isGestStock()) return GEST_STOCK_ALLOWED_MODULES;
+      if (isCommis()) return COMMIS_ALLOWED_MODULES;
+      if (isAchat()) return ACHAT_ALLOWED_MODULES;
+      return null;
     }
 
     function applyExecutiveReadOnlyState() {
@@ -11878,7 +11293,7 @@
         resetAllButton.style.display = isAdmin() ? 'inline-flex' : 'none';
       }
       if (purgeButton) {
-        purgeButton.style.display = (isAdmin() || isExecutive()) ? 'inline-flex' : 'none';
+        purgeButton.style.display = isAdmin() ? 'inline-flex' : 'none';
       }
       if (tbody) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">Chargement...</td></tr>';
@@ -11896,423 +11311,20 @@
       }
     }
 
-    async function loadAdminMailModule() {
-      const summary = document.getElementById('admin-mail-summary');
-      const results = document.getElementById('admin-mail-results');
-      const sendAllCheckbox = document.getElementById('admin-mail-send-all');
-      const recipientGroup = document.getElementById('admin-mail-recipient-group');
-      const recipientSelect = document.getElementById('admin-mail-recipient-select');
-      const employeeRecipientList = document.getElementById('admin-mail-employee-recipient-list');
-
-      if (summary) summary.textContent = 'Chargement...';
-      if (results) results.textContent = 'Aucun envoi pour le moment.';
-      if (employeeRecipientList) employeeRecipientList.textContent = 'Chargement...';
-
-      try {
-        const [payload, employeePayload] = await Promise.all([
-          fetchJson('/api/admin/mail/recipients'),
-          fetchJson('/api/admin/mail/employee-access-recipients'),
-        ]);
-        const recipients = Array.isArray(payload?.recipients) ? payload.recipients : [];
-        const employeeRecipients = Array.isArray(employeePayload?.recipients) ? employeePayload.recipients : [];
-        const withEmail = recipients.filter(item => String(item?.email || '').trim()).length;
-        if (summary) summary.textContent = `${employeeRecipients.length} employé(s) RH avec courriel | ${withEmail} compte(s) avec courriel`;
-
-        if (employeeRecipientList) {
-          if (!employeeRecipients.length) {
-            employeeRecipientList.innerHTML = '<div style="color:#64748b;">Aucun employé avec courriel RH et identifiants connus.</div>';
-          } else {
-            employeeRecipientList.innerHTML = employeeRecipients.map(item => {
-              const fullName = String(item?.fullName || item?.username || '-').trim() || '-';
-              const email = String(item?.email || '').trim() || '-';
-              return `<div style="padding:6px 4px; border-bottom:1px solid #e2e8f0;"><strong>${escapeHtml(fullName)}</strong><div style="font-size:12px; color:#64748b;">${escapeHtml(email)}</div></div>`;
-            }).join('');
-          }
-        }
-
-        if (recipientSelect) {
-          recipientSelect.innerHTML = recipients.map(item => {
-            const username = String(item?.username || '').trim();
-            const displayName = String(item?.linkedEmployeeName || username || '-').trim() || '-';
-            const label = `${displayName} (${username || '-'})`;
-            const email = String(item?.email || '').trim() || 'sans courriel';
-            return `<option value="${escapeHtml(username)}">${escapeHtml(label)} — ${escapeHtml(email)}</option>`;
-          }).join('');
-        }
-
-        const showPickList = sendAllCheckbox ? !sendAllCheckbox.checked : false;
-        if (recipientGroup) recipientGroup.style.display = showPickList ? '' : 'none';
-      } catch (err) {
-        if (summary) summary.textContent = 'Erreur de chargement';
-        if (results) results.textContent = `Erreur: ${err.message}`;
-      }
-    }
-
-    async function refreshAdminMailRecipientsIfNeeded() {
-      if (currentModule !== 'admin-mail') return;
-      await loadAdminMailModule();
-    }
-
-    window.loadAdminMailModule = loadAdminMailModule;
-
-    window.sendEmployeeAccessEmails = async function sendEmployeeAccessEmails() {
-      const results = document.getElementById('admin-mail-results');
-      const subjectInput = document.getElementById('admin-mail-subject');
-
-      try {
-        if (results) results.textContent = 'Envoi en cours...';
-        const response = await fetchJson('/api/admin/mail/send-employee-access', {
-          method: 'POST',
-          body: JSON.stringify({ subject: String(subjectInput?.value || 'Accès ERP').trim() || 'Accès ERP' }),
-        });
-        const successCount = Number(response?.successCount || 0);
-        const failedCount = Number(response?.failedCount || 0);
-        const publicUrl = String(response?.publicUrl || '').trim();
-        const rows = Array.isArray(response?.results) ? response.results : [];
-        const rowsHtml = rows.length
-          ? `<div style="margin-top:8px; max-height:220px; overflow:auto; border:1px solid #e2e8f0; border-radius:8px; padding:8px;">${rows.map(row => {
-              const status = row?.success ? 'SUCCES' : 'ECHEC';
-              const color = row?.success ? '#166534' : '#b91c1c';
-              const email = String(row?.email || '-').trim() || '-';
-              const username = String(row?.username || '-').trim() || '-';
-              const error = row?.success ? '' : ` - ${String(row?.error || 'Erreur SMTP').trim()}`;
-              return `<div style="padding:5px 0; border-bottom:1px solid #e2e8f0;"><strong style="color:${color};">${status}</strong> - ${escapeHtml(username)} - ${escapeHtml(email)}${escapeHtml(error)}</div>`;
-            }).join('')}</div>`
-          : '';
-        if (results) {
-          results.innerHTML = `Envoi terminé: ${successCount} succès, ${failedCount} échec(s).${publicUrl ? `<br />Lien public utilisé: ${escapeHtml(publicUrl)}` : ''}${rowsHtml}`;
-        }
-        showMessage('Courriels employés envoyés');
-      } catch (err) {
-        if (results) results.textContent = `Erreur: ${err.message}`;
-        showMessage('Erreur envoi courriels employés: ' + err.message, 'error');
-      }
-    };
-
-    const adminMailSendAllCheckbox = document.getElementById('admin-mail-send-all');
-    if (adminMailSendAllCheckbox) {
-      adminMailSendAllCheckbox.addEventListener('change', () => {
-        const recipientGroup = document.getElementById('admin-mail-recipient-group');
-        if (recipientGroup) recipientGroup.style.display = adminMailSendAllCheckbox.checked ? 'none' : '';
-      });
-    }
-
-    const adminMailForm = document.getElementById('admin-mail-form');
-    if (adminMailForm) {
-      adminMailForm.addEventListener('submit', async event => {
-        event.preventDefault();
-        const subject = String(document.getElementById('admin-mail-subject')?.value || '').trim();
-        const message = String(document.getElementById('admin-mail-message')?.value || '').trim();
-        const sendToAllWithEmail = Boolean(document.getElementById('admin-mail-send-all')?.checked);
-        const selectedRecipients = Array.from(document.getElementById('admin-mail-recipient-select')?.selectedOptions || []).map(option => String(option.value || '').trim()).filter(Boolean);
-
-        try {
-          const payload = await fetchJson('/api/admin/mail/send', {
-            method: 'POST',
-            body: JSON.stringify({
-              subject,
-              message,
-              sendToAllWithEmail,
-              recipientUsernames: selectedRecipients,
-            }),
-          });
-          const successCount = Number(payload?.successCount || 0);
-          const failedCount = Number(payload?.failedCount || 0);
-          document.getElementById('admin-mail-results').innerHTML = `Envoi terminé: ${successCount} succès, ${failedCount} échec(s).`;
-          showMessage('Courriels utilisateurs envoyés');
-        } catch (err) {
-          document.getElementById('admin-mail-results').textContent = `Erreur: ${err.message}`;
-          showMessage('Erreur envoi courriels utilisateurs: ' + err.message, 'error');
-        }
-      });
-    }
-
-    function populateAccessProfileForcedModuleOptions(selectedValue = '') {
-      const select = document.getElementById('access-profile-forced-module');
-      if (!select) return;
-      const options = ['<option value="">Aucun</option>']
-        .concat(ACCESS_PROFILE_MODULE_OPTIONS.map(key => `<option value="${escapeHtml(key)}">${escapeHtml(key)}</option>`))
-        .join('');
-      select.innerHTML = options;
-      const wanted = String(selectedValue || '').trim().toLowerCase();
-      select.value = wanted && ACCESS_PROFILE_MODULE_OPTIONS.includes(wanted) ? wanted : '';
-    }
-
-    function renderAccessProfileModulePickers(row) {
-      const allowedHost = document.getElementById('access-profile-allowed-modules-list');
-      const deniedHost = document.getElementById('access-profile-denied-modules-list');
-      if (!allowedHost || !deniedHost) return;
-
-      const catalog = refreshAccessProfileModuleCatalog();
-      const allowedSet = new Set(normalizeAccessProfileModuleList(row?.allowedModules || ''));
-      const deniedSet = new Set(normalizeAccessProfileModuleList(row?.deniedModules || ''));
-      const baselineSet = getAccessProfileBaselineModules(row?.role || '', row?.username || '');
-
-      const renderChoice = (item, kind) => {
-        const checked = kind === 'allowed' ? allowedSet.has(item.key) : deniedSet.has(item.key);
-        const disabled = kind === 'allowed' && deniedSet.has(item.key) || kind === 'denied' && allowedSet.has(item.key);
-        const inputId = `access-profile-${kind}-${item.key}`;
-        return `
-          <label for="${escapeHtml(inputId)}" style="display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border:1px solid ${kind === 'allowed' ? '#dbeafe' : '#fed7aa'}; border-radius:10px; background:${kind === 'allowed' ? '#eff6ff' : '#fffaf0'}; opacity:${disabled ? '0.55' : '1'}; cursor:${disabled ? 'not-allowed' : 'pointer'};">
-            <input type="checkbox" id="${escapeHtml(inputId)}" data-kind="${kind}" data-module-key="${escapeHtml(item.key)}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} style="margin-top:2px;" />
-            <span>
-              <span style="display:block; font-weight:600;">${escapeHtml(item.label)}</span>
-              <span style="display:block; font-size:12px; color:#64748b;">${escapeHtml(item.key)}</span>
-            </span>
-          </label>
-        `;
-      };
-
-      allowedHost.innerHTML = catalog.map(item => renderChoice(item, 'allowed')).join('');
-      deniedHost.innerHTML = catalog.map(item => renderChoice(item, 'denied')).join('');
-
-      const syncCheckboxes = () => {
-        const allowedChecked = new Set(Array.from(allowedHost.querySelectorAll('input[type="checkbox"][data-kind="allowed"]:checked')).map(input => String(input.dataset.moduleKey || '').trim().toLowerCase()).filter(Boolean));
-        const deniedChecked = new Set(Array.from(deniedHost.querySelectorAll('input[type="checkbox"][data-kind="denied"]:checked')).map(input => String(input.dataset.moduleKey || '').trim().toLowerCase()).filter(Boolean));
-
-        allowedHost.querySelectorAll('input[type="checkbox"][data-kind="allowed"]').forEach(input => {
-          const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
-          const other = deniedChecked.has(key);
-          input.disabled = other;
-          input.closest('label')?.style && (input.closest('label').style.opacity = other ? '0.55' : '1');
-        });
-        deniedHost.querySelectorAll('input[type="checkbox"][data-kind="denied"]').forEach(input => {
-          const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
-          const other = allowedChecked.has(key);
-          input.disabled = other;
-          input.closest('label')?.style && (input.closest('label').style.opacity = other ? '0.55' : '1');
-        });
-      };
-
-      allowedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        input.addEventListener('change', () => {
-          if (input.checked) {
-            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
-            const deniedInput = deniedHost.querySelector(`input[data-module-key="${CSS.escape(key)}"]`);
-            if (deniedInput) deniedInput.checked = false;
-          }
-          syncCheckboxes();
-        });
-      });
-      deniedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        input.addEventListener('change', () => {
-          if (input.checked) {
-            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
-            const allowedInput = allowedHost.querySelector(`input[data-module-key="${CSS.escape(key)}"]`);
-            if (allowedInput) allowedInput.checked = false;
-          }
-          syncCheckboxes();
-        });
-      });
-
-      syncCheckboxes();
-
-      const restoreBtn = document.getElementById('access-profile-restore-role');
-      if (restoreBtn) {
-        restoreBtn.onclick = () => {
-          const baseline = Array.from(baselineSet);
-          allowedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
-            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
-            input.checked = baseline.includes(key);
-          });
-          deniedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
-            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
-            input.checked = false;
-          });
-          syncCheckboxes();
-          showMessage('Modules restaurés depuis le profil de rôle');
-        };
-      }
-    }
-
-    function renderAccessProfilesList() {
-      const list = document.getElementById('access-profiles-list');
-      if (!list) return;
-
-      const rows = Array.isArray(accessProfilesCache) ? accessProfilesCache.slice() : [];
-      rows.sort((a, b) => String(a?.username || '').localeCompare(String(b?.username || ''), 'fr', { sensitivity: 'base' }));
-
-      if (!rows.length) {
-        list.innerHTML = '<li class="list-item"><div class="list-item-title">Aucun profil</div></li>';
+    window.reconcileHrUsersFromEmployees = async function reconcileHrUsersFromEmployees() {
+      if (!isAdmin()) {
+        showMessage('Acces refuse: admin uniquement', 'error');
         return;
       }
 
-      list.innerHTML = rows.map(row => {
-        const username = String(row?.username || '').trim();
-        const isSelected = username.toLowerCase() === String(selectedAccessProfileUsername || '').trim().toLowerCase();
-        const linked = String(row?.linkedEmployee?.fullName || '').trim();
-        const roleLabel = getRoleDisplayLabel(String(row?.role || '').trim());
-        const modules = Array.isArray(row?.effectiveModules) ? row.effectiveModules : [];
-        return `
-          <li class="list-item" style="cursor:pointer; border:${isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0'};" onclick="selectAccessProfile('${escapeHtml(username)}')">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-              <div>
-                <div class="list-item-title">${escapeHtml(username || '-')}</div>
-                <div class="list-item-meta">${escapeHtml(roleLabel)} • ${escapeHtml(linked || 'Profil RH manquant')}</div>
-                <div class="list-item-meta">Modules visibles: ${escapeHtml(modules.map(getAccessProfileModuleLabel).join(', ') || 'Aucun')}</div>
-              </div>
-              <button type="button" class="button button-small button-secondary" onclick="event.stopPropagation(); window.restoreAccessProfileBaseline('${escapeHtml(username)}')">Restaurer</button>
-            </div>
-          </li>
-        `;
-      }).join('');
-    }
-
-    window.restoreAccessProfileBaseline = async function restoreAccessProfileBaseline(username) {
-      const safeUsername = String(username || '').trim();
-      if (!safeUsername || !isAdmin()) return;
-      const row = (Array.isArray(accessProfilesCache) ? accessProfilesCache : []).find(item => String(item?.username || '').trim().toLowerCase() === safeUsername.toLowerCase());
-      if (!row) return;
-      const baselineModules = Array.from(getAccessProfileBaselineModules(row.role, row.username));
-      const nextAllowedModules = String(row?.role || '').trim().toLowerCase() === 'admin'
-        ? baselineModules
-        : baselineModules.filter(moduleKey => !ADMIN_ONLY_MODULES.has(String(moduleKey || '').trim().toLowerCase()));
-      const currentDeniedModules = normalizeAccessProfileModuleList(row.deniedModules || '');
-      const currentForcedModule = String(row.forcedModule || '').trim().toLowerCase();
-      const forcedModule = nextAllowedModules.includes(currentForcedModule) ? currentForcedModule : '';
-      const payload = {
-        accreditationLevel: String(row.accreditationLevel || 'standard').trim(),
-        allowedModules: nextAllowedModules,
-        deniedModules: currentDeniedModules,
-        forcedModule,
-        notes: String(row.notes || '').trim(),
-      };
       try {
-        await fetchJson(`/api/admin/access-profiles/${encodeURIComponent(safeUsername)}`, {
-          method: 'PATCH',
-          body: JSON.stringify(payload),
-        });
-        showMessage(`Modules restaurés pour ${safeUsername}`);
-        await loadAccessProfilesModule();
+        const result = await fetchJson('/api/admin/reconcile-hr-users', { method: 'POST' });
+        showMessage(`Synchronisation RH effectuée: ${result?.created?.length || 0} créé(s), ${result?.updated?.length || 0} existant(s)`);
+        await loadUsersModule();
       } catch (err) {
-        showMessage('Impossible de restaurer le profil: ' + err.message, 'error');
+        showMessage('Synchronisation impossible: ' + err.message, 'error');
       }
     };
-
-    window.selectAccessProfile = function selectAccessProfile(username) {
-      selectedAccessProfileUsername = String(username || '').trim();
-      const editor = document.getElementById('access-profile-editor');
-      const emptyNode = document.getElementById('access-profile-editor-empty');
-      const row = (Array.isArray(accessProfilesCache) ? accessProfilesCache : []).find(item => String(item?.username || '').trim().toLowerCase() === selectedAccessProfileUsername.toLowerCase());
-      if (!row) {
-        if (editor) editor.style.display = 'none';
-        if (emptyNode) emptyNode.style.display = '';
-        renderAccessProfilesList();
-        return;
-      }
-
-      if (editor) editor.style.display = '';
-      if (emptyNode) emptyNode.style.display = 'none';
-
-      const allowedInput = document.getElementById('access-profile-allowed-modules');
-      const deniedInput = document.getElementById('access-profile-denied-modules');
-      const notesInput = document.getElementById('access-profile-notes');
-      const accreditationInput = document.getElementById('access-profile-accreditation');
-      const usernameInput = document.getElementById('access-profile-username');
-      const roleInput = document.getElementById('access-profile-role');
-
-      if (usernameInput) usernameInput.value = String(row?.username || '').trim();
-      if (roleInput) roleInput.value = getRoleDisplayLabel(String(row?.role || '').trim());
-      if (accreditationInput) accreditationInput.value = String(row?.accreditationLevel || 'standard').trim() || 'standard';
-      if (allowedInput) allowedInput.value = Array.isArray(row?.allowedModules) ? row.allowedModules.join(',') : '';
-      if (deniedInput) deniedInput.value = Array.isArray(row?.deniedModules) ? row.deniedModules.join(',') : '';
-      if (notesInput) notesInput.value = String(row?.notes || '').trim();
-      populateAccessProfileForcedModuleOptions(String(row?.forcedModule || '').trim());
-      renderAccessProfileModulePickers(row);
-
-      renderAccessProfilesList();
-    };
-
-    async function loadAccessProfilesModule() {
-      const list = document.getElementById('access-profiles-list');
-      if (list) {
-        list.innerHTML = '<li class="list-item"><div class="list-item-title">Chargement...</div></li>';
-      }
-
-      try {
-        const rows = await fetchJson('/api/admin/access-profiles');
-        accessProfilesCache = Array.isArray(rows) ? rows : [];
-        populateAccessProfileForcedModuleOptions('');
-        refreshAccessProfileModuleCatalog();
-        if (!selectedAccessProfileUsername && accessProfilesCache.length) {
-          selectedAccessProfileUsername = String(accessProfilesCache[0]?.username || '').trim();
-        }
-        renderAccessProfilesList();
-        if (selectedAccessProfileUsername) {
-          window.selectAccessProfile(selectedAccessProfileUsername);
-        }
-      } catch (err) {
-        accessProfilesCache = [];
-        if (list) {
-          list.innerHTML = `<li class="list-item"><div class="list-item-title" style="color:#b91c1c;">Erreur: ${escapeHtml(err.message || 'chargement impossible')}</div></li>`;
-        }
-      }
-    }
-
-    window.loadAccessProfilesModule = loadAccessProfilesModule;
-
-    const accessProfileEditorForm = document.getElementById('access-profile-editor');
-    if (accessProfileEditorForm) {
-      accessProfileEditorForm.addEventListener('submit', async event => {
-        event.preventDefault();
-        if (!isAdmin()) {
-          showMessage('Acces refuse: admin uniquement', 'error');
-          return;
-        }
-
-        const username = String(document.getElementById('access-profile-username')?.value || '').trim();
-        if (!username) {
-          showMessage('Profil non sélectionné', 'error');
-          return;
-        }
-
-        const allowedModules = Array.from((document.getElementById('access-profile-allowed-modules-list')?.querySelectorAll('input[type="checkbox"][data-kind="allowed"]:checked') || []))
-          .map(input => String(input.dataset.moduleKey || '').trim().toLowerCase())
-          .filter(Boolean);
-        const deniedModules = Array.from((document.getElementById('access-profile-denied-modules-list')?.querySelectorAll('input[type="checkbox"][data-kind="denied"]:checked') || []))
-          .map(input => String(input.dataset.moduleKey || '').trim().toLowerCase())
-          .filter(Boolean);
-
-        const payload = {
-          accreditationLevel: String(document.getElementById('access-profile-accreditation')?.value || 'standard').trim(),
-          allowedModules,
-          deniedModules,
-          forcedModule: String(document.getElementById('access-profile-forced-module')?.value || '').trim(),
-          notes: String(document.getElementById('access-profile-notes')?.value || '').trim(),
-        };
-
-        try {
-          await fetchJson(`/api/admin/access-profiles/${encodeURIComponent(username)}`, {
-            method: 'PATCH',
-            body: JSON.stringify(payload),
-          });
-          showMessage(`Dossier profil mis à jour: ${username}`);
-          await loadAccessProfilesModule();
-        } catch (err) {
-          showMessage('Erreur sauvegarde dossier: ' + err.message, 'error');
-        }
-      });
-    }
-
-    const ensureProfileButton = document.getElementById('access-profile-ensure-hr');
-    if (ensureProfileButton) {
-      ensureProfileButton.addEventListener('click', async () => {
-        const username = String(document.getElementById('access-profile-username')?.value || '').trim();
-        if (!username) {
-          showMessage('Profil non sélectionné', 'error');
-          return;
-        }
-        try {
-          await fetchJson(`/api/admin/access-profiles/${encodeURIComponent(username)}/ensure-hr-profile`, {
-            method: 'POST',
-          });
-          showMessage(`Profil RH garanti pour ${username}`);
-          await loadAccessProfilesModule();
-        } catch (err) {
-          showMessage('Erreur création profil RH: ' + err.message, 'error');
-        }
-      });
-    }
 
     window.resetUserLoginState = async function resetUserLoginState(userId) {
       const id = Number(userId || 0);
@@ -12359,8 +11371,8 @@
     };
 
     window.purgeErpBusinessData = async function purgeErpBusinessData() {
-      if (!isAdmin() && !isExecutive()) {
-        showMessage('Acces refuse: admin ou dirigeant uniquement', 'error');
+      if (!isAdmin()) {
+        showMessage('Acces refuse: admin uniquement', 'error');
         return;
       }
 
@@ -12370,17 +11382,7 @@
         '- Demandes d\'approvisionnement',
         '- Inventaire et autorisations de sortie',
         '- Depenses et revenus',
-        '- Parc auto, transports et suivi GPS',
-        '- Affectations de projet et fournisseurs operationnels',
-        '',
-        'Cette action ne supprime pas :',
-        '- La liste des employes',
-        '- Le catalogue de materiaux',
-        '- Les projets, lots et zones crees',
-        '- Les entrepots crees',
-        '- Les journaux de chantier',
-        '- Le calendrier de presence, les pointages et les conges',
-        '- Le guide ERP et les archives',
+        '- Corbeille et documents archives',
         '',
         'Tape PURGE_ALL_DATA pour confirmer.'
       ].join('\n');
@@ -12396,6 +11398,20 @@
           method: 'POST',
           body: JSON.stringify({ confirm: 'PURGE_ALL_DATA' }),
         });
+
+        trashItems = [];
+        saveTrashItemsToStorage();
+        databaseTrashBySection = {
+          projects: [],
+          users: [],
+          assignments: [],
+          revenues: [],
+          expenses: [],
+          purchase_orders: [],
+          generated_documents: [],
+        };
+        saveDatabaseTrashToStorage();
+        saveDatabaseTrashHiddenIdsToStorage();
 
         selectedMaterialRequestId = null;
         selectedPurchaseOrderId = null;
@@ -12694,34 +11710,17 @@
       const stageSelect = document.getElementById('progress-stage');
       if (!stageSelect) return;
 
-      const defaultMainStages = [
-        'Implantation',
-        'Terrassement',
-        'Fondations',
-        'Élévation',
-        'Charpente',
-        'Toiture',
-        'Second oeuvre',
-        'Finitions',
-        'Contrôle qualité',
-        'Réception',
-      ];
-
       const pid = Number(projectId || 0);
       if (!pid) {
-        stageSelect.innerHTML = '<option value="">Sélectionner d\'abord un LOT</option>' +
-          defaultMainStages.map(stage => `<option value="${escapeHtml(stage)}">${escapeHtml(stage)}</option>`).join('');
+        stageSelect.innerHTML = '<option value="">Sélectionner d\'abord un site</option>';
         return;
       }
 
-      const inferredStages = getProgressAvailableStages(pid);
-      const stages = [...defaultMainStages];
-      inferredStages.forEach(stage => {
-        const key = normalizeStageKey(stage);
-        if (!stages.some(item => normalizeStageKey(item) === key)) {
-          stages.push(stage);
-        }
-      });
+      const stages = getProgressAvailableStages(pid);
+      if (!stages.length) {
+        stageSelect.innerHTML = '<option value="">Aucune étape disponible depuis l\'inventaire</option>';
+        return;
+      }
 
       const wantedKey = normalizeStageKey(selectedStage || stageSelect.value || '');
       stageSelect.innerHTML = '<option value="">Sélectionner une étape</option>' +
@@ -12834,16 +11833,16 @@
 
       if (summaryEl) {
         if (!projectId) {
-          summaryEl.textContent = 'Sélectionne un LOT pour voir les stocks restants par matériau.';
+          summaryEl.textContent = 'Sélectionne un site pour voir les stocks restants par matériau.';
         } else if (!linesSummary.length) {
           const availableCount = getProgressAvailableMaterials(projectId, stageValue).length;
           summaryEl.textContent = availableCount
-            ? `${availableCount} matériau${availableCount > 1 ? 'x' : ''} disponible${availableCount > 1 ? 's' : ''} pour ce LOT et cette étape.`
-            : 'Aucun stock disponible pour ce LOT et cette étape.';
+            ? `${availableCount} matériau${availableCount > 1 ? 'x' : ''} disponible${availableCount > 1 ? 's' : ''} pour ce site et cette étape.`
+            : 'Aucun stock disponible pour ce site et cette étape.';
         } else {
           summaryEl.textContent = linesSummary.map(line => {
             const availability = findProgressMaterialAvailability(projectId, line.itemName, stageValue);
-            if (!availability) return `${line.itemName}: introuvable dans le stock du LOT`;
+            if (!availability) return `${line.itemName}: introuvable dans le stock du site`;
             const remaining = Number(availability.quantiteRestante || 0);
             const isValid = Number(line.quantite || 0) <= remaining;
             return `${line.itemName}: ${Number(line.quantite || 0).toFixed(2)} / ${remaining.toFixed(2)} restant${isValid ? '' : ' - dépassement'}`;
@@ -12859,14 +11858,14 @@
         if (!hint) return;
 
         if (!projectIdValue || !itemName) {
-          hint.textContent = projectIdValue ? 'Choisis un matériau disponible' : 'Sélectionne un LOT';
+          hint.textContent = projectIdValue ? 'Choisis un matériau disponible' : 'Sélectionne un site';
           hint.style.color = '#64748b';
           return;
         }
 
         const availability = findProgressMaterialAvailability(projectIdValue, itemName, stageValue);
         if (!availability) {
-          hint.textContent = 'Matériau introuvable dans le stock du lot';
+          hint.textContent = 'Matériau introuvable dans le stock du site';
           hint.style.color = '#b91c1c';
           return;
         }
@@ -12877,7 +11876,7 @@
         const remaining = Number(availability.quantiteRestante || 0);
         const ok = requested <= remaining && (!(qty > 0) || qty <= remaining);
 
-        hint.textContent = `Restant lot: ${remaining.toFixed(2)}${requested > 0 ? ` • Saisi total: ${requested.toFixed(2)}` : ''}`;
+        hint.textContent = `Restant site: ${remaining.toFixed(2)}${requested > 0 ? ` • Saisi total: ${requested.toFixed(2)}` : ''}`;
         hint.style.color = ok ? '#475569' : '#b91c1c';
       });
     }
@@ -13632,7 +12631,7 @@
                     <div class="list-item-meta">${escapeHtml(item.meta || '-')} • Supprimé le ${formatAutoLocationTimestamp(item.deletedAt)}</div>
                   </div>
                   ${item.fileUrl
-                    ? `<div class="action-buttons"><button type="button" class="button button-small button-primary" onclick="openOrDownloadStoredFile('${escapeHtml(item.fileUrl)}', '${escapeHtml(item.fileName || item.title || 'document.pdf')}')">Ouvrir PDF</button></div>`
+                    ? `<div class="action-buttons"><button type="button" class="button button-small button-primary" onclick="window.open('${escapeHtml(item.fileUrl)}', '_blank')">Ouvrir PDF</button></div>`
                     : ''}
                 </li>
               `).join('')}
@@ -13697,10 +12696,6 @@
       localStorage.setItem(DATABASE_TRASH_HIDDEN_IDS_KEY, JSON.stringify(databaseHiddenDocumentIds));
     }
 
-    function saveDatabaseTrashHiddenIdsToStorage() {
-      saveDatabaseHiddenIdsToStorage();
-    }
-
     function addDatabaseTrashItem(documentItem) {
       const section = String(documentItem?.sectionCode || '').trim();
       if (!databaseTrashBySection[section]) {
@@ -13754,7 +12749,7 @@
                       <div class="list-item-meta">${escapeHtml(item.fileName || '-')} • Supprimé le ${formatAutoLocationTimestamp(item.deletedAt)}</div>
                     </div>
                     ${item.fileUrl
-                      ? `<div class="action-buttons"><button type="button" class="button button-small button-primary" onclick="openOrDownloadStoredFile('${escapeHtml(item.fileUrl)}', '${escapeHtml(item.fileName || item.title || 'document.pdf')}')">Ouvrir PDF</button></div>`
+                      ? `<div class="action-buttons"><button type="button" class="button button-small button-primary" onclick="window.open('${escapeHtml(item.fileUrl)}', '_blank')">Ouvrir PDF</button></div>`
                       : ''}
                   </li>
                 `).join('')}</ul>`
@@ -13833,9 +12828,9 @@
     }
 
     function getProjectSiteLabel(project) {
-      const siteName = String(project?.nomSite || '').trim() || String(project?.numeroMaison || '').trim() || `Lot ${project?.id || ''}`.trim();
+      const siteName = String(project?.nomSite || '').trim() || String(project?.numeroMaison || '').trim() || `Site ${project?.id || ''}`.trim();
       const siteType = getProjectVillaTypeLabel(project);
-      const base = `Lot N°${siteName}`;
+      const base = `Site N°${siteName}`;
       return siteType ? `${base} (${siteType})` : base;
     }
 
@@ -14148,7 +13143,7 @@
         projectLabel.textContent = inventoryViewMode === 'building' ? 'Zone (filtre)' : 'Zone (optionnel)';
       }
       if (houseLabel) {
-        houseLabel.textContent = inventoryViewMode === 'building' ? 'Lot précis' : 'Lot (optionnel)';
+        houseLabel.textContent = inventoryViewMode === 'building' ? 'Site précis' : 'Site (optionnel)';
       }
 
       if (projectFilter) {
@@ -14221,11 +13216,11 @@
         subtitleEl.textContent = `Vue ciblée sur ${scopedMaterials.length} ligne${scopedMaterials.length > 1 ? 's' : ''} de stock pour cet entrepôt.`;
       } else if (inventoryViewMode === 'building') {
         titleEl.textContent = selectedHouseLabel
-          ? `Lot précis • ${selectedHouseLabel}`
-          : 'Lot précis';
+          ? `Site précis • ${selectedHouseLabel}`
+          : 'Site précis';
         subtitleEl.textContent = selectedHouseLabel
-          ? `Zone: ${selectedZoneLabel || 'Non renseignée'} • inventaire ciblé pour le lot choisi.`
-          : 'Choisis une zone puis un lot pour isoler l\'inventaire exact du chantier.';
+          ? `Zone: ${selectedZoneLabel || 'Non renseignée'} • inventaire ciblé pour le site choisi.`
+          : 'Choisis une zone puis un site pour isoler l\'inventaire exact du chantier.';
       }
 
       productsEl.textContent = String(productsCount);
@@ -14326,10 +13321,10 @@
           villaTypeSelect.value = inferredVillaType;
         }
         if (helper) {
-          helper.textContent = `Dossier sélectionné: ${getProjectFolderLabel(selectedFolder)}. Renseignez le numéro du lot (ou une plage) puis validez.`;
+          helper.textContent = `Dossier sélectionné: ${getProjectFolderLabel(selectedFolder)}. Renseignez le numéro du site (ou une plage) puis validez.`;
         }
         if (title) title.textContent = 'Ajouter un site';
-        if (submitButton) submitButton.textContent = 'Ajouter le lot';
+        if (submitButton) submitButton.textContent = 'Ajouter le site';
         if (clearButton) clearButton.style.display = 'inline-flex';
 
         if (scrollToForm && formCard) {
@@ -14347,8 +13342,8 @@
       if (helper) {
         helper.textContent = 'Sélectionne une zone existante pour ajouter un site.';
       }
-      if (title) title.textContent = 'Ajouter un lot';
-      if (submitButton) submitButton.textContent = 'Ajouter le lot';
+      if (title) title.textContent = 'Ajouter un site';
+      if (submitButton) submitButton.textContent = 'Ajouter le site';
       if (clearButton) clearButton.style.display = 'none';
     }
 
@@ -14363,7 +13358,7 @@
         return;
       }
 
-      label.textContent = `${getProjectFolderLabel(selectedFolder)} (${selectedFolder.houses.length} lot${selectedFolder.houses.length > 1 ? 's' : ''})`;
+      label.textContent = `${getProjectFolderLabel(selectedFolder)} (${selectedFolder.houses.length} site${selectedFolder.houses.length > 1 ? 's' : ''})`;
     }
 
     function showProjectFolderChooser() {
@@ -14521,7 +13516,7 @@
       const isSearchActive = Boolean(searchValue);
 
       if (listTitle) {
-        listTitle.textContent = isSearchActive ? 'Résultats Projet > Zone > Lots' : 'Navigation Projet > Zone > Lots';
+        listTitle.textContent = isSearchActive ? 'Résultats Projet > Zone > Sites' : 'Navigation Projet > Zone > Sites';
       }
 
       list.innerHTML = hierarchy.length
@@ -14952,7 +13947,7 @@
               <button type="button" class="progress-folder-card" data-project-id="${Number(project.id)}" style="height: 110px; border: ${isActive ? '3px solid #0f172a' : 'none'}; border-radius: 12px; background: ${background}; color: #ffffff; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:6px; text-align:left; padding: 12px; cursor:pointer;">
                 <div style="font-weight:700; font-size:14px;">${escapeHtml(project.nomProjet || 'Projet')}</div>
                 <div style="font-size:12px; opacity:0.92;">${escapeHtml(project.typeProjet || 'Type non renseigné')}</div>
-                <div style="font-size:12px; opacity:0.95;">${project.zones.length} zone${project.zones.length > 1 ? 's' : ''} • ${totalSites} lot${totalSites > 1 ? 's' : ''}</div>
+                <div style="font-size:12px; opacity:0.95;">${project.zones.length} zone${project.zones.length > 1 ? 's' : ''} • ${totalSites} site${totalSites > 1 ? 's' : ''}</div>
               </button>
             `;
           }).join('')
@@ -14984,7 +13979,7 @@
               <button type="button" class="material-folder-card" data-project-id="${Number(project.id)}" style="height: 110px; border: ${isActive ? '3px solid #0f172a' : 'none'}; border-radius: 12px; background: ${background}; color: #ffffff; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:6px; text-align:left; padding: 12px; cursor:pointer;">
                 <div style="font-weight:700; font-size:14px;">${escapeHtml(project.nomProjet || 'Projet')}</div>
                 <div style="font-size:12px; opacity:0.92;">${escapeHtml(project.typeProjet || 'Type non renseigné')}</div>
-                <div style="font-size:12px; opacity:0.95;">${project.zones.length} zone${project.zones.length > 1 ? 's' : ''} • ${totalSites} lot${totalSites > 1 ? 's' : ''}</div>
+                <div style="font-size:12px; opacity:0.95;">${project.zones.length} zone${project.zones.length > 1 ? 's' : ''} • ${totalSites} site${totalSites > 1 ? 's' : ''}</div>
               </button>
             `;
           }).join('')
@@ -15186,13 +14181,10 @@
 
     async function loadProjectProgress() {
       try {
-        const materialsPromise = canLoadMaterialRequestsForCurrentRole()
-          ? fetchJson('/api/material-requests').catch(() => materialRequestsCache)
-          : Promise.resolve(Array.isArray(materialRequestsCache) ? materialRequestsCache : []);
         const [updates, projects, materials, stockIssues, projectFolders, projectCatalog] = await Promise.all([
           fetchJson('/api/project-progress').catch(() => []),
           fetchJson('/api/projects').catch(() => projectsCache),
-          materialsPromise,
+          fetchJson('/api/material-requests').catch(() => materialRequestsCache),
           fetchJson('/api/stock-management/issues').catch(() => stockIssuesCache),
           fetchJson('/api/project-folders').catch(() => projectFoldersCache),
           fetchJson('/api/project-catalog').catch(() => projectCatalogCache),
@@ -15326,7 +14318,7 @@
 
       candidateSites.sort((a, b) => String(getProjectSiteLabel(a)).localeCompare(String(getProjectSiteLabel(b)), 'fr', { numeric: true }));
 
-      select.innerHTML = '<option value="">Tous les lots</option>' +
+      select.innerHTML = '<option value="">Tous les sites</option>' +
         candidateSites.map(site => `<option value="${Number(site.id)}">${escapeHtml(getProjectDisplayName(site) || getProjectSiteLabel(site))}</option>`).join('');
 
       if (selectedJournalSiteId && candidateSites.some(site => String(site.id) === String(selectedJournalSiteId))) {
@@ -15431,7 +14423,7 @@
         });
 
       const totalEntries = siteRows.reduce((sum, row) => sum + row.entries.length, 0);
-      summary.textContent = `${siteRows.length} LOT${siteRows.length > 1 ? 's' : ''} • ${totalEntries} entrée${totalEntries > 1 ? 's' : ''} du journal`;
+      summary.textContent = `${siteRows.length} site${siteRows.length > 1 ? 's' : ''} • ${totalEntries} entrée${totalEntries > 1 ? 's' : ''} du journal`;
 
       container.innerHTML = siteRows.length
         ? siteRows.map(row => `
@@ -15484,13 +14476,10 @@
     async function loadJournalChantier() {
       try {
         if (!projectProgressCache.length || !projectsCache.length || !materialRequestsCache.length || !stockIssuesCache.length) {
-          const materialsPromise = canLoadMaterialRequestsForCurrentRole()
-            ? fetchJson('/api/material-requests').catch(() => [])
-            : Promise.resolve([]);
           const [updates, projects, materials, stockIssues] = await Promise.all([
             fetchJson('/api/project-progress').catch(() => []),
             fetchJson('/api/projects').catch(() => []),
-            materialsPromise,
+            fetchJson('/api/material-requests').catch(() => []),
             fetchJson('/api/stock-management/issues').catch(() => []),
           ]);
 
@@ -15965,10 +14954,10 @@
       if (zoneOnly) {
         siteSelect.value = '';
         hint.textContent = zoneSelect.value
-          ? `Le bon sera reçu dans le stock de zone ${zoneSelect.value}, puis réparti plus tard vers les lots.`
+          ? `Le bon sera reçu dans le stock de zone ${zoneSelect.value}, puis réparti plus tard vers les sites.`
           : 'Sélectionne une zone avant d\'activer la réception en stock de zone.';
       } else {
-        hint.textContent = 'Choisis un lot précis, ou active le mode zone pour réceptionner d\'abord au stock de zone.';
+        hint.textContent = 'Choisis un site précis, ou active le mode zone pour réceptionner d\'abord au stock de zone.';
       }
     }
 
@@ -16175,18 +15164,6 @@
 
     function isStockIssueAllSubStagesSelected() {
       return Boolean(document.getElementById('stock-issue-stage-all-sub')?.checked);
-    }
-
-    function isZoneStockIssue() {
-      const warehouseId = String(document.getElementById('stock-issue-warehouse')?.value || selectedStockWarehouseId || '').trim();
-      if (!warehouseId) return false;
-
-      const warehouse = getWarehouseById(warehouseId);
-      const warehouseName = normalizeText(String(warehouse?.name || ''));
-      if (warehouseName.includes('zone')) return true;
-
-      const warehouseRows = getRowsByWarehouse(stockAvailableCache, warehouseId);
-      return warehouseRows.some(row => String(row?.sourceType || '').trim().toUpperCase() === 'ZONE_STOCK');
     }
 
     function syncStockIssueRequestedStageInput() {
@@ -16470,7 +15447,7 @@
 
       const selectedSite = String(siteSel?.value || '').trim();
       if (!selectedSite && !opts.silentIfEmpty) {
-        showMessage('Sélectionne le numéro du lot avant de charger les articles', 'error');
+        showMessage('Sélectionne le numéro du site avant de charger les articles', 'error');
         return 0;
       }
 
@@ -17191,7 +16168,7 @@
       return;
 
       if (!folder) {
-        details.innerHTML = '<p style="color: #64748b;">Clique sur un dossier pour voir les lots de ce projet.</p>';
+        details.innerHTML = '<p style="color: #64748b;">Clique sur un dossier pour voir les sites de ce projet.</p>';
         return;
       }
 
@@ -17231,7 +16208,7 @@
         <p style="margin-bottom: 8px;"><strong>Préfecture:</strong> ${escapeHtml(folder.prefecture || 'Non renseigne')}</p>
         <p style="margin-bottom: 8px;"><strong>Type de villa:</strong> ${escapeHtml(folderVillaType)}</p>
         <p style="margin-bottom: 8px;"><strong>Type de projet:</strong> ${projectType}</p>
-        <p style="margin-bottom: 10px;"><strong>Lots à construire:</strong> ${folder.houses.length}</p>
+        <p style="margin-bottom: 10px;"><strong>Sites à construire:</strong> ${folder.houses.length}</p>
         ${housesHtml}
       `;
     }
@@ -17969,7 +16946,7 @@
     }
 
     function canDecideHrLeave() {
-      return isAdmin() || isAchat() || isSiteChief() || isHrDirector();
+      return isAdmin() || isAchat() || isSiteChief();
     }
 
     function getHrCodeBadge(code) {
@@ -18043,27 +17020,11 @@
       }
 
       const attendanceSelect = document.getElementById('hr-attendance-employee');
-        const attendanceDisplay = document.getElementById('hr-attendance-employee-display');
-        const attendanceHidden = document.getElementById('hr-attendance-employee-locked');
-      
-        if (attendanceSelect && attendanceDisplay && attendanceHidden) {
-          if (isStandardEmployeeProfileRole()) {
-            const profileEmployee = getCurrentHrProfileEmployee();
-            if (profileEmployee && Number(profileEmployee.id) > 0) {
-              attendanceSelect.style.display = 'none';
-              attendanceDisplay.style.display = 'block';
-              attendanceDisplay.textContent = '👤 ' + escapeHtml(profileEmployee.fullName);
-              attendanceHidden.value = String(profileEmployee.id);
-              attendanceSelect.value = String(profileEmployee.id);
-            }
-          } else {
-            const prev = attendanceSelect.value;
-            attendanceSelect.style.display = '';
-            attendanceDisplay.style.display = 'none';
-            attendanceSelect.innerHTML = `<option value="">Sélectionner un employé</option>${hrEmployeesCache.map(employee => `<option value="${employee.id}">${escapeHtml(employee.fullName)}</option>`).join('')}`;
-            if (prev) attendanceSelect.value = prev;
-          }
-        }
+      if (attendanceSelect) {
+        const prev = attendanceSelect.value;
+        attendanceSelect.innerHTML = `<option value="">Sélectionner un employé</option>${hrEmployeesCache.map(employee => `<option value="${employee.id}">${escapeHtml(employee.fullName)}</option>`).join('')}`;
+        if (prev) attendanceSelect.value = prev;
+      }
 
       const leaveSelect = document.getElementById('hr-leave-employee');
       if (leaveSelect) {
@@ -18102,11 +17063,6 @@
       }
 
       const valueByField = {
-        fullName: employee.fullName,
-        jobTitle: employee.jobTitle,
-        dateEmbauche: String(employee.dateEmbauche || '').trim().slice(0, 10),
-        sexe: employee.sexe,
-        typeContrat: employee.typeContrat,
         phoneNumber: employee.phoneNumber,
         maritalStatus: employee.maritalStatus,
         address: employee.address,
@@ -18130,23 +17086,6 @@
           editControlHtml = `
             <select class="hr-inline-edit-select" data-hr-profile-edit-input="${escapeHtml(fieldKey)}">
               ${maritalOptions.map(option => `<option value="${escapeHtml(option)}"${option === value ? ' selected' : ''}>${escapeHtml(option || 'Non renseignée')}</option>`).join('')}
-            </select>
-          `;
-        } else if (fieldKey === 'sexe') {
-          const sexeOptions = ['', 'M', 'F'];
-          editControlHtml = `
-            <select class="hr-inline-edit-select" data-hr-profile-edit-input="${escapeHtml(fieldKey)}">
-              ${sexeOptions.map(option => {
-                const label = option === 'M' ? 'Masculin' : option === 'F' ? 'Féminin' : 'Non renseigné';
-                return `<option value="${escapeHtml(option)}"${option === value ? ' selected' : ''}>${escapeHtml(label)}</option>`;
-              }).join('')}
-            </select>
-          `;
-        } else if (fieldKey === 'typeContrat') {
-          const contractOptions = ['', 'CDI', 'CDD', 'Stage', 'Freelance', 'Intérim', 'Consultant', 'Autre'];
-          editControlHtml = `
-            <select class="hr-inline-edit-select" data-hr-profile-edit-input="${escapeHtml(fieldKey)}">
-              ${contractOptions.map(option => `<option value="${escapeHtml(option)}"${option === value ? ' selected' : ''}>${escapeHtml(option || 'Non renseigné')}</option>`).join('')}
             </select>
           `;
         } else {
@@ -18293,21 +17232,6 @@
 
               const projectSite = parseHrProjectSiteLabel(employee.address);
               const canAttachDocuments = profileMode ? canUploadHrProfileDocuments() : canManageHrData();
-              const fullNameInfoItem = profileMode
-                ? renderHrProfileEditableInfoItem(employee, 'fullName', 'Nom complet', employee.fullName, { inputType: 'text' })
-                : '';
-              const jobInfoItem = profileMode
-                ? renderHrProfileEditableInfoItem(employee, 'jobTitle', 'Poste', employee.jobTitle, { inputType: 'text' })
-                : `<div class="hr-info-item"><span class="hr-info-label">Poste</span><span class="hr-info-value">${escapeHtml(employee.jobTitle || '-')}</span></div>`;
-              const hireDateInfoItem = profileMode
-                ? renderHrProfileEditableInfoItem(employee, 'dateEmbauche', 'Date d\'embauche', String(employee.dateEmbauche || '').trim().slice(0, 10), { inputType: 'date' })
-                : `<div class="hr-info-item"><span class="hr-info-label">Date d'embauche</span><span class="hr-info-value">${escapeHtml(employee.dateEmbauche || '-')}</span></div>`;
-              const sexeInfoItem = profileMode
-                ? renderHrProfileEditableInfoItem(employee, 'sexe', 'Sexe', employee.sexe)
-                : `<div class="hr-info-item"><span class="hr-info-label">Sexe</span><span class="hr-info-value">${escapeHtml(employee.sexe || '-')}</span></div>`;
-              const contractTypeInfoItem = profileMode
-                ? renderHrProfileEditableInfoItem(employee, 'typeContrat', 'Type de contrat', employee.typeContrat)
-                : `<div class="hr-info-item"><span class="hr-info-label">Type de contrat</span><span class="hr-info-value">${escapeHtml(employee.typeContrat || '-')}</span></div>`;
               const phoneInfoItem = profileMode
                 ? renderHrProfileEditableInfoItem(employee, 'phoneNumber', 'Téléphone', employee.phoneNumber, { inputType: 'tel' })
                 : `<div class="hr-info-item"><span class="hr-info-label">Téléphone</span><span class="hr-info-value">${escapeHtml(employee.phoneNumber || '-')}</span></div>`;
@@ -18342,11 +17266,10 @@
                     `}
                   </div>
                   <div class="hr-employee-dossier-grid">
-                    ${fullNameInfoItem}
-                    ${jobInfoItem}
-                    ${hireDateInfoItem}
-                    ${sexeInfoItem}
-                    ${contractTypeInfoItem}
+                    <div class="hr-info-item"><span class="hr-info-label">Poste</span><span class="hr-info-value">${escapeHtml(employee.jobTitle || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Date d'embauche</span><span class="hr-info-value">${escapeHtml(employee.dateEmbauche || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Sexe</span><span class="hr-info-value">${escapeHtml(employee.sexe || '-')}</span></div>
+                    <div class="hr-info-item"><span class="hr-info-label">Type de contrat</span><span class="hr-info-value">${escapeHtml(employee.typeContrat || '-')}</span></div>
                     <div class="hr-info-item"><span class="hr-info-label">Projet</span><span class="hr-info-value">${escapeHtml(employee.projet || projectSite.project || '-')}</span></div>
                     <div class="hr-info-item"><span class="hr-info-label">Site</span><span class="hr-info-value">${escapeHtml(projectSite.site || '-')}</span></div>
                     ${phoneInfoItem}
@@ -18416,11 +17339,6 @@
 
     window.downloadHrEmployeeDocument = async function downloadHrEmployeeDocument(docId) {
       try {
-        if (isLikelyMobileRuntime) {
-          triggerDirectDownload(buildAuthenticatedDownloadUrl(`/api/hr/employees/documents/${Number(docId)}/download`), `document-employe-${Number(docId)}.pdf`);
-          return;
-        }
-
         const authToken = localStorage.getItem('erp_token');
         const resp = await fetch(`/api/hr/employees/documents/${Number(docId)}/download`, {
           headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
@@ -18502,19 +17420,17 @@
       if (!tbody) return;
 
       if (!hrAttendanceCache.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">Aucun pointage</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">Aucun pointage</td></tr>';
         return;
       }
 
       tbody.innerHTML = hrAttendanceCache.slice(0, 20).map(row => {
         const dateValue = row.effectiveDate || row.attendanceDate || row.dayDate;
-        const codeValue = row.statusCode || row.status || '-';
-        const locationLabel = String(row.location || 'bureau').trim() === 'autres' ? 'Autres' : 'Bureau';
+        const codeValue = row.statusCode || row.status || 'P';
         return `
           <tr>
             <td>${escapeHtml(row.fullName || '-')}</td>
             <td>${escapeHtml(dateValue || '-')}</td>
-            <td>${escapeHtml(locationLabel)}</td>
             <td>${escapeHtml(row.checkInTime || '-')}</td>
             <td>${escapeHtml(row.checkOutTime || '-')}</td>
             <td>${getHrCodeBadge(codeValue)}</td>
@@ -18535,7 +17451,7 @@
       tbody.innerHTML = hrLeaveRequestsCache.map(row => {
         const statusLabel = formatHrStatusLabel(row.status);
         const actions = canDecideHrLeave() && String(row.status || '').toUpperCase() === 'EN_ATTENTE'
-          ? `<button type="button" class="button button-small button-success" onclick="setHrLeaveStatus(${Number(row.id)}, 'APPROUVEE')">Valider</button>
+          ? `<button type="button" class="button button-small button-success" onclick="setHrLeaveStatus(${Number(row.id)}, 'APPROUVEE')">Approuver</button>
              <button type="button" class="button button-small button-danger" onclick="setHrLeaveStatus(${Number(row.id)}, 'REJETEE')">Rejeter</button>`
           : '<span style="color:#94a3b8;">-</span>';
         return `
@@ -18887,9 +17803,8 @@
       if (!container || !countNode || !searchInput) return;
 
       const searchValue = normalizeText(String(hrEmployeeDirectorySearchTerm || '').trim());
-      const directory = Array.isArray(hrEmployeeDirectoryCache) ? hrEmployeeDirectoryCache : [];
       const employees = searchValue
-        ? directory.filter(employee => {
+        ? hrEmployeesCache.filter(employee => {
             const haystack = normalizeText([
               employee.fullName,
               employee.jobTitle,
@@ -18900,7 +17815,7 @@
             ].join(' '));
             return haystack.includes(searchValue);
           })
-        : directory;
+        : hrEmployeesCache;
 
       countNode.textContent = `${employees.length} résultat${employees.length > 1 ? 's' : ''}`;
 
@@ -18931,8 +17846,8 @@
     }
 
     async function loadHrEmployeeSearchModule() {
-      if (!hrEmployeeDirectoryCache.length) {
-        hrEmployeeDirectoryCache = await fetchJson('/api/hr/employees/directory').catch(() => []);
+      if (!hrEmployeesCache.length) {
+        hrEmployeesCache = await fetchJson('/api/hr/employees').catch(() => []);
       }
       const pageTitle = document.querySelector('#hr-employee-search .page-header h1');
       const pageSubtitle = document.querySelector('#hr-employee-search .page-header p');
@@ -18944,47 +17859,6 @@
         input.value = hrEmployeeDirectorySearchTerm;
       }
       renderHrEmployeeSearchModule();
-    }
-
-    function renderHrContractsList() {
-      const tbody = document.getElementById('hr-contracts-list-body');
-      if (!tbody) return;
-
-      if (!hrContractsCache.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">Aucun contrat</td></tr>';
-        return;
-      }
-
-      const today = new Date().toISOString().slice(0, 10);
-      tbody.innerHTML = hrContractsCache.map(row => {
-        const reminderSoon = row.reminderDate && row.reminderDate <= today ? 'style="background:#fef3c7;"' : '';
-        const actions = `
-          <button type="button" class="button button-small button-secondary" onclick="editHrContract(${Number(row.id)})">Modifier</button>
-          <button type="button" class="button button-small button-danger" onclick="deleteHrContract(${Number(row.id)})">Supprimer</button>
-        `;
-        return `
-          <tr ${reminderSoon}>
-            <td>${escapeHtml(row.fullName || '-')}</td>
-            <td>${escapeHtml(row.contractStartDate || '-')}</td>
-            <td>${escapeHtml(row.contractEndDate || '-')}</td>
-            <td>${escapeHtml(row.reminderDate || '-')}<br><span style="font-size:12px;color:#64748b;">${escapeHtml(row.reminderNote || '')}</span></td>
-            <td>${escapeHtml(row.status || '-')}</td>
-            <td><div class="action-buttons">${actions}</div></td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    async function loadHrContractsModule() {
-      if (!hrEmployeesCache.length) {
-        await loadHrEmployeesModule();
-      }
-      hrContractsCache = await fetchJson('/api/hr/contracts').catch(() => []);
-      const employeeSelect = document.getElementById('hr-contract-employee');
-      if (employeeSelect) {
-        employeeSelect.innerHTML = '<option value="">-- Choisir un employé --</option>' + hrEmployeesCache.map(e => `<option value="${e.id}">${escapeHtml(e.fullName || '-')}</option>`).join('');
-      }
-      renderHrContractsList();
     }
 
     async function loadHrAttendanceModule() {
@@ -19229,11 +18103,6 @@
 
     window.downloadHrSignatureDocument = async function downloadHrSignatureDocument(requestId) {
       try {
-        if (isLikelyMobileRuntime) {
-          triggerDirectDownload(buildAuthenticatedDownloadUrl(`/api/hr/signature-requests/${Number(requestId)}/download`), `document-signe-${Number(requestId)}.pdf`);
-          return;
-        }
-
         const token = localStorage.getItem('erp_token');
         const response = await fetch(`/api/hr/signature-requests/${Number(requestId)}/download`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -19377,21 +18246,10 @@
         return;
       }
 
-      const sexeAllowed = new Set(['', 'M', 'F']);
-      if (fieldKey === 'sexe' && !sexeAllowed.has(draftValue)) {
-        showMessage('Valeur de sexe invalide', 'error');
-        return;
-      }
-
       const key = getHrProfileInlineStateKey(employeeId, fieldKey);
       hrProfileInlineEditState[key] = { editing: true, draft: draftValue };
 
       const payload = {
-        fullName: getHrProfileInlineDraft(employee, 'fullName'),
-        jobTitle: getHrProfileInlineDraft(employee, 'jobTitle'),
-        dateEmbauche: getHrProfileInlineDraft(employee, 'dateEmbauche'),
-        sexe: getHrProfileInlineDraft(employee, 'sexe'),
-        typeContrat: getHrProfileInlineDraft(employee, 'typeContrat'),
         phoneNumber: getHrProfileInlineDraft(employee, 'phoneNumber'),
         maritalStatus: getHrProfileInlineDraft(employee, 'maritalStatus'),
         address: getHrProfileInlineDraft(employee, 'address'),
@@ -19410,9 +18268,6 @@
 
         showMessage('Profil mis à jour');
         await loadHrEmployeesModule();
-        if (fieldKey === 'email' || fieldKey === 'fullName') {
-          await refreshAdminMailRecipientsIfNeeded();
-        }
       } catch (err) {
         showMessage('Erreur mise à jour profil: ' + err.message, 'error');
       }
@@ -19429,7 +18284,6 @@
         await loadHrAttendanceModule();
         await loadHrLeaveModule();
         await loadHrCalendarModule();
-        await refreshAdminMailRecipientsIfNeeded();
       } catch (err) {
         showMessage(`Erreur: ${err.message}`, 'error');
       }
@@ -19501,7 +18355,6 @@
 
       await loadHrEmployeesModule();
       await loadHrCalendarModule();
-      await refreshAdminMailRecipientsIfNeeded();
       showMessage(`Import terminé: ${imported} ajoutée(s), ${skipped} ignorée(s)`);
     }
 
@@ -19531,9 +18384,6 @@
       if (moduleName === 'hr-employee-search') {
         loadHrEmployeeSearchModule();
       }
-      if (moduleName === 'admin-mail') {
-        loadAdminMailModule();
-      }
       syncAutoMapLiveRefresh();
       syncAutoDashboardRefresh();
 
@@ -19545,7 +18395,6 @@
         'hr-employees': ['Ressources humaines', 'Liste des employés'],
         'hr-employee-search': ['Ressources humaines', 'Recherche d\'employé'],
         'hr-attendance': ['Ressources humaines', 'Pointage journalier'],
-        'hr-contracts': ['Ressources humaines', 'Contrats RH'],
         assignments: ['Construction', 'Assignations de projet'],
         'hr-calendar': ['Ressources humaines', 'Calendrier présence/congé'],
         'hr-leave': ['Ressources humaines', 'Demandes de congé'],
@@ -19566,7 +18415,6 @@
         trash: ['Corbeille', 'Éléments supprimés classés par module'],
         'audit-log': ['Historique des actions', 'Traçabilité des opérations ERP'],
         users: ['Utilisateurs', 'Gestion des comptes'],
-        'access-profiles': ['Dossiers profils', 'Accréditations et restrictions des accès'],
         settings: ['Paramètres', 'Configuration du système'],
       };
 
@@ -20080,9 +18928,7 @@
 
         const projectCatalog = await fetchJson('/api/project-catalog').catch(() => []);
         const projects = await fetchJson('/api/projects').catch(() => []);
-        const materialRequests = canLoadMaterialRequestsForCurrentRole()
-          ? await fetchJson('/api/material-requests').catch(() => [])
-          : [];
+        const materialRequests = await fetchJson('/api/material-requests').catch(() => []);
         const assignments = await fetchJson('/api/project-assignments').catch(() => []);
         const orders = await fetchJson('/api/purchase-orders').catch(() => []);
         const expenses = await fetchJson('/api/expenses').catch(() => []);
@@ -20173,16 +19019,12 @@
 
     async function loadProjects() {
       try {
-        const materialRequestsPromise = canLoadMaterialRequestsForCurrentRole()
-          ? fetchJson('/api/material-requests').catch(() => materialRequestsCache)
-          : Promise.resolve(Array.isArray(materialRequestsCache) ? materialRequestsCache : []);
-
         const [projects, assignments, projectFolders, projectCatalog, materialRequests, orders] = await Promise.all([
           fetchJson('/api/projects'),
           isSiteChief() ? Promise.resolve([]) : fetchJson('/api/project-assignments').catch(() => []),
           fetchJson('/api/project-folders').catch(() => []),
           fetchJson('/api/project-catalog').catch(() => []),
-          materialRequestsPromise,
+          fetchJson('/api/material-requests').catch(() => materialRequestsCache),
           fetchJson('/api/purchase-orders').catch(() => purchaseOrdersCache),
         ]);
         projectsCache = projects;
@@ -20445,17 +19287,12 @@
 
     async function loadInventory() {
       try {
-        const inventoryMaterialsPromise = canLoadMaterialRequestsForCurrentRole()
-          ? fetchJson('/api/material-requests').catch(() => fetchJson('/api/stock-management/available')).catch(() => [])
-          : fetchJson('/api/stock-management/available').catch(() => []);
         const [materials, projects, stockIssues, purchaseOrders, stockAuthorizations] = await Promise.all([
-          inventoryMaterialsPromise,
+          fetchJson('/api/material-requests'),
           fetchJson('/api/projects').catch(() => projectsCache),
           fetchJson('/api/stock-management/issues').catch(() => []),
           fetchJson('/api/stock-management/orders').catch(() => []),
-          canLoadStockIssueAuthorizationsForCurrentRole()
-            ? fetchJson('/api/stock-issue-authorizations').catch(() => [])
-            : Promise.resolve([]),
+          fetchJson('/api/stock-issue-authorizations').catch(() => []),
         ]);
         if (Array.isArray(projects) && projects.length) {
           projectsCache = projects;
@@ -21260,12 +20097,9 @@
       }
 
       try {
-        const materialsPromise = (isExecutive() || isStatusOnlyView || !canLoadMaterialRequestsForCurrentRole())
-          ? Promise.resolve(Array.isArray(materialRequestsCache) ? materialRequestsCache : [])
-          : fetchJson('/api/material-requests').catch(() => materialRequestsCache);
         const [orders, materials, catalogEntries] = await Promise.all([
           fetchJson('/api/purchase-orders'),
-          materialsPromise,
+          fetchJson('/api/material-requests'),
           fetchJson('/api/material-catalog').catch(() => materialCatalogCache),
         ]);
         const recentOrders = sortRecent(orders, row => row?.dateCommande || row?.updatedAt || row?.createdAt || row?.id);
@@ -21495,12 +20329,12 @@
       });
 
       if (!houses.length) {
-        projectSelect.innerHTML = '<option value="">Aucun LOT disponible dans cette zone</option>';
+        projectSelect.innerHTML = '<option value="">Aucun site disponible dans cette zone</option>';
         return;
       }
 
-      projectSelect.innerHTML = '<option value="">Sélectionner un LOT</option>' +
-        houses.map((house, index) => `<option value="${house.projetId}">LOT N°${escapeHtml(house.numeroMaison || index + 1)} - ${escapeHtml(house.typeMaison || 'Type libre')}</option>`).join('');
+      projectSelect.innerHTML = '<option value="">Sélectionner un site</option>' +
+        houses.map((house, index) => `<option value="${house.projetId}">Site N°${escapeHtml(house.numeroMaison || index + 1)} - ${escapeHtml(house.typeMaison || 'Type libre')}</option>`).join('');
 
       const projectExists = houses.some(house => String(house.projetId) === String(selectedProjectId));
       projectSelect.value = projectExists ? String(selectedProjectId) : String(houses[0].projetId);
@@ -21694,13 +20528,13 @@
         rows = getDebourseMatchedStockIssueRows();
       } else {
         if (!stageKey) {
-          rows = getDebourseMatchedStockIssueRows();
-          hint.textContent = 'Catalogue chargé automatiquement depuis le stock du LOT sélectionné.';
-        } else {
-          rows = getDebourseMatchedStockIssueRows().filter(row => {
-            return isCatalogEntryMatchingStage({ notes: String(row.etapeApprovisionnement || '').trim() }, stageKey);
-          });
+          linesContainer.innerHTML = '';
+          hint.textContent = 'Sélectionne une étape pour afficher les matériaux disponibles.';
+          return;
         }
+        rows = getDebourseMatchedStockIssueRows().filter(row => {
+          return isCatalogEntryMatchingStage({ notes: String(row.etapeApprovisionnement || '').trim() }, stageKey);
+        });
       }
 
       const groupedRowsMap = new Map();
@@ -21730,10 +20564,10 @@
       if (!groupedRows.length) {
         linesContainer.innerHTML = zoneMode
           ? '<div class="empty-state"><p>Aucun matériau en stock de zone pour cet entrepôt.</p></div>'
-          : '<div class="empty-state"><p>Aucun matériau en stock pour ce LOT.</p></div>';
+          : '<div class="empty-state"><p>Aucun matériau disponible pour cette étape.</p></div>';
         hint.textContent = zoneMode
           ? 'Aucun matériau en stock de zone disponible.'
-          : "Aucun matériau disponible pour ce LOT.";
+          : "Aucun matériau disponible pour l'étape sélectionnée.";
         return;
       }
 
@@ -21747,7 +20581,7 @@
           <input type="number" class="stock-issue-line-qty" min="0" step="0.01" max="${Number(row.totalRemaining || 0)}" placeholder="Qté à sortir" />
         </div>
       `).join('');
-      hint.textContent = `${groupedRows.length} matériau(x) disponibles${zoneMode ? ' (stock de zone)' : ' pour ce LOT'}.`;
+      hint.textContent = `${groupedRows.length} matériau(x) disponibles${zoneMode ? ' (stock de zone)' : ' pour cette étape'}.`;
 
       updateStockIssueRemainingPreview();
 
@@ -21823,7 +20657,7 @@
                 </div>
                 <div class="action-buttons">
                   ${canMarkArrived
-                    ? `<button class="button button-small button-warning" onclick="markStockOrderArrived(${order.id})">Marquer arrivé</button>`
+                    ? `<button class="button button-small button-primary" onclick="markStockOrderArrived(${order.id})">Marquer arrivé</button>`
                     : `<span class="badge ${getInventoryBadgeClass(order.statut)}">${escapeHtml(statusLabel)}</span>`}
                 </div>
               </li>
@@ -24255,12 +23089,6 @@
 
     window.downloadGuideDocument = async function(id) {
       try {
-        if (isLikelyMobileRuntime) {
-          triggerDirectDownload(buildAuthenticatedDownloadUrl(`/api/guide-documents/${Number(id)}/download`));
-          showMessage('Téléchargement lancé');
-          return;
-        }
-
         const token = localStorage.getItem('erp_token');
         const resp = await fetch(`/api/guide-documents/${id}/download`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -24272,29 +23100,11 @@
 
         const blob = await resp.blob();
         const url = URL.createObjectURL(blob);
-        const disp = resp.headers.get('Content-Disposition') || '';
-        const match = disp.match(/filename="([^"]+)"/);
-        const fileName = match ? match[1] : 'guide-document';
-
-        if (isLikelyMobileRuntime) {
-          const opened = window.open(url, '_blank', 'noopener');
-          if (!opened) {
-            const fallbackAnchor = document.createElement('a');
-            fallbackAnchor.href = url;
-            fallbackAnchor.target = '_blank';
-            fallbackAnchor.rel = 'noopener';
-            document.body.appendChild(fallbackAnchor);
-            fallbackAnchor.click();
-            document.body.removeChild(fallbackAnchor);
-          }
-          showMessage(`Téléchargement lancé: ${fileName}`);
-          setTimeout(() => URL.revokeObjectURL(url), 60000);
-          return;
-        }
-
         const a = document.createElement('a');
         a.href = url;
-        a.download = fileName;
+        const disp = resp.headers.get('Content-Disposition') || '';
+        const match = disp.match(/filename="([^"]+)"/);
+        a.download = match ? match[1] : 'guide-document';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -24306,12 +23116,6 @@
 
     window.downloadAllGuideDocuments = async function downloadAllGuideDocuments() {
       try {
-        if (isLikelyMobileRuntime) {
-          triggerDirectDownload(buildAuthenticatedDownloadUrl('/api/guide-documents', { download: 'all' }));
-          showMessage('Téléchargement lancé');
-          return;
-        }
-
         const token = localStorage.getItem('erp_token');
         const response = await fetch('/api/guide-documents?download=all', {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -24324,29 +23128,11 @@
 
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        const contentDisposition = response.headers.get('Content-Disposition') || '';
-        const match = contentDisposition.match(/filename="([^"]+)"/);
-        const fileName = match ? match[1] : `guide-erp-${new Date().toISOString().slice(0, 10)}.zip`;
-
-        if (isLikelyMobileRuntime) {
-          const opened = window.open(url, '_blank', 'noopener');
-          if (!opened) {
-            const fallbackAnchor = document.createElement('a');
-            fallbackAnchor.href = url;
-            fallbackAnchor.target = '_blank';
-            fallbackAnchor.rel = 'noopener';
-            document.body.appendChild(fallbackAnchor);
-            fallbackAnchor.click();
-            document.body.removeChild(fallbackAnchor);
-          }
-          showMessage(`Téléchargement lancé: ${fileName}`);
-          setTimeout(() => URL.revokeObjectURL(url), 60000);
-          return;
-        }
-
         const anchor = document.createElement('a');
         anchor.href = url;
-        anchor.download = fileName;
+        const contentDisposition = response.headers.get('Content-Disposition') || '';
+        const match = contentDisposition.match(/filename="([^"]+)"/);
+        anchor.download = match ? match[1] : `guide-erp-${new Date().toISOString().slice(0, 10)}.zip`;
         document.body.appendChild(anchor);
         anchor.click();
         document.body.removeChild(anchor);
@@ -24917,9 +23703,8 @@
       try {
         const user = await fetchJson('/api/auth/me');
         currentUserUsername = user.username || null;
-        currentUserRole = String(user.role || '').trim().toLowerCase() || null;
+        currentUserRole = user.role || null;
         currentUserScope = user.scope || null;
-        currentUserAccessProfile = user.accessProfile || null;
         if (isHrDirector()) {
           databaseSection = 'hr_presence';
         }
@@ -25460,7 +24245,7 @@
     window.deleteProjectFolder = async (id, siteCount = 0) => {
       const totalSites = Number(siteCount || 0);
       const warning = totalSites > 0
-        ? `Supprimer cette zone et ses ${totalSites} lot${totalSites > 1 ? 's' : ''} ? Cette action est irreversible.`
+        ? `Supprimer cette zone et ses ${totalSites} site${totalSites > 1 ? 's' : ''} ? Cette action est irreversible.`
         : 'Supprimer cette zone ? Cette action est irreversible.';
       if (!confirm(warning)) return;
 
@@ -25643,7 +24428,7 @@
       const constructionStatus = document.getElementById('edit-project-construction-status').value;
 
       if (!name || !prefecture || !site) {
-        showMessage('Nom du projet, préfecture et nom du lot sont obligatoires', 'error');
+        showMessage('Nom du projet, préfecture et nom du site sont obligatoires', 'error');
         return;
       }
 
@@ -25970,7 +24755,7 @@
         const siteStart = document.getElementById('project-site-number-start').value.trim();
         const siteEnd = document.getElementById('project-site-number-end').value.trim();
         if (!siteStart) {
-          showMessage('Le numéro du lot (début) est obligatoire', 'error');
+          showMessage('Le numéro du site (début) est obligatoire', 'error');
           return;
         }
 
@@ -25991,7 +24776,7 @@
             return;
           }
           if ((endNumber - startNumber + 1) > 500) {
-            showMessage('La plage est trop grande (max 500 lots).', 'error');
+            showMessage('La plage est trop grande (max 500 sites).', 'error');
             return;
           }
           generatedSiteNumbers = [];
@@ -26035,7 +24820,7 @@
         e.target.reset();
         updateProjectCreationMode(selectedProjectCreationFolderKey);
         showMessage(createdSites.length > 1
-          ? `${createdSites.length} lots créés automatiquement avec succès`
+          ? `${createdSites.length} sites créés automatiquement avec succès`
           : 'Site ajouté au dossier projet avec succès');
         loadProjects();
         loadDashboard();
@@ -26188,8 +24973,8 @@
           const address = document.getElementById('hr-employee-address').value.trim();
           const maritalStatus = document.getElementById('hr-employee-marital-status').value.trim();
           const linkedUsername = String(document.getElementById('hr-employee-linked-username')?.value || '').trim();
-          if (!fullName) {
-            showMessage('Le nom complet est obligatoire', 'error');
+          if (!fullName || !jobTitle || !dateEmbauche || !sexe || !typeContrat) {
+            showMessage('Nom, poste, date d\'embauche, sexe et type de contrat sont obligatoires', 'error');
             return;
           }
 
@@ -26210,7 +24995,6 @@
           showMessage(isEditMode ? 'Employé mis à jour' : 'Employé ajouté');
           await loadHrEmployeesModule();
           await loadHrCalendarModule();
-          await refreshAdminMailRecipientsIfNeeded();
         } catch (err) {
           showMessage('Erreur: ' + err.message, 'error');
         }
@@ -26226,10 +25010,7 @@
           return;
         }
         try {
-          let employeeId = Number(document.getElementById('hr-attendance-employee').value || 0);
-          if (!employeeId) {
-            employeeId = Number(document.getElementById('hr-attendance-employee-locked').value || 0);
-          }
+          const employeeId = Number(document.getElementById('hr-attendance-employee').value || 0);
           const attendanceDate = document.getElementById('hr-attendance-date').value;
           const ciToday = getAbidjanNowParts(new Date()).date;
           if (!employeeId || !attendanceDate) {
@@ -26250,7 +25031,6 @@
               attendanceDate,
               punchType: document.getElementById('hr-attendance-action')?.value || 'auto',
               statusCode: document.getElementById('hr-attendance-status').value,
-              location: document.getElementById('hr-attendance-location').value || 'bureau',
               note: document.getElementById('hr-attendance-note').value.trim(),
             }),
           });
@@ -26259,40 +25039,6 @@
           showMessage(`Pointage enregistre a ${nowCi.time} (heure CI)`);
           await loadHrAttendanceModule();
           await loadHrCalendarModule();
-        } catch (err) {
-          showMessage('Erreur: ' + err.message, 'error');
-        }
-      });
-    }
-
-    const hrContractForm = document.getElementById('hr-contract-form');
-    if (hrContractForm) {
-      hrContractForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        try {
-          const employeeId = Number(document.getElementById('hr-contract-employee').value || 0);
-          const contractStartDate = document.getElementById('hr-contract-start').value;
-          const contractEndDate = document.getElementById('hr-contract-end').value;
-          if (!employeeId || !contractStartDate || !contractEndDate) {
-            showMessage('Champs contrat obligatoires', 'error');
-            return;
-          }
-
-          await fetchJson('/api/hr/contracts', {
-            method: 'POST',
-            body: JSON.stringify({
-              employeeId,
-              contractStartDate,
-              contractEndDate,
-              reminderDate: document.getElementById('hr-contract-reminder').value || '',
-              reminderNote: document.getElementById('hr-contract-note').value.trim(),
-              status: document.getElementById('hr-contract-status').value || 'ACTIF',
-            }),
-          });
-
-          e.target.reset();
-          showMessage('Contrat enregistré');
-          await loadHrContractsModule();
         } catch (err) {
           showMessage('Erreur: ' + err.message, 'error');
         }
@@ -26763,7 +25509,7 @@
         const effectiveZoneOnly = zoneOnly || (!siteId && Boolean(zoneName));
 
         if (!effectiveZoneOnly && (!siteId || !projetId)) {
-          showMessage('Sélectionne un lot précis ou active le mode zone', 'error');
+          showMessage('Sélectionne un site précis ou active le mode zone', 'error');
           return;
         }
 
@@ -27921,7 +26667,7 @@
         tone: 'rh',
         description: 'Employes, conges, signatures',
         subtitle: 'Ressources humaines, pointage, conges et signatures.',
-        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures'],
+        modules: ['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures'],
       },
       {
         key: 'admin',
@@ -27930,13 +26676,13 @@
         tone: 'admin',
         description: 'Users, parametres, historique',
         subtitle: 'Administration, comptes et parametrage du systeme.',
-        modules: ['database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'users', 'settings', 'audit-log'],
+        modules: ['database', 'guide-erp', 'trash', 'users', 'settings', 'audit-log'],
       },
     ];
 
     const MOBILE_PREMIUM_MODULE_DESCRIPTIONS = {
       dashboard: 'Retour a l accueil mobile premium',
-      projects: 'Lots, zones et dossiers projets',
+      projects: 'Sites, zones et dossiers projets',
       'project-progress': 'Progression et etapes terrain',
       'journal-chantier': 'Notes terrain et rapports',
       assignments: 'Equipes et responsabilites',
@@ -27952,11 +26698,9 @@
       'hr-employees': 'Effectif et fiches employes',
       'hr-employee-search': 'Recherche d employe par nom',
       'hr-attendance': 'Pointage journalier',
-      'hr-contracts': 'Contrats RH',
       'hr-calendar': 'Calendrier presence et absence',
       'hr-leave': 'Demandes de conge',
       'hr-signatures': 'Documents a signer',
-      'access-profiles': 'Dossiers profils',
       database: 'Base documentaire ERP',
       'guide-erp': 'Guides et procédures ERP',
       trash: 'Elements supprimes',
@@ -28024,74 +26768,7 @@
       syncHrMenuLabelsAndVisibility();
     }
 
-    async function refreshMobileAccessProfileFromServer() {
-      try {
-        const me = await fetchJson('/api/auth/me');
-        if (!me) return false;
-        currentUserUsername = me.username || currentUserUsername;
-        currentUserRole = me.role || currentUserRole;
-        currentUserAccessProfile = me.accessProfile || null;
-        return true;
-      } catch (_) {
-        return false;
-      }
-    }
-
-    function closeProfileStreamConnection() {
-      if (profileStreamRetryTimer) {
-        clearTimeout(profileStreamRetryTimer);
-        profileStreamRetryTimer = null;
-      }
-      if (profileStreamSource) {
-        try {
-          profileStreamSource.close();
-        } catch (_) {}
-        profileStreamSource = null;
-      }
-    }
-
-    function openProfileStreamConnection() {
-      closeProfileStreamConnection();
-      const tokenValue = String(localStorage.getItem('erp_token') || '').trim();
-      if (!tokenValue) return;
-
-      const source = new EventSource(`/api/auth/profile-stream?mobileAuth=${encodeURIComponent(tokenValue)}`);
-      profileStreamSource = source;
-
-      source.addEventListener('access-profile', event => {
-        try {
-          const payload = JSON.parse(String(event.data || '{}'));
-          if (String(payload?.username || '').trim().toLowerCase() !== String(currentUserUsername || '').trim().toLowerCase()) {
-            return;
-          }
-
-          if (!payload || !payload.accessProfile) return;
-
-          currentUserAccessProfile = payload.accessProfile;
-          currentUserRole = payload.role || currentUserRole;
-          syncMobilePremiumIdentity();
-          applyRoleAccess();
-          renderMobilePremiumHome();
-          if (mobilePremiumCurrentGroupKey) {
-            openMobilePremiumGroup(mobilePremiumCurrentGroupKey);
-          }
-          showMessage('Profil mis a jour en direct');
-        } catch (_) {}
-      });
-
-      source.addEventListener('error', () => {
-        closeProfileStreamConnection();
-        if (!profileStreamRetryTimer) {
-          profileStreamRetryTimer = setTimeout(() => {
-            profileStreamRetryTimer = null;
-            openProfileStreamConnection();
-          }, 4000);
-        }
-      });
-    }
-
     function performLogout() {
-      closeProfileStreamConnection();
       localStorage.removeItem('erp_token');
       window.location.href = 'index.html';
     }
@@ -28358,24 +27035,6 @@
         });
       }
 
-      if (!window.mobilePremiumProfileRefreshTimer) {
-        window.mobilePremiumProfileRefreshTimer = window.setInterval(() => {
-          refreshMobileAccessProfileFromServer().then(updated => {
-            if (!updated) return;
-            syncMobilePremiumIdentity();
-            renderMobilePremiumHome();
-            if (mobilePremiumCurrentGroupKey) {
-              openMobilePremiumGroup(mobilePremiumCurrentGroupKey);
-            }
-          });
-        }, 45000);
-      }
-
-      if (!window.mobilePremiumProfileStreamInit) {
-        window.mobilePremiumProfileStreamInit = true;
-        openProfileStreamConnection();
-      }
-
       const backBtn = document.getElementById('mph-back-btn');
       if (backBtn && !backBtn.dataset.bound) {
         backBtn.dataset.bound = '1';
@@ -28559,9 +27218,6 @@
         else if (resolvedModule === 'hr-attendance') {
           loadHrAttendanceModule();
         }
-        else if (resolvedModule === 'hr-contracts') {
-          loadHrContractsModule();
-        }
         else if (resolvedModule === 'assignments') {
           loadProjects();
           loadAssignments();
@@ -28606,8 +27262,6 @@
           loadGuideDocuments();
         } else if (resolvedModule === 'users') {
           loadUsersModule();
-        } else if (resolvedModule === 'access-profiles') {
-          loadAccessProfilesModule();
         } else if (resolvedModule === 'trash') {
           loadTrashModule();
         } else if (resolvedModule === 'audit-log') {
@@ -29392,12 +28046,9 @@
 
     async function pollRealtimeNotifications() {
       try {
-        const allowed = getAllowedModules();
-        const canPollPurchaseOrders = !isRestrictedRole() || Boolean(allowed && allowed.has('purchase-orders'));
-        const canPollStockAuthorizations = canLoadStockIssueAuthorizationsForCurrentRole();
         const [orders, auths, pendingSignatures] = await Promise.all([
-          canPollPurchaseOrders ? fetchJson('/api/purchase-orders').catch(() => []) : Promise.resolve([]),
-          canPollStockAuthorizations ? fetchJson('/api/stock-issue-authorizations').catch(() => []) : Promise.resolve([]),
+          fetchJson('/api/purchase-orders').catch(() => []),
+          fetchJson('/api/stock-issue-authorizations').catch(() => []),
           fetchJson('/api/hr/employee-profile/pending-signatures').catch(() => []),
         ]);
         const poPending = Array.isArray(orders) ? orders.filter(o => String(o?.statut || '').toLowerCase().includes('attente')).length : 0;
@@ -29817,23 +28468,9 @@
       loadProjects();
       addPoItemRow();
       updatePoOrderTotal();
-      const allowedModules = getAllowedModules();
-      const forcedModule = String(currentUserAccessProfile?.forcedModule || '').trim().toLowerCase();
-      const hasForcedModule = forcedModule && allowedModules.has(forcedModule);
-      const firstAllowedModule = hasForcedModule
-        ? forcedModule
-        : (allowedModules.has('dashboard')
-          ? 'dashboard'
-          : (Array.from(allowedModules)[0] || 'dashboard'));
-
-      if (openModuleFromPush && allowedModules.has(openModuleFromPush)) {
+      returnToHomeScreen();
+      if (openModuleFromPush) {
         showModule(openModuleFromPush);
-      } else {
-        showModule(firstAllowedModule);
-      }
-
-      if (window.innerWidth <= 900) {
-        setSidebarCollapsed(true);
       }
     })();
   </script>
