@@ -9145,6 +9145,25 @@ app.patch('/api/hr/leave-requests/:id/status', async (req, res) => {
   res.json(row);
 });
 
+app.post('/api/admin/purge-hr-activity', async (req, res) => {
+  if (String(req.user?.role || '').trim() !== 'admin') {
+    return res.status(403).json({ error: 'Acces reserve a admin' });
+  }
+
+  const attendanceCountRow = await get('SELECT COUNT(*) AS total FROM hr_attendance');
+  const leaveCountRow = await get('SELECT COUNT(*) AS total FROM hr_leave_requests');
+  const attendanceCount = Number(attendanceCountRow?.total || attendanceCountRow?.count || 0);
+  const leaveCount = Number(leaveCountRow?.total || leaveCountRow?.count || 0);
+
+  await run('DELETE FROM hr_attendance');
+  await run('DELETE FROM hr_leave_requests');
+
+  return res.json({
+    ok: true,
+    deletedAttendance: attendanceCount,
+    deletedLeaveRequests: leaveCount,
+  });
+});
 app.get('/api/hr/leave-calendar', async (req, res) => {
   const monthRaw = String(req.query.month || '').trim() || new Date().toISOString().slice(0, 7);
   const range = formatMonthRange(monthRaw);
@@ -10520,7 +10539,8 @@ function computeEffectiveModulesForAccessProfile(profileLike, fallbackRole = '')
   const allowed = normalizeModuleList(profileLike?.allowedModules || '');
   const denied = normalizeModuleList(profileLike?.deniedModules || '');
   const accreditationLevel = String(profileLike?.accreditationLevel || '').trim().toLowerCase();
-  const roleBaseline = getAccessProfileBaselineModules(profileLike?.roleSnapshot || profileLike?.role || fallbackRole || '');
+  const effectiveRole = String(profileLike?.roleSnapshot || profileLike?.role || fallbackRole || '').trim().toLowerCase();
+  const roleBaseline = getAccessProfileBaselineModules(effectiveRole);
   const hasStoredProfile = Boolean(
     profileLike
     && (
@@ -10542,7 +10562,15 @@ function computeEffectiveModulesForAccessProfile(profileLike, fallbackRole = '')
   } else if (accreditationLevel === 'standard') {
     seedModules = roleBaseline.size ? roleBaseline : new Set(STANDARD_ACCESS_PROFILE_MODULES);
   } else {
-    seedModules = roleBaseline.size ? roleBaseline : new Set(STANDARD_ACCESS_PROFILE_MODULES);
+    const keepsPrivilegedAccreditation = effectiveRole === 'admin' || effectiveRole === 'directeur_rh' || effectiveRole === 'dirigeant';
+    if (keepsPrivilegedAccreditation) {
+      seedModules = roleBaseline.size ? roleBaseline : new Set(STANDARD_ACCESS_PROFILE_MODULES);
+    } else {
+      const restrictedBaseline = roleBaseline.size
+        ? new Set(Array.from(roleBaseline).filter(moduleKey => RESTRICTED_DEFAULT_ALLOWED_MODULES.has(String(moduleKey || '').trim().toLowerCase())))
+        : new Set(RESTRICTED_DEFAULT_ALLOWED_MODULES);
+      seedModules = restrictedBaseline.size ? restrictedBaseline : new Set(RESTRICTED_DEFAULT_ALLOWED_MODULES);
+    }
   }
 
   const effective = new Set(seedModules);
@@ -10837,6 +10865,8 @@ app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, r
     return res.status(500).json({ error: 'Erreur creation profil RH', details: String(err?.message || err) });
   }
 });
+
+
 
 
 

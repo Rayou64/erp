@@ -9757,6 +9757,7 @@
     };
     let assignmentsCache = [];
     let hrEmployeesCache = [];
+    let hrEmployeeDirectoryCache = [];
     let hrEmployeeDocumentsCache = {};
     let hrUserProfilesCache = [];
     let hrEmployeeEditingId = null;
@@ -11710,9 +11711,16 @@
       const row = (Array.isArray(accessProfilesCache) ? accessProfilesCache : []).find(item => String(item?.username || '').trim().toLowerCase() === safeUsername.toLowerCase());
       if (!row) return;
       const baselineModules = Array.from(getAccessProfileBaselineModules(row.role, row.username));
+      const accreditationLevel = String(row.accreditationLevel || 'standard').trim().toLowerCase() || 'standard';
+      const keepsPrivilegedAccreditation = row.role === 'admin' || row.role === 'directeur_rh' || row.role === 'dirigeant';
+      let restoredModules = baselineModules.slice();
+      if (accreditationLevel === 'restricted' && !keepsPrivilegedAccreditation) {
+        const restrictedModules = baselineModules.filter(moduleKey => RESTRICTED_DEFAULT_ALLOWED_MODULES.has(String(moduleKey || '').trim().toLowerCase()));
+        restoredModules = restrictedModules.length ? restrictedModules : Array.from(RESTRICTED_DEFAULT_ALLOWED_MODULES);
+      }
       const payload = {
         accreditationLevel: String(row.accreditationLevel || 'standard').trim(),
-        allowedModules: baselineModules.join(','),
+        allowedModules: restoredModules.join(','),
         deniedModules: '',
         forcedModule: '',
         notes: String(row.notes || '').trim(),
@@ -18326,8 +18334,9 @@
       if (!container || !countNode || !searchInput) return;
 
       const searchValue = normalizeText(String(hrEmployeeDirectorySearchTerm || '').trim());
+      const sourceEmployees = Array.isArray(hrEmployeeDirectoryCache) ? hrEmployeeDirectoryCache : [];
       const employees = searchValue
-        ? hrEmployeesCache.filter(employee => {
+        ? sourceEmployees.filter(employee => {
             const haystack = normalizeText([
               employee.fullName,
               employee.jobTitle,
@@ -18338,7 +18347,7 @@
             ].join(' '));
             return haystack.includes(searchValue);
           })
-        : hrEmployeesCache;
+        : sourceEmployees;
 
       countNode.textContent = `${employees.length} résultat${employees.length > 1 ? 's' : ''}`;
 
@@ -18369,9 +18378,7 @@
     }
 
     async function loadHrEmployeeSearchModule() {
-      if (!hrEmployeesCache.length) {
-        hrEmployeesCache = await fetchJson('/api/hr/employees').catch(() => []);
-      }
+      hrEmployeeDirectoryCache = await fetchJson('/api/hr/employees').catch(() => []);
       const pageTitle = document.querySelector('#hr-employee-search .page-header h1');
       const pageSubtitle = document.querySelector('#hr-employee-search .page-header p');
       if (pageTitle) pageTitle.textContent = 'Recherche d\'employé';
@@ -29102,6 +29109,11 @@
   </script>
 </body>
 </html>
+
+
+
+
+
 
 
 
