@@ -4121,7 +4121,28 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
       }
     : null;
 
-  res.json({ username: req.user.username, role: req.user.role, scope });
+  const accessProfile = roleCanBypassAccessProfile(role)
+    ? null
+    : await getUserAccessProfileByUsername(req.user?.username);
+  const effectiveModules = roleCanBypassAccessProfile(role)
+    ? []
+    : Array.from(computeEffectiveModulesForAccessProfile(accessProfile || {}, role));
+
+  res.json({
+    username: req.user.username,
+    role: req.user.role,
+    scope,
+    accessProfile: roleCanBypassAccessProfile(role)
+      ? null
+      : {
+          accreditationLevel: String(accessProfile?.accreditationLevel || 'standard').trim() || 'standard',
+          allowedModules: Array.from(normalizeModuleList(accessProfile?.allowedModules || '')),
+          deniedModules: Array.from(normalizeModuleList(accessProfile?.deniedModules || '')),
+          forcedModule: String(accessProfile?.forcedModule || '').trim().toLowerCase(),
+          notes: String(accessProfile?.notes || '').trim(),
+          effectiveModules,
+        },
+  });
 });
 
 app.post('/api/gps/ingest', async (req, res) => {
@@ -10440,5 +10461,383 @@ app.get('/api/materials', async (_req, res) => {
   const rows = await all('SELECT * FROM materials ORDER BY categorie, nom');
   res.json(rows);
 });
+
+
+
+const PRIVILEGED_ACCESS_PROFILE_ROLES = new Set(['admin', 'dirigeant', 'directeur_rh']);
+
+function roleCanBypassAccessProfile(role) {
+  return PRIVILEGED_ACCESS_PROFILE_ROLES.has(String(role || '').trim().toLowerCase());
+}
+
+function parseCsvSet(value) {
+  return new Set(
+    String(value || '')
+      .split(',')
+      .map(item => String(item || '').trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function normalizeModuleList(value) {
+  if (Array.isArray(value)) {
+    return new Set(value.map(item => String(item || '').trim().toLowerCase()).filter(Boolean));
+  }
+  return parseCsvSet(value);
+}
+
+function serializeCsvSet(values) {
+  return Array.from(new Set(Array.from(values || []).map(item => String(item || '').trim().toLowerCase()).filter(Boolean))).join(',');
+}
+
+function getAccessProfileBaselineModules(role) {
+  const normalizedRole = String(role || '').trim().toLowerCase();
+  const presets = {
+    admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'],
+    directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp'],
+    dirigeant: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp'],
+    commis: ['stock-management', 'inventory'],
+    gestionnaire_stock: ['stock-management', 'inventory', 'sortie-autorisations'],
+    gestionnaire_stock_songon: ['stock-management', 'inventory', 'sortie-autorisations'],
+    chef_chantier_site: ['materials', 'material-catalog', 'stock-management', 'sortie-autorisations', 'inventory', 'journal-chantier', 'database', 'trash'],
+    controle_achat: ['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'stock-management', 'database', 'trash'],
+    controle_achat_global: ['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'stock-management', 'database', 'trash'],
+    achat: ['purchase-orders', 'material-catalog', 'expenses', 'reports', 'inventory', 'database', 'trash'],
+  };
+  return new Set((presets[normalizedRole] || []).map(item => String(item || '').trim().toLowerCase()));
+}
+
+const STANDARD_ACCESS_PROFILE_MODULES = new Set([
+  'hr-employees',
+  'hr-employee-search',
+  'hr-attendance',
+  'hr-calendar',
+  'hr-leave',
+  'guide-erp',
+]);
+
+function computeEffectiveModulesForAccessProfile(profileLike, fallbackRole = '') {
+  const allowed = normalizeModuleList(profileLike?.allowedModules || '');
+  const denied = normalizeModuleList(profileLike?.deniedModules || '');
+  const accreditationLevel = String(profileLike?.accreditationLevel || '').trim().toLowerCase();
+  const roleBaseline = getAccessProfileBaselineModules(profileLike?.roleSnapshot || profileLike?.role || fallbackRole || '');
+  const hasStoredProfile = Boolean(
+    profileLike
+    && (
+      profileLike?.id
+      || String(profileLike?.username || '').trim()
+      || String(profileLike?.roleSnapshot || '').trim()
+      || String(profileLike?.allowedModules || '').trim()
+      || String(profileLike?.deniedModules || '').trim()
+      || String(profileLike?.forcedModule || '').trim()
+      || String(profileLike?.notes || '').trim()
+    )
+  );
+
+  let seedModules;
+  if (allowed.size) {
+    seedModules = allowed;
+  } else if (!hasStoredProfile) {
+    seedModules = roleBaseline.size ? roleBaseline : new Set(STANDARD_ACCESS_PROFILE_MODULES);
+  } else if (accreditationLevel === 'standard') {
+    seedModules = roleBaseline.size ? roleBaseline : new Set(STANDARD_ACCESS_PROFILE_MODULES);
+  } else {
+    seedModules = roleBaseline.size ? roleBaseline : new Set(STANDARD_ACCESS_PROFILE_MODULES);
+  }
+
+  const effective = new Set(seedModules);
+  for (const moduleKey of denied) {
+    effective.delete(moduleKey);
+  }
+  const forcedModule = String(profileLike?.forcedModule || '').trim().toLowerCase();
+  if (forcedModule && !denied.has(forcedModule)) {
+    effective.add(forcedModule);
+  }
+  return effective;
+}
+
+async function getUserAccessProfileByUsername(username) {
+  const safeUsername = String(username || '').trim();
+  if (!safeUsername) return null;
+  return get('SELECT * FROM user_access_profiles WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [safeUsername]);
+}
+
+function getHrRoleTitleForUserRole(role) {
+  const normalized = String(role || '').trim().toLowerCase();
+  switch (normalized) {
+    case 'chef_chantier_site': return 'Chef de chantier';
+    case 'achat': return 'Agent achat';
+    case 'controle_achat':
+    case 'controle_achat_global': return 'Controle achat';
+    case 'gestionnaire_stock':
+    case 'gestionnaire_stock_songon': return 'Gestionnaire stock';
+    case 'commis': return 'Commis stock';
+    case 'directeur_rh': return 'Directeur RH';
+    case 'dirigeant': return 'Dirigeant';
+    case 'admin': return 'Administrateur';
+    default: return 'Employe';
+  }
+}
+
+function getHrDefaultFullNameFromUsername(username) {
+  const raw = String(username || '').trim();
+  if (!raw) return 'Employe';
+  return raw
+    .replace(/[._-]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
+async function ensureAccessProfileSchema() {
+  await run(`CREATE TABLE IF NOT EXISTS user_access_profiles (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    roleSnapshot TEXT NOT NULL DEFAULT '',
+    accreditationLevel TEXT NOT NULL DEFAULT 'standard',
+    allowedModules TEXT NOT NULL DEFAULT '',
+    deniedModules TEXT NOT NULL DEFAULT '',
+    forcedModule TEXT NOT NULL DEFAULT '',
+    notes TEXT NOT NULL DEFAULT '',
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    updatedBy TEXT NOT NULL DEFAULT 'system'
+  )`);
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN roleSnapshot TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN accreditationLevel TEXT NOT NULL DEFAULT 'standard'"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN allowedModules TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN deniedModules TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN forcedModule TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN notes TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE user_access_profiles ADD COLUMN updatedBy TEXT NOT NULL DEFAULT 'system'"); } catch (e) {}
+
+  await run(`CREATE TABLE IF NOT EXISTS user_access_profile_audit (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL,
+    action TEXT NOT NULL,
+    payloadJson TEXT NOT NULL DEFAULT '{}',
+    changedBy TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  )`);
+}
+
+async function ensureHrProfileForUserAccount(userRow, actor = 'system') {
+  const username = String(userRow?.username || '').trim();
+  if (!username) return null;
+
+  const existing = await get(
+    "SELECT id, fullName, jobTitle, username FROM hr_employees WHERE LOWER(TRIM(COALESCE(username, ''))) = LOWER(TRIM(?)) ORDER BY id DESC LIMIT 1",
+    [username]
+  );
+  if (existing?.id) return existing;
+
+  const now = new Date().toISOString();
+  const nextId = await getNextTableId('hr_employees');
+  await run(
+    `INSERT INTO hr_employees
+      (id, fullName, jobTitle, sexe, typeContrat, dateEmbauche, phoneNumber, address, maritalStatus, email, username, createdBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, '', '', '', '', '', '', '', ?, ?, ?, ?)`,
+    [
+      nextId,
+      getHrDefaultFullNameFromUsername(username),
+      getHrRoleTitleForUserRole(userRow?.role),
+      username,
+      String(actor || 'system').trim() || 'system',
+      now,
+      now,
+    ]
+  );
+
+  await run(
+    'INSERT INTO user_access_profile_audit (id, username, action, payloadJson, changedBy, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
+    [
+      await getNextTableId('user_access_profile_audit'),
+      username,
+      'ensure_hr_profile',
+      JSON.stringify({ source: 'access-profiles' }),
+      String(actor || 'system').trim() || 'system',
+      now,
+    ]
+  );
+
+  return get('SELECT id, fullName, jobTitle, username FROM hr_employees WHERE id = ?', [nextId]);
+}
+
+app.get('/api/admin/access-profiles', async (req, res) => {
+  try {
+    if (String(req.user?.role || '').trim() !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+    await ensureAccessProfileSchema();
+
+    const users = await all('SELECT id, username, role, createdAt FROM users ORDER BY username ASC');
+    const profiles = await all('SELECT * FROM user_access_profiles ORDER BY username ASC');
+    const profileByUsername = new Map((profiles || []).map(row => [String(row?.username || '').trim().toLowerCase(), row]));
+
+    const rows = [];
+    for (const user of (users || [])) {
+      const username = String(user?.username || '').trim();
+      if (!username) continue;
+
+      const linkedEmployee = await get(
+        "SELECT id, fullName, jobTitle AS roleTitle, username FROM hr_employees WHERE LOWER(TRIM(COALESCE(username, ''))) = LOWER(TRIM(?)) ORDER BY id DESC LIMIT 1",
+        [username]
+      );
+
+      const profile = profileByUsername.get(username.toLowerCase()) || null;
+      const baselineModules = Array.from(getAccessProfileBaselineModules(user?.role || profile?.roleSnapshot || ''));
+      const effectiveModules = roleCanBypassAccessProfile(user?.role)
+        ? baselineModules
+        : Array.from(computeEffectiveModulesForAccessProfile(profile || {}, user?.role || ''));
+
+      rows.push({
+        username,
+        role: String(user?.role || '').trim(),
+        createdAt: String(user?.createdAt || '').trim(),
+        linkedEmployee,
+        baselineModules,
+        accreditationLevel: String(profile?.accreditationLevel || 'standard').trim() || 'standard',
+        allowedModules: Array.from(normalizeModuleList(profile?.allowedModules || '')),
+        deniedModules: Array.from(normalizeModuleList(profile?.deniedModules || '')),
+        forcedModule: String(profile?.forcedModule || '').trim().toLowerCase(),
+        notes: String(profile?.notes || '').trim(),
+        effectiveModules,
+      });
+    }
+
+    return res.json(rows);
+  } catch (err) {
+    return res.status(500).json({ error: 'Erreur chargement dossiers profils', details: String(err?.message || err) });
+  }
+});
+
+app.patch('/api/admin/access-profiles/:username', async (req, res) => {
+  try {
+    if (String(req.user?.role || '').trim() !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+    await ensureAccessProfileSchema();
+
+    const username = String(req.params.username || '').trim();
+    if (!username) {
+      return res.status(400).json({ error: 'username requis' });
+    }
+
+    const target = await get('SELECT id, username, role FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [username]);
+    if (!target) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    if (roleCanBypassAccessProfile(target.role)) {
+      return res.status(400).json({ error: 'Profil privilegie non modifiable via ce module' });
+    }
+
+    const accreditationLevel = String(req.body?.accreditationLevel || 'standard').trim().toLowerCase() || 'standard';
+    const allowedModules = normalizeModuleList(Array.isArray(req.body?.allowedModules) ? req.body.allowedModules : String(req.body?.allowedModules || '').split(','));
+    const deniedModules = normalizeModuleList(Array.isArray(req.body?.deniedModules) ? req.body.deniedModules : String(req.body?.deniedModules || '').split(','));
+    const forcedModule = String(req.body?.forcedModule || '').trim().toLowerCase();
+    const notes = String(req.body?.notes || '').trim();
+    const now = new Date().toISOString();
+    const actor = String(req.user?.username || 'admin').trim() || 'admin';
+
+    const existing = await get('SELECT id FROM user_access_profiles WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [username]);
+    if (existing?.id) {
+      await run(
+        `UPDATE user_access_profiles
+         SET roleSnapshot = ?, accreditationLevel = ?, allowedModules = ?, deniedModules = ?, forcedModule = ?, notes = ?, updatedAt = ?, updatedBy = ?
+         WHERE id = ?`,
+        [
+          String(target.role || '').trim(),
+          accreditationLevel,
+          serializeCsvSet(allowedModules),
+          serializeCsvSet(deniedModules),
+          forcedModule,
+          notes,
+          now,
+          actor,
+          Number(existing.id),
+        ]
+      );
+    } else {
+      await run(
+        `INSERT INTO user_access_profiles
+         (id, username, roleSnapshot, accreditationLevel, allowedModules, deniedModules, forcedModule, notes, createdAt, updatedAt, updatedBy)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          await getNextTableId('user_access_profiles'),
+          username,
+          String(target.role || '').trim(),
+          accreditationLevel,
+          serializeCsvSet(allowedModules),
+          serializeCsvSet(deniedModules),
+          forcedModule,
+          notes,
+          now,
+          now,
+          actor,
+        ]
+      );
+    }
+
+    await run(
+      'INSERT INTO user_access_profile_audit (id, username, action, payloadJson, changedBy, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
+      [
+        await getNextTableId('user_access_profile_audit'),
+        username,
+        'update_access_profile',
+        JSON.stringify({ accreditationLevel, allowedModules: Array.from(allowedModules), deniedModules: Array.from(deniedModules), forcedModule, notes }),
+        actor,
+        now,
+      ]
+    );
+
+    const saved = await getUserAccessProfileByUsername(username);
+    const baselineModules = Array.from(getAccessProfileBaselineModules(target.role));
+    const effectiveModules = Array.from(computeEffectiveModulesForAccessProfile(saved || {}, target.role || ''));
+
+    return res.json({
+      username,
+      role: String(target.role || '').trim(),
+      baselineModules,
+      accreditationLevel: String(saved?.accreditationLevel || 'standard').trim() || 'standard',
+      allowedModules: Array.from(normalizeModuleList(saved?.allowedModules || '')),
+      deniedModules: Array.from(normalizeModuleList(saved?.deniedModules || '')),
+      forcedModule: String(saved?.forcedModule || '').trim().toLowerCase(),
+      notes: String(saved?.notes || '').trim(),
+      effectiveModules,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Erreur sauvegarde dossier profil', details: String(err?.message || err) });
+  }
+});
+
+app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, res) => {
+  try {
+    if (String(req.user?.role || '').trim() !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+    await ensureAccessProfileSchema();
+
+    const username = String(req.params.username || '').trim();
+    if (!username) {
+      return res.status(400).json({ error: 'username requis' });
+    }
+
+    const userRow = await get('SELECT id, username, role FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [username]);
+    if (!userRow) {
+      return res.status(404).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const profile = await ensureHrProfileForUserAccount(userRow, String(req.user?.username || 'admin').trim() || 'admin');
+    return res.json({ message: 'Profil RH garanti', profile });
+  } catch (err) {
+    return res.status(500).json({ error: 'Erreur creation profil RH', details: String(err?.message || err) });
+  }
+});
+
+
 
 

@@ -9728,6 +9728,7 @@
     let currentUserRole = null;
     let currentUserUsername = null;
     let currentUserScope = null;
+    let currentUserAccessProfile = null;
     let databaseGlobalSearchTerm = '';
     let databaseSection = 'achats';
     const databaseSectionSearchTerms = {
@@ -9766,6 +9767,9 @@
     let hrLeaveRequestsCache = [];
     let hrSignatureRequestsCache = [];
     let usersAdminCache = [];
+    let accessProfilesCache = [];
+    let selectedAccessProfileUsername = '';
+    let accessProfileModuleCatalog = [];
     let projectProgressCache = [];
     let projectProgressSearchTerm = '';
     let selectedProjectProgressProjectId = null;
@@ -11558,6 +11562,127 @@
         return;
       }
 
+      try {
+        const result = await fetchJson('/api/admin/reconcile-hr-users', { method: 'POST' });
+        showMessage(`Synchronisation RH effectuée: ${result?.created?.length || 0} créé(s), ${result?.updated?.length || 0} existant(s)`);
+        await loadUsersModule();
+      } catch (err) {
+        showMessage('Synchronisation impossible: ' + err.message, 'error');
+      }
+    };
+
+    function populateAccessProfileForcedModuleOptions(selectedValue = '') {
+      const select = document.getElementById('access-profile-forced-module');
+      if (!select) return;
+      const options = ['<option value="">Aucun</option>']
+        .concat(ACCESS_PROFILE_MODULE_OPTIONS.map(key => `<option value="${escapeHtml(key)}">${escapeHtml(key)}</option>`))
+        .join('');
+      select.innerHTML = options;
+      const wanted = String(selectedValue || '').trim().toLowerCase();
+      select.value = wanted && ACCESS_PROFILE_MODULE_OPTIONS.includes(wanted) ? wanted : '';
+    }
+
+    function renderAccessProfileModulePickers(row) {
+      const allowedHost = document.getElementById('access-profile-allowed-modules-list');
+      const deniedHost = document.getElementById('access-profile-denied-modules-list');
+      if (!allowedHost || !deniedHost) return;
+
+      const catalog = refreshAccessProfileModuleCatalog();
+      const allowedSet = new Set(normalizeAccessProfileModuleList(row?.allowedModules || ''));
+      if (!allowedSet.size && Array.isArray(row?.effectiveModules) && row.effectiveModules.length) {
+        normalizeAccessProfileModuleList(row.effectiveModules).forEach(moduleKey => allowedSet.add(moduleKey));
+      }
+      const deniedSet = new Set(normalizeAccessProfileModuleList(row?.deniedModules || ''));
+      const baselineSet = getAccessProfileBaselineModules(row?.role || '', row?.username || '');
+
+      const renderChoice = (item, kind) => {
+        const checked = kind === 'allowed' ? allowedSet.has(item.key) : deniedSet.has(item.key);
+        const disabled = kind === 'allowed' && deniedSet.has(item.key) || kind === 'denied' && allowedSet.has(item.key);
+        const inputId = `access-profile-${kind}-${item.key}`;
+        return `
+          <label for="${escapeHtml(inputId)}" style="display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border:1px solid ${kind === 'allowed' ? '#dbeafe' : '#fed7aa'}; border-radius:10px; background:${kind === 'allowed' ? '#eff6ff' : '#fffaf0'}; opacity:${disabled ? '0.55' : '1'}; cursor:${disabled ? 'not-allowed' : 'pointer'};">
+            <input type="checkbox" id="${escapeHtml(inputId)}" data-kind="${kind}" data-module-key="${escapeHtml(item.key)}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} style="margin-top:2px;" />
+            <span>
+              <span style="display:block; font-weight:600;">${escapeHtml(item.label)}</span>
+              <span style="display:block; font-size:12px; color:#64748b;">${escapeHtml(item.key)}</span>
+            </span>
+          </label>
+        `;
+      };
+
+      allowedHost.innerHTML = catalog.map(item => renderChoice(item, 'allowed')).join('');
+      deniedHost.innerHTML = catalog.map(item => renderChoice(item, 'denied')).join('');
+
+      const syncCheckboxes = () => {
+        const allowedChecked = new Set(Array.from(allowedHost.querySelectorAll('input[type="checkbox"][data-kind="allowed"]:checked')).map(input => String(input.dataset.moduleKey || '').trim().toLowerCase()).filter(Boolean));
+        const deniedChecked = new Set(Array.from(deniedHost.querySelectorAll('input[type="checkbox"][data-kind="denied"]:checked')).map(input => String(input.dataset.moduleKey || '').trim().toLowerCase()).filter(Boolean));
+
+        allowedHost.querySelectorAll('input[type="checkbox"][data-kind="allowed"]').forEach(input => {
+          const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+          const other = deniedChecked.has(key);
+          input.disabled = other;
+          input.closest('label')?.style && (input.closest('label').style.opacity = other ? '0.55' : '1');
+        });
+        deniedHost.querySelectorAll('input[type="checkbox"][data-kind="denied"]').forEach(input => {
+          const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+          const other = allowedChecked.has(key);
+          input.disabled = other;
+          input.closest('label')?.style && (input.closest('label').style.opacity = other ? '0.55' : '1');
+        });
+      };
+
+      allowedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) {
+            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+            const deniedInput = deniedHost.querySelector(`input[data-module-key="${CSS.escape(key)}"]`);
+            if (deniedInput) deniedInput.checked = false;
+          }
+          syncCheckboxes();
+        });
+      });
+      deniedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) {
+            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+            const allowedInput = allowedHost.querySelector(`input[data-module-key="${CSS.escape(key)}"]`);
+            if (allowedInput) allowedInput.checked = false;
+          }
+          syncCheckboxes();
+        });
+      });
+
+      syncCheckboxes();
+
+      const restoreBtn = document.getElementById('access-profile-restore-role');
+      if (restoreBtn) {
+        restoreBtn.onclick = () => {
+          const baseline = Array.from(baselineSet);
+          allowedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
+            const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
+            input.checked = baseline.includes(key);
+          });
+          deniedHost.querySelectorAll('input[type="checkbox"]').forEach(input => {
+            input.checked = false;
+          });
+          syncCheckboxes();
+          showMessage('Modules restaurés depuis le profil de rôle');
+        };
+      }
+    }
+
+    function renderAccessProfilesList() {
+      const list = document.getElementById('access-profiles-list');
+      if (!list) return;
+
+      const rows = Array.isArray(accessProfilesCache) ? accessProfilesCache.slice() : [];
+      rows.sort((a, b) => String(a?.username || '').localeCompare(String(b?.username || ''), 'fr', { sensitivity: 'base' }));
+
+      if (!rows.length) {
+        list.innerHTML = '<li class="list-item"><div class="list-item-title">Aucun profil</div></li>';
+        return;
+      }
+
       list.innerHTML = rows.map(row => {
         const username = String(row?.username || '').trim();
         const isSelected = username.toLowerCase() === String(selectedAccessProfileUsername || '').trim().toLowerCase();
@@ -11570,7 +11695,7 @@
               <div>
                 <div class="list-item-title">${escapeHtml(username || '-')}</div>
                 <div class="list-item-meta">${escapeHtml(roleLabel)} • ${escapeHtml(linked || 'Profil RH manquant')}</div>
-                <div class="list-item-meta">Modules visibles: ${escapeHtml(modules.map(getAccessProfileModuleLabel).join(', ') || 'Aucun')}</div>
+                <div class="list-item-meta">Modules autorisés: ${escapeHtml(modules.map(getAccessProfileModuleLabel).join(', ') || 'Aucun')}</div>
               </div>
               <button type="button" class="button button-small button-secondary" onclick="event.stopPropagation(); window.restoreAccessProfileBaseline('${escapeHtml(username)}')">Restaurer</button>
             </div>
@@ -11585,28 +11710,145 @@
       const row = (Array.isArray(accessProfilesCache) ? accessProfilesCache : []).find(item => String(item?.username || '').trim().toLowerCase() === safeUsername.toLowerCase());
       if (!row) return;
       const baselineModules = Array.from(getAccessProfileBaselineModules(row.role, row.username));
-      const nextAllowedModules = String(row?.role || '').trim().toLowerCase() === 'admin'
-        ? baselineModules
-        : baselineModules.filter(moduleKey => !ADMIN_ONLY_MODULES.has(String(moduleKey || '').trim().toLowerCase()));
-      const currentDeniedModules = normalizeAccessProfileModuleList(row.deniedModules || '');
-      const currentForcedModule = String(row.forcedModule || '').trim().toLowerCase();
-      const forcedModule = nextAllowedModules.includes(currentForcedModule) ? currentForcedModule : '';
       const payload = {
         accreditationLevel: String(row.accreditationLevel || 'standard').trim(),
-        allowedModules: nextAllowedModules,
-        deniedModules: currentDeniedModules,
-        forcedModule,
+        allowedModules: baselineModules.join(','),
+        deniedModules: '',
+        forcedModule: '',
         notes: String(row.notes || '').trim(),
       };
       try {
-        const result = await fetchJson('/api/admin/reconcile-hr-users', { method: 'POST' });
-        showMessage(`Synchronisation RH effectuée: ${result?.created?.length || 0} créé(s), ${result?.updated?.length || 0} existant(s)`);
-        await loadUsersModule();
+        await fetchJson(`/api/admin/access-profiles/${encodeURIComponent(safeUsername)}`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload),
+        });
+        showMessage(`Modules restaurés pour ${safeUsername}`);
+        await loadAccessProfilesModule();
       } catch (err) {
-        showMessage('Synchronisation impossible: ' + err.message, 'error');
+        showMessage('Impossible de restaurer le profil: ' + err.message, 'error');
       }
     };
 
+    window.selectAccessProfile = function selectAccessProfile(username) {
+      selectedAccessProfileUsername = String(username || '').trim();
+      const editor = document.getElementById('access-profile-editor');
+      const emptyNode = document.getElementById('access-profile-editor-empty');
+      const row = (Array.isArray(accessProfilesCache) ? accessProfilesCache : []).find(item => String(item?.username || '').trim().toLowerCase() === selectedAccessProfileUsername.toLowerCase());
+      if (!row) {
+        if (editor) editor.style.display = 'none';
+        if (emptyNode) emptyNode.style.display = '';
+        renderAccessProfilesList();
+        return;
+      }
+
+      if (editor) editor.style.display = '';
+      if (emptyNode) emptyNode.style.display = 'none';
+
+      const notesInput = document.getElementById('access-profile-notes');
+      const accreditationInput = document.getElementById('access-profile-accreditation');
+      const usernameInput = document.getElementById('access-profile-username');
+      const roleInput = document.getElementById('access-profile-role');
+
+      if (usernameInput) usernameInput.value = String(row?.username || '').trim();
+      if (roleInput) roleInput.value = getRoleDisplayLabel(String(row?.role || '').trim());
+      if (accreditationInput) accreditationInput.value = String(row?.accreditationLevel || 'standard').trim() || 'standard';
+      if (notesInput) notesInput.value = String(row?.notes || '').trim();
+      populateAccessProfileForcedModuleOptions(String(row?.forcedModule || '').trim());
+      renderAccessProfileModulePickers(row);
+
+      renderAccessProfilesList();
+    };
+
+    async function loadAccessProfilesModule() {
+      const list = document.getElementById('access-profiles-list');
+      if (list) {
+        list.innerHTML = '<li class="list-item"><div class="list-item-title">Chargement...</div></li>';
+      }
+
+      try {
+        const rows = await fetchJson('/api/admin/access-profiles');
+        accessProfilesCache = Array.isArray(rows) ? rows : [];
+        populateAccessProfileForcedModuleOptions('');
+        refreshAccessProfileModuleCatalog();
+        if (!selectedAccessProfileUsername && accessProfilesCache.length) {
+          selectedAccessProfileUsername = String(accessProfilesCache[0]?.username || '').trim();
+        }
+        renderAccessProfilesList();
+        if (selectedAccessProfileUsername) {
+          window.selectAccessProfile(selectedAccessProfileUsername);
+        }
+      } catch (err) {
+        accessProfilesCache = [];
+        if (list) {
+          list.innerHTML = `<li class="list-item"><div class="list-item-title" style="color:#b91c1c;">Erreur: ${escapeHtml(err.message || 'chargement impossible')}</div></li>`;
+        }
+      }
+    }
+
+    window.loadAccessProfilesModule = loadAccessProfilesModule;
+
+    const accessProfileEditorForm = document.getElementById('access-profile-editor');
+    if (accessProfileEditorForm) {
+      accessProfileEditorForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!isAdmin()) {
+          showMessage('Acces refuse: admin uniquement', 'error');
+          return;
+        }
+
+        const username = String(document.getElementById('access-profile-username')?.value || '').trim();
+        if (!username) {
+          showMessage('Profil non sélectionné', 'error');
+          return;
+        }
+
+        const allowedModules = Array.from((document.getElementById('access-profile-allowed-modules-list')?.querySelectorAll('input[type="checkbox"][data-kind="allowed"]:checked') || []))
+          .map(input => String(input.dataset.moduleKey || '').trim().toLowerCase())
+          .filter(Boolean);
+        const deniedModules = Array.from((document.getElementById('access-profile-denied-modules-list')?.querySelectorAll('input[type="checkbox"][data-kind="denied"]:checked') || []))
+          .map(input => String(input.dataset.moduleKey || '').trim().toLowerCase())
+          .filter(Boolean);
+
+        const payload = {
+          accreditationLevel: String(document.getElementById('access-profile-accreditation')?.value || 'standard').trim(),
+          allowedModules,
+          deniedModules,
+          forcedModule: String(document.getElementById('access-profile-forced-module')?.value || '').trim(),
+          notes: String(document.getElementById('access-profile-notes')?.value || '').trim(),
+        };
+
+        try {
+          await fetchJson(`/api/admin/access-profiles/${encodeURIComponent(username)}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload),
+          });
+          showMessage(`Dossier profil mis à jour: ${username}`);
+          await loadAccessProfilesModule();
+        } catch (err) {
+          showMessage('Erreur sauvegarde dossier: ' + err.message, 'error');
+        }
+      });
+    }
+
+    const ensureProfileButton = document.getElementById('access-profile-ensure-hr');
+    if (ensureProfileButton) {
+      ensureProfileButton.addEventListener('click', async () => {
+        const username = String(document.getElementById('access-profile-username')?.value || '').trim();
+        if (!username) {
+          showMessage('Profil non sélectionné', 'error');
+          return;
+        }
+        try {
+          await fetchJson(`/api/admin/access-profiles/${encodeURIComponent(username)}/ensure-hr-profile`, {
+            method: 'POST',
+          });
+          showMessage(`Profil RH garanti pour ${username}`);
+          await loadAccessProfilesModule();
+        } catch (err) {
+          showMessage('Erreur création profil RH: ' + err.message, 'error');
+        }
+      });
+    }
     window.resetUserLoginState = async function resetUserLoginState(userId) {
       const id = Number(userId || 0);
       if (!Number.isInteger(id) || id <= 0) {
@@ -18661,6 +18903,9 @@
       }
       if (moduleName === 'material-catalog') {
         loadMaterialCatalog();
+      }
+      if (moduleName === 'access-profiles') {
+        loadAccessProfilesModule();
       }
       if (moduleName === 'hr-employee-search') {
         loadHrEmployeeSearchModule();
@@ -28857,4 +29102,11 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
