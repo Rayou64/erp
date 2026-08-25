@@ -7494,6 +7494,7 @@
               <p>Chaque chef de chantier peut ajouter des points d'avancement par étape.</p>
             </div>
             <div class="pp-header-actions">
+              <button type="button" class="pp-header-btn" id="pp-add-btn" title="Ajouter un suivi">➕</button>
               <button type="button" class="pp-header-btn" title="Paramètres">⚙️</button>
               <button type="button" class="pp-header-btn" title="Notifications">🔔<span style="position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; top: 8px; right: 8px;"></span></button>
               <div class="pp-filter-zone">📍 Filtrer par zone <span>▼</span></div>
@@ -7635,6 +7636,54 @@
 
           <!-- Hidden containers for data -->
           <div id="progress-folder-quick-list" style="display: none;"></div>
+
+          <!-- Add Progress Form (Hidden by default) -->
+          <div id="pp-add-form-container" style="display: none; margin-top: 20px;">
+            <div class="pp-dashboard">
+              <h3 style="margin-bottom: 16px;">Ajouter un suivi d'étape</h3>
+              <form id="project-progress-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label>Dossier projet *</label>
+                    <select id="progress-project-folder" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label>Site *</label>
+                    <select id="progress-project" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label>Étape de chantier *</label>
+                    <select id="progress-stage" required><option value="">Sélectionner une étape</option></select>
+                  </div>
+                  <div class="form-group">
+                    <label>Avancement (%) *</label>
+                    <input type="range" id="progress-percent" min="0" max="100" step="1" value="35" style="width: 100%;" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Titre</label>
+                  <input type="text" id="progress-title" placeholder="Ex: Coulage terminé" />
+                </div>
+                <div class="form-group">
+                  <label>Note du chef de chantier *</label>
+                  <textarea id="progress-note" required placeholder="Blocages, prochaines étapes..." style="min-height: 60px;"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Date de l'étape *</label>
+                  <input type="date" id="progress-date" />
+                </div>
+                <div class="form-group">
+                  <label>Matériaux utilisés</label>
+                  <div id="progress-material-lines" class="jc-material-lines"></div>
+                  <button type="button" id="progress-add-material-line" class="jc-add-material">+ Ajouter depuis le catalogue</button>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                  <button type="submit" class="pp-dashboard-export" style="flex: 1;">Enregistrer le suivi</button>
+                  <button type="button" id="progress-cancel-btn" style="flex: 1; padding: 8px 16px; background: #e2e8f0; color: #334155; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">Annuler</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
 
         <!-- Journal de chantier Module -->
@@ -15061,7 +15110,7 @@
         ? hierarchy.map((project, idx) => {
             const totalZones = project.zones.length;
             const totalSites = project.zones.reduce((sum, z) => sum + z.houses.length, 0);
-            const startDate = project.dateDebut ? formatDateShort(project.dateDebut) : '12 mai 2024';
+            const startDate = project.dateDebut ? new Date(project.dateDebut).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : '12 mai 2024';
             const isActive = Number(selectedProjectProgressProjectId) === Number(project.id);
             
             return `
@@ -26773,6 +26822,7 @@
         e.target.reset();
         resetProgressMaterialLines();
         document.getElementById('progress-date').value = formatDateForInput();
+        document.getElementById('pp-add-form-container').style.display = 'none';
         showMessage('Suivi de projet ajouté');
         loadJournalChantier();
         loadProjectProgress();
@@ -27470,6 +27520,23 @@
         loadHrCalendarModule();
       });
     }
+
+    // Project Progress Module - Add Form Toggle
+    document.getElementById('pp-add-btn')?.addEventListener('click', () => {
+      const container = document.getElementById('pp-add-form-container');
+      if (container.style.display === 'none') {
+        container.style.display = 'block';
+        document.getElementById('progress-date').valueAsDate = new Date();
+        document.getElementById('progress-project-folder').focus();
+      } else {
+        container.style.display = 'none';
+      }
+    });
+
+    document.getElementById('progress-cancel-btn')?.addEventListener('click', () => {
+      document.getElementById('pp-add-form-container').style.display = 'none';
+      document.getElementById('project-progress-form').reset();
+    });
 
     document.getElementById('progress-project-folder').addEventListener('change', e => {
       if (!e.target.value) {
