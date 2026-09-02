@@ -9519,6 +9519,83 @@
 
         <!-- Stock Management Module -->
         <div id="stock-management" class="module">
+          <style>
+            #stock-management { background:#f6f9ff; color:#1c2c4b; font-family:Arial, Helvetica, sans-serif; }
+            #stock-management > .page-header { display:none; }
+            #stock-management .stock-workspace { display:grid; gap:16px; padding:4px 2px 24px; }
+            #stock-management .stock-topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+            #stock-management .stock-title h1 { margin:0; color:#17294a; font-size:23px; font-weight:800; }
+            #stock-management .stock-title p { margin:5px 0 0; color:#71809c; font-size:11px; font-weight:600; }
+            #stock-management .stock-kpis { display:grid; grid-template-columns:repeat(3,minmax(118px,1fr)); gap:8px; }
+            #stock-management .stock-kpi { min-height:56px; display:flex; align-items:center; gap:8px; padding:9px 11px; border:1px solid #e4eaf4; border-radius:7px; background:#fff; box-shadow:0 3px 10px rgba(43,73,126,.04); }
+            #stock-management .stock-kpi-icon { display:grid; width:23px; height:23px; place-items:center; border-radius:6px; background:#edf2ff; color:#4a64e7; font-size:12px; }
+            #stock-management .stock-kpi:nth-child(2) .stock-kpi-icon { background:#eafaf4; color:#12a879; }
+            #stock-management .stock-kpi:nth-child(3) .stock-kpi-icon { background:#fff0f1; color:#ed5d66; }
+            #stock-management .stock-kpi small { display:block; color:#71809a; font-size:8px; font-weight:700; }
+            #stock-management .stock-kpi strong { display:block; margin-top:3px; color:#263958; font-size:12px; font-weight:800; }
+            #stock-management #stock-warehouse-selector-card { margin:0 !important; padding:12px; border:1px solid #e4eaf4; border-radius:9px; box-shadow:none; }
+            #stock-management #stock-warehouse-quick-grid { grid-template-columns:repeat(auto-fit,minmax(125px,1fr)) !important; gap:8px !important; }
+            #stock-management .stock-warehouse-card { min-height:62px !important; flex-direction:row !important; font-size:12px !important; border-radius:7px !important; }
+            #stock-management #stock-management-details { display:grid; gap:16px; }
+            #stock-management .stock-active-bar { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 13px; border:1px solid #e4eaf4; border-radius:8px; background:#fff; color:#314565; font-size:12px; }
+            #stock-management .stock-main-grid { display:grid; grid-template-columns:minmax(275px,32%) minmax(0,68%); gap:16px; align-items:start; }
+            #stock-management .stock-panel { border:1px solid #e3eaf5; border-radius:9px; background:#fff; box-shadow:0 5px 16px rgba(43,73,126,.05); }
+            #stock-management .stock-history-card { padding:13px; }
+            #stock-management .stock-panel-title { margin:0; color:#213551; font-size:14px; font-weight:800; }
+            #stock-management .stock-panel-subtitle { margin:4px 0 12px; color:#7a8aa5; font-size:9px; font-weight:600; }
+            #stock-management .stock-order-tabs { display:flex; gap:18px; border-bottom:1px solid #e8eef7; margin:10px 0; }
+            #stock-management .stock-order-tabs button { padding:0 0 8px; border:0; border-bottom:2px solid transparent; background:none; color:#6b7f9d; font-size:9px; font-weight:800; cursor:pointer; }
+            #stock-management .stock-order-tabs button.active { color:#3868e6; border-bottom-color:#4a78ef; }
+            #stock-management .stock-order-search { position:relative; margin-bottom:10px; }
+            #stock-management .stock-order-search input { width:100%; height:31px; border:1px solid #dbe5f2; border-radius:6px; padding:0 9px; font-size:9px; }
+            #stock-management #stock-orders-list { display:grid; gap:9px; }
+            #stock-management #stock-orders-list .list-item { display:flex; padding:11px; border:1px solid #e3ebf5; border-radius:8px; background:#fff; box-shadow:none; }
+            #stock-management #stock-orders-list .list-item-content { min-width:0; }
+            #stock-management #stock-orders-list .list-item-title { color:#1d3151; font-size:10px; font-weight:800; line-height:1.4; }
+            #stock-management #stock-orders-list .list-item-meta { display:inline-block; width:49%; margin-top:6px; color:#71809a; font-size:8px; line-height:1.35; vertical-align:top; }
+            #stock-management #stock-orders-list .action-buttons { align-self:flex-end; margin-left:auto; }
+            #stock-management #stock-orders-list .button { height:28px; padding:0 9px; border-radius:5px; font-size:8px; }
+            #stock-management .stock-create-card { padding:15px; }
+            #stock-management .stock-stepper { display:grid; grid-template-columns:auto 1fr auto 1fr auto; align-items:center; gap:7px; margin:14px 0 16px; color:#a4b2c8; font-size:9px; font-weight:800; }
+            #stock-management .stock-step { display:flex; align-items:center; gap:5px; white-space:nowrap; }
+            #stock-management .stock-step b { display:grid; width:18px; height:18px; place-items:center; border-radius:50%; background:#eff3f9; color:#90a1bd; font-size:9px; }
+            #stock-management .stock-step.active { color:#4c5ee7; } #stock-management .stock-step.active b { background:#6154ed; color:#fff; }
+            #stock-management .stock-step-line { height:1px; background:#dce5f1; }
+            #stock-management .stock-destination-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+            #stock-management .stock-stage-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+            #stock-management .stock-create-card .form-group { margin-bottom:10px; }
+            #stock-management .stock-create-card label { margin-bottom:4px; color:#435a80; font-size:9px; font-weight:800; }
+            #stock-management .stock-create-card select, #stock-management .stock-create-card textarea, #stock-management .stock-zone-field { width:100%; min-height:34px; border:1px solid #dbe5f2 !important; border-radius:6px !important; background:#fff !important; color:#344b70 !important; padding:0 9px !important; font-size:9px !important; box-shadow:none !important; }
+            #stock-management .stock-zone-field { display:flex !important; align-items:center; }
+            #stock-management .stock-create-card textarea { min-height:58px; padding:9px !important; resize:vertical; }
+            #stock-management .stock-stage-all { margin:0 0 12px !important; color:#71809a !important; font-size:8px !important; }
+            #stock-management .stock-material-layout { display:grid; grid-template-columns:minmax(0,1fr) 178px; gap:14px; align-items:start; }
+            #stock-management .stock-material-heading { margin:0 0 7px; color:#263a59; font-size:10px; font-weight:800; }
+            #stock-management .stock-material-search { height:30px; margin-bottom:8px; border:1px solid #dbe5f2; border-radius:6px; padding:0 9px; color:#6b7f9d; font-size:9px; }
+            #stock-management #stock-issue-lines { gap:0 !important; overflow:hidden; border:1px solid #e2eaf4; border-radius:7px; }
+            #stock-management .stock-issue-line { border:0 !important; border-bottom:1px solid #e9eef5 !important; border-radius:0 !important; padding:8px 9px !important; grid-template-columns:minmax(0,1fr) 126px !important; gap:8px !important; }
+            #stock-management .stock-issue-line:last-child { border-bottom:0 !important; }
+            #stock-management .stock-issue-line > div > div:first-child { font-size:9px !important; }
+            #stock-management .stock-issue-line > div > div { font-size:8px !important; }
+            #stock-management .stock-issue-line-qty { height:27px; border:1px solid #d9e4f1; border-radius:5px; padding:0 7px; font-size:9px; }
+            #stock-management #stock-issue-lines-hint { margin-top:7px !important; font-size:8px !important; }
+            #stock-management .stock-summary { padding:12px; border:1px solid #d8f0e8; border-radius:8px; background:#f4fcf9; }
+            #stock-management .stock-summary h4 { margin:0 0 12px; color:#148a68; font-size:10px; font-weight:800; }
+            #stock-management .stock-summary-row { display:flex; justify-content:space-between; gap:8px; margin:8px 0; color:#6d8296; font-size:8px; }
+            #stock-management .stock-summary-row strong { color:#314864; font-size:8px; text-align:right; }
+            #stock-management .stock-summary-actions { margin-top:15px; display:grid; gap:7px; }
+            #stock-management .stock-summary-actions .button { width:100%; height:30px; border-radius:5px; font-size:9px; }
+            #stock-management .stock-note { margin-top:12px; }
+            #stock-management .stock-bottom-preview { padding:12px; border:1px solid #e3eaf5; border-radius:9px; background:#fff; }
+            #stock-management .stock-bottom-heading { display:flex; justify-content:space-between; align-items:center; margin-bottom:9px; } #stock-management .stock-bottom-heading h3 { margin:0; color:#263a59; font-size:11px; }
+            #stock-management #stock-site-preview { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; }
+            #stock-management .stock-site-card { padding:10px; border:1px solid #e2eaf4; border-radius:7px; background:#fbfdff; }
+            #stock-management .stock-site-card strong { display:block; color:#2c4263; font-size:9px; } #stock-management .stock-site-card small { display:block; margin-top:4px; color:#7485a0; font-size:8px; }
+            #stock-management .stock-site-meter { height:5px; margin-top:8px; overflow:hidden; border-radius:5px; background:#e2eaf4; } #stock-management .stock-site-meter i { display:block; height:100%; border-radius:inherit; background:#25ba91; }
+            #stock-management #stock-issues-list, #stock-management .erp-section-sep { display:none; }
+            @media (max-width:1100px) { #stock-management .stock-topbar{align-items:flex-start;flex-direction:column} #stock-management .stock-main-grid{grid-template-columns:1fr} #stock-management #stock-site-preview{grid-template-columns:repeat(2,minmax(0,1fr))} }
+            @media (max-width:680px) { #stock-management .stock-kpis{width:100%;grid-template-columns:1fr 1fr} #stock-management .stock-destination-grid,#stock-management .stock-stage-grid,#stock-management .stock-material-layout{grid-template-columns:1fr} #stock-management #stock-site-preview{grid-template-columns:1fr} }
+          </style>
           <div class="page-header">
             <h1>Gestion de stock</h1>
             <p>Réception des commandes et sorties de matériel</p>
@@ -9552,68 +9629,64 @@
             </div>
             <p id="stock-add-warehouse-hint" style="margin:10px 0 0 0; color:#64748b; font-size:13px;">Choisis un projet existant pour créer un entrepôt visible dans les choix rapides.</p>
           </div>
-          <div id="stock-management-details" style="display: none;">
-            <div class="card" style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <div style="font-weight: 700; color: #1e293b;">Entrepôt ouvert: <span id="stock-active-warehouse-label">-</span></div>
+          <div id="stock-management-details" class="stock-workspace" style="display: none;">
+            <div class="stock-topbar"><div class="stock-title"><h1>Gestion de stock</h1><p>Gérez les réceptions, sorties et disponibilités de matériel.</p></div><div class="stock-kpis"><div class="stock-kpi"><span class="stock-kpi-icon">▣</span><span><small>Valeur du stock total</small><strong id="stock-kpi-value">-</strong></span></div><div class="stock-kpi"><span class="stock-kpi-icon">▦</span><span><small>Articles en stock</small><strong id="stock-kpi-items">0</strong></span></div><div class="stock-kpi"><span class="stock-kpi-icon">!</span><span><small>Alertes stock bas</small><strong id="stock-kpi-alerts">0</strong></span></div></div></div>
+            <div class="stock-active-bar">
+              <div>Entrepôt ouvert: <strong id="stock-active-warehouse-label">-</strong></div>
               <button type="button" id="stock-change-warehouse" class="button button-small button-secondary">Changer d'entrepôt</button>
             </div>
-            <div class="grid-2">
-            <div class="card stock-history-card">
-              <h3 style="margin-bottom: 15px;">Commandes en cours de réception</h3>
-              <div class="form-group" style="margin-bottom: 12px;">
+            <div class="stock-main-grid">
+            <div class="stock-panel stock-history-card">
+              <h3 class="stock-panel-title">Commandes en cours de réception</h3><p class="stock-panel-subtitle">Suivez les commandes destinées à cet entrepôt.</p>
+              <div class="stock-order-tabs"><button type="button" class="active">En attente</button><button type="button">Partiellement reçues</button><button type="button">Historique</button></div>
+              <div class="stock-order-search">
                 <input type="text" id="stock-order-search" placeholder="Rechercher une commande (projet, fournisseur, matériel)" />
               </div>
               <ul id="stock-orders-list" class="list"></ul>
             </div>
-            <div class="erp-section-sep">Historique récent</div>
-            <div class="card form-card stock-create-card">
-              <h3 style="margin-bottom: 15px;">Sortie de matériel</h3>
+            <div class="stock-panel stock-create-card">
+              <h3 class="stock-panel-title">Sortie de matériel</h3><p class="stock-panel-subtitle">Sélectionnez le matériel et la destination pour enregistrer une sortie.</p>
+              <div class="stock-stepper"><span class="stock-step active"><b>1</b>Destination</span><i class="stock-step-line"></i><span class="stock-step"><b>2</b>Matériel</span><i class="stock-step-line"></i><span class="stock-step"><b>3</b>Détails &amp; validation</span></div>
               <form id="stock-issue-form">
-                <div class="form-group">
+                <div class="stock-destination-grid"><div class="form-group">
                   <label>Entrepôt de sortie (mode fictif localhost) *</label>
                   <select id="stock-issue-warehouse" required></select>
-                </div>
-                <div class="form-group">
+                </div><div class="form-group">
                   <label>Zone</label>
-                  <div id="stock-issue-zone-display" style="padding:8px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;color:#0f172a;font-weight:600;min-height:38px;display:flex;align-items:center;">—</div>
+                  <div id="stock-issue-zone-display" class="stock-zone-field">—</div>
                   <input type="hidden" id="stock-issue-project-folder" value="">
-                </div>
-                <div class="form-group">
+                </div><div class="form-group">
                   <label>Site destinataire *</label>
                   <select id="stock-issue-project" required></select>
-                </div>
+                </div></div>
                 <div class="form-group" id="stock-issue-stage-group">
                   <label id="stock-issue-stage-label">Étape destinataire</label>
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                    <select id="stock-issue-stage-main" style="width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
+                  <div class="stock-stage-grid">
+                    <select id="stock-issue-stage-main">
                       <option value="">Choisir une étape principale</option>
                     </select>
-                    <select id="stock-issue-stage-sub" style="width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
+                    <select id="stock-issue-stage-sub">
                       <option value="">Choisir une sous-étape (optionnel)</option>
                     </select>
                   </div>
-                  <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#334155;font-weight:600;">
+                  <label class="stock-stage-all" style="display:flex;align-items:center;gap:8px;margin-top:8px;">
                     <input type="checkbox" id="stock-issue-stage-all-sub" style="width:16px;height:16px;" />
                     Charger les matériaux de toutes les sous-étapes de l'étape principale
                   </label>
                   <input type="hidden" id="stock-issue-stage" />
                 </div>
-                <div class="form-group">
-                  <label>Matériaux liés à l'étape</label>
-                  <div id="stock-issue-lines" style="display: grid; gap: 8px;"></div>
-                  <div id="stock-issue-lines-hint" style="margin-top: 8px; color: #64748b; font-size: 12px;">Sélectionne un site puis une étape pour afficher les matériaux disponibles.</div>
-                </div>
-                <div class="form-group">
+                <div class="stock-material-layout"><div class="form-group"><div class="stock-material-heading">Matériel disponible à l'étape sélectionnée</div><input class="stock-material-search" type="search" placeholder="Rechercher un matériau..." readonly /><div id="stock-issue-lines" style="display: grid; gap: 8px;"></div><div id="stock-issue-lines-hint">Sélectionne un site puis une étape pour afficher les matériaux disponibles.</div></div>
+                <aside class="stock-summary"><h4>Résumé de la sortie</h4><div class="stock-summary-row"><span>Articles sélectionnés</span><strong id="stock-summary-items">0</strong></div><div class="stock-summary-row"><span>Quantité totale</span><strong id="stock-summary-quantity">0 unité</strong></div><div class="stock-summary-row"><span>Destination</span><strong id="stock-summary-destination">-</strong></div><div class="stock-summary-row"><span>Étape</span><strong id="stock-summary-stage">-</strong></div><div class="stock-summary-actions"><button type="submit" class="button button-primary">Valider la sortie</button><button type="button" class="button button-secondary">Enregistrer en brouillon</button></div></aside></div>
+                <div class="form-group stock-note">
                   <label>Note</label>
                   <textarea id="stock-issue-note" placeholder="Ex: sortie pour dalle RDC"></textarea>
                 </div>
-                <button type="submit" class="button button-primary" style="width: 100%;">Valider la sortie</button>
               </form>
               <h4 style="margin-top: 16px; margin-bottom: 8px; color: #475569; font-size: 13px;">Historique récent des sorties</h4>
               <ul id="stock-issues-list" class="list"></ul>
             </div>
             </div>
-
+            <div class="stock-bottom-preview"><div class="stock-bottom-heading"><h3>Aperçu du stock par site</h3><button type="button" class="button button-small button-secondary">Voir tout</button></div><div id="stock-site-preview"></div></div>
           </div>
         </div>
 
@@ -24248,6 +24321,8 @@
 
     function updateStockIssueRemainingPreview() {
       const lineNodes = Array.from(document.querySelectorAll('#stock-issue-lines .stock-issue-line'));
+      let selectedItems = 0;
+      let selectedQuantity = 0;
       lineNodes.forEach(lineNode => {
         const remaining = Number(lineNode.dataset.remaining || 0);
         const qtyInput = lineNode.querySelector('.stock-issue-line-qty');
@@ -24256,10 +24331,27 @@
 
         const enteredQty = Number(qtyInput.value || 0);
         const safeQty = Number.isFinite(enteredQty) && enteredQty > 0 ? enteredQty : 0;
+        if (safeQty > 0) {
+          selectedItems += 1;
+          selectedQuantity += safeQty;
+        }
         const nextRemaining = Math.max(0, remaining - safeQty);
         previewEl.textContent = `Restera après sortie: ${nextRemaining.toFixed(2)}`;
         previewEl.style.color = safeQty > remaining ? '#b91c1c' : '#0f766e';
       });
+
+      const selectedProject = getProjectById(Number(document.getElementById('stock-issue-project')?.value || 0));
+      const destination = selectedProject
+        ? `Site N°${selectedProject.numeroMaison || selectedProject.nomSite || selectedProject.id}`
+        : '-';
+      const setSummary = (id, text) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = text;
+      };
+      setSummary('stock-summary-items', String(selectedItems));
+      setSummary('stock-summary-quantity', `${selectedQuantity.toFixed(2)} unité${selectedQuantity > 1 ? 's' : ''}`);
+      setSummary('stock-summary-destination', destination);
+      setSummary('stock-summary-stage', syncStockIssueRequestedStageInput() || '-');
     }
 
     function renderStockOrdersList() {
@@ -24348,6 +24440,48 @@
         : '<div class="empty-state"><p>Aucune sortie enregistrée</p></div>';
     }
 
+    function renderStockManagementOverview() {
+      const availableRows = Array.isArray(stockAvailableCache) ? stockAvailableCache : [];
+      const stockedRows = availableRows.filter(row => Number(row?.quantiteRestante || 0) > 0);
+      const totalValue = stockedRows.reduce((total, row) => total + (Number(row.quantiteRestante || 0) * Number(row.prixUnitaire || row.prixMoyen || 0)), 0);
+      const lowStockCount = stockedRows.filter(row => {
+        const requested = Number(row.quantiteDemandee || 0);
+        const remaining = Number(row.quantiteRestante || 0);
+        return requested > 0 && remaining > 0 && remaining < requested;
+      }).length;
+      const setText = (id, text) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = text;
+      };
+      setText('stock-kpi-value', totalValue > 0 ? `${totalValue.toLocaleString('fr-FR')} FCFA` : 'Non disponible');
+      setText('stock-kpi-items', String(stockedRows.length));
+      setText('stock-kpi-alerts', String(lowStockCount));
+
+      const preview = document.getElementById('stock-site-preview');
+      if (!preview) return;
+      const bySite = new Map();
+      stockedRows.forEach(row => {
+        const projectId = Number(row?.projetId || 0);
+        const project = getProjectById(projectId);
+        const key = projectId || String(row?.nomProjet || 'stock');
+        if (!bySite.has(key)) {
+          bySite.set(key, {
+            name: project ? `Site N°${project.numeroMaison || project.nomSite || project.id}` : String(row?.nomProjet || 'Site'),
+            projectName: String(project?.nomProjet || row?.nomProjet || ''),
+            items: 0,
+            quantity: 0,
+          });
+        }
+        const site = bySite.get(key);
+        site.items += 1;
+        site.quantity += Number(row?.quantiteRestante || 0);
+      });
+      const sites = Array.from(bySite.values()).slice(0, 4);
+      preview.innerHTML = sites.length
+        ? sites.map(site => `<div class="stock-site-card"><strong>${escapeHtml(site.name)}</strong><small>${escapeHtml(site.projectName || 'Projet')}</small><small>${site.items} article${site.items > 1 ? 's' : ''} · ${site.quantity.toFixed(2)} unités disponibles</small><div class="stock-site-meter"><i style="width:${Math.min(100, Math.max(8, site.quantity))}%;"></i></div></div>`).join('')
+        : '<div class="empty-state"><p>Aucun stock disponible par site.</p></div>';
+    }
+
     async function loadStockManagement() {
       try {
         // Charger les entrepôts personnalisés depuis l'API
@@ -24390,6 +24524,7 @@
           ? sortRecent(materials, row => row?.dateDemande || row?.updatedAt || row?.createdAt || row?.id)
           : materialRequestsCache;
         ensureWarehouseAssignmentsForRows(stockAvailableCache);
+        renderStockManagementOverview();
         renderStockWarehouseQuickChoices();
         populateStockWarehouseProjectSelect();
 
