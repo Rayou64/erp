@@ -2178,6 +2178,16 @@ async function reconcilePurchaseOrderExpenses() {
   }
 }
 
+async function reconcileAdminCreatedPurchaseOrders() {
+  await run(`
+    UPDATE purchase_orders
+    SET statut = 'VALIDEE',
+        statutValidation = 'VALIDEE'
+    WHERE LOWER(TRIM(COALESCE(creePar, ''))) = 'admin'
+      AND UPPER(COALESCE(statut, '')) NOT IN ('VALIDEE', 'LIVREE', 'ANNULEE', 'REJETEE')
+  `);
+}
+
 async function ensureMaterialRequestsForOrder(orderId, options = {}) {
   const order = await get('SELECT * FROM purchase_orders WHERE id = ?', [Number(orderId)]);
   if (!order) return [];
@@ -3513,6 +3523,12 @@ function runBackgroundReconciliationsOnce() {
   setImmediate(() => {
     reconcilePurchaseOrderExpenses().catch(err => {
       console.error('Erreur reconciliation bons/depenses:', err);
+    });
+  });
+
+  setImmediate(() => {
+    reconcileAdminCreatedPurchaseOrders().catch(err => {
+      console.error('Erreur reconciliation bons admin:', err);
     });
   });
 
@@ -5625,6 +5641,7 @@ app.post('/api/purchase-orders', async (req, res) => {
     signatureRole = null,
   } = req.body;
   const createdBy = String(req.user?.username || creePar || 'admin').trim() || 'admin';
+  const initialOrderStatus = normalizeTextValue(createdBy) === 'admin' ? 'VALIDEE' : 'EN_COURS';
 
   // Check if warehouse is hidden
   if (warehouseId && isWarehouseHidden(warehouseId)) {
@@ -5754,8 +5771,8 @@ app.post('/api/purchase-orders', async (req, res) => {
       preparedItems[0].prixUnitaire,
       orderDate.toISOString(),
       dateLivraisonPrevue || null,
-      'EN_COURS',
-      'EN_COURS',
+      initialOrderStatus,
+      initialOrderStatus,
       resolvedProjetId,
       resolvedNomProjet,
       resolvedSiteId,
@@ -5773,7 +5790,7 @@ app.post('/api/purchase-orders', async (req, res) => {
       [nextPurchaseOrderItemId++, purchaseOrderId, item.materialRequestId || null, item.article, item.details, item.quantite, item.prixUnitaire, item.totalLigne]
     );
     if (item.materialRequestId) {
-      await run('UPDATE material_requests SET statut = ? WHERE id = ?', ['EN_COURS', item.materialRequestId]);
+      await run('UPDATE material_requests SET statut = ? WHERE id = ?', [initialOrderStatus, item.materialRequestId]);
     }
   }
 
