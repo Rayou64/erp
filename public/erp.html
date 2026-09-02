@@ -18367,6 +18367,13 @@
       return Boolean(document.getElementById('stock-issue-stage-all-sub')?.checked);
     }
 
+    function isZoneStockIssue() {
+      const selectedProjectId = Number(document.getElementById('stock-issue-project')?.value || 0);
+      const selectedProject = (Array.isArray(projectsCache) ? projectsCache : [])
+        .find(project => Number(project?.id || 0) === selectedProjectId);
+      return String(selectedProject?.typeMaison || '').trim().toUpperCase() === 'ZONE_STOCK';
+    }
+
     function syncStockIssueRequestedStageInput() {
       const main = String(document.getElementById('stock-issue-stage-main')?.value || '').trim();
       const sub = isStockIssueAllSubStagesSelected()
@@ -24025,31 +24032,15 @@
     function getDebourseMatchedStockIssueRows() {
       const candidateRows = getStockIssueCandidateRows();
       const catalogEntries = getStockIssueCatalogEntries();
-      if (!catalogEntries.length) return [];
-
-      const resolvedRows = [];
-      const seen = new Set();
-
-      candidateRows.forEach(row => {
+      return candidateRows.map(row => {
         const itemKey = normalizeText(row?.itemName || '');
-        const matchingEntries = catalogEntries.filter(entry => normalizeText(entry?.materialName || '') === itemKey);
-
-        matchingEntries.forEach(entry => {
-          const catalogStage = String(getCatalogEntryStage(entry) || '').trim();
-          if (!catalogStage) return;
-          const resolvedStage = catalogStage;
-          const dedupeKey = `${Number(row?.id || 0)}__${normalizeStageKey(resolvedStage)}`;
-          if (seen.has(dedupeKey)) return;
-          seen.add(dedupeKey);
-
-          resolvedRows.push({
-            ...row,
-            etapeApprovisionnement: resolvedStage,
-          });
-        });
+        const matchingEntry = catalogEntries.find(entry => normalizeText(entry?.materialName || '') === itemKey);
+        const catalogStage = String(getCatalogEntryStage(matchingEntry) || '').trim();
+        return {
+          ...row,
+          etapeApprovisionnement: catalogStage || String(row?.etapeApprovisionnement || '').trim(),
+        };
       });
-
-      return resolvedRows;
     }
 
     function populateStockStageSelect(selectedStageValue = '') {
