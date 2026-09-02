@@ -23449,6 +23449,24 @@
       return { id: Number(row?.id || 0), code: requestTitle, requestNumber: `DA${lotNumber}-${String(row?.id || 0).padStart(2, '0')}`, project, lot, zone, dateValue, dateLabel: String(row?.dateDemande || '').slice(0, 10) || '-', requester, validator, status, validationDate: row?.dateValidation || row?.validatedAt || row?.approvedAt || (status === 'VALIDEE' ? String(row?.updatedAt || '').slice(0, 10) : ''), pieces: Number(row?.pieces || row?.pieceCount || row?.documentsCount || 0), itemName: row?.itemName || '', stage: requestTitle };
     }
 
+    function groupMaterialRequestTrackingRows(requests) {
+      return groupMaterialRequests(requests).map(group => {
+        const mappedRows = group.map(mapMaterialRequestTrackingRow);
+        const primary = mappedRows.slice().sort((left, right) => right.dateValue - left.dateValue || right.id - left.id)[0];
+        const requestIds = mappedRows.map(row => row.id).filter(id => id > 0);
+        const itemNames = mappedRows.map(row => row.itemName).filter(Boolean);
+        const itemCount = requestIds.length;
+        return {
+          ...primary,
+          requestIds,
+          itemCount,
+          itemNames,
+          itemName: `${itemCount} article${itemCount > 1 ? 's' : ''}`,
+          pieces: Math.max(...mappedRows.map(row => Number(row.pieces || 0)), 0),
+        };
+      });
+    }
+
     function bindMaterialRequestTrackingOptions(id, values, placeholder) {
       const select = document.getElementById(id);
       if (!select) return;
@@ -23477,7 +23495,7 @@
       const statusClass = status => status === 'VALIDEE' ? 'valid' : status === 'REJETEE' ? 'rejected' : 'pending';
       const statusIcon = status => status === 'VALIDEE' ? '✓' : status === 'REJETEE' ? '✕' : '◷';
       const initials = value => String(value || '-').split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase();
-      list.innerHTML = rows.map(row => `<tr><td><span class="mr-track-code">${escapeHtml(row.code)}</span><div class="mr-track-request-number">${escapeHtml(row.requestNumber)}</div><div style="font-size:12px;color:#7183a5;margin-top:3px;">${escapeHtml(row.itemName)}</div></td><td><span class="mr-track-project">${escapeHtml(row.project)}</span></td><td>${escapeHtml(row.lot)}</td><td>${escapeHtml(row.zone)}</td><td>${escapeHtml(row.dateLabel)}</td><td><span class="mr-track-person"><span class="mr-track-avatar">${escapeHtml(initials(row.requester))}</span>${escapeHtml(row.requester)}</span></td><td><span class="mr-track-person"><span class="mr-track-avatar">${escapeHtml(initials(row.validator))}</span>${escapeHtml(row.validator)}</span></td><td><span class="mr-track-status ${statusClass(row.status)}">${statusIcon(row.status)} ${statusLabel(row.status)}</span></td><td>${escapeHtml(row.validationDate || '-')}</td><td>📄 ${row.pieces}</td><td><div class="mr-track-row-actions"><button type="button" title="Voir" onclick="viewMaterialRequest(${row.id})">👁️</button><button type="button" title="Télécharger PDF" onclick="downloadMaterialRequestPdfForGroup(${row.id})">⬇️</button><button type="button" title="Plus d'actions">⋮</button></div></td></tr>`).join('');
+      list.innerHTML = rows.map(row => `<tr><td><span class="mr-track-code">${escapeHtml(row.code)}</span><div class="mr-track-request-number">${escapeHtml(row.requestNumber)}</div><div style="font-size:12px;color:#7183a5;margin-top:3px;">${escapeHtml(row.itemName)}</div></td><td><span class="mr-track-project">${escapeHtml(row.project)}</span></td><td>${escapeHtml(row.lot)}</td><td>${escapeHtml(row.zone)}</td><td>${escapeHtml(row.dateLabel)}</td><td><span class="mr-track-person"><span class="mr-track-avatar">${escapeHtml(initials(row.requester))}</span>${escapeHtml(row.requester)}</span></td><td><span class="mr-track-person"><span class="mr-track-avatar">${escapeHtml(initials(row.validator))}</span>${escapeHtml(row.validator)}</span></td><td><span class="mr-track-status ${statusClass(row.status)}">${statusIcon(row.status)} ${statusLabel(row.status)}</span></td><td>${escapeHtml(row.validationDate || '-')}</td><td>📄 ${row.pieces}</td><td><div class="mr-track-row-actions"><button type="button" title="Télécharger le document de la demande" onclick="downloadMaterialRequestPdfForGroup(${row.requestIds.join(',')})">⬇️</button></div></td></tr>`).join('');
     }
 
     function applyMaterialRequestTrackingFilters(options = {}) {
@@ -23485,7 +23503,7 @@
       const search = normalizeText(value('material-requests-tracking-search'));
       const project = value('mr-track-filter-project'); const lot = value('mr-track-filter-lot'); const zone = value('mr-track-filter-zone'); const status = value('mr-track-filter-status'); const requester = value('mr-track-filter-requester'); const validator = value('mr-track-filter-validator');
       const from = value('mr-track-filter-date-from'); const to = value('mr-track-filter-date-to');
-      materialRequestsTrackingState.filteredRows = materialRequestsTrackingState.rows.filter(row => { const haystack = normalizeText([row.code, row.itemName, row.project, row.lot, row.zone, row.requester, row.validator, row.status].join(' ')); if (search && !haystack.includes(search)) return false; if (project && row.project !== project) return false; if (lot && row.lot !== lot) return false; if (zone && row.zone !== zone) return false; if (status && row.status !== status) return false; if (requester && row.requester !== requester) return false; if (validator && row.validator !== validator) return false; if (from && row.dateValue < new Date(`${from}T00:00:00`).getTime()) return false; if (to && row.dateValue > new Date(`${to}T23:59:59`).getTime()) return false; return true; });
+      materialRequestsTrackingState.filteredRows = materialRequestsTrackingState.rows.filter(row => { const haystack = normalizeText([row.code, row.itemName, ...(row.itemNames || []), row.project, row.lot, row.zone, row.requester, row.validator, row.status].join(' ')); if (search && !haystack.includes(search)) return false; if (project && row.project !== project) return false; if (lot && row.lot !== lot) return false; if (zone && row.zone !== zone) return false; if (status && row.status !== status) return false; if (requester && row.requester !== requester) return false; if (validator && row.validator !== validator) return false; if (from && row.dateValue < new Date(`${from}T00:00:00`).getTime()) return false; if (to && row.dateValue > new Date(`${to}T23:59:59`).getTime()) return false; return true; });
       if (!options.preservePage) materialRequestsTrackingState.page = 1;
       renderMaterialRequestTrackingKpis(materialRequestsTrackingState.filteredRows); renderMaterialRequestTrackingTable();
       const total = materialRequestsTrackingState.filteredRows.length; const size = Math.max(1, Number(materialRequestsTrackingState.pageSize || 5)); const pages = Math.max(1, Math.ceil(total / size)); const start = total ? ((materialRequestsTrackingState.page - 1) * size) + 1 : 0; const end = total ? Math.min(start + size - 1, total) : 0;
@@ -23504,7 +23522,7 @@
 
     async function loadMaterialRequestsTrackingModule() {
       const list = document.getElementById('material-requests-tracking-list'); if (!list) return; bindMaterialRequestTrackingEvents();
-      try { const rows = await fetchJson('/api/material-requests'); materialRequestsTrackingState.rows = (Array.isArray(rows) ? rows : []).map(mapMaterialRequestTrackingRow).sort((a, b) => b.dateValue - a.dateValue || b.id - a.id); bindMaterialRequestTrackingOptions('mr-track-filter-project', materialRequestsTrackingState.rows.map(row => row.project), 'Tous les projets'); bindMaterialRequestTrackingOptions('mr-track-filter-lot', materialRequestsTrackingState.rows.map(row => row.lot), 'Tous les lots'); bindMaterialRequestTrackingOptions('mr-track-filter-zone', materialRequestsTrackingState.rows.map(row => row.zone), 'Toutes les zones'); bindMaterialRequestTrackingOptions('mr-track-filter-requester', materialRequestsTrackingState.rows.map(row => row.requester), 'Tous les demandeurs'); bindMaterialRequestTrackingOptions('mr-track-filter-validator', materialRequestsTrackingState.rows.map(row => row.validator), 'Tous les validateurs'); applyMaterialRequestTrackingFilters(); } catch (error) { list.innerHTML = `<tr><td colspan="11" class="mr-track-empty">${escapeHtml(error.message || 'Erreur de chargement')}</td></tr>`; }
+      try { const rows = await fetchJson('/api/material-requests'); materialRequestsTrackingState.rows = groupMaterialRequestTrackingRows(Array.isArray(rows) ? rows : []).sort((a, b) => b.dateValue - a.dateValue || b.id - a.id); bindMaterialRequestTrackingOptions('mr-track-filter-project', materialRequestsTrackingState.rows.map(row => row.project), 'Tous les projets'); bindMaterialRequestTrackingOptions('mr-track-filter-lot', materialRequestsTrackingState.rows.map(row => row.lot), 'Tous les lots'); bindMaterialRequestTrackingOptions('mr-track-filter-zone', materialRequestsTrackingState.rows.map(row => row.zone), 'Toutes les zones'); bindMaterialRequestTrackingOptions('mr-track-filter-requester', materialRequestsTrackingState.rows.map(row => row.requester), 'Tous les demandeurs'); bindMaterialRequestTrackingOptions('mr-track-filter-validator', materialRequestsTrackingState.rows.map(row => row.validator), 'Tous les validateurs'); applyMaterialRequestTrackingFilters(); } catch (error) { list.innerHTML = `<tr><td colspan="11" class="mr-track-empty">${escapeHtml(error.message || 'Erreur de chargement')}</td></tr>`; }
     }
 
     async function loadPurchaseOrdersTrackingModule() {
