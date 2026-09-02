@@ -10591,7 +10591,7 @@
                 <button type="button" class="button button-small users-btn-refresh" onclick="loadUsersModule()">Actualiser</button>
                 <button type="button" class="button button-small users-btn-sync" onclick="reconcileHrUsersFromEmployees()">Synchroniser RH vers utilisateurs</button>
                 <button type="button" id="users-reset-all-login-state" class="button button-small users-btn-reset" onclick="resetAllUsersLoginState()">Reinitialiser tous les profils</button>
-                <button type="button" id="users-purge-business-data" class="button button-small users-btn-purge" onclick="purgeErpBusinessData()">Purge ERP</button>
+                <button type="button" id="users-purge-business-data" class="button button-small users-btn-purge" onclick="purgeErpBusinessData()">Purger les données métier</button>
               </div>
             </div>
             <p id="users-summary" style="font-size:12px; color:#475569; margin-bottom:10px;">Chargement...</p>
@@ -13448,27 +13448,25 @@
         return;
       }
 
-      const warningText = [
-        'Cette action va supprimer definitivement:',
-        '- Bons de commande (bons recents + demandes recentes liees)',
-        '- Demandes d\'approvisionnement',
-        '- Inventaire et autorisations de sortie',
-        '- Depenses et revenus',
-        '- Corbeille et documents archives',
+      const confirmed = window.confirm([
+        'Supprimer définitivement les données transactionnelles suivantes ?',
         '',
-        'Tape PURGE_ALL_DATA pour confirmer.'
-      ].join('\n');
-
-      const confirmed = window.prompt(warningText, '');
-      if (confirmed !== 'PURGE_ALL_DATA') {
-        showMessage('Purge annulee: confirmation invalide', 'error');
+        '- Journal de chantier et assignations de projet',
+        '- Demandes d’approvisionnement et bons de commande',
+        '- Dépenses, revenus, sorties et autorisations de stock liés',
+        '- Documents liés aux demandes et bons de commande',
+        '',
+        'Les projets, zones, sites, catalogue de matériaux, utilisateurs, employés et dossiers profils seront conservés.'
+      ].join('\n'));
+      if (!confirmed) {
+        showMessage('Purge annulée', 'error');
         return;
       }
 
       try {
-        const response = await fetchJson('/api/admin/purge-business-data', {
+        const response = await fetchJson('/api/admin/purge-selected-business-data', {
           method: 'POST',
-          body: JSON.stringify({ confirm: 'PURGE_ALL_DATA' }),
+          body: JSON.stringify({ confirm: 'PURGE_SELECTED_BUSINESS_DATA' }),
         });
 
         trashItems = [];
@@ -13511,7 +13509,8 @@
           renderDatabaseTrashModule();
         }
 
-        showMessage(`Purge ERP terminee (${Array.isArray(response?.tables) ? response.tables.length : 0} tables)`, 'success');
+        const deletedRows = Object.values(response?.deletedRows || {}).reduce((total, count) => total + Number(count || 0), 0);
+        showMessage(`Purge des données métier terminée (${deletedRows} élément(s) supprimé(s))`, 'success');
       } catch (error) {
         showMessage('Impossible de purger l\'ERP: ' + (error?.message || error), 'error');
       }
