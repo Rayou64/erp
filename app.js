@@ -292,6 +292,52 @@ async function purgeBusinessData() {
   };
 }
 
+const SELECTIVE_DATA_PURGE_TABLES = [
+  'stock_issue_authorization_items',
+  'stock_issues',
+  'stock_issue_authorizations',
+  'purchase_order_items',
+  'purchase_orders',
+  'material_requests',
+  'project_progress_updates',
+  'project_assignments',
+  'expenses',
+  'revenues',
+];
+
+async function purgeSelectedBusinessData() {
+  const deletedRows = {};
+
+  for (const tableName of SELECTIVE_DATA_PURGE_TABLES) {
+    const result = await run(`DELETE FROM ${tableName}`);
+    deletedRows[tableName] = Number(result?.changes || result?.rowCount || 0);
+  }
+
+  const transactionDocumentTypes = ['material_request_authorization', 'purchase_order'];
+  const documentPlaceholders = transactionDocumentTypes.map(() => '?').join(', ');
+  const documentsResult = await run(
+    `DELETE FROM generated_documents WHERE entityType IN (${documentPlaceholders})`,
+    transactionDocumentTypes
+  );
+  deletedRows.generated_documents = Number(documentsResult?.changes || documentsResult?.rowCount || 0);
+
+  if (!process.env.DATABASE_URL) {
+    const sequenceTables = [...SELECTIVE_DATA_PURGE_TABLES, 'generated_documents'];
+    try {
+      await run(
+        `DELETE FROM sqlite_sequence WHERE name IN (${sequenceTables.map(() => '?').join(', ')})`,
+        sequenceTables
+      );
+    } catch (_error) {}
+  }
+
+  return {
+    purgedAt: new Date().toISOString(),
+    tables: [...SELECTIVE_DATA_PURGE_TABLES, 'generated_documents'],
+    deletedRows,
+  };
+}
+
 app.post('/api/admin/purge-business-data', authenticateToken, async (req, res) => {
   try {
     const role = String(req.user?.role || '').trim();
@@ -308,6 +354,25 @@ app.post('/api/admin/purge-business-data', authenticateToken, async (req, res) =
     res.json({ ok: true, ...result });
   } catch (error) {
     res.status(500).json({ error: 'Erreur purge donnees metier', details: String(error) });
+  }
+});
+
+app.post('/api/admin/purge-selected-business-data', authenticateToken, async (req, res) => {
+  try {
+    const role = String(req.user?.role || '').trim();
+    if (role !== 'admin' && role !== 'dirigeant') {
+      return res.status(403).json({ error: 'Acces reserve a l\'administrateur ou au dirigeant' });
+    }
+
+    const confirm = String(req.body?.confirm || '').trim();
+    if (confirm !== 'PURGE_SELECTED_BUSINESS_DATA') {
+      return res.status(400).json({ error: 'Confirmation manquante', details: 'Envoyer confirm=PURGE_SELECTED_BUSINESS_DATA' });
+    }
+
+    const result = await purgeSelectedBusinessData();
+    res.json({ ok: true, ...result });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur purge selective des donnees metier', details: String(error) });
   }
 });
 
@@ -1308,17 +1373,50 @@ function resolvePurchaseOrderStageDisplay(value) {
   return raw;
 }
 
+function formatMainSubStageLabel(value, fallback = 'Étape') {
+  const stageRaw = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!stageRaw) return fallback;
+
+  const separators = ['::', ' - ', ' – ', ' — ', '>', '/', '|', ':'];
+  let main = stageRaw;
+  let sub = '';
+
+  for (const separator of separators) {
+    if (stageRaw.includes(separator)) {
+      const [left, ...rest] = stageRaw.split(separator);
+      main = String(left || '').trim();
+      sub = String(rest.join(separator) || '').trim();
+      break;
+    }
+  }
+
+  if (!main) return fallback;
+  if (!sub) return main;
+  if (normalizeStageLabel(main) === normalizeStageLabel(sub)) return main;
+  return `${main}-${sub}`;
+}
+
 function extractSiteNumberLabel(value) {
   const raw = String(value || '').trim();
   if (!raw || /^(-|non\s*renseigne)$/i.test(raw)) {
     return '-';
   }
-  const stripped = raw.replace(/^site\s*(numero|n°|no)?\s*/i, '').trim();
+
+  const compact = raw.replace(/\s+/g, ' ').trim();
+  const stripped = compact.replace(/^site\s*(numero|n°|no)?\s*/i, '').trim();
+  const compactMatch = stripped.match(/^(\d+)\s*\(([^)]+)\)$/i);
+  if (compactMatch) {
+    return `${compactMatch[1]}(${String(compactMatch[2] || '').trim()})`;
+  }
+  const numberWithType = stripped.match(/(\d+)\s*\(([^)]+)\)/i);
+  if (numberWithType) {
+    return `${numberWithType[1]}(${String(numberWithType[2] || '').trim()})`;
+  }
   const numberMatch = stripped.match(/\d+/);
   if (numberMatch && numberMatch[0]) {
     return numberMatch[0];
   }
-  return stripped || raw;
+  return stripped || compact;
 }
 
 function shortenDocumentStageLabel(value, maxLen = 72) {
@@ -1332,7 +1430,7 @@ function buildPurchaseOrderDocumentTitle(order) {
   const stageRaw = resolvePurchaseOrderStageDisplay(order?.etapeApprovisionnement)
     || resolvePurchaseOrderStageDisplay(order?.items?.[0]?.etapeApprovisionnement)
     || '';
-  const stageLabel = shortenDocumentStageLabel(stageRaw || 'Étape', 72);
+  const stageLabel = shortenDocumentStageLabel(formatMainSubStageLabel(stageRaw, 'Étape'), 72);
 
   const siteRaw = String(order?.numeroMaison || order?.nomSiteManuel || '').trim();
   const siteLabel = extractSiteNumberLabel(siteRaw);
@@ -1341,7 +1439,7 @@ function buildPurchaseOrderDocumentTitle(order) {
 }
 
 function buildStageSiteTitle(stageValue, siteValue) {
-  const stageLabel = shortenDocumentStageLabel(String(stageValue || '').trim() || 'Etape', 72);
+  const stageLabel = shortenDocumentStageLabel(formatMainSubStageLabel(stageValue, 'Étape'), 72);
   const siteLabel = extractSiteNumberLabel(siteValue);
   return `${stageLabel}-${siteLabel}`;
 }
@@ -1542,7 +1640,7 @@ async function generateMaterialAuthorizationPdfBuffer(payload) {
 }
 
 async function archiveMaterialRequestAuthorizationPdf({ order, request, items, signatureName, signatureRole, signedAt, decisionStatus = 'VALIDEE' }) {
-  const sectionCode = 'achats';
+  const sectionCode = 'construction';
   const safeSupplier = sanitizeFileName(order.fournisseur || 'fournisseur').toLowerCase();
   const decisionSlug = String(decisionStatus || 'VALIDEE').toLowerCase();
   const fileName = `autorisation-retrait-${decisionSlug}-demande-${request.id}-bc-${order.id}-${safeSupplier}.pdf`;
@@ -1563,10 +1661,7 @@ async function archiveMaterialRequestAuthorizationPdf({ order, request, items, s
   await fs.promises.writeFile(absolutePath, buffer);
 
   const now = new Date().toISOString();
-  const formTitle = buildStageSiteTitle(
-    request?.etapeApprovisionnement,
-    request?.numeroMaison || request?.nomSite || '-'
-  );
+  const formTitle = formatMainSubStageLabel(request?.etapeApprovisionnement, 'Étape');
   await run('DELETE FROM generated_documents WHERE entityType = ? AND entityId = ?', ['material_request_authorization', request.id]);
   const result = await run(
     'INSERT INTO generated_documents (sectionCode, sectionLabel, entityType, entityId, title, fileName, relativePath, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -1785,7 +1880,7 @@ async function archiveRevenueInvoicePdf(revenueId) {
   };
 }
 
-async function archiveUploadedDocument({ sectionCode, title, fileName, fileBuffer, projectId = null }) {
+async function archiveUploadedDocument({ sectionCode, title, fileName, fileBuffer, projectId = null, importedBy = '', documentFolder = '' }) {
   const safeSection = ['achats', 'construction', 'comptabilite'].includes(sectionCode) ? sectionCode : 'construction';
   const safeName = sanitizeFileName(fileName || 'document');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -1800,8 +1895,8 @@ async function archiveUploadedDocument({ sectionCode, title, fileName, fileBuffe
   const numericProjectId = Number(projectId || 0);
   const linkedEntityId = Number.isFinite(numericProjectId) && numericProjectId > 0 ? numericProjectId : 0;
   const result = await run(
-    'INSERT INTO generated_documents (sectionCode, sectionLabel, entityType, entityId, title, fileName, relativePath, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [safeSection, getArchiveSectionLabel(safeSection), 'manual_upload', linkedEntityId, title || safeName, finalFileName, relativePath, now, now]
+    'INSERT INTO generated_documents (sectionCode, sectionLabel, entityType, entityId, title, fileName, documentFolder, relativePath, createdAt, updatedAt, importedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [safeSection, getArchiveSectionLabel(safeSection), 'manual_upload', linkedEntityId, title || safeName, finalFileName, String(documentFolder || '').trim(), relativePath, now, now, String(importedBy || '').trim() || null]
   );
 
   return {
@@ -2187,6 +2282,10 @@ async function initDb() {
     description TEXT DEFAULT '',
     etapeConstruction TEXT,
     statutConstruction TEXT,
+    superficie REAL NOT NULL DEFAULT 0,
+    dateDebut TEXT NOT NULL DEFAULT '',
+    dateFinPrevue TEXT NOT NULL DEFAULT '',
+    responsable TEXT NOT NULL DEFAULT '',
     createdAt TEXT NOT NULL
   )`);
 
@@ -2319,6 +2418,18 @@ async function initDb() {
     await run("ALTER TABLE projects ADD COLUMN numeroMaison TEXT NOT NULL DEFAULT ''");
   } catch (e) {}
   try {
+    await run('ALTER TABLE projects ADD COLUMN superficie REAL NOT NULL DEFAULT 0');
+  } catch (e) {}
+  try {
+    await run("ALTER TABLE projects ADD COLUMN dateDebut TEXT NOT NULL DEFAULT ''");
+  } catch (e) {}
+  try {
+    await run("ALTER TABLE projects ADD COLUMN dateFinPrevue TEXT NOT NULL DEFAULT ''");
+  } catch (e) {}
+  try {
+    await run("ALTER TABLE projects ADD COLUMN responsable TEXT NOT NULL DEFAULT ''");
+  } catch (e) {}
+  try {
     await run('ALTER TABLE purchase_orders ADD COLUMN creePar TEXT');
   } catch (e) {}
   try {
@@ -2422,6 +2533,18 @@ async function initDb() {
   } catch (e) {}
   try {
     await run('ALTER TABLE project_assignments ADD COLUMN employeeId INTEGER');
+  } catch (e) {}
+  try {
+    await run("ALTER TABLE project_assignments ADD COLUMN email TEXT NOT NULL DEFAULT ''");
+  } catch (e) {}
+  try {
+    await run("ALTER TABLE project_assignments ADD COLUMN department TEXT NOT NULL DEFAULT ''");
+  } catch (e) {}
+  try {
+    await run("ALTER TABLE project_assignments ADD COLUMN status TEXT NOT NULL DEFAULT 'ACTIF'");
+  } catch (e) {}
+  try {
+    await run('ALTER TABLE project_assignments ADD COLUMN parentAssignmentId INTEGER');
   } catch (e) {}
   try {
     await run('ALTER TABLE purchase_orders ADD COLUMN signatureName TEXT');
@@ -2532,10 +2655,14 @@ async function initDb() {
     unite TEXT NOT NULL DEFAULT '',
     quantiteParBatiment REAL NOT NULL DEFAULT 0,
     prixUnitaire REAL NOT NULL DEFAULT 0,
+    stageOrder INTEGER NOT NULL DEFAULT 0,
     notes TEXT NOT NULL DEFAULT '',
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL
   )`);
+  try {
+    await run('ALTER TABLE building_material_catalog ADD COLUMN stageOrder INTEGER NOT NULL DEFAULT 0');
+  } catch (e) {}
 
   // Repair legacy mojibake sequences introduced during cross-environment syncs.
   // Use CHAR(65533) (replacement char) and UTF-8-as-CP1252 variants to stay robust across editors/OS.
@@ -2811,9 +2938,11 @@ async function initDb() {
     entityId INTEGER NOT NULL,
     title TEXT NOT NULL,
     fileName TEXT NOT NULL,
+    documentFolder TEXT NOT NULL DEFAULT '',
     relativePath TEXT NOT NULL,
     createdAt TEXT NOT NULL,
-    updatedAt TEXT NOT NULL
+    updatedAt TEXT NOT NULL,
+    importedBy TEXT
   )`);
 
   await run(`CREATE TABLE IF NOT EXISTS guide_documents (
@@ -2857,9 +2986,11 @@ async function initDb() {
   try { await run('ALTER TABLE generated_documents ADD COLUMN entityId INTEGER NOT NULL DEFAULT 0'); } catch (e) {}
   try { await run("ALTER TABLE generated_documents ADD COLUMN title TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE generated_documents ADD COLUMN fileName TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE generated_documents ADD COLUMN documentFolder TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE generated_documents ADD COLUMN relativePath TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE generated_documents ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE generated_documents ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE generated_documents ADD COLUMN importedBy TEXT"); } catch (e) {}
 
   try { await run("ALTER TABLE guide_documents ADD COLUMN title TEXT NOT NULL DEFAULT ''"); } catch (e) {}
   try { await run("ALTER TABLE guide_documents ADD COLUMN fileName TEXT NOT NULL DEFAULT ''"); } catch (e) {}
@@ -2879,6 +3010,10 @@ async function initDb() {
     employeeId INTEGER,
     assigneeName TEXT,
     phoneNumber TEXT,
+    email TEXT NOT NULL DEFAULT '',
+    department TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'ACTIF',
+    parentAssignmentId INTEGER,
     role TEXT NOT NULL,
     assignedAt TEXT NOT NULL,
     FOREIGN KEY(projectId) REFERENCES projects(id) ON DELETE CASCADE,
@@ -3503,7 +3638,6 @@ function authorizeRoleAccess(req, res, next) {
     return next();
   }
 
-  const method = String(req.method || '').toUpperCase();
   const pathName = String(req.path || '');
 
   if (
@@ -4111,8 +4245,8 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   res.json({ token, username: user.username });
 });
 
-app.get('/api/auth/me', authenticateToken, async (req, res) => {
-  const role = String(req.user?.role || '').trim();
+async function buildAuthProfilePayload(user) {
+  const role = String(user?.role || '').trim();
   const scope = role === 'gestionnaire_stock_songon'
     ? {
         warehouseId: 'entrepot-songon-2',
@@ -4128,9 +4262,9 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
     ? []
     : Array.from(computeEffectiveModulesForAccessProfile(accessProfile || {}, role));
 
-  res.json({
-    username: req.user.username,
-    role: req.user.role,
+  return {
+    username: user.username,
+    role: user.role,
     scope,
     accessProfile: roleCanBypassAccessProfile(role)
       ? null
@@ -4142,7 +4276,56 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
           notes: String(accessProfile?.notes || '').trim(),
           effectiveModules,
         },
+  };
+}
+
+app.get('/api/auth/me', authenticateToken, async (req, res) => {
+  res.json(await buildAuthProfilePayload(req.user));
+});
+
+app.get('/api/auth/profile-stream', async (req, res) => {
+  const token = String(req.query.mobileAuth || '').trim();
+  if (!token) {
+    return res.status(401).json({ error: 'Token manquant' });
+  }
+
+  let user;
+  try {
+    user = jwt.verify(token, JWT_SECRET);
+  } catch (error) {
+    return res.status(401).json({ error: 'Token invalide' });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
+  }
+
+  const sendProfile = async () => {
+    try {
+      const payload = await buildAuthProfilePayload(user);
+      res.write(`event: access-profile\n`);
+      res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    } catch (error) {
+      res.write(`event: error\n`);
+      res.write(`data: ${JSON.stringify({ error: 'Profil indisponible' })}\n\n`);
+    }
+  };
+
+  await sendProfile();
+  const heartbeat = setInterval(() => {
+    res.write(`: keepalive ${Date.now()}\n\n`);
+  }, 30000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
   });
+});
+
+app.get('/api/push/public-key', authenticateToken, async (_req, res) => {
+  res.json({ publicKey: String(process.env.VAPID_PUBLIC_KEY || '').trim(), enabled: Boolean(process.env.VAPID_PUBLIC_KEY) });
 });
 
 app.post('/api/gps/ingest', async (req, res) => {
@@ -4924,6 +5107,10 @@ app.patch('/api/projects/:id', async (req, res) => {
     description,
     etapeConstruction,
     statutConstruction,
+    superficie,
+    dateDebut,
+    dateFinPrevue,
+    responsable,
   } = req.body || {};
 
   const existingProject = await get('SELECT * FROM projects WHERE id = ?', [id]);
@@ -4939,6 +5126,10 @@ app.patch('/api/projects/:id', async (req, res) => {
   const siteDescription = String(description ?? existingProject.description ?? '').trim();
   const constructionStage = String(etapeConstruction ?? existingProject.etapeConstruction ?? '').trim();
   const constructionStatus = normalizeProjectConstructionStatus(statutConstruction ?? existingProject.statutConstruction ?? '');
+  const siteArea = Number(superficie ?? existingProject.superficie ?? 0);
+  const siteStartDate = String(dateDebut ?? existingProject.dateDebut ?? '').trim();
+  const siteEndDate = String(dateFinPrevue ?? existingProject.dateFinPrevue ?? '').trim();
+  const siteManager = String(responsable ?? existingProject.responsable ?? '').trim();
 
   if (!id || !projectName) {
     return res.status(400).json({ error: 'Le nom du projet est obligatoire' });
@@ -4946,6 +5137,10 @@ app.patch('/api/projects/:id', async (req, res) => {
 
   if (!siteName) {
     return res.status(400).json({ error: 'Le nom du site est obligatoire' });
+  }
+
+  if (Number.isNaN(siteArea) || siteArea < 0) {
+    return res.status(400).json({ error: 'Superficie invalide' });
   }
 
   const duplicate = await get(
@@ -4957,7 +5152,7 @@ app.patch('/api/projects/:id', async (req, res) => {
   }
 
   const result = await run(
-    'UPDATE projects SET nomProjet = ?, prefecture = ?, nomSite = ?, typeMaison = ?, numeroMaison = ?, description = ?, etapeConstruction = ?, statutConstruction = ? WHERE id = ?',
+    'UPDATE projects SET nomProjet = ?, prefecture = ?, nomSite = ?, typeMaison = ?, numeroMaison = ?, description = ?, etapeConstruction = ?, statutConstruction = ?, superficie = ?, dateDebut = ?, dateFinPrevue = ?, responsable = ? WHERE id = ?',
     [
       projectName,
       prefectureName,
@@ -4967,6 +5162,10 @@ app.patch('/api/projects/:id', async (req, res) => {
       siteDescription,
       constructionStage,
       constructionStatus,
+      siteArea,
+      siteStartDate,
+      siteEndDate,
+      siteManager,
       id,
     ]
   );
@@ -5625,6 +5824,10 @@ app.patch('/api/purchase-orders/:id/validation', async (req, res) => {
   const existingOrder = await get('SELECT id, creePar, statutValidation FROM purchase_orders WHERE id = ?', [id]);
   if (!existingOrder) {
     return res.status(404).json({ error: 'Commande non trouvée' });
+  }
+
+  if (role === 'dirigeant' && normalizeTextValue(existingOrder.creePar || '') === 'admin') {
+    return res.status(400).json({ error: 'Le bon de commande cree par admin ne requiert pas de validation dirigeant' });
   }
 
   if (role === 'dirigeant') {
@@ -6813,7 +7016,9 @@ app.get('/api/database-documents', async (req, res) => {
   try {
     const sectionCode = String(req.query.section || '').trim();
     let rows = sectionCode
-      ? await all('SELECT * FROM generated_documents WHERE sectionCode = ? ORDER BY updatedAt DESC, id DESC', [sectionCode])
+      ? await all(sectionCode === 'construction'
+        ? "SELECT * FROM generated_documents WHERE sectionCode = ? OR entityType = 'material_request_authorization' ORDER BY updatedAt DESC, id DESC"
+        : 'SELECT * FROM generated_documents WHERE sectionCode = ? ORDER BY updatedAt DESC, id DESC', [sectionCode])
       : await all('SELECT * FROM generated_documents ORDER BY updatedAt DESC, id DESC');
 
     const scopedRole = String(req.user?.role || '').trim();
@@ -6915,7 +7120,7 @@ app.get('/api/database-documents', async (req, res) => {
               || resolvePurchaseOrderStageDisplay(order?.requestStage)
               || 'Étape';
             const siteLabel = extractSiteNumberLabel(order?.numeroMaison || order?.requestNumeroMaison || order?.nomSiteManuel || '-');
-            resolvedTitle = `${stageLabel}-${siteLabel}`;
+            resolvedTitle = `${formatMainSubStageLabel(stageLabel, 'Étape')}-${siteLabel}`;
           } catch (e) {
             // Silently continue if purchase_order lookup fails
           }
@@ -6945,7 +7150,40 @@ app.get('/api/database-documents', async (req, res) => {
           resolvedTitle = String(row.fileName || 'Document').trim() || 'Document';
         }
 
-        resolvedTitle = resolvedTitle.replace(/\s*-\s*/g, '-').replace(/\s+/g, ' ').trim();
+        const enrichedRow = { ...row };
+        if (entityType === 'material_request_authorization' && Number.isFinite(entityId) && entityId > 0) {
+          const request = await get(`
+            SELECT mr.etapeApprovisionnement, mr.statut, p.nomProjet, p.prefecture, p.numeroMaison
+            FROM material_requests mr
+            LEFT JOIN projects p ON p.id = mr.projetId
+            WHERE mr.id = ?
+          `, [entityId]);
+          const lotNumber = String(request?.numeroMaison || '').match(/\d+/)?.[0] || '-';
+          enrichedRow.sectionCode = 'construction';
+          enrichedRow.sectionLabel = 'Construction';
+          enrichedRow.title = formatMainSubStageLabel(request?.etapeApprovisionnement || resolvedTitle, 'Étape');
+          enrichedRow.reference = `DA${lotNumber}-${String(entityId).padStart(2, '0')}`;
+          enrichedRow.projectName = request?.nomProjet || '-';
+          enrichedRow.zoneName = request?.prefecture || '-';
+          enrichedRow.lot = request?.numeroMaison || '-';
+          enrichedRow.status = String(request?.statut || '').toUpperCase() === 'REJETEE' ? 'Rejetée' : String(request?.statut || '').toUpperCase() === 'VALIDEE' ? 'Validée' : 'En attente';
+          enrichedRow.importedBy = 'ERP';
+        } else if (entityType === 'purchase_order' && Number.isFinite(entityId) && entityId > 0) {
+          const order = await get(`
+            SELECT po.nomProjetManuel, po.nomSiteManuel, po.etapeApprovisionnement, p.nomProjet, p.prefecture, p.numeroMaison
+            FROM purchase_orders po
+            LEFT JOIN projects p ON p.id = COALESCE(po.siteId, po.projetId)
+            WHERE po.id = ?
+          `, [entityId]);
+          const lotNumber = String(order?.numeroMaison || order?.nomSiteManuel || '').match(/\d+/)?.[0] || '-';
+          enrichedRow.reference = `BC${lotNumber}-${String(entityId).padStart(2, '0')}`;
+          enrichedRow.projectName = order?.nomProjet || order?.nomProjetManuel || '-';
+          enrichedRow.zoneName = order?.prefecture || '-';
+          enrichedRow.lot = order?.numeroMaison || order?.nomSiteManuel || '-';
+          enrichedRow.importedBy = 'ERP';
+        }
+
+        resolvedTitle = String(enrichedRow.title || resolvedTitle).replace(/\s*-\s*/g, '-').replace(/\s+/g, ' ').trim();
 
         if (resolvedTitle && resolvedTitle !== String(row.title || '').trim()) {
           try {
@@ -6956,7 +7194,7 @@ app.get('/api/database-documents', async (req, res) => {
         }
 
         normalizedRows.push({
-          ...row,
+          ...enrichedRow,
           title: resolvedTitle,
           fileUrl: `/archives/${String(row.relativePath || '').replace(/\\/g, '/')}`,
         });
@@ -6974,7 +7212,7 @@ app.get('/api/database-documents', async (req, res) => {
 });
 
 app.post('/api/database-documents/upload', async (req, res) => {
-  const { sectionCode, title, fileName, contentBase64, projetId } = req.body || {};
+  const { sectionCode, title, fileName, contentBase64, projetId, documentFolder = '' } = req.body || {};
   if (!fileName || !contentBase64) {
     return res.status(400).json({ error: 'fileName et contentBase64 sont obligatoires' });
   }
@@ -7007,6 +7245,8 @@ app.post('/api/database-documents/upload', async (req, res) => {
     fileName: String(fileName || '').trim(),
     fileBuffer: buffer,
     projectId: parsedProjectId,
+    importedBy: req.user?.fullName || req.user?.name || req.user?.username || '',
+    documentFolder: String(documentFolder || '').trim(),
   });
 
   res.status(201).json(archived);
@@ -9638,7 +9878,7 @@ app.post('/api/project-assignments', async (req, res) => {
     return nextEmployeeId;
   }
 
-  const { projetId, projectId, userId, assigneeName, role, phoneNumber = '' } = req.body;
+  const { projetId, projectId, userId, assigneeName, role, phoneNumber = '', email = '', department = '', status = 'ACTIF', parentAssignmentId = null } = req.body;
   const assignmentProjectId = Number(projectId || projetId);
   if (!assignmentProjectId || !role || !assigneeName || !String(assigneeName).trim()) {
     return res.status(400).json({ error: 'Champs obligatoires manquants' });
@@ -9672,13 +9912,17 @@ app.post('/api/project-assignments', async (req, res) => {
   });
 
   const result = await run(
-    'INSERT INTO project_assignments (projectId, userId, employeeId, assigneeName, phoneNumber, role, assignedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO project_assignments (projectId, userId, employeeId, assigneeName, phoneNumber, email, department, status, parentAssignmentId, role, assignedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       assignmentProjectId,
       effectiveUserId,
       linkedEmployeeId,
       String(assigneeName).trim(),
       String(phoneNumber).trim(),
+      String(email || '').trim(),
+      String(department || '').trim(),
+      String(status || 'ACTIF').trim().toUpperCase() || 'ACTIF',
+      Number(parentAssignmentId) || null,
       String(role).trim(),
       new Date().toISOString(),
     ]
@@ -9712,7 +9956,7 @@ app.get('/api/project-assignments', async (_req, res) => {
 
 app.patch('/api/project-assignments/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const { assigneeName, role, phoneNumber = '' } = req.body;
+  const { assigneeName, role, phoneNumber = '', email = '', department = '', status = 'ACTIF', parentAssignmentId = null } = req.body;
 
   if (!id || !assigneeName || !String(assigneeName).trim() || !role || !String(role).trim()) {
     return res.status(400).json({ error: 'Nom et role sont obligatoires' });
@@ -9745,6 +9989,10 @@ app.patch('/api/project-assignments/:id', async (req, res) => {
   const normalizedAssignee = String(assigneeName).trim();
   const normalizedRole = String(role).trim();
   const normalizedPhone = String(phoneNumber).trim();
+  const normalizedEmail = String(email || '').trim();
+  const normalizedDepartment = String(department || '').trim();
+  const normalizedStatus = String(status || 'ACTIF').trim().toUpperCase() || 'ACTIF';
+  const normalizedParentId = Number(parentAssignmentId) || null;
   const roleNormalized = normalizeTextValue(normalizedRole);
   const isChefChantier = roleNormalized.includes('chef') && roleNormalized.includes('chantier');
   const addressLabel = isChefChantier
@@ -9814,8 +10062,8 @@ app.patch('/api/project-assignments/:id', async (req, res) => {
   }
 
   const result = await run(
-    'UPDATE project_assignments SET employeeId = ?, assigneeName = ?, role = ?, phoneNumber = ? WHERE id = ?',
-    [linkedEmployeeId, normalizedAssignee, normalizedRole, normalizedPhone, id]
+    'UPDATE project_assignments SET employeeId = ?, assigneeName = ?, role = ?, phoneNumber = ?, email = ?, department = ?, status = ?, parentAssignmentId = ? WHERE id = ?',
+    [linkedEmployeeId, normalizedAssignee, normalizedRole, normalizedPhone, normalizedEmail, normalizedDepartment, normalizedStatus, normalizedParentId, id]
   );
 
   if (result.changes === 0) {
@@ -10329,8 +10577,8 @@ app.delete('/api/suppliers/:id', async (req, res) => {
 app.get('/api/material-catalog', async (req, res) => {
   const folder = req.query.folder ? String(req.query.folder).trim() : null;
   const rows = folder
-    ? await all('SELECT * FROM building_material_catalog WHERE projectFolder = ? ORDER BY materialName ASC', [folder])
-    : await all('SELECT * FROM building_material_catalog ORDER BY projectFolder ASC, materialName ASC');
+    ? await all('SELECT * FROM building_material_catalog WHERE projectFolder = ? ORDER BY stageOrder ASC, materialName ASC', [folder])
+    : await all('SELECT * FROM building_material_catalog ORDER BY projectFolder ASC, stageOrder ASC, materialName ASC');
   res.json(rows);
 });
 
@@ -10349,6 +10597,7 @@ app.post('/api/material-catalog', async (req, res) => {
     notes = '',
     createdAt = null,
     updatedAt = null,
+    stageOrder = 0,
   } = req.body || {};
 
   const name = String(materialName || '').trim();
@@ -10372,8 +10621,8 @@ app.post('/api/material-catalog', async (req, res) => {
   const updatedAtValue = String(updatedAt || '').trim() || createdAtValue;
   const result = await run(
     `INSERT INTO building_material_catalog
-      (id, projectFolder, materialName, unite, quantiteParBatiment, prixUnitaire, notes, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, projectFolder, materialName, unite, quantiteParBatiment, prixUnitaire, stageOrder, notes, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       nextCatalogMaterialId,
       String(projectFolder || '').trim(),
@@ -10381,6 +10630,7 @@ app.post('/api/material-catalog', async (req, res) => {
       String(unite || '').trim(),
       qty,
       price,
+      Number.isFinite(Number(stageOrder)) ? Number(stageOrder) : 0,
       String(notes || '').trim(),
       createdAtValue,
       updatedAtValue,
@@ -10405,6 +10655,7 @@ app.patch('/api/material-catalog/:id', async (req, res) => {
     unite = '',
     quantiteParBatiment = 0,
     prixUnitaire = 0,
+    stageOrder = 0,
     notes = '',
   } = req.body || {};
 
@@ -10418,7 +10669,7 @@ app.patch('/api/material-catalog/:id', async (req, res) => {
 
   const result = await run(
     `UPDATE building_material_catalog
-     SET projectFolder = ?, materialName = ?, unite = ?, quantiteParBatiment = ?, prixUnitaire = ?, notes = ?, updatedAt = ?
+     SET projectFolder = ?, materialName = ?, unite = ?, quantiteParBatiment = ?, prixUnitaire = ?, stageOrder = ?, notes = ?, updatedAt = ?
      WHERE id = ?`,
     [
       String(projectFolder || '').trim(),
@@ -10426,6 +10677,7 @@ app.patch('/api/material-catalog/:id', async (req, res) => {
       String(unite || '').trim(),
       qty,
       price,
+      Number.isFinite(Number(stageOrder)) ? Number(stageOrder) : 0,
       String(notes || '').trim(),
       new Date().toISOString(),
       id,
@@ -10865,6 +11117,10 @@ app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, r
     return res.status(500).json({ error: 'Erreur creation profil RH', details: String(err?.message || err) });
   }
 });
+
+
+
+
 
 
 
