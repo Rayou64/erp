@@ -14856,6 +14856,10 @@
       localStorage.setItem(DATABASE_TRASH_HIDDEN_IDS_KEY, JSON.stringify(databaseHiddenDocumentIds));
     }
 
+    function saveDatabaseTrashHiddenIdsToStorage() {
+      saveDatabaseHiddenIdsToStorage();
+    }
+
     function addDatabaseTrashItem(documentItem) {
       const section = String(documentItem?.sectionCode || '').trim();
       if (!databaseTrashBySection[section]) {
