@@ -22807,6 +22807,7 @@
                 totalDemande: 0,
                 totalRestant: 0,
                 hasStockArrival: false,
+                isOnSite: false,
               };
             }
 
@@ -22823,6 +22824,9 @@
             grouped[key].unitPrice = grouped[key].unitPrice || Number(item.prixMoyen || item.prixUnitaire || materialCatalogByName.get(normalizeText(item.itemName))?.prixMoyen || 0);
             if (quantities.hasStockArrival) {
               grouped[key].hasStockArrival = true;
+            }
+            if (quantities.isOnSite) {
+              grouped[key].isOnSite = true;
             }
 
             const labels = labelBuilder(item);
@@ -22913,10 +22917,11 @@
                 totalDemande: baseQty,
                 totalRestant: remainingQty,
                 hasStockArrival: baseQty > 0,
+                isOnSite: transferredQty > 0,
               };
             }
           ).map(row => {
-            const statut = row.totalUtilise > 0 ? 'SUR_SITE' : 'EN_STOCK';
+            const statut = row.isOnSite ? 'SUR_SITE' : 'EN_STOCK';
             return { ...row, statut };
           });
         }
