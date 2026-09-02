@@ -9592,7 +9592,366 @@
             #stock-management .stock-site-card { padding:10px; border:1px solid #e2eaf4; border-radius:7px; background:#fbfdff; }
             #stock-management .stock-site-card strong { display:block; color:#2c4263; font-size:9px; } #stock-management .stock-site-card small { display:block; margin-top:4px; color:#7485a0; font-size:8px; }
             #stock-management .stock-site-meter { height:5px; margin-top:8px; overflow:hidden; border-radius:5px; background:#e2eaf4; } #stock-management .stock-site-meter i { display:block; height:100%; border-radius:inherit; background:#25ba91; }
-            #stock-management #stock-issues-list, #stock-management .erp-section-sep { display:none; }
+            #stock-management #stock-issues-list, #stock-management .erp-section-sep, #stock-management .stock-create-card > h4 { display:none; }
+            #stock-management { background:#f5f8fc; color:#17243d; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+            #stock-management .stock-workspace { width:100%; max-width:none; margin:0; gap:14px; padding:0 0 22px; }
+            #stock-management .stock-topbar { align-items:center; }
+            #stock-management .stock-title h1 { color:#13223b; font-size:22px; line-height:1.15; font-weight:800; letter-spacing:-.01em; }
+            #stock-management .stock-title p { margin-top:5px; color:#697993; font-size:12px; line-height:1.35; font-weight:500; }
+            #stock-management .stock-kpis { grid-template-columns:repeat(3,minmax(140px,1fr)); gap:10px; }
+            #stock-management .stock-kpi { min-height:52px; padding:10px 12px; border-color:#e6edf7; border-radius:8px; background:linear-gradient(180deg,#ffffff 0%,#f9fbff 100%); box-shadow:0 7px 18px rgba(34,62,110,.05); }
+            #stock-management .stock-kpi-icon { width:25px; height:25px; border-radius:7px; font-size:0; }
+            #stock-management .stock-kpi-icon svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+            #stock-management .stock-kpi small { color:#7b8ba3; font-size:9px; font-weight:700; }
+            #stock-management .stock-kpi strong { color:#1d2e4b; font-size:13px; line-height:1.1; font-weight:800; }
+            #stock-management .stock-active-bar { display:none; }
+            #stock-management .stock-main-grid { grid-template-columns:minmax(318px,32%) minmax(0,68%); gap:14px; }
+            #stock-management .stock-panel { border-color:#e5edf7; border-radius:10px; background:linear-gradient(180deg,#ffffff 0%,#fbfdff 100%); box-shadow:0 8px 22px rgba(33,60,108,.05); }
+            #stock-management .stock-history-card { padding:16px; }
+            #stock-management .stock-create-card { padding:18px; }
+            #stock-management .stock-panel-title { color:#14233d; font-size:15px; line-height:1.2; font-weight:800; letter-spacing:-.01em; }
+            #stock-management .stock-panel-subtitle { color:#667891; font-size:10px; line-height:1.35; font-weight:500; margin-top:4px; margin-bottom:12px; }
+            #stock-management .stock-order-tabs { gap:22px; margin:15px 0 13px; }
+            #stock-management .stock-order-tabs button { padding:0 0 9px; color:#586a85; font-size:10px; font-weight:800; }
+            #stock-management .stock-order-tabs button.active { color:#1d72f2; border-bottom-color:#1d72f2; }
+            #stock-management .stock-order-search { display:grid; grid-template-columns:minmax(0,1fr) 72px; gap:8px; margin-bottom:12px; }
+            #stock-management .stock-order-search input { width:100%; height:36px; border-color:#dce6f3; border-radius:7px; padding:0 12px; color:#52637c; font-size:10px; font-weight:500; }
+            #stock-management .stock-order-search::after { content:'Filtrer'; display:grid; place-items:center; height:36px; border:1px solid #dce6f3; border-radius:7px; background:#fff; color:#2f4566; font-size:10px; font-weight:800; }
+            #stock-management #stock-orders-list { gap:13px; }
+            #stock-management #stock-orders-list .list-item { display:block; min-height:158px; padding:12px; border-color:#dfe8f5; border-radius:12px; background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%); box-shadow:0 7px 18px rgba(31,55,99,.045); }
+            #stock-management .stock-order-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:9px; }
+            #stock-management .stock-order-status { display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; font-size:7px; line-height:1; font-weight:900; letter-spacing:.02em; text-transform:uppercase; }
+            #stock-management .stock-order-status.waiting { background:#e9fff4; color:#08a66f; }
+            #stock-management .stock-order-status.partial { background:#fff1d5; color:#e09619; }
+            #stock-management .stock-order-status.done { background:#eaf2ff; color:#1e6dea; }
+            #stock-management .stock-order-status.rejected { background:#ffe8ea; color:#ef4444; }
+            #stock-management .stock-order-ref-wrap { display:flex; align-items:center; gap:7px; color:#71829c; }
+            #stock-management .stock-order-ref { color:#71829c !important; font-size:9px; font-weight:700; white-space:nowrap; }
+            #stock-management .stock-order-menu { color:#9aa8bc !important; font-size:13px; font-weight:900; line-height:1; }
+            #stock-management .stock-order-icon-title { display:grid; grid-template-columns:28px 1fr; gap:9px; align-items:center; margin-bottom:11px; }
+            #stock-management .stock-order-icon { display:grid; width:28px; height:28px; place-items:center; border-radius:8px; background:#e8f1ff; color:#1d72f2; font-size:0; }
+            #stock-management .stock-order-icon.partial { background:#fff1d5; color:#f59e0b; }
+            #stock-management .stock-order-icon.rejected { background:#ffe8ea; color:#ef4444; }
+            #stock-management .stock-order-icon svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+            #stock-management .stock-order-name { color:#13223d; font-size:10px; line-height:1.45; font-weight:900; }
+            #stock-management .stock-order-meta-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:10px; }
+            #stock-management .stock-order-meta-label { display:block; color:#73839b; font-size:7px; font-weight:700; }
+            #stock-management .stock-order-meta-value { display:block; margin-top:3px; color:#172842; font-size:8px; line-height:1.25; font-weight:800; }
+            #stock-management .stock-order-foot { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; padding-top:10px; border-top:1px solid #edf2f8; color:#667792; font-size:9px; font-weight:700; }
+            #stock-management .stock-order-articles { display:inline-flex; align-items:center; gap:5px; color:#526985 !important; font-size:9px; font-weight:800; }
+            #stock-management .stock-order-articles svg { width:11px; height:11px; fill:none; stroke:currentColor; stroke-width:2; }
+            #stock-management .stock-order-arrive { display:inline-flex; align-items:center; justify-content:center; gap:5px; height:30px; padding:0 13px; border:0; border-radius:7px; background:#1677f2; color:#fff !important; font-size:9px; font-weight:900; box-shadow:0 6px 12px rgba(22,119,242,.18); }
+            #stock-management .stock-order-final-status { display:inline-flex; align-items:center; justify-content:center; min-width:78px; height:28px; padding:0 12px; border-radius:999px; border:1px solid #0bb98d; background:#f6fffb; color:#087f63 !important; font-size:9px; font-weight:900; letter-spacing:.03em; }
+            #stock-management .stock-order-final-status.partial { border-color:#f2b84b; color:#c27803 !important; background:#fffbeb; }
+            #stock-management .stock-order-final-status.rejected { border-color:#fca5a5; color:#dc2626 !important; background:#fff1f2; }
+            #stock-management .stock-stepper { gap:10px; margin:20px 0 22px; font-size:11px; }
+            #stock-management .stock-step b { width:26px; height:26px; font-size:11px; box-shadow:0 5px 12px rgba(65,84,230,.16); }
+            #stock-management .stock-step.active b { background:#6657eb; }
+            #stock-management .stock-destination-grid, #stock-management .stock-stage-grid { gap:12px; }
+            #stock-management .stock-create-card label { margin-bottom:6px; color:#405676; font-size:11px; font-weight:800; text-transform:none !important; }
+            #stock-management .stock-create-card select, #stock-management .stock-create-card textarea, #stock-management .stock-zone-field { min-height:42px; border-color:#dbe5f2 !important; border-radius:8px !important; color:#233a5b !important; padding:0 12px !important; font-size:11px !important; font-weight:600 !important; }
+            #stock-management .stock-stage-all { margin:1px 0 16px !important; font-size:10px !important; color:#667890 !important; }
+            #stock-management .stock-material-layout { grid-template-columns:minmax(0,1fr) 190px; gap:14px; }
+            #stock-management .stock-material-heading { margin-bottom:10px; color:#14233d; font-size:12px; line-height:1.25; font-weight:900; }
+            #stock-management .stock-material-filter-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; margin-bottom:8px; }
+            #stock-management .stock-material-search { height:36px; margin-bottom:0; border-color:#dce6f3; border-radius:8px; padding:0 12px; color:#6f8099; font-size:10px; font-weight:500; }
+            #stock-management .stock-only-toggle { display:flex; align-items:center; gap:6px; white-space:nowrap; color:#63748d; font-size:9px; font-weight:700; }
+            #stock-management .stock-only-toggle input { width:28px; height:16px; appearance:none; border:1px solid #d7e2f0; border-radius:999px; background:#edf2f8; position:relative; cursor:pointer; }
+            #stock-management .stock-only-toggle input::after { content:''; position:absolute; width:12px; height:12px; top:1px; left:1px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(15,23,42,.16); transition:left .15s ease, background .15s ease; }
+            #stock-management .stock-only-toggle input:checked { background:#d8f7ec; border-color:#9fe6cf; }
+            #stock-management .stock-only-toggle input:checked::after { left:13px; background:#10b981; }
+            #stock-management .stock-material-table-head { display:grid; grid-template-columns:20px minmax(110px,1fr) 44px 68px 136px; gap:8px; padding:8px 10px; border:1px solid #e2eaf5; border-bottom:0; border-radius:8px 8px 0 0; background:#f5f8fd; color:#61718a; font-size:7px; font-weight:800; text-transform:uppercase; }
+            #stock-management #stock-issue-lines { gap:0 !important; overflow:hidden; border:1px solid #e2eaf5; border-radius:0 0 9px 9px; }
+            #stock-management .stock-issue-line { border:0 !important; border-bottom:1px solid #e9eef5 !important; border-radius:0 !important; grid-template-columns:20px minmax(110px,1fr) 44px 68px 136px !important; gap:8px !important; padding:9px 10px !important; align-items:center !important; }
+            #stock-management .stock-issue-line:last-child { border-bottom:0 !important; }
+            #stock-management .stock-issue-check { width:13px; height:13px; accent-color:#1d72f2; }
+            #stock-management .stock-issue-material-name { color:#172842; font-size:10px !important; line-height:1.25; font-weight:900; }
+            #stock-management .stock-issue-material-sub, #stock-management .stock-issue-unit, #stock-management .stock-issue-available-label { color:#71829a !important; font-size:8px !important; line-height:1.3; font-weight:600; }
+            #stock-management .stock-issue-available-label strong { display:block; color:#1e385c; font-size:10px; font-weight:900; }
+            #stock-management .stock-available-status { display:block; color:#10a477 !important; font-size:8px; font-weight:700; }
+            #stock-management .stock-qty-control { display:grid; grid-template-columns:24px 34px 24px 40px; gap:0; align-items:center; width:122px; }
+            #stock-management .stock-qty-control button, #stock-management .stock-qty-max { height:26px; border:1px solid #d9e4f2; background:#fff; color:#34506f; font-size:9px; font-weight:800; }
+            #stock-management .stock-qty-control button:first-child { border-radius:6px 0 0 6px; }
+            #stock-management .stock-qty-control button:nth-child(3) { border-left:0; border-radius:0 6px 6px 0; }
+            #stock-management .stock-qty-max { display:grid; place-items:center; margin-left:6px; border:0; color:#445b79; }
+            #stock-management .stock-issue-line-qty { width:34px; height:26px; border:1px solid #d9e4f2; border-left:0; border-right:0; border-radius:0; padding:0; text-align:center; font-size:9px; font-weight:800; }
+            #stock-management .stock-issue-remaining-preview { display:none; }
+            #stock-management #stock-issue-lines-hint { margin-top:7px !important; font-size:10px !important; color:#687b96 !important; }
+            #stock-management .stock-summary { width:190px; padding:14px; border-color:#ccefe5; border-radius:10px; background:#f3fcf8; box-shadow:0 8px 20px rgba(17,148,112,.05); }
+            #stock-management .stock-summary h4 { margin-bottom:16px; color:#0a8d66; font-size:12px; font-weight:900; }
+            #stock-management .stock-summary-row { margin:12px 0; font-size:9px; color:#718197; }
+            #stock-management .stock-summary-row strong { color:#213751; font-size:9px; font-weight:900; }
+            #stock-management .stock-summary-actions .button { height:36px; border-radius:8px; font-size:11px; font-weight:900; }
+            #stock-management .stock-summary-actions .button-primary { background:linear-gradient(90deg,#6657ef,#00bd93); border:0; }
+            #stock-management .stock-create-card textarea { min-height:72px; padding:12px !important; }
+            #stock-management .stock-bottom-preview { padding:14px 18px; border-radius:10px; border-color:#e5edf7; background:linear-gradient(180deg,#ffffff 0%,#fbfdff 100%); box-shadow:0 8px 22px rgba(34,62,110,.045); }
+            #stock-management .stock-bottom-heading h3 { font-size:12px; font-weight:900; }
+            #stock-management #stock-site-preview { grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+            #stock-management .stock-site-card { display:grid; grid-template-columns:1fr 52px; gap:10px; align-items:center; min-height:66px; padding:12px 14px; border-radius:9px; }
+            #stock-management .stock-site-card strong { font-size:11px; font-weight:900; }
+            #stock-management .stock-site-card small { font-size:9px; }
+            #stock-management, #stock-management * { font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important; letter-spacing:0 !important; }
+            #stock-management .stock-title h1 { font-size:23px !important; font-weight:800 !important; color:#0f2340 !important; }
+            #stock-management .stock-title p { font-size:12px !important; font-weight:500 !important; color:#526985 !important; }
+            #stock-management .stock-panel-title { font-size:15px !important; font-weight:800 !important; color:#10233f !important; }
+            #stock-management .stock-panel-subtitle { font-size:11px !important; font-weight:500 !important; color:#60738f !important; }
+            #stock-management .stock-kpi small { font-size:10px !important; font-weight:600 !important; color:#60738f !important; }
+            #stock-management .stock-kpi strong { font-size:15px !important; font-weight:800 !important; color:#10233f !important; }
+            #stock-management .stock-order-tabs button { font-size:12px !important; font-weight:800 !important; color:#526985 !important; }
+            #stock-management .stock-order-tabs button.active { color:#5270ed !important; font-weight:800 !important; }
+            #stock-management .stock-order-search input, #stock-management .stock-material-search { font-size:11px !important; font-weight:400 !important; color:#52617b !important; }
+            #stock-management .stock-order-status { font-size:10px !important; font-weight:800 !important; }
+            #stock-management .stock-order-ref, #stock-management .stock-order-ref-wrap { font-size:11px !important; font-weight:600 !important; color:#64748b !important; }
+            #stock-management .stock-order-name { font-size:13px !important; font-weight:800 !important; line-height:1.35 !important; color:#344a72 !important; }
+            #stock-management .stock-order-meta-label { font-size:10px !important; font-weight:500 !important; color:#64748b !important; }
+            #stock-management .stock-order-meta-value { font-size:11px !important; font-weight:800 !important; color:#344a72 !important; }
+            #stock-management .stock-order-articles { font-size:11px !important; font-weight:700 !important; color:#52617b !important; }
+            #stock-management .stock-order-arrive, #stock-management .stock-order-final-status { font-size:11px !important; font-weight:800 !important; }
+            #stock-management .stock-stepper { font-size:12px !important; font-weight:800 !important; }
+            #stock-management .stock-step b { font-size:11px !important; font-weight:800 !important; }
+            #stock-management .stock-create-card label { font-size:11px !important; font-weight:700 !important; color:#52617b !important; text-transform:none !important; }
+            #stock-management .stock-create-card select, #stock-management .stock-zone-field { font-size:11px !important; font-weight:400 !important; color:#334155 !important; }
+            #stock-management .stock-stage-all { font-size:11px !important; font-weight:500 !important; color:#64748b !important; }
+            #stock-management .stock-material-heading { font-size:13px !important; font-weight:800 !important; color:#10233f !important; }
+            #stock-management .stock-only-toggle { font-size:11px !important; font-weight:500 !important; color:#52617b !important; }
+            #stock-management .stock-material-table-head { font-size:10px !important; font-weight:800 !important; color:#53627d !important; }
+            #stock-management .stock-issue-material-name { font-size:13px !important; font-weight:800 !important; color:#344a72 !important; }
+            #stock-management .stock-issue-material-sub { font-size:10px !important; font-weight:400 !important; color:#8795ad !important; }
+            #stock-management .stock-issue-unit { font-size:11px !important; font-weight:400 !important; color:#52617b !important; }
+            #stock-management .stock-issue-available-label { font-size:10px !important; font-weight:400 !important; color:#52617b !important; }
+            #stock-management .stock-issue-available-label strong { font-size:12px !important; font-weight:800 !important; color:#344d76 !important; }
+            #stock-management .stock-available-status { font-size:10px !important; font-weight:700 !important; color:#20a45a !important; }
+            #stock-management .stock-qty-control button, #stock-management .stock-issue-line-qty { font-size:11px !important; font-weight:700 !important; color:#52617b !important; }
+            #stock-management .stock-summary h4 { font-size:13px !important; font-weight:800 !important; color:#0a8d66 !important; }
+            #stock-management .stock-summary-row { font-size:11px !important; font-weight:400 !important; color:#52617b !important; }
+            #stock-management .stock-summary-row strong { font-size:11px !important; font-weight:800 !important; color:#344a72 !important; }
+            #stock-management .stock-summary-actions .button { font-size:12px !important; font-weight:800 !important; }
+            #stock-management .stock-bottom-heading h3 { font-size:13px !important; font-weight:800 !important; color:#10233f !important; }
+            #stock-management .stock-site-card strong { font-size:13px !important; font-weight:800 !important; color:#344a72 !important; }
+            #stock-management .stock-site-card small { font-size:11px !important; font-weight:400 !important; color:#52617b !important; }
+            #stock-management .stock-site-meter { width:44px; height:44px; margin:0; border-radius:50%; background:conic-gradient(#11b98d var(--stock-site-fill,0%), #edf2f8 0); }
+            #stock-management .stock-site-meter i { display:grid; width:32px; height:32px; margin:6px; place-items:center; border-radius:50%; background:#fff; color:#1e385c; font-size:9px; font-weight:900; }
+            #stock-management { background:#f4f7fb !important; }
+            #stock-management .stock-workspace { width:100% !important; max-width:none !important; margin:0 !important; gap:12px !important; padding:0 0 16px !important; }
+            #stock-management .stock-topbar { gap:14px !important; }
+            #stock-management .stock-title h1 { font-size:21px !important; font-weight:800 !important; color:#0f2340 !important; letter-spacing:0 !important; }
+            #stock-management .stock-title p { font-size:11px !important; font-weight:500 !important; color:#536887 !important; }
+            #stock-management .stock-kpis { grid-template-columns:repeat(3,minmax(136px,1fr)) !important; gap:9px !important; }
+            #stock-management .stock-kpi { min-height:48px !important; padding:8px 11px !important; border-color:#e4ebf5 !important; border-radius:8px !important; background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%) !important; box-shadow:0 8px 22px rgba(34,62,110,.055) !important; }
+            #stock-management .stock-kpi small { font-size:8px !important; font-weight:600 !important; color:#637791 !important; }
+            #stock-management .stock-kpi strong { font-size:12px !important; font-weight:800 !important; color:#122440 !important; }
+            #stock-management .stock-main-grid { grid-template-columns:minmax(310px,33.5%) minmax(0,66.5%) !important; gap:12px !important; }
+            #stock-management .stock-panel { border:1px solid #e2eaf4 !important; border-radius:9px !important; background:linear-gradient(180deg,#ffffff 0%,#fbfdff 100%) !important; box-shadow:0 8px 24px rgba(31,55,99,.052) !important; }
+            #stock-management .stock-history-card { padding:15px !important; }
+            #stock-management .stock-create-card { padding:17px !important; }
+            #stock-management .stock-panel-title { font-size:15px !important; font-weight:800 !important; color:#10233f !important; letter-spacing:0 !important; }
+            #stock-management .stock-panel-subtitle { font-size:10px !important; font-weight:500 !important; color:#5f728f !important; margin:4px 0 12px !important; }
+            #stock-management .stock-order-tabs { gap:24px !important; margin:15px 0 12px !important; border-bottom-color:#e5edf7 !important; }
+            #stock-management .stock-order-tabs button { font-size:10px !important; font-weight:800 !important; color:#536985 !important; padding-bottom:9px !important; }
+            #stock-management .stock-order-tabs button.active { color:#1677f2 !important; border-bottom-color:#1677f2 !important; }
+            #stock-management .stock-order-search { grid-template-columns:minmax(0,1fr) 70px !important; gap:8px !important; margin-bottom:12px !important; }
+            #stock-management .stock-order-search input { height:36px !important; border:1px solid #dce6f2 !important; border-radius:7px !important; font-size:10px !important; color:#536783 !important; background:#fff !important; }
+            #stock-management .stock-order-search::after { height:36px !important; border-color:#dce6f2 !important; border-radius:7px !important; font-size:10px !important; color:#2c4264 !important; background:#fff !important; }
+            #stock-management #stock-orders-list { gap:12px !important; }
+            #stock-management #stock-orders-list .list-item { min-height:148px !important; padding:12px !important; border:1px solid #dfe8f5 !important; border-left:1px solid #dfe8f5 !important; border-radius:10px !important; background:linear-gradient(135deg,#ffffff 0%,#f7fbff 52%,#eef7ff 100%) !important; box-shadow:0 7px 18px rgba(31,55,99,.045) !important; }
+            #stock-management #stock-orders-list .list-item.status-done { background:linear-gradient(135deg,#ffffff 0%,#f6fffb 50%,#eafff5 100%) !important; border-color:#caefe2 !important; }
+            #stock-management #stock-orders-list .list-item.status-waiting { background:linear-gradient(135deg,#ffffff 0%,#f7fbff 52%,#edf5ff 100%) !important; }
+            #stock-management #stock-orders-list .list-item.status-partial { background:linear-gradient(135deg,#ffffff 0%,#fffcf5 50%,#fff2d7 100%) !important; border-color:#f6e4bd !important; }
+            #stock-management #stock-orders-list .list-item.status-rejected { background:linear-gradient(135deg,#ffffff 0%,#fff8f8 50%,#ffe9eb 100%) !important; border-color:#ffd0d5 !important; }
+            #stock-management #stock-orders-list .list-item:hover { transform:none !important; border-left-color:#dfe8f5 !important; box-shadow:0 8px 20px rgba(31,55,99,.06) !important; }
+            #stock-management .stock-order-card-head { margin-bottom:9px !important; }
+            #stock-management .stock-order-status { font-size:7px !important; font-weight:900 !important; padding:4px 8px !important; }
+            #stock-management .stock-order-status.done { background:#e9fff4 !important; color:#08a66f !important; }
+            #stock-management .stock-order-status.waiting { background:#e9fff4 !important; color:#08a66f !important; }
+            #stock-management .stock-order-status.partial { background:#fff3d8 !important; color:#e09619 !important; }
+            #stock-management .stock-order-status.rejected { background:#ffe9eb !important; color:#ef4444 !important; }
+            #stock-management .stock-order-ref { font-size:9px !important; font-weight:600 !important; color:#6c7e98 !important; }
+            #stock-management .stock-order-icon-title { grid-template-columns:28px minmax(0,1fr) !important; gap:9px !important; margin-bottom:12px !important; }
+            #stock-management .stock-order-icon { width:28px !important; height:28px !important; border-radius:8px !important; background:#e8f2ff !important; color:#1677f2 !important; }
+            #stock-management .stock-order-icon.partial { background:#fff1d7 !important; color:#f59e0b !important; }
+            #stock-management .stock-order-icon.rejected { background:#ffe9eb !important; color:#ef4444 !important; }
+            #stock-management .stock-order-name { font-size:10px !important; line-height:1.42 !important; font-weight:900 !important; color:#10233f !important; }
+            #stock-management .stock-order-meta-grid { gap:9px !important; margin-bottom:10px !important; }
+            #stock-management .stock-order-meta-label { font-size:7px !important; font-weight:500 !important; color:#687b95 !important; }
+            #stock-management .stock-order-meta-value { font-size:8px !important; font-weight:800 !important; color:#0f2340 !important; }
+            #stock-management .stock-order-foot { padding-top:9px !important; border-top-color:#edf2f8 !important; }
+            #stock-management .stock-order-articles { font-size:9px !important; font-weight:700 !important; color:#536985 !important; }
+            #stock-management .stock-order-arrive { height:29px !important; border-radius:6px !important; background:#1677f2 !important; color:#fff !important; font:800 9px Inter, ui-sans-serif, system-ui, sans-serif !important; box-shadow:0 7px 14px rgba(22,119,242,.22) !important; }
+            #stock-management .stock-order-final-status { height:28px !important; min-width:78px !important; border-color:#0bb98d !important; background:#fbfffd !important; color:#087f63 !important; font:900 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-stepper { margin:18px 0 20px !important; font-size:10px !important; }
+            #stock-management .stock-step b { width:24px !important; height:24px !important; font-size:10px !important; }
+            #stock-management .stock-create-card label { text-transform:none !important; font-size:10px !important; font-weight:700 !important; color:#435873 !important; }
+            #stock-management .stock-create-card select, #stock-management .stock-create-card textarea, #stock-management .stock-zone-field { min-height:40px !important; border-color:#dce6f2 !important; border-radius:7px !important; color:#203754 !important; font:500 10px Inter, ui-sans-serif, system-ui, sans-serif !important; background:#fff !important; }
+            #stock-management .stock-material-layout { grid-template-columns:minmax(0,1fr) 190px !important; gap:14px !important; }
+            #stock-management .stock-material-heading { font-size:12px !important; font-weight:800 !important; color:#10233f !important; margin-bottom:10px !important; }
+            #stock-management .stock-material-filter-row { display:grid !important; grid-template-columns:minmax(0,1fr) auto !important; gap:10px !important; align-items:center !important; margin-bottom:8px !important; }
+            #stock-management .stock-material-search { height:35px !important; border:1px solid #dce6f2 !important; border-radius:7px !important; font-size:9px !important; font-weight:500 !important; color:#60738f !important; background:#fff !important; }
+            #stock-management .stock-only-toggle { font-size:9px !important; font-weight:700 !important; color:#536985 !important; }
+            #stock-management .stock-material-table-head { grid-template-columns:20px minmax(110px,1fr) 44px 68px 136px !important; min-height:28px !important; padding:8px 10px !important; background:#f4f7fb !important; color:#53647d !important; font-size:7px !important; font-weight:800 !important; }
+            #stock-management .stock-issue-line { grid-template-columns:20px minmax(110px,1fr) 44px 68px 136px !important; min-height:48px !important; padding:8px 10px !important; background:#fff !important; }
+            #stock-management .stock-material-layout #stock-issue-lines { max-height:252px !important; overflow-y:auto !important; scrollbar-width:thin; scrollbar-color:#c8d6ea transparent; }
+            #stock-management .stock-material-layout #stock-issue-lines::-webkit-scrollbar { width:6px; }
+            #stock-management .stock-material-layout #stock-issue-lines::-webkit-scrollbar-track { background:transparent; }
+            #stock-management .stock-material-layout #stock-issue-lines::-webkit-scrollbar-thumb { background:#c8d6ea; border-radius:999px; }
+            #stock-management .stock-issue-material-name { font-size:9px !important; font-weight:800 !important; color:#10233f !important; }
+            #stock-management .stock-issue-material-sub { font-size:7px !important; font-weight:500 !important; color:#7a8aa4 !important; }
+            #stock-management .stock-issue-unit { font-size:8px !important; font-weight:500 !important; color:#64758e !important; }
+            #stock-management .stock-issue-available-label { color:#64758e !important; font-size:8px !important; font-weight:500 !important; }
+            #stock-management .stock-issue-available-label strong { color:#17365e !important; font-size:10px !important; font-weight:900 !important; }
+            #stock-management .stock-available-status { color:#0aa979 !important; font-size:7px !important; font-weight:700 !important; }
+            #stock-management .stock-qty-control { grid-template-columns:24px 34px 24px 38px !important; width:120px !important; }
+            #stock-management .stock-qty-control button, #stock-management .stock-qty-max { height:25px !important; font-size:9px !important; font-weight:700 !important; border-color:#dce6f2 !important; }
+            #stock-management .stock-issue-line-qty { width:34px !important; height:25px !important; font:700 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-summary { width:190px !important; padding:14px !important; border-color:#ccefe5 !important; border-radius:9px !important; background:linear-gradient(180deg,#f4fcf9 0%,#f8fffc 100%) !important; box-shadow:0 8px 20px rgba(17,148,112,.045) !important; }
+            #stock-management .stock-summary h4 { font-size:12px !important; font-weight:800 !important; color:#0a8d66 !important; }
+            #stock-management .stock-summary-row { font-size:9px !important; font-weight:400 !important; color:#657890 !important; }
+            #stock-management .stock-summary-row strong { font-size:9px !important; font-weight:800 !important; color:#17314f !important; }
+            #stock-management .stock-summary-actions .button { height:36px !important; border-radius:7px !important; font:800 10px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-bottom-preview { background:linear-gradient(180deg,#ffffff 0%,#fbfdff 100%) !important; border-color:#e2eaf4 !important; border-radius:9px !important; box-shadow:0 8px 22px rgba(31,55,99,.045) !important; }
+            #stock-management.stock-mockup-final, #stock-management {
+              background: radial-gradient(circle at 22% -6%, rgba(22,119,242,.09), transparent 28%), linear-gradient(180deg,#f8fbff 0%,#f3f7fc 100%) !important;
+              color:#10233f !important;
+              font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+            }
+            #stock-management .stock-workspace { gap:12px !important; }
+            #stock-management .stock-title h1 { color:#0c2240 !important; font-size:23px !important; line-height:1.05 !important; font-weight:850 !important; letter-spacing:0 !important; }
+            #stock-management .stock-title p { color:#536985 !important; font-size:12px !important; font-weight:500 !important; }
+            #stock-management .stock-kpis { grid-template-columns:repeat(3,minmax(150px,1fr)) !important; gap:10px !important; min-width:480px !important; }
+            #stock-management .stock-kpi { display:grid !important; grid-template-columns:28px 1fr !important; min-height:52px !important; gap:9px !important; padding:9px 12px !important; border:1px solid #dfe8f5 !important; border-radius:9px !important; background:linear-gradient(180deg,#fff 0%,#f8fbff 100%) !important; box-shadow:0 7px 18px rgba(31,55,99,.045) !important; }
+            #stock-management .stock-kpi-icon { width:26px !important; height:26px !important; border-radius:8px !important; }
+            #stock-management .stock-kpi-icon svg { width:14px !important; height:14px !important; }
+            #stock-management .stock-kpi small { color:#657792 !important; font-size:9px !important; font-weight:600 !important; }
+            #stock-management .stock-kpi strong { margin-top:2px !important; color:#10233f !important; font-size:13px !important; font-weight:850 !important; }
+            #stock-management .stock-main-grid { grid-template-columns:minmax(320px,33%) minmax(0,67%) !important; gap:14px !important; }
+            #stock-management .stock-panel, #stock-management .stock-bottom-preview { border:1px solid #dfe8f5 !important; border-radius:10px !important; background:linear-gradient(180deg,#fff 0%,#fbfdff 100%) !important; box-shadow:0 10px 26px rgba(31,55,99,.06) !important; }
+            #stock-management .stock-history-card { padding:16px !important; }
+            #stock-management .stock-create-card { padding:18px !important; }
+            #stock-management .stock-panel-title { color:#10233f !important; font-size:16px !important; line-height:1.15 !important; font-weight:850 !important; letter-spacing:0 !important; }
+            #stock-management .stock-panel-subtitle { margin:5px 0 0 !important; color:#60738f !important; font-size:10px !important; font-weight:500 !important; }
+            #stock-management .stock-order-tabs { gap:25px !important; margin:16px 0 12px !important; border-bottom:1px solid #e5edf7 !important; }
+            #stock-management .stock-order-tabs button { padding:0 0 9px !important; color:#536985 !important; font-size:10px !important; font-weight:800 !important; }
+            #stock-management .stock-order-tabs button.active { color:#1677f2 !important; border-bottom-color:#1677f2 !important; }
+            #stock-management .stock-order-search { grid-template-columns:1fr 72px !important; gap:8px !important; margin-bottom:12px !important; }
+            #stock-management .stock-order-search input { height:36px !important; border:1px solid #dce6f2 !important; border-radius:7px !important; background:#fff !important; color:#334b6b !important; padding:0 12px !important; font:500 10px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-order-search::after { height:36px !important; border:1px solid #dce6f2 !important; border-radius:7px !important; background:#fff !important; color:#2c4264 !important; font:800 10px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management #stock-orders-list { gap:12px !important; }
+            #stock-management #stock-orders-list .list-item { min-height:154px !important; padding:12px !important; border:1px solid #caefe2 !important; border-radius:10px !important; background:linear-gradient(135deg,#fff 0%,#f6fffb 50%,#eafff5 100%) !important; box-shadow:0 7px 18px rgba(31,55,99,.045) !important; }
+            #stock-management #stock-orders-list .list-item.status-waiting { border-color:#caefe2 !important; background:linear-gradient(135deg,#fff 0%,#f6fffb 50%,#eafff5 100%) !important; }
+            #stock-management #stock-orders-list .list-item.status-done { border-color:#caefe2 !important; background:linear-gradient(135deg,#fff 0%,#f6fffb 50%,#eafff5 100%) !important; }
+            #stock-management #stock-orders-list .list-item.status-partial { border-color:#f6e4bd !important; background:linear-gradient(135deg,#fff 0%,#fffcf5 50%,#fff3d8 100%) !important; }
+            #stock-management #stock-orders-list .list-item.status-rejected { border-color:#ffd0d5 !important; background:linear-gradient(135deg,#fff 0%,#fff8f8 50%,#ffe9eb 100%) !important; }
+            #stock-management .stock-order-card-head { align-items:center !important; margin-bottom:10px !important; }
+            #stock-management .stock-order-status { padding:4px 8px !important; border-radius:999px !important; font:900 7px Inter, ui-sans-serif, system-ui, sans-serif !important; text-transform:uppercase !important; }
+            #stock-management .stock-order-status.done, #stock-management .stock-order-status.waiting { color:#08a66f !important; background:#e9fff4 !important; }
+            #stock-management .stock-order-status.partial { color:#e09619 !important; background:#fff1d5 !important; }
+            #stock-management .stock-order-status.rejected { color:#ef4444 !important; background:#ffe8ea !important; }
+            #stock-management .stock-order-ref-wrap { display:flex !important; gap:7px !important; color:#6c7e98 !important; font:600 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-order-ref { color:#6c7e98 !important; font:600 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-order-menu { color:#9aa8bc !important; font-size:13px !important; font-weight:900 !important; }
+            #stock-management .stock-order-icon-title { grid-template-columns:28px 1fr !important; gap:9px !important; align-items:center !important; margin:10px 0 12px !important; }
+            #stock-management .stock-order-icon { width:28px !important; height:28px !important; border-radius:8px !important; color:#1677f2 !important; background:#eaf3ff !important; }
+            #stock-management .stock-order-icon.done, #stock-management .stock-order-icon.waiting { color:#1677f2 !important; background:#eaf3ff !important; }
+            #stock-management .stock-order-icon.partial { color:#f59e0b !important; background:#fff1d7 !important; }
+            #stock-management .stock-order-icon.rejected { color:#ef4444 !important; background:#ffe9eb !important; }
+            #stock-management .stock-order-name { color:#10233f !important; font-size:10px !important; line-height:1.42 !important; font-weight:900 !important; }
+            #stock-management .stock-order-meta-grid { grid-template-columns:repeat(3,1fr) !important; gap:9px !important; margin-bottom:10px !important; }
+            #stock-management .stock-order-meta-label { color:#687b95 !important; font-size:7px !important; font-weight:500 !important; }
+            #stock-management .stock-order-meta-value { color:#0f2340 !important; font-size:8px !important; font-weight:800 !important; }
+            #stock-management .stock-order-foot { padding-top:9px !important; border-top:1px solid #edf2f8 !important; }
+            #stock-management .stock-order-articles { color:#536985 !important; font:700 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-order-arrive { height:29px !important; padding:0 13px !important; border-radius:6px !important; background:#1677f2 !important; color:#fff !important; font:800 9px Inter, ui-sans-serif, system-ui, sans-serif !important; box-shadow:0 7px 14px rgba(22,119,242,.22) !important; }
+            #stock-management .stock-order-final-status { min-width:78px !important; height:28px !important; border:1px solid #08a66f !important; border-radius:999px !important; background:#fbfffd !important; color:#087f63 !important; font:900 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-stepper { margin:18px 0 20px !important; gap:10px !important; color:#95a6bd !important; font:800 10px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-step b { width:24px !important; height:24px !important; background:#edf3fb !important; color:#91a2b8 !important; font-size:10px !important; box-shadow:none !important; }
+            #stock-management .stock-step.active { color:#5d50eb !important; }
+            #stock-management .stock-step.active b { background:#6657ef !important; color:#fff !important; box-shadow:0 8px 18px rgba(102,87,239,.2) !important; }
+            #stock-management .stock-step-line { background:#dce6f2 !important; }
+            #stock-management .stock-create-card label { color:#435873 !important; font:700 10px Inter, ui-sans-serif, system-ui, sans-serif !important; text-transform:none !important; }
+            #stock-management .stock-create-card select, #stock-management .stock-create-card textarea, #stock-management .stock-zone-field { height:36px !important; min-height:36px !important; border:1px solid #dce6f2 !important; border-radius:7px !important; background:#fff !important; color:#334b6b !important; padding:0 12px !important; font:500 10px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-create-card textarea { height:72px !important; padding-top:12px !important; }
+            #stock-management .stock-stage-all { color:#60738f !important; font:600 10px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-material-layout { grid-template-columns:minmax(0,1fr) 190px !important; gap:14px !important; }
+            #stock-management .stock-material-heading { color:#10233f !important; font:800 12px Inter, ui-sans-serif, system-ui, sans-serif !important; margin:0 0 10px !important; }
+            #stock-management .stock-material-filter-row { grid-template-columns:1fr auto !important; gap:10px !important; margin-bottom:8px !important; }
+            #stock-management .stock-material-search { height:36px !important; border:1px solid #dce6f2 !important; border-radius:7px !important; background:#fff !important; color:#334b6b !important; font:500 10px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-only-toggle { color:#536985 !important; font:700 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-material-table-head { grid-template-columns:20px minmax(110px,1fr) 44px 68px 136px !important; min-height:28px !important; padding:8px 10px !important; background:#f4f7fb !important; color:#53647d !important; font:800 7px Inter, ui-sans-serif, system-ui, sans-serif !important; text-transform:uppercase !important; }
+            #stock-management #stock-issue-lines { max-height:252px !important; overflow-y:auto !important; border:1px solid #e2eaf5 !important; border-radius:0 0 9px 9px !important; }
+            #stock-management .stock-issue-line { grid-template-columns:20px minmax(110px,1fr) 44px 68px 136px !important; min-height:50px !important; padding:8px 10px !important; border-bottom:1px solid #e9eef5 !important; background:#fff !important; }
+            #stock-management .stock-issue-material-name { color:#10233f !important; font:800 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-issue-material-sub, #stock-management .stock-issue-unit { color:#7a8aa4 !important; font:500 7px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-issue-available-label { color:#64758e !important; font:500 8px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-issue-available-label strong { color:#17365e !important; font:900 10px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-available-status { color:#0aa979 !important; font:700 7px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-qty-control { grid-template-columns:24px 34px 24px 38px !important; width:120px !important; }
+            #stock-management .stock-qty-control button, #stock-management .stock-issue-line-qty { height:25px !important; border-color:#dce6f2 !important; background:#fff !important; color:#253d5c !important; font:700 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-qty-max { margin-left:6px !important; border:0 !important; }
+            #stock-management .stock-summary { width:190px !important; padding:14px !important; border:1px solid #ccefe5 !important; border-radius:9px !important; background:linear-gradient(180deg,#f4fcf9 0%,#f8fffc 100%) !important; box-shadow:0 8px 20px rgba(17,148,112,.045) !important; }
+            #stock-management .stock-summary h4 { color:#0a8d66 !important; font:800 12px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-summary-row { color:#657890 !important; font:400 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-summary-row strong { color:#17314f !important; font:800 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-summary-actions .button { height:36px !important; border-radius:7px !important; font:800 10px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-summary-actions .button-primary { background:linear-gradient(90deg,#6657ef,#00bd93) !important; border:0 !important; }
+            #stock-management .stock-site-card { grid-template-columns:1fr 52px !important; min-height:66px !important; padding:12px 14px !important; border:1px solid #dfe8f5 !important; border-radius:9px !important; background:#fff !important; }
+            #stock-management .stock-site-card strong { color:#10233f !important; font:900 11px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management .stock-site-card small { color:#70819a !important; font:400 9px Inter, ui-sans-serif, system-ui, sans-serif !important; }
+            #stock-management, #stock-management * { font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important; -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; letter-spacing:0 !important; }
+            #stock-management .stock-title h1 { font-size:24px !important; font-weight:850 !important; line-height:1.05 !important; color:#0b2343 !important; }
+            #stock-management .stock-title p { font-size:12px !important; font-weight:500 !important; line-height:1.35 !important; color:#526985 !important; }
+            #stock-management .stock-panel-title { font-size:16px !important; font-weight:850 !important; line-height:1.18 !important; color:#10233f !important; }
+            #stock-management .stock-panel-subtitle { font-size:10.5px !important; font-weight:500 !important; line-height:1.4 !important; color:#5d718e !important; }
+            #stock-management .stock-order-tabs button { font-size:10.5px !important; font-weight:750 !important; color:#526985 !important; }
+            #stock-management .stock-order-tabs button.active { font-weight:850 !important; color:#1677f2 !important; }
+            #stock-management .stock-order-search input, #stock-management .stock-material-search { font-size:10.5px !important; font-weight:450 !important; color:#435b78 !important; }
+            #stock-management .stock-order-search input::placeholder, #stock-management .stock-material-search::placeholder, #stock-management .stock-create-card textarea::placeholder { color:#8b9bb0 !important; font-weight:400 !important; }
+            #stock-management .stock-order-status { font-size:7.5px !important; font-weight:850 !important; }
+            #stock-management .stock-order-ref, #stock-management .stock-order-ref-wrap { font-size:9px !important; font-weight:550 !important; color:#6c7e98 !important; }
+            #stock-management .stock-order-name { font-size:10.5px !important; font-weight:850 !important; line-height:1.42 !important; color:#10233f !important; }
+            #stock-management .stock-order-meta-label { font-size:7.5px !important; font-weight:500 !important; color:#687b95 !important; }
+            #stock-management .stock-order-meta-value { font-size:8.5px !important; font-weight:750 !important; line-height:1.28 !important; color:#10233f !important; }
+            #stock-management .stock-order-articles { font-size:9px !important; font-weight:650 !important; color:#526985 !important; }
+            #stock-management .stock-order-arrive, #stock-management .stock-order-final-status { font-size:9px !important; font-weight:800 !important; }
+            #stock-management .stock-kpi small { font-size:9px !important; font-weight:500 !important; color:#657792 !important; }
+            #stock-management .stock-kpi strong { font-size:13px !important; font-weight:850 !important; color:#10233f !important; }
+            #stock-management .stock-stepper { font-size:10.5px !important; font-weight:750 !important; }
+            #stock-management .stock-step b { font-size:10px !important; font-weight:800 !important; }
+            #stock-management .stock-create-card label { font-size:10.5px !important; font-weight:700 !important; line-height:1.2 !important; color:#405873 !important; }
+            #stock-management .stock-create-card select, #stock-management .stock-zone-field { font-size:10.5px !important; font-weight:500 !important; color:#1f3654 !important; }
+            #stock-management .stock-stage-all { font-size:10px !important; font-weight:550 !important; color:#60738f !important; }
+            #stock-management .stock-material-heading { font-size:12.5px !important; font-weight:850 !important; color:#10233f !important; }
+            #stock-management .stock-only-toggle { font-size:9.5px !important; font-weight:600 !important; color:#536985 !important; }
+            #stock-management .stock-material-table-head { font-size:7.5px !important; font-weight:750 !important; color:#53647d !important; }
+            #stock-management .stock-issue-material-name { font-size:9.5px !important; font-weight:800 !important; line-height:1.25 !important; color:#10233f !important; }
+            #stock-management .stock-issue-material-sub, #stock-management .stock-issue-unit { font-size:7.5px !important; font-weight:450 !important; color:#7a8aa4 !important; }
+            #stock-management .stock-issue-available-label { font-size:8px !important; font-weight:500 !important; color:#64758e !important; }
+            #stock-management .stock-issue-available-label strong { font-size:10px !important; font-weight:850 !important; color:#17365e !important; }
+            #stock-management .stock-available-status { font-size:7.5px !important; font-weight:650 !important; color:#0aa979 !important; }
+            #stock-management .stock-qty-control button, #stock-management .stock-issue-line-qty { font-size:9px !important; font-weight:650 !important; }
+            #stock-management .stock-summary h4 { font-size:12.5px !important; font-weight:850 !important; color:#0a8d66 !important; }
+            #stock-management .stock-summary-row { font-size:9.5px !important; font-weight:400 !important; line-height:1.35 !important; color:#657890 !important; }
+            #stock-management .stock-summary-row strong { font-size:9.5px !important; font-weight:750 !important; color:#17314f !important; }
+            #stock-management .stock-summary-actions .button { font-size:10px !important; font-weight:800 !important; }
+            #stock-management .stock-bottom-heading h3 { font-size:12px !important; font-weight:850 !important; color:#10233f !important; }
+            #stock-management .stock-site-card strong { font-size:11px !important; font-weight:850 !important; color:#10233f !important; }
+            #stock-management .stock-site-card small { font-size:9px !important; font-weight:400 !important; color:#70819a !important; }
+            #stock-management, #stock-management * { font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important; }
+            #stock-management .stock-order-name, #stock-management .stock-issue-material-name, #stock-management .stock-site-card strong { color:#344a72 !important; font-weight:800 !important; }
+            #stock-management .stock-order-meta-label, #stock-management .stock-issue-material-sub, #stock-management .stock-summary-row { color:#64748b !important; font-weight:400 !important; }
+            #stock-management .stock-order-meta-value, #stock-management .stock-issue-available-label strong, #stock-management .stock-summary-row strong { color:#344d76 !important; font-weight:800 !important; }
+            #stock-management .stock-available-status { color:#20a45a !important; font-weight:700 !important; }
+            #stock-management .stock-material-table-head { color:#53627d !important; font-weight:800 !important; }
+            #stock-management .stock-issue-material-name,
+            #stock-management .stock-issue-material-sub,
+            #stock-management .stock-issue-unit,
+            #stock-management .stock-issue-available-label,
+            #stock-management .stock-issue-available-label strong,
+            #stock-management .stock-available-status,
+            #stock-management .stock-material-table-head,
+            #stock-management .stock-summary-row strong,
+            #stock-management .stock-qty-control button,
+            #stock-management .stock-issue-line-qty {
+              font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
+            }
             @media (max-width:1100px) { #stock-management .stock-topbar{align-items:flex-start;flex-direction:column} #stock-management .stock-main-grid{grid-template-columns:1fr} #stock-management #stock-site-preview{grid-template-columns:repeat(2,minmax(0,1fr))} }
             @media (max-width:680px) { #stock-management .stock-kpis{width:100%;grid-template-columns:1fr 1fr} #stock-management .stock-destination-grid,#stock-management .stock-stage-grid,#stock-management .stock-material-layout{grid-template-columns:1fr} #stock-management #stock-site-preview{grid-template-columns:1fr} }
           </style>
@@ -9630,7 +9989,7 @@
             <p id="stock-add-warehouse-hint" style="margin:10px 0 0 0; color:#64748b; font-size:13px;">Choisis un projet existant pour créer un entrepôt visible dans les choix rapides.</p>
           </div>
           <div id="stock-management-details" class="stock-workspace" style="display: none;">
-            <div class="stock-topbar"><div class="stock-title"><h1>Gestion de stock</h1><p>Gérez les réceptions, sorties et disponibilités de matériel.</p></div><div class="stock-kpis"><div class="stock-kpi"><span class="stock-kpi-icon">▣</span><span><small>Valeur du stock total</small><strong id="stock-kpi-value">-</strong></span></div><div class="stock-kpi"><span class="stock-kpi-icon">▦</span><span><small>Articles en stock</small><strong id="stock-kpi-items">0</strong></span></div><div class="stock-kpi"><span class="stock-kpi-icon">!</span><span><small>Alertes stock bas</small><strong id="stock-kpi-alerts">0</strong></span></div></div></div>
+            <div class="stock-topbar"><div class="stock-title"><h1>Gestion de stock</h1><p>Gérez les réceptions, sorties et disponibilités de matériel.</p></div><div class="stock-kpis"><div class="stock-kpi"><span class="stock-kpi-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6M9 13h6"/></svg></span><span><small>Valeur du stock total</small><strong id="stock-kpi-value">-</strong></span></div><div class="stock-kpi"><span class="stock-kpi-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg></span><span><small>Articles en stock</small><strong id="stock-kpi-items">0</strong></span></div><div class="stock-kpi"><span class="stock-kpi-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 17h.01"/><path d="M10.3 4.5 2.8 17.4A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.6L13.7 4.5a2 2 0 0 0-3.4 0Z"/></svg></span><span><small>Alertes stock bas</small><strong id="stock-kpi-alerts">0</strong></span></div></div></div>
             <div class="stock-active-bar">
               <div>Entrepôt ouvert: <strong id="stock-active-warehouse-label">-</strong></div>
               <button type="button" id="stock-change-warehouse" class="button button-small button-secondary">Changer d'entrepôt</button>
@@ -9675,7 +10034,7 @@
                   </label>
                   <input type="hidden" id="stock-issue-stage" />
                 </div>
-                <div class="stock-material-layout"><div class="form-group"><div class="stock-material-heading">Matériel disponible à l'étape sélectionnée</div><input class="stock-material-search" type="search" placeholder="Rechercher un matériau..." readonly /><div id="stock-issue-lines" style="display: grid; gap: 8px;"></div><div id="stock-issue-lines-hint">Sélectionne un site puis une étape pour afficher les matériaux disponibles.</div></div>
+                <div class="stock-material-layout"><div class="form-group"><div class="stock-material-heading">Matériel disponible à l'étape sélectionnée</div><div class="stock-material-filter-row"><input id="stock-material-search" class="stock-material-search" type="search" placeholder="Rechercher un matériau..." /><label class="stock-only-toggle"><input type="checkbox" id="stock-material-only-available" />Afficher uniquement en stock</label></div><div class="stock-material-table-head"><span></span><span>Matériau</span><span>Unité</span><span>Disponible</span><span>Quantité à sortir</span></div><div id="stock-issue-lines" style="display: grid; gap: 8px;"></div><div id="stock-issue-lines-hint">Sélectionne un site puis une étape pour afficher les matériaux disponibles.</div></div>
                 <aside class="stock-summary"><h4>Résumé de la sortie</h4><div class="stock-summary-row"><span>Articles sélectionnés</span><strong id="stock-summary-items">0</strong></div><div class="stock-summary-row"><span>Quantité totale</span><strong id="stock-summary-quantity">0 unité</strong></div><div class="stock-summary-row"><span>Destination</span><strong id="stock-summary-destination">-</strong></div><div class="stock-summary-row"><span>Étape</span><strong id="stock-summary-stage">-</strong></div><div class="stock-summary-actions"><button type="submit" class="button button-primary">Valider la sortie</button><button type="button" class="button button-secondary">Enregistrer en brouillon</button></div></aside></div>
                 <div class="form-group stock-note">
                   <label>Note</label>
@@ -22531,7 +22890,7 @@
               const modifierAction = `editMaterialRequest(${first.id})`;
               const inlineAuthorizationContainerId = `material-authorization-doc-inline-${Number(first.id)}`;
               return `
-              <li class="list-item">
+              <li class="list-item status-${statusClass}">
                 <div class="list-item-content project-item-clickable ${groupSelected ? 'project-item-selected' : ''}" onclick="viewMaterialRequest(${first.id})">
                   <div class="list-item-title">${escapeHtml(getMaterialRequestDisplayName(first))}</div>
                   <div class="list-item-meta">${first.projetNom || '-'} • ${escapeHtml(getMaterialRequestStageLabel(first))} • Site N°${escapeHtml(getMaterialRequestHouseNumber(first))} • Unité: ${escapeHtml(getMaterialRequestUnitLabel(first))} • ${first.demandeur || '-'}</div>
@@ -24288,7 +24647,13 @@
         existing.totalRemaining += Number(row.quantiteRestante || 0);
       });
 
-      const groupedRows = Array.from(groupedRowsMap.values());
+      const materialSearch = normalizeText(document.getElementById('stock-material-search')?.value || '');
+      const onlyAvailable = Boolean(document.getElementById('stock-material-only-available')?.checked);
+      const groupedRows = Array.from(groupedRowsMap.values()).filter(row => {
+        if (materialSearch && !normalizeText(row?.itemName || '').includes(materialSearch)) return false;
+        if (onlyAvailable && Number(row?.totalRemaining || 0) <= 0) return false;
+        return true;
+      });
 
       if (!groupedRows.length) {
         linesContainer.innerHTML = zoneMode
@@ -24302,12 +24667,17 @@
 
       linesContainer.innerHTML = groupedRows.map(row => `
         <div class="stock-issue-line" data-request-ids="${row.requestIds.join(',')}" data-remaining="${Number(row.totalRemaining || 0)}" style="border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: grid; grid-template-columns: minmax(0, 1fr) 130px; gap: 10px; align-items: center;">
-          <div>
-            <div style="font-weight: 600; color: #0f172a;">${escapeHtml(row.itemName || '-')}</div>
-            <div style="font-size: 12px; color: #64748b;" class="stock-issue-available-label">Disponible: ${Number(row.totalRemaining || 0).toFixed(2)}${row.sourceType === 'ZONE_STOCK' ? ` • Stock de zone ${escapeHtml(row.zoneName || '')}` : ''}</div>
+          <input type="checkbox" class="stock-issue-check" aria-label="Sélectionner ${escapeHtml(row.itemName || 'matériau')}" />
+          <div><div class="stock-issue-material-name">${escapeHtml(row.itemName || '-')}</div><div class="stock-issue-material-sub">${row.sourceType === 'ZONE_STOCK' ? `Stock de zone ${escapeHtml(row.zoneName || '')}` : 'Stock site'}</div></div>
+          <div class="stock-issue-unit">-</div>
+          <div class="stock-issue-available-label"><strong>${Number(row.totalRemaining || 0).toFixed(2)}</strong><span class="stock-available-status">en stock</span></div>
+          <div class="stock-qty-control">
+            <button type="button" class="stock-qty-minus" aria-label="Diminuer">−</button>
+            <input type="number" class="stock-issue-line-qty" min="0" step="0.01" max="${Number(row.totalRemaining || 0)}" placeholder="0" />
+            <button type="button" class="stock-qty-plus" aria-label="Augmenter">+</button>
+            <button type="button" class="stock-qty-max">Max</button>
             <div style="font-size: 12px; color: #0f766e;" class="stock-issue-remaining-preview">Restera après sortie: ${Number(row.totalRemaining || 0).toFixed(2)}</div>
           </div>
-          <input type="number" class="stock-issue-line-qty" min="0" step="0.01" max="${Number(row.totalRemaining || 0)}" placeholder="Qté à sortir" />
         </div>
       `).join('');
       hint.textContent = `${groupedRows.length} matériau(x) disponibles${zoneMode ? ' (stock de zone)' : ' pour cette étape'}.`;
@@ -24316,6 +24686,23 @@
 
       linesContainer.querySelectorAll('.stock-issue-line-qty').forEach(input => {
         input.addEventListener('input', () => updateStockIssueRemainingPreview());
+      });
+      linesContainer.querySelectorAll('.stock-qty-minus, .stock-qty-plus, .stock-qty-max').forEach(button => {
+        button.addEventListener('click', () => {
+          const line = button.closest('.stock-issue-line');
+          const input = line?.querySelector('.stock-issue-line-qty');
+          if (!input) return;
+          const max = Number(input.max || line?.dataset.remaining || 0);
+          const current = Number(input.value || 0);
+          if (button.classList.contains('stock-qty-max')) {
+            input.value = max > 0 ? String(max) : '';
+          } else if (button.classList.contains('stock-qty-plus')) {
+            input.value = String(Math.min(max, current + 1));
+          } else {
+            input.value = String(Math.max(0, current - 1));
+          }
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
       });
     }
 
@@ -24390,23 +24777,31 @@
         ? filteredOrders.map(order => {
             const statusLabel = formatInventoryStatusLabel(order.statut);
             const canMarkArrived = order.statut !== 'LIVREE' && !isProcurementStockReadOnly() && !isSiteChief();
-            const itemsLabel = (order.items || []).map(item => `${item.article} (${Number(item.quantite || 0).toFixed(2)})`).join(', ') || '-';
-            const arrivalLabel = order.dateReception ? formatDate(order.dateReception) : '-';
+            const itemCount = Array.isArray(order.items) ? order.items.length : 0;
+            const arrivalLabel = order.dateReception ? formatDate(order.dateReception) : formatDate(order.dateLivraisonPrevue || order.dateCommande || order.createdAt);
+            const statusValue = String(order.statut || '').trim().toUpperCase();
+            const statusClass = statusValue === 'LIVREE' || statusValue === 'EN_STOCK' ? 'done' : (statusValue === 'ANNULEE' || statusValue === 'REJETEE' ? 'rejected' : (statusValue === 'EN_COURS' ? 'partial' : 'waiting'));
+            const displayStatus = statusLabel.toUpperCase();
             return `
-              <li class="list-item">
-                <div class="list-item-content">
-                  <div class="list-item-title">${escapeHtml(getPurchaseOrderDisplayName(order))} • ${escapeHtml(order.fournisseur || '-')}</div>
-                  <div class="list-item-meta">Entrepôt livraison: ${escapeHtml(getWarehouseNameById(order.warehouseId || ''))}</div>
-                  <div class="list-item-meta">Livraison: ${escapeHtml(order.isZoneOrder ? (order.nomSiteManuel || order.numeroMaison || `Zone ${order.zoneName || '-'}`) : (order.numeroMaison || order.nomSiteManuel || '-'))}</div>
-                  <div class="list-item-meta">Projet(s): ${escapeHtml((order.projects || []).join(', ') || '-')}</div>
-                  <div class="list-item-meta">Matériels: ${escapeHtml(itemsLabel)}</div>
-                  <div class="list-item-meta">Statut: ${escapeHtml(statusLabel)}</div>
-                  <div class="list-item-meta">Réception notée: ${escapeHtml(arrivalLabel)}</div>
+              <li class="list-item status-${statusClass}">
+                <div class="stock-order-card-head">
+                  <span class="stock-order-status ${statusClass}">${escapeHtml(displayStatus)}</span>
+                  <span class="stock-order-ref-wrap"><span class="stock-order-ref">Commande #CMD-${String(order.id || 0).padStart(4, '0')}</span><span class="stock-order-menu">⋮</span></span>
                 </div>
-                <div class="action-buttons">
+                <div class="stock-order-icon-title">
+                  <span class="stock-order-icon ${statusClass}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 8 7.5 4.2L19.5 8M12 12.2V21"/></svg></span>
+                  <div class="stock-order-name">${escapeHtml(getPurchaseOrderDisplayName(order))}</div>
+                </div>
+                <div class="stock-order-meta-grid">
+                  <span><span class="stock-order-meta-label">Projet</span><span class="stock-order-meta-value">${escapeHtml((order.projects || []).join(', ') || order.nomProjetManuel || '-')}</span></span>
+                  <span><span class="stock-order-meta-label">Fournisseur</span><span class="stock-order-meta-value">${escapeHtml(order.fournisseur || '-')}</span></span>
+                  <span><span class="stock-order-meta-label">Livraison prévue</span><span class="stock-order-meta-value">${escapeHtml(arrivalLabel || '-')}</span></span>
+                </div>
+                <div class="stock-order-foot">
+                  <span class="stock-order-articles"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 3v4M15 3v4"/></svg>${itemCount} article${itemCount > 1 ? 's' : ''}</span>
                   ${canMarkArrived
-                    ? `<button class="button button-small button-primary" onclick="markStockOrderArrived(${order.id})">Marquer arrivé</button>`
-                    : `<span class="badge ${getInventoryBadgeClass(order.statut)}">${escapeHtml(statusLabel)}</span>`}
+                    ? `<button class="stock-order-arrive" onclick="markStockOrderArrived(${order.id})">✓ Marquer comme arrivé</button>`
+                    : `<span class="stock-order-final-status ${statusClass}">${escapeHtml(displayStatus)}</span>`}
                 </div>
               </li>
             `;
@@ -24478,7 +24873,7 @@
       });
       const sites = Array.from(bySite.values()).slice(0, 4);
       preview.innerHTML = sites.length
-        ? sites.map(site => `<div class="stock-site-card"><strong>${escapeHtml(site.name)}</strong><small>${escapeHtml(site.projectName || 'Projet')}</small><small>${site.items} article${site.items > 1 ? 's' : ''} · ${site.quantity.toFixed(2)} unités disponibles</small><div class="stock-site-meter"><i style="width:${Math.min(100, Math.max(8, site.quantity))}%;"></i></div></div>`).join('')
+        ? sites.map(site => `<div class="stock-site-card"><div><strong>${escapeHtml(site.name)}</strong><small>${escapeHtml(site.projectName || 'Projet')}</small><small>${site.items} article${site.items > 1 ? 's' : ''} · ${site.quantity.toFixed(2)} unités disponibles</small></div><div class="stock-site-meter" style="--stock-site-fill:${Math.min(100, Math.max(8, site.quantity))}%;"><i>${Math.round(Math.min(100, Math.max(0, site.quantity)))}%</i></div></div>`).join('')
         : '<div class="empty-state"><p>Aucun stock disponible par site.</p></div>';
     }
 
@@ -30493,6 +30888,8 @@
       syncStockIssueRequestedStageInput();
       renderStockIssueLines();
     });
+    document.getElementById('stock-material-search')?.addEventListener('input', () => renderStockIssueLines());
+    document.getElementById('stock-material-only-available')?.addEventListener('change', () => renderStockIssueLines());
     updateStockIssueStageScopeMode();
 
     document.querySelectorAll('.stock-warehouse-card').forEach(card => {
