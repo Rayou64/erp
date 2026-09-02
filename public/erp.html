@@ -10772,6 +10772,17 @@
             #database .db-ref { color:#2761d8; font-weight:800; } #database .db-doc-icon { color:#ef3340; font-size:15px; } #database .db-status { display:inline-block; padding:4px 7px; border-radius:5px; background:#dcf8e7; color:#1c9a4d; font-size:10px; font-weight:800; }
             #database .db-actions { display:flex; gap:6px; } #database .db-actions button { width:27px; height:26px; border:1px solid #dbe4f4; border-radius:6px; background:#fff; color:#55709e; cursor:pointer; font-size:12px; }
             #database .db-empty { padding:26px; text-align:center; color:#71809a; } #database .db-trash { margin-top:4px; border-top:1px solid #e5ebf4; padding-top:14px; }
+            #database .db-panel:has(#database-documents-list) { padding:18px; }
+            #database .db-panel:has(#database-documents-list) .db-doc-title { margin-bottom:14px; font-size:17px; }
+            #database .db-table { min-width:1080px; font-size:12px; }
+            #database .db-table th { padding:12px 10px; font-size:10px; }
+            #database .db-table td { padding:14px 10px; font-size:12px; }
+            #database .db-doc-icon { font-size:17px; }
+            #database .db-ref { font-size:13px; }
+            #database .db-status { padding:5px 9px; font-size:11px; }
+            #database .db-actions { gap:7px; }
+            #database .db-actions button { width:31px; height:30px; font-size:13px; }
+            #database .db-trash { margin-top:8px; padding-top:18px; }
             @media (max-width:1100px) { #database .db-search-row { grid-template-columns:repeat(3,minmax(0,1fr)); } } @media (max-width:900px) { #database .db-upload-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } } @media (max-width:560px) { #database .db-upload-grid, #database .db-search-row { grid-template-columns:1fr; } #database .db-file-row { display:block; } #database .db-upload-submit { margin-top:8px; width:100%; } #database .db-top-tabs { gap:3px; overflow-x:auto; } }
           </style>
           <div class="db-shell">
