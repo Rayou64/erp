@@ -3655,6 +3655,7 @@ function authorizeRoleAccess(req, res, next) {
   }
 
   const pathName = String(req.path || '');
+  const method = String(req.method || '').toUpperCase();
 
   if (
     method === 'GET'
@@ -6340,7 +6341,6 @@ app.get('/api/stock-management/issues', async (req, res) => {
     LEFT JOIN material_requests mr ON mr.id = si.materialRequestId
     LEFT JOIN projects p ON p.id = si.projetId
     ORDER BY si.issuedAt DESC, si.id DESC
-    LIMIT 100
   `);
   const role = String(req.user?.role || '').trim();
   const scopedRows = (role === 'chef_chantier_site' || role === 'gestionnaire_stock_songon')
