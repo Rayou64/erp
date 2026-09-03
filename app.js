@@ -2183,7 +2183,12 @@ async function reconcileAdminCreatedPurchaseOrders() {
     UPDATE purchase_orders
     SET statut = 'VALIDEE',
         statutValidation = 'VALIDEE'
-    WHERE LOWER(TRIM(COALESCE(creePar, ''))) = 'admin'
+    WHERE (
+        LOWER(TRIM(COALESCE(creePar, ''))) = 'admin'
+        OR LOWER(TRIM(COALESCE(creePar, ''))) IN (
+          SELECT LOWER(TRIM(username)) FROM users WHERE LOWER(TRIM(role)) = 'admin'
+        )
+      )
       AND UPPER(COALESCE(statut, '')) NOT IN ('VALIDEE', 'LIVREE', 'ANNULEE', 'REJETEE')
   `);
 }
@@ -5642,7 +5647,9 @@ app.post('/api/purchase-orders', async (req, res) => {
     signatureRole = null,
   } = req.body;
   const createdBy = String(req.user?.username || creePar || 'admin').trim() || 'admin';
-  const initialOrderStatus = normalizeTextValue(createdBy) === 'admin' ? 'VALIDEE' : 'EN_COURS';
+  // Un bon de commande cree par un profil admin est valide d'office.
+  const isAdminAuthor = normalizeTextValue(createdBy) === 'admin' || normalizeTextValue(req.user?.role) === 'admin';
+  const initialOrderStatus = isAdminAuthor ? 'VALIDEE' : 'EN_COURS';
 
   // Check if warehouse is hidden
   if (warehouseId && isWarehouseHidden(warehouseId)) {
