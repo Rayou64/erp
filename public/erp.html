@@ -22260,7 +22260,7 @@
       const menuItem = document.querySelector(`[data-module="${moduleName}"]`);
       const menuSection = menuItem?.closest('.menu-section');
       const fallbackBlockTitle = menuSection?.querySelector('.menu-section-title')?.textContent.trim() || 'ERP';
-      const fallbackModuleTitle = menuItem?.textContent.replace(/^\s*[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]+\s*/u, '').trim() || 'Module';
+      const fallbackModuleTitle = menuItem?.textContent.replace(/^\s*[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]+\s*/u, '').trim() || 'Accueil';
       const [title, subtitle] = titles[moduleName] || [fallbackBlockTitle, fallbackModuleTitle];
       document.getElementById('page-title').textContent = title;
       document.getElementById('page-subtitle').textContent = subtitle;
