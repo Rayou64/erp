@@ -23046,6 +23046,7 @@
               const groupSelected = groupReqs.some(item => Number(selectedMaterialRequestId) === Number(item.id));
               const modifierAction = `editMaterialRequest(${first.id})`;
               const inlineAuthorizationContainerId = `material-authorization-doc-inline-${Number(first.id)}`;
+              const statusClass = first.statut === 'EN_ATTENTE' ? 'waiting' : first.statut === 'REJETEE' ? 'rejected' : 'done';
               return `
               <li class="list-item status-${statusClass}">
                 <div class="list-item-content project-item-clickable ${groupSelected ? 'project-item-selected' : ''}" onclick="viewMaterialRequest(${first.id})">
