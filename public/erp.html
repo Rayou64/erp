@@ -12,6 +12,9 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png" />
   <title>RyanERP</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap" />
   <style>
     :root {
@@ -36,7 +39,7 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'DM Sans', 'Segoe UI', sans-serif;
       background:
         radial-gradient(circle at top left, rgba(191, 219, 254, 0.35), transparent 26%),
         radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.35), transparent 24%),
@@ -364,6 +367,36 @@
       font-weight: 800;
       letter-spacing: 0;
       line-height: 1.1;
+      font-family: 'Manrope', 'DM Sans', sans-serif;
+    }
+
+    .topbar-left h2 {
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .module:not(#dashboard) > .page-header {
+      display: none;
+    }
+
+    #journal-chantier .jc-title-block,
+    #material-requests-tracking .mr-track-header {
+      display: none;
+    }
+
+    #journal-chantier .jc-header {
+      justify-content: flex-end;
+      margin-bottom: 18px;
+    }
+
+    #project-progress .pp-header-left {
+      display: none;
+    }
+
+    .module h1,
+    .module h2,
+    .module h3,
+    .module h4 {
+      font-family: 'Manrope', 'DM Sans', sans-serif;
     }
 
     .topbar-right {
@@ -22206,7 +22239,6 @@
         'purchase-orders': ['Achats', 'Bons de commande'],
         'purchase-orders-tracking': ['Achats', 'Suivi des bons de commande'],
         'material-catalog': ['Achats', 'Catalogue matériaux'],
-        'stock-management': ['Gestion de stock', 'Réception des commandes et sorties de matériel'],
         suppliers: ['Fournisseurs', 'Gestion des fournisseurs, matériels et tarifs'],
         'parc-auto': ['Parc Auto', 'Maintenance et entretien'],
         'parc-auto-maintenance': ['Parc Auto', 'Maintenance et entretien'],
@@ -22225,7 +22257,11 @@
         settings: ['Admin', 'Paramètres'],
       };
 
-      const [title, subtitle] = titles[moduleName] || ['Module', 'Détails'];
+      const menuItem = document.querySelector(`[data-module="${moduleName}"]`);
+      const menuSection = menuItem?.closest('.menu-section');
+      const fallbackBlockTitle = menuSection?.querySelector('.menu-section-title')?.textContent.trim() || 'ERP';
+      const fallbackModuleTitle = menuItem?.textContent.replace(/^\s*[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]+\s*/u, '').trim() || 'Module';
+      const [title, subtitle] = titles[moduleName] || [fallbackBlockTitle, fallbackModuleTitle];
       document.getElementById('page-title').textContent = title;
       document.getElementById('page-subtitle').textContent = subtitle;
     }
