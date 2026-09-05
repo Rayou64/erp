@@ -10385,6 +10385,30 @@
         </div>
 
         <div id="purchase-orders" class="module purchase-orders-module">
+          <style>
+            #purchase-orders { --po-ink:#29416c; --po-muted:#52617b; --po-line:#e1e9f7; --po-blue:#5367f5; font-family:inherit; }
+            #purchase-orders > .page-header, #purchase-orders #po-workflow-strip, #purchase-orders .po-section-divider, #purchase-orders #po-last-created-card, #purchase-orders #po-priority-actions, #purchase-orders #po-quick-filters, #purchase-orders #po-filter-bar, #purchase-orders #po-details { display:none !important; }
+            #purchase-orders .po-reference-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+            #purchase-orders .po-reference-kpi { display:grid; grid-template-columns:48px 1fr; gap:10px; align-items:center; padding:13px; min-height:74px; border:1px solid #e2eaf7; border-radius:12px; background:#fff; box-shadow:0 8px 20px rgba(74,103,160,.08); }
+            #purchase-orders .po-reference-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:50%; font-size:21px; font-weight:800; } #purchase-orders .po-reference-icon.draft{background:#eaf0ff;color:#4167df} #purchase-orders .po-reference-icon.pending{background:#fff3df;color:#ef9d25} #purchase-orders .po-reference-icon.valid{background:#e9f9ef;color:#24a158} #purchase-orders .po-reference-icon.rejected{background:#ffe9e9;color:#f15b62}
+            #purchase-orders .po-reference-value { color:#29416c; font-size:24px; line-height:1; font-weight:800; } #purchase-orders .po-reference-label { margin-top:5px; color:#4f6285; font-size:11px; font-weight:700; } #purchase-orders .po-reference-note { margin-top:3px; color:#7b8cac; font-size:10px; }
+            #purchase-orders .grid-2 { display:grid !important; grid-template-columns:minmax(0,1.8fr) minmax(300px,.85fr) !important; gap:14px !important; }
+            #purchase-orders .po-recent-card { grid-column:1 / -1; grid-row:1; order:0 !important; padding:14px !important; border:1px solid var(--po-line); border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
+            #purchase-orders .po-create-card { grid-column:1; grid-row:2; order:1 !important; padding:14px !important; border:1px solid var(--po-line); border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
+            #purchase-orders .po-demands-card { grid-column:2; grid-row:2; order:2 !important; padding:14px !important; border:1px solid var(--po-line); border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
+            #purchase-orders .po-recent-card::before, #purchase-orders .po-create-card::before { display:none; }
+            #purchase-orders .po-reference-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; } #purchase-orders .po-reference-head h3, #purchase-orders .po-section-title { margin:0; color:#2d4165; font-size:15px; font-weight:800; }
+            #purchase-orders .po-reference-head .button { height:32px; min-height:32px; padding:0 12px; border-radius:7px; background:#5367f5; color:#fff; font-size:11px; }
+            #purchase-orders .po-reference-filters { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)) 1.5fr; gap:10px; margin-bottom:12px; } #purchase-orders .po-reference-filters select, #purchase-orders .po-reference-filters input { width:100%; height:36px; border:1px solid #d4e0f2; border-radius:7px; padding:0 8px; color:#526887; background:#fff; font:600 11px inherit; }
+            #purchase-orders #po-list { display:block; margin:0; overflow-x:auto; } #purchase-orders .po-reference-table { width:100%; min-width:1050px; border-collapse:separate; border-spacing:0; font-size:12px; } #purchase-orders .po-reference-table th { padding:12px 9px; background:#f5f8fd; border-bottom:1px solid #dfe7f4; color:#53627d; font-size:10px; font-weight:800; text-align:left; white-space:nowrap; } #purchase-orders .po-reference-table td { padding:12px 9px; border-bottom:1px solid #edf1f8; color:#52617b; vertical-align:middle; } #purchase-orders .po-reference-table tbody tr { cursor:pointer; } #purchase-orders .po-reference-table tbody tr:hover { background:#f8fbff; }
+            #purchase-orders .po-reference-title { color:#344a72; font-size:13px; font-weight:800; } #purchase-orders .po-reference-sub { margin-top:3px; color:#7b8cac; font-size:10px; } #purchase-orders .po-reference-status { display:inline-block; padding:5px 9px; border-radius:5px; font-size:10px; font-weight:800; } #purchase-orders .po-reference-status.pending { background:#fff0d8;color:#d48716; } #purchase-orders .po-reference-status.valid { background:#daf7e5;color:#1c9b4f; } #purchase-orders .po-reference-status.rejected { background:#ffe0e2;color:#e34d55; } #purchase-orders .po-reference-actions { display:flex; gap:7px; } #purchase-orders .po-reference-actions button { width:31px; height:30px; border:1px solid #d9e3f3; border-radius:6px; background:#fff; color:#526b98; font-size:12px; cursor:pointer; }
+            #purchase-orders .po-create-card > .po-section-title::before { content:'⊕'; display:inline-grid; place-items:center; width:28px; height:28px; margin-right:8px; border-radius:50%; background:#eaf0ff; color:#4167df; } #purchase-orders .po-create-card > .po-section-title { display:flex; align-items:center; } #purchase-orders .po-create-card > .po-section-title::after { content:'Remplissez les informations et ajoutez les articles'; display:block; margin-left:8px; color:#7b8cac; font-size:10px; font-weight:500; }
+            #purchase-orders .po-form-grid, #purchase-orders .po-site-grid, #purchase-orders .po-signature-grid { gap:10px; margin-bottom:10px; } #purchase-orders .form-group label { color:#536582; font-size:10px; font-weight:800; } #purchase-orders input, #purchase-orders select, #purchase-orders textarea { min-height:36px; border:1px solid #d4e0f2; border-radius:7px; color:#526887; background:#fff; font-size:11px; } #purchase-orders .button { min-height:36px; border-radius:7px; font-size:11px; }
+            #purchase-orders .po-demands-card::before { content:'⊕  Importation depuis le catalogue'; display:block; color:#2d4165; font-size:13px; font-weight:800; margin-bottom:7px; } #purchase-orders .po-demands-card::after { content:'Chargez les articles depuis le catalogue ou utilisez une demande d’approvisionnement existante.'; display:block; color:#7b8cac; font-size:10px; line-height:1.4; } #purchase-orders .po-recent-requests { margin:0; padding:14px; border:1px dashed #9ec5ff; border-radius:9px; background:#f8fbff; text-align:center; } #purchase-orders .po-recent-requests h4 { color:#35517a; font-size:12px; } #purchase-orders #po-suggestions-list { max-height:260px; margin-top:10px; text-align:left; } #purchase-orders #po-pending-validation-section { display:none !important; }
+            @media(max-width:1100px){#purchase-orders .grid-2{grid-template-columns:1fr !important}#purchase-orders .po-create-card,#purchase-orders .po-demands-card{grid-column:1;grid-row:auto}#purchase-orders .po-reference-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#purchase-orders .po-reference-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
+            @media(max-width:650px){#purchase-orders .po-reference-kpis,#purchase-orders .po-reference-filters{grid-template-columns:1fr}#purchase-orders .po-reference-head{align-items:flex-start;flex-direction:column}}
+          </style>
+          <div class="po-reference-kpis"><div class="po-reference-kpi"><span class="po-reference-icon draft">▣</span><div><div class="po-reference-value" id="po-kpi-draft">0</div><div class="po-reference-label">Brouillons</div><div class="po-reference-note">À traiter</div></div></div><div class="po-reference-kpi"><span class="po-reference-icon pending">◷</span><div><div class="po-reference-value" id="po-kpi-pending">0</div><div class="po-reference-label">En attente</div><div class="po-reference-note">À valider</div></div></div><div class="po-reference-kpi"><span class="po-reference-icon valid">✓</span><div><div class="po-reference-value" id="po-kpi-valid">0</div><div class="po-reference-label">Approuvés</div><div class="po-reference-note">Ce mois</div></div></div><div class="po-reference-kpi"><span class="po-reference-icon rejected">×</span><div><div class="po-reference-value" id="po-kpi-rejected">0</div><div class="po-reference-label">Rejetés</div><div class="po-reference-note">Ce mois</div></div></div></div>
           <div class="page-header">
             <h1>Bons de commande</h1>
             <p>Achat aux fournisseurs</p>
@@ -10523,7 +10547,8 @@
                   </div>
                 </div>
               </div>
-              <h3 id="po-list-title" class="po-section-title">Bons récents</h3>
+              <div class="po-reference-head"><h3 id="po-list-title">Bons de commande récents</h3><button type="button" class="button" onclick="document.getElementById('po-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })">＋ Nouveau bon de commande</button></div>
+              <div class="po-reference-filters"><select id="po-reference-project"><option value="">Tous les projets</option></select><select id="po-reference-site"><option value="">Tous les sites</option></select><select id="po-filter-status"><option value="">Tous les statuts</option><option value="EN_ATTENTE">En attente</option><option value="VALIDEE">Approuvé</option><option value="REJETEE">Rejeté</option></select><input id="po-reference-date" type="date" aria-label="Période" /><input type="search" id="po-search" placeholder="Rechercher un bon de commande..." /></div>
               <div id="po-quick-filters" class="po-quick-filters" aria-label="Filtres rapides bon de commande">
                 <button type="button" class="po-quick-filter active" data-po-quick-filter="all">Tous</button>
                 <button type="button" class="po-quick-filter" data-po-quick-filter="new">Nouveau</button>
@@ -10532,19 +10557,10 @@
                 <button type="button" class="po-quick-filter" data-po-quick-filter="urgent">Urgent</button>
                 <button type="button" class="po-quick-filter" data-po-quick-filter="mine">Mes bons</button>
               </div>
-              <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="po-search" placeholder="Rechercher un bon (site, fournisseur, statut)" />
-              </div>
               <ul id="po-list" class="list"></ul>
               <div id="po-details" class="card" style="margin-top: 12px; background-color: #f8fafc;"></div>
               <div class="filter-bar" id="po-filter-bar">
                 <label>Statut</label>
-                <select id="po-filter-status">
-                  <option value="">Tous</option>
-                  <option value="en attente">En attente</option>
-                  <option value="approuvé">Approuvé</option>
-                  <option value="rejeté">Rejeté</option>
-                </select>
                 <label>Depuis</label>
                 <input type="date" id="po-filter-date-from" />
                 <label>Jusqu'au</label>
@@ -24485,6 +24501,57 @@
       return { groupedCount: rows.length, optionCount: rows.length };
     }
 
+    function renderPurchaseOrdersReferenceTable(orders) {
+      const list = document.getElementById('po-list');
+      if (!list) return;
+      const source = Array.isArray(orders) ? orders : [];
+      const setKpi = (id, value) => { const element = document.getElementById(id); if (element) element.textContent = String(value); };
+      const statusOf = order => String(order?.statut || '').trim().toUpperCase();
+      setKpi('po-kpi-draft', source.filter(order => ['BROUILLON', 'DRAFT'].includes(statusOf(order))).length);
+      setKpi('po-kpi-pending', source.filter(order => ['EN_ATTENTE', 'EN_COURS'].includes(statusOf(order))).length);
+      setKpi('po-kpi-valid', source.filter(order => ['VALIDEE', 'VALIDÉE', 'APPROUVEE', 'APPROUVÉE'].includes(statusOf(order))).length);
+      setKpi('po-kpi-rejected', source.filter(order => statusOf(order) === 'REJETEE').length);
+
+      const projectSelect = document.getElementById('po-reference-project');
+      const siteSelect = document.getElementById('po-reference-site');
+      const updateOptions = (element, values, label) => {
+        if (!element) return;
+        const selected = String(element.value || '');
+        element.innerHTML = `<option value="">${label}</option>${values.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('')}`;
+        if (values.includes(selected)) element.value = selected;
+      };
+      updateOptions(projectSelect, [...new Set(source.map(order => String(order.nomProjetManuel || order.nomProjet || '').trim()).filter(Boolean))].sort(), 'Tous les projets');
+      updateOptions(siteSelect, [...new Set(source.map(order => String(order.numeroMaison || order.nomSiteManuel || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true })), 'Tous les sites');
+
+      const projectFilter = String(projectSelect?.value || '').trim();
+      const siteFilter = String(siteSelect?.value || '').trim();
+      const statusFilter = String(document.getElementById('po-filter-status')?.value || '').trim().toUpperCase();
+      const dateFilter = String(document.getElementById('po-reference-date')?.value || '').trim();
+      const displayed = source.filter(order => {
+        const project = String(order.nomProjetManuel || order.nomProjet || '').trim();
+        const site = String(order.numeroMaison || order.nomSiteManuel || '').trim();
+        const date = String(order.dateCommande || '').slice(0, 10);
+        return (!projectFilter || project === projectFilter)
+          && (!siteFilter || site === siteFilter)
+          && (!statusFilter || statusOf(order) === statusFilter)
+          && (!dateFilter || date === dateFilter);
+      });
+      if (!displayed.length) {
+        list.innerHTML = '<div class="empty-state"><p>Aucun bon de commande ne correspond aux critères.</p></div>';
+        return;
+      }
+      const statusLabel = status => getPoStatusLabel(status);
+      const statusClass = status => getPoStatusClass(status);
+      list.innerHTML = `<table class="po-reference-table"><thead><tr><th># BC</th><th>Projet / Site</th><th>Fournisseur</th><th>N° d'articles</th><th>Montant (FCFA)</th><th>Date de création</th><th>Statut</th><th>Créé par</th><th>Actions</th></tr></thead><tbody>${displayed.map(order => {
+        const status = statusOf(order);
+        const items = Array.isArray(order.items) ? order.items : [];
+        const site = String(order.numeroMaison || order.nomSiteManuel || '-').replace(/^Site\s*/i, '');
+        const project = String(order.nomProjetManuel || order.nomProjet || '-');
+        const canValidate = canCurrentUserValidatePurchaseOrder(order);
+        return `<tr onclick="viewPurchaseOrder(${Number(order.id)})"><td><div class="po-reference-title">BC-2026-${String(order.id).padStart(3, '0')}</div></td><td><div class="po-reference-title">${escapeHtml(project)}</div><div class="po-reference-sub">Site ${escapeHtml(site)}</div></td><td>${escapeHtml(order.fournisseur || '-')}</td><td>${items.length || Number(order.itemCount || 1)}</td><td>${Number(order.montantTotal || 0).toLocaleString('fr-FR')}</td><td>${escapeHtml(formatDate(order.dateCommande))}</td><td><span class="po-reference-status ${statusClass(status)}">${escapeHtml(statusLabel(status))}</span></td><td>${escapeHtml(order.creePar || order.createdBy || '-')}</td><td onclick="event.stopPropagation()"><div class="po-reference-actions"><button type="button" title="Voir" onclick="viewPurchaseOrder(${Number(order.id)})">◉</button>${isPurchaseReadOnlyRole() ? '' : `<button type="button" title="Modifier" onclick="editPurchaseOrder(${Number(order.id)})">✎</button>`}<button type="button" title="Télécharger le PDF" onclick="downloadPurchaseOrderPdf(${Number(order.id)})">↓</button>${canValidate ? `<button type="button" title="Valider" onclick="validatePurchaseOrder(${Number(order.id)})">✓</button><button type="button" title="Rejeter" onclick="rejectPurchaseOrder(${Number(order.id)})">×</button>` : ''}</div></td></tr>`;
+      }).join('')}</tbody></table>`;
+    }
+
     async function loadPurchaseOrders() {
       if (!canLoadPurchaseOrdersForCurrentRole()) {
         purchaseOrdersCache = [];
@@ -24631,6 +24698,8 @@
           : (recentOrders.length
               ? '<div class="empty-state"><p>Aucun bon ne correspond à la recherche</p></div>'
               : '<div class="empty-state"><p>Aucun bon de commande</p></div>');
+
+        renderPurchaseOrdersReferenceTable(filteredOrders);
 
         const selectedOrder = isZoneStockManager()
           ? null
@@ -30968,6 +31037,10 @@
     document.getElementById('po-search').addEventListener('input', e => {
       purchaseOrderSearchTerm = e.target.value;
       loadPurchaseOrders();
+    });
+
+    ['po-reference-project', 'po-reference-site', 'po-filter-status', 'po-reference-date'].forEach(id => {
+      document.getElementById(id)?.addEventListener('change', () => loadPurchaseOrders());
     });
 
     document.querySelectorAll('#po-quick-filters .po-quick-filter').forEach(button => {
