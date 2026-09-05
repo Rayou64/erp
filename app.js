@@ -4279,7 +4279,7 @@ async function buildAuthProfilePayload(user) {
 
   const accessProfile = roleCanBypassAccessProfile(role)
     ? null
-    : await getUserAccessProfileByUsername(req.user?.username);
+    : await getUserAccessProfileByUsername(user?.username);
   const effectiveModules = roleCanBypassAccessProfile(role)
     ? []
     : Array.from(computeEffectiveModulesForAccessProfile(accessProfile || {}, role));
