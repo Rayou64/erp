@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maquette - Demandes d'approvisionnement reçues</title>
+  <style>
+    :root { --ink:#29416c; --muted:#52617b; --line:#e1e9f7; --blue:#5367f5; --green:#20a45a; --red:#f15b62; --amber:#ef9d25; }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:18px; background:#f6f9fe; color:var(--ink); font-family:"DM Sans","Segoe UI",sans-serif; }
+    .card { max-width:1340px; margin:auto; padding:18px; border:1px solid var(--line); border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
+    .head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    h1 { margin:0; color:#2d4165; font-size:15px; font-weight:800; }
+    .view-all { border:0; background:transparent; color:#5367f5; font:700 11px inherit; cursor:pointer; }
+    .request { display:grid; grid-template-columns:125px minmax(220px,1.2fr) minmax(260px,1.35fr) minmax(170px,.9fr) 140px 24px; gap:12px; align-items:center; padding:13px 10px; border:1px solid #edf1f8; border-left:3px solid var(--amber); border-radius:7px; background:#fff; }
+    .status { display:inline-flex; align-items:center; gap:4px; width:max-content; padding:5px 9px; border-radius:5px; background:#fff0d8; color:#d48716; font-size:10px; font-weight:800; }
+    .ref { margin-top:9px; color:#344a72; font-size:12px; font-weight:800; } .date { margin-top:6px; color:#52617b; font-size:11px; }
+    .stage { color:#344a72; font-size:13px; font-weight:800; } .stage-sub { margin-top:4px; color:#526b98; font-size:10px; font-weight:700; text-transform:uppercase; } .meta { display:grid; gap:6px; margin-top:10px; color:#52617b; font-size:11px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; } th { padding:8px 7px; background:#f5f8fd; color:#53627d; font-size:10px; text-align:left; } td { padding:8px 7px; color:#52617b; border-bottom:1px solid #edf1f8; } th:last-child,td:last-child { text-align:right; } tr:last-child td { border-bottom:0; }
+    .person { display:grid; grid-template-columns:31px 1fr; gap:8px; align-items:start; } .avatar { display:grid; place-items:center; width:31px; height:31px; border-radius:50%; background:#eaf0ff; color:#4167df; font-size:14px; } .person b { color:#344a72; font-size:12px; } .person small { display:block; margin-top:3px; color:#7b8cac; font-size:10px; }
+    .message { display:flex; gap:6px; margin-top:9px; padding:7px 8px; border-radius:5px; background:#f5f8fd; color:#52617b; font-size:10px; line-height:1.35; }
+    .actions { display:grid; gap:7px; } .action { height:30px; border-radius:6px; border:1px solid transparent; font:700 11px inherit; cursor:pointer; } .create { background:var(--blue); color:#fff; } .details { border-color:#d9e3f3; background:#fff; color:#526b98; } .reject { border-color:#ffcfd3; background:#fff1f2; color:#e34d55; }
+    .more { height:30px; border:0; background:transparent; color:#55709e; font-size:22px; cursor:pointer; }
+    @media (max-width:1050px) { .request { grid-template-columns:125px 1fr 1fr; } .actions { grid-column:2 / 4; grid-template-columns:repeat(3,1fr); } .more { grid-column:3; grid-row:1; justify-self:end; } }
+    @media (max-width:650px) { body { padding:10px; } .head { align-items:flex-start; flex-direction:column; } .request { grid-template-columns:1fr; } .actions { grid-column:auto; grid-template-columns:1fr; } .more { grid-column:auto; grid-row:auto; justify-self:start; } }
+  </style>
+</head>
+<body>
+  <section class="card">
+    <header class="head"><h1>Demandes d'approvisionnement reçues</h1><button class="view-all">▣ Voir toutes les demandes</button></header>
+    <article class="request">
+      <div><span class="status">⌛ EN ATTENTE</span><div class="ref">DA193-01</div><div class="date">▣ 31 août 2026</div></div>
+      <div><div class="stage">Charpente et Toiture</div><div class="stage-sub">Étape d'approvisionnement</div><div class="meta"><span>▦ Projet : Songon Kassemble</span><span>⌖ Site : 193</span></div></div>
+      <div><table><thead><tr><th>Article demandé</th><th>Unité</th><th>Qté</th></tr></thead><tbody><tr><td>Chevron 6/8 en bois rouge</td><td>Pièce</td><td>72.00</td></tr><tr><td>Boîte à gaz</td><td>Unité</td><td>2.00</td></tr></tbody></table></div>
+      <div><div class="person"><span class="avatar">R</span><span><b>Ryan</b><small>Demandeur</small></span></div><div class="message">▢ <span>Demande en attente de traitement pour préparer le bon de commande.</span></div></div>
+      <div class="actions"><button class="action create">＋ Créer le bon</button><button class="action details">◉ Voir détails</button><button class="action reject">× Rejeter</button></div>
+      <button class="more" aria-label="Plus d'actions">⋮</button>
+    </article>
+  </section>
+</body>
+</html>

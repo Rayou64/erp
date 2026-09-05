@@ -10395,7 +10395,7 @@
             #purchase-orders .grid-2 { display:grid !important; grid-template-columns:minmax(0,1.8fr) minmax(300px,.85fr) !important; gap:14px !important; }
             #purchase-orders .po-demands-card { grid-column:1 / -1; grid-row:1; order:0 !important; padding:10px 14px !important; border:1px solid var(--po-line); border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
             #purchase-orders .po-recent-card { grid-column:1 / -1; grid-row:2; order:1 !important; padding:14px !important; border:1px solid var(--po-line); border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
-            #purchase-orders .po-create-card { grid-column:1; grid-row:3; order:2 !important; padding:14px !important; border:1px solid var(--po-line); border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
+            #purchase-orders .po-create-card { grid-column:1 / -1; grid-row:3; order:2 !important; padding:18px !important; border:1px solid var(--po-line); border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
             #purchase-orders .po-recent-card::before, #purchase-orders .po-create-card::before { display:none; }
             #purchase-orders .po-reference-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; } #purchase-orders .po-reference-head h3, #purchase-orders .po-section-title { margin:0; color:#2d4165; font-size:15px; font-weight:800; }
             #purchase-orders .po-reference-head .button { height:32px; min-height:32px; padding:0 12px; border-radius:7px; background:#5367f5; color:#fff; font-size:11px; }
@@ -10403,9 +10403,10 @@
             #purchase-orders #po-list { display:block; margin:0; overflow-x:auto; } #purchase-orders .po-reference-table { width:100%; min-width:1050px; border-collapse:separate; border-spacing:0; font-size:12px; } #purchase-orders .po-reference-table th { padding:12px 9px; background:#f5f8fd; border-bottom:1px solid #dfe7f4; color:#53627d; font-size:10px; font-weight:800; text-align:left; white-space:nowrap; } #purchase-orders .po-reference-table td { padding:12px 9px; border-bottom:1px solid #edf1f8; color:#52617b; vertical-align:middle; } #purchase-orders .po-reference-table tbody tr { cursor:pointer; } #purchase-orders .po-reference-table tbody tr:hover { background:#f8fbff; }
             #purchase-orders .po-reference-title { color:#344a72; font-size:13px; font-weight:800; } #purchase-orders .po-reference-sub { margin-top:3px; color:#7b8cac; font-size:10px; } #purchase-orders .po-reference-status { display:inline-block; padding:5px 9px; border-radius:5px; font-size:10px; font-weight:800; } #purchase-orders .po-reference-status.pending { background:#fff0d8;color:#d48716; } #purchase-orders .po-reference-status.valid { background:#daf7e5;color:#1c9b4f; } #purchase-orders .po-reference-status.rejected { background:#ffe0e2;color:#e34d55; } #purchase-orders .po-reference-actions { display:flex; gap:7px; } #purchase-orders .po-reference-actions button { width:31px; height:30px; border:1px solid #d9e3f3; border-radius:6px; background:#fff; color:#526b98; font-size:12px; cursor:pointer; }
             #purchase-orders .po-create-card > .po-section-title::before { content:'⊕'; display:inline-grid; place-items:center; width:28px; height:28px; margin-right:8px; border-radius:50%; background:#eaf0ff; color:#4167df; } #purchase-orders .po-create-card > .po-section-title { display:flex; align-items:center; } #purchase-orders .po-create-card > .po-section-title::after { content:'Remplissez les informations et ajoutez les articles'; display:block; margin-left:8px; color:#7b8cac; font-size:10px; font-weight:500; }
-            #purchase-orders .po-form-grid, #purchase-orders .po-site-grid, #purchase-orders .po-signature-grid { gap:10px; margin-bottom:10px; } #purchase-orders .form-group label { color:#536582; font-size:10px; font-weight:800; } #purchase-orders input, #purchase-orders select, #purchase-orders textarea { min-height:36px; border:1px solid #d4e0f2; border-radius:7px; color:#526887; background:#fff; font-size:11px; } #purchase-orders .button { min-height:36px; border-radius:7px; font-size:11px; }
+            #purchase-orders #po-form { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px 12px; } #purchase-orders .po-form-grid, #purchase-orders .po-site-grid, #purchase-orders .po-signature-grid { gap:10px; margin:0; } #purchase-orders .po-form-grid { grid-column:span 2; } #purchase-orders .po-site-grid { grid-column:3; grid-template-columns:1fr; } #purchase-orders #po-villa-type-info, #purchase-orders #po-delivery-hint, #purchase-orders #po-stage-main, #purchase-orders .po-form-help, #purchase-orders #po-load-catalog, #purchase-orders #po-items-wrap, #purchase-orders #po-form > button[type="submit"] { grid-column:1 / -1; } #purchase-orders #po-stage-main { min-width:0; } #purchase-orders #po-stage-main + select { min-width:0; } #purchase-orders .form-group label { color:#536582; font-size:10px; font-weight:800; } #purchase-orders input, #purchase-orders select, #purchase-orders textarea { min-height:36px; border:1px solid #d4e0f2; border-radius:7px; color:#526887; background:#fff; font-size:11px; } #purchase-orders .button { min-height:36px; border-radius:7px; font-size:11px; }
+            #purchase-orders #po-items-wrap { margin:4px -18px -4px; padding:14px 18px 0; border-top:1px solid #e1e9f7; } #purchase-orders .po-items-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; } #purchase-orders .po-items-head label { color:#2d4165; font-size:13px; } #purchase-orders .po-items-table-wrap { overflow-x:auto; border:1px solid #e1e9f7; border-radius:9px; } #purchase-orders .po-items-table { width:100%; min-width:1080px; border-collapse:collapse; font-size:12px; } #purchase-orders .po-items-table th { padding:10px 9px; background:#f5f8fd; border-bottom:1px solid #dfe7f4; color:#53627d; font-size:10px; font-weight:800; text-align:left; white-space:nowrap; } #purchase-orders .po-items-table td { padding:8px 9px; border-bottom:1px solid #edf1f8; color:#52617b; vertical-align:middle; } #purchase-orders .po-items-table tbody tr:last-child td { border-bottom:0; } #purchase-orders .po-items-table input, #purchase-orders .po-items-table select { min-height:30px; width:100%; min-width:92px; border-radius:5px; font-size:10px; } #purchase-orders .po-items-table .po-item-total { min-height:30px; height:30px; padding:0 7px; border:0; background:transparent; color:#344d76; font-size:11px; font-weight:800; } #purchase-orders .po-items-table .po-item-remove { min-width:30px; min-height:30px; width:30px; height:30px; margin:0 !important; padding:0; border:0; background:transparent; color:#ef5960; font-size:0; } #purchase-orders .po-items-table .po-item-remove::before { content:'×'; font-size:18px; }
             #purchase-orders .po-demands-card::before { content:'Demandes d’approvisionnement reçues'; display:block; color:#2d4165; font-size:13px; font-weight:800; margin-bottom:7px; } #purchase-orders .po-demands-card::after { content:''; } #purchase-orders .po-recent-requests { margin:0; padding:9px; border:1px solid #d4e0f2; border-radius:9px; background:#f8fbff; text-align:left; } #purchase-orders .po-recent-requests h4 { display:none; } #purchase-orders #po-suggestions-list { max-height:220px; margin-top:0; text-align:left; } #purchase-orders #po-suggestions-list .po-demand-item { grid-template-columns:minmax(0,1fr) auto; padding:9px; border-radius:7px; } #purchase-orders #po-suggestions-list .po-mock-actions { grid-template-columns:112px 82px 72px; width:auto; align-self:end; } #purchase-orders #po-suggestions-list .po-btn { min-height:28px; padding:0 8px; border-radius:5px; font-size:9px; } #purchase-orders #po-suggestions-list .po-suggestion-options { grid-template-columns:repeat(3,minmax(80px,1fr)); max-width:300px; } #purchase-orders #po-suggestions-list .po-suggestion-option { min-height:42px; padding:5px; border-radius:5px; } #purchase-orders #po-suggestions-list .opt-k { font-size:7px; } #purchase-orders #po-suggestions-list .opt-v { font-size:9px; } #purchase-orders #po-pending-validation-section { display:none !important; }
-            @media(max-width:1100px){#purchase-orders .grid-2{grid-template-columns:1fr !important}#purchase-orders .po-create-card,#purchase-orders .po-demands-card{grid-column:1;grid-row:auto}#purchase-orders .po-reference-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#purchase-orders .po-reference-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
+            @media(max-width:1100px){#purchase-orders .grid-2{grid-template-columns:1fr !important}#purchase-orders .po-create-card,#purchase-orders .po-demands-card{grid-column:1;grid-row:auto}#purchase-orders #po-form{grid-template-columns:1fr 1fr}#purchase-orders .po-form-grid,#purchase-orders .po-site-grid{grid-column:1 / -1}#purchase-orders .po-reference-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#purchase-orders .po-reference-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
             @media(max-width:650px){#purchase-orders .po-reference-kpis,#purchase-orders .po-reference-filters{grid-template-columns:1fr}#purchase-orders .po-reference-head{align-items:flex-start;flex-direction:column}}
           </style>
           <div class="po-reference-kpis"><div class="po-reference-kpi"><span class="po-reference-icon draft">▣</span><div><div class="po-reference-value" id="po-kpi-draft">0</div><div class="po-reference-label">Brouillons</div><div class="po-reference-note">À traiter</div></div></div><div class="po-reference-kpi"><span class="po-reference-icon pending">◷</span><div><div class="po-reference-value" id="po-kpi-pending">0</div><div class="po-reference-label">En attente</div><div class="po-reference-note">À valider</div></div></div><div class="po-reference-kpi"><span class="po-reference-icon valid">✓</span><div><div class="po-reference-value" id="po-kpi-valid">0</div><div class="po-reference-label">Approuvés</div><div class="po-reference-note">Ce mois</div></div></div><div class="po-reference-kpi"><span class="po-reference-icon rejected">×</span><div><div class="po-reference-value" id="po-kpi-rejected">0</div><div class="po-reference-label">Rejetés</div><div class="po-reference-note">Ce mois</div></div></div></div>
@@ -10423,7 +10424,7 @@
 
           <div class="grid-2">
             <div class="card form-card po-create-card">
-              <h3 class="po-section-title">Créer un bon</h3>
+              <h3 class="po-section-title">Nouveau bon de commande</h3>
               <form id="po-form">
                 <!-- Sélecteurs projet / site -->
                 <div class="po-form-grid">
@@ -10468,10 +10469,17 @@
                 <div style="margin-bottom:10px;">
                   <button type="button" id="po-load-catalog" class="button button-secondary" style="width:100%;" aria-describedby="po-form-help">↧ Charger les articles du catalogue</button>
                 </div>
-                <div class="form-group">
-                  <label>Articles du bon *</label>
-                  <div id="po-items" style="display: grid; gap: 10px;"></div>
-                  <button type="button" id="add-po-item" class="button button-secondary" style="margin-top: 8px; width: 100%;" aria-label="Ajouter une nouvelle ligne d'article">+ Ajouter un article manuellement</button>
+                <div class="form-group" id="po-items-wrap">
+                  <div class="po-items-head">
+                    <label>Articles du bon de commande *</label>
+                    <button type="button" id="add-po-item" class="button button-secondary" aria-label="Ajouter une nouvelle ligne d'article">+ Ajouter un article</button>
+                  </div>
+                  <div class="po-items-table-wrap">
+                    <table class="po-items-table">
+                      <thead><tr><th>Demande liée</th><th>Catalogue matériau</th><th>Article *</th><th>Quantité *</th><th>Prix unitaire (FCFA) *</th><th>Total (FCFA)</th><th>Actions</th></tr></thead>
+                      <tbody id="po-items"></tbody>
+                    </table>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label>Fournisseur *</label>
@@ -19632,34 +19640,28 @@
       const container = document.getElementById('po-items');
       if (!container) return;
 
-      const row = document.createElement('div');
+      const row = document.createElement('tr');
       row.className = 'po-item-row';
       row.innerHTML = `
-        <div class="form-group" style="margin-bottom: 0;">
-          <label>Demande liée</label>
+        <td>
           <select class="po-item-request" aria-label="Demande liée">${getMaterialRequestOptionsHtml(initialValues.materialRequestId || '')}</select>
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label>Catalogue matériau</label>
+        </td>
+        <td>
           <select class="po-item-catalog" aria-label="Catalogue matériau">${getPoCatalogOptionsHtml(initialValues.catalogId || '', initialValues.materialRequestId || null)}</select>
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label>Article *</label>
+        </td>
+        <td>
           <input type="text" class="po-item-article" value="${escapeHtml(initialValues.article || '')}" required aria-label="Nom de l'article" />
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label>Quantité *</label>
+        </td>
+        <td>
           <input type="text" inputmode="decimal" class="po-item-qty" value="${initialValues.quantite || ''}" required aria-label="Quantité" />
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label>Prix unitaire (FCFA) *</label>
+        </td>
+        <td>
           <input type="text" inputmode="decimal" class="po-item-price" value="${initialValues.prixUnitaire || ''}" required aria-label="Prix unitaire" />
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label>Total ligne</label>
+        </td>
+        <td>
           <div class="po-item-total">0.00 FCFA</div>
-          <button type="button" class="button button-small button-danger po-item-remove" style="margin-top: 6px; width: 100%;" aria-label="Retirer cette ligne d'article">Retirer</button>
-        </div>
+        </td>
+        <td><button type="button" class="button button-small button-danger po-item-remove" aria-label="Retirer cette ligne d'article">Retirer</button></td>
       `;
 
       container.appendChild(row);
