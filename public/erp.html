@@ -10302,6 +10302,7 @@
             #sortie-autorisations .sia-action-buttons { display:grid; grid-template-columns:1fr; gap:5px; width:auto; margin:0; } #sortie-autorisations .sia-action-buttons .button { width:100%; min-width:0; min-height:21px; height:21px; padding:0 6px; border-radius:4px; color:#fff; font-size:8px; font-weight:800; } #sortie-autorisations .sia-action-buttons .button-success { background:#079669; } #sortie-autorisations .sia-action-buttons .button-danger { background:#f0474b; } #sortie-autorisations .sia-action-buttons .button-secondary { border-color:#d7e3f5; background:#fff; color:#2563eb; } #sortie-autorisations .sia-more { width:16px; height:28px; padding:0; border:0; background:transparent; color:#1d4ed8; font-size:18px; line-height:1; cursor:pointer; }
             #sortie-autorisations .sia-details { grid-column:2 / 6; padding-top:8px; border-top:1px solid #e9eff7; }
             #sortie-autorisations .sia-empty { padding:30px; text-align:center; color:#64748b; font-weight:700; }
+            #sortie-autorisations .sia-pagination { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0 0; color:#61738f; font-size:8px; font-weight:700; } #sortie-autorisations .sia-pagination-controls { display:flex; align-items:center; gap:5px; } #sortie-autorisations .sia-pagination button { width:24px; height:22px; padding:0; border:1px solid #d9e4f2; border-radius:4px; background:#fff; color:#2c61d8; font-size:10px; cursor:pointer; } #sortie-autorisations .sia-pagination button.active { border-color:#355bea; background:#355bea; color:#fff; } #sortie-autorisations .sia-pagination button:disabled { opacity:.42; cursor:default; } #sortie-autorisations .sia-pagination select { height:24px; border:1px solid #d9e4f2; border-radius:4px; background:#fff; color:#49617f; padding:0 6px; font-size:8px; font-weight:700; }
             @media (max-width:1100px) { #sortie-autorisations .sia-toolbar { grid-template-columns:repeat(3,minmax(0,1fr)); } #sortie-autorisations #sia-list .list-item { grid-template-columns:100px 1fr 1fr; } #sortie-autorisations .sia-action-buttons { grid-column:2 / 4; grid-template-columns:repeat(3,1fr); } }
             @media (max-width:680px) { #sortie-autorisations .sia-kpis, #sortie-autorisations .sia-toolbar, #sortie-autorisations #sia-list .list-item { grid-template-columns:1fr; } #sortie-autorisations .sia-action-buttons, #sortie-autorisations .sia-details { grid-column:auto; } #sortie-autorisations .sia-action-buttons { grid-template-columns:repeat(3,1fr); } }
           </style>
@@ -10321,7 +10322,7 @@
               <div class="sia-filter"><label for="sia-search">Recherche</label><input id="sia-search" type="search" placeholder="Projet, article, demandeur..." /></div>
               <button type="button" id="sia-refresh" class="button button-secondary">↻ Réinitialiser</button>
             </div>
-            <div class="sia-list-card"><div class="sia-list-head"><h3>Liste des demandes d'autorisation de sortie</h3><label class="sia-sort">Trier par <select id="sia-sort"><option value="recent">Date (plus récente)</option><option value="oldest">Date (plus ancienne)</option><option value="status">Statut</option></select></label></div><ul id="sia-list" class="list"></ul></div>
+            <div class="sia-list-card"><div class="sia-list-head"><h3>Liste des demandes d'autorisation de sortie</h3><label class="sia-sort">Trier par <select id="sia-sort"><option value="recent">Date (plus récente)</option><option value="oldest">Date (plus ancienne)</option><option value="status">Statut</option></select></label></div><ul id="sia-list" class="list"></ul><div class="sia-pagination"><span id="sia-pagination-meta">Affichage 0 à 0 sur 0 demandes</span><div class="sia-pagination-controls"><button type="button" id="sia-page-prev" aria-label="Page précédente">‹</button><span id="sia-page-buttons"></span><button type="button" id="sia-page-next" aria-label="Page suivante">›</button></div><select id="sia-page-size" aria-label="Demandes par page"><option value="10">10 / page</option><option value="20">20 / page</option><option value="50">50 / page</option></select></div></div>
           </div>
         </div>
 
@@ -25246,6 +25247,7 @@
     let siaDocPreviewObjectUrl = null;
     const stockIssueAuthorizationById = new Map();
     let siaRowsCache = [];
+    let siaCurrentPage = 1;
 
     function clearSiaDocPreview() {
       const docPreview = document.getElementById('sia-sign-doc-preview');
@@ -25338,9 +25340,16 @@
 
         if (!visibleRows.length) {
           list.innerHTML = '<li class="sia-empty">Aucune demande ne correspond aux critères.</li>';
+          const meta = document.getElementById('sia-pagination-meta');
+          if (meta) meta.textContent = 'Affichage 0 à 0 sur 0 demandes';
           return;
         }
-        list.innerHTML = visibleRows.map(row => {
+        const pageSize = Math.max(1, Number(document.getElementById('sia-page-size')?.value || 10));
+        const pageCount = Math.max(1, Math.ceil(visibleRows.length / pageSize));
+        siaCurrentPage = Math.min(Math.max(1, siaCurrentPage), pageCount);
+        const pageStart = (siaCurrentPage - 1) * pageSize;
+        const pageRows = visibleRows.slice(pageStart, pageStart + pageSize);
+        list.innerHTML = pageRows.map(row => {
           const rowId = Number(row.id || 0);
           const status = String(row.status || 'EN_ATTENTE').toUpperCase();
           const statusLabel = status === 'VALIDEE' ? 'Validée' : status === 'REJETEE' ? 'Rejetée' : 'En attente';
@@ -25371,6 +25380,25 @@
             </li>
           `;
         }).join('');
+        const meta = document.getElementById('sia-pagination-meta');
+        if (meta) meta.textContent = `Affichage de ${pageStart + 1} à ${pageStart + pageRows.length} sur ${visibleRows.length} demandes`;
+        const pageButtons = document.getElementById('sia-page-buttons');
+        if (pageButtons) {
+          pageButtons.innerHTML = Array.from({ length: pageCount }, (_, index) => {
+            const page = index + 1;
+            return `<button type="button" class="${page === siaCurrentPage ? 'active' : ''}" data-sia-page="${page}">${page}</button>`;
+          }).join('');
+          pageButtons.querySelectorAll('[data-sia-page]').forEach(button => {
+            button.addEventListener('click', () => {
+              siaCurrentPage = Number(button.dataset.siaPage || 1);
+              loadStockIssueAuthorizations();
+            });
+          });
+        }
+        const previous = document.getElementById('sia-page-prev');
+        const next = document.getElementById('sia-page-next');
+        if (previous) previous.disabled = siaCurrentPage <= 1;
+        if (next) next.disabled = siaCurrentPage >= pageCount;
       } catch (err) {
         if (list) list.innerHTML = `<div class="empty-state"><p>Erreur: ${escapeHtml(err.message)}</p></div>`;
       }
@@ -25465,10 +25493,26 @@
         const element = document.getElementById(id);
         if (element) element.value = id === 'sia-filter-status' ? 'ALL' : id === 'sia-sort' ? 'recent' : '';
       });
+      siaCurrentPage = 1;
       loadStockIssueAuthorizations();
     });
     ['sia-filter-project', 'sia-filter-site', 'sia-filter-status', 'sia-filter-date', 'sia-search', 'sia-sort'].forEach(id => {
-      document.getElementById(id)?.addEventListener(id === 'sia-search' ? 'input' : 'change', () => loadStockIssueAuthorizations());
+      document.getElementById(id)?.addEventListener(id === 'sia-search' ? 'input' : 'change', () => {
+        siaCurrentPage = 1;
+        loadStockIssueAuthorizations();
+      });
+    });
+    document.getElementById('sia-page-size')?.addEventListener('change', () => {
+      siaCurrentPage = 1;
+      loadStockIssueAuthorizations();
+    });
+    document.getElementById('sia-page-prev')?.addEventListener('click', () => {
+      siaCurrentPage = Math.max(1, siaCurrentPage - 1);
+      loadStockIssueAuthorizations();
+    });
+    document.getElementById('sia-page-next')?.addEventListener('click', () => {
+      siaCurrentPage += 1;
+      loadStockIssueAuthorizations();
     });
 
     function renderStockIssueAuthorizationItemsTable(row) {
