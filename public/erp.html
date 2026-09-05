@@ -9542,6 +9542,24 @@
 
         <!-- Materials Module -->
         <div id="materials" class="module">
+          <style>
+            #materials { --mr-ink:#243d67; --mr-muted:#647794; --mr-line:#e1eaf6; --mr-blue:#5267f5; --mr-green:#21a65b; --mr-red:#ef5960; --mr-amber:#ed9a25; font-family:inherit; }
+            #materials > .page-header { display:none; }
+            #materials .material-dashboard { display:grid; gap:14px; }
+            #materials .material-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+            #materials .material-kpi { display:grid; grid-template-columns:48px 1fr; gap:10px; align-items:center; padding:13px; min-height:74px; border:1px solid #e2eaf7; border-radius:12px; background:#fff; box-shadow:0 8px 20px rgba(74,103,160,.08); }
+            #materials .material-kpi-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:50%; font-size:21px; font-weight:800; } #materials .material-kpi-icon.pending{background:#fff3df;color:#ef9d25} #materials .material-kpi-icon.valid{background:#e9f9ef;color:#24a158} #materials .material-kpi-icon.rejected{background:#ffe9e9;color:#f15b62} #materials .material-kpi-icon.total{background:#eaf0ff;color:#4167df}
+            #materials .material-kpi-value { color:#29416c; font-size:24px; line-height:1; font-weight:800; } #materials .material-kpi-label { margin-top:5px; color:#4f6285; font-size:11px; font-weight:700; } #materials .material-kpi-note { margin-top:3px; color:#7b8cac; font-size:10px; }
+            #materials .material-list-card, #materials .material-form-shell { padding:14px; border:1px solid var(--mr-line); border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
+            #materials .material-list-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; } #materials .material-list-head h3 { margin:0; color:#2d4165; font-size:13px; font-weight:800; }
+            #materials .material-list-head .button { height:32px; min-height:32px; padding:0 12px; border-radius:7px; background:#5367f5; color:#fff; font-size:11px; }
+            #materials .material-filters { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)) 1.5fr; gap:10px; margin-bottom:12px; } #materials .material-filter label { display:block; margin-bottom:4px; color:#536582; font-size:10px; font-weight:800; } #materials .material-filter select, #materials .material-filter input { width:100%; height:36px; border:1px solid #d4e0f2; border-radius:7px; padding:0 8px; color:#526887; background:#fff; font:600 11px inherit; }
+            #materials #materials-list { display:block; margin:0; overflow-x:auto; } #materials .material-request-table { width:100%; min-width:980px; border-collapse:separate; border-spacing:0; font-size:12px; } #materials .material-request-table th { padding:12px 9px; background:#f5f8fd; border-bottom:1px solid #dfe7f4; color:#53627d; font-size:10px; font-weight:800; text-align:left; white-space:nowrap; } #materials .material-request-table td { padding:12px 9px; border-bottom:1px solid #edf1f8; color:#52617b; vertical-align:middle; } #materials .material-request-table tbody tr { cursor:pointer; } #materials .material-request-table tbody tr:hover, #materials .material-request-table tbody tr.selected { background:#f8fbff; } #materials .material-request-title { color:#344a72; font-size:13px; font-weight:800; } #materials .material-request-sub { margin-top:3px; color:#7b8cac; font-size:10px; } #materials .material-status { display:inline-block; padding:5px 9px; border-radius:5px; font-size:10px; font-weight:800; } #materials .material-status.pending { background:#fff0d8; color:#d48716; } #materials .material-status.valid { background:#daf7e5; color:#1c9b4f; } #materials .material-status.rejected { background:#ffe0e2; color:#e34d55; } #materials .material-row-actions { display:flex; gap:7px; } #materials .material-row-actions button { width:31px; height:30px; border:1px solid #d9e3f3; border-radius:6px; background:#fff; color:#526b98; font-size:12px; cursor:pointer; }
+            #materials .material-form-grid { display:grid; grid-template-columns:minmax(0,1.75fr) minmax(260px,.9fr); gap:14px; } #materials .material-form-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; } #materials .material-form-title h3 { margin:0; color:#2d4165; font-size:15px; font-weight:800; } #materials .material-form-title p { margin:3px 0 0; color:#7b8cac; font-size:10px; }
+            #materials #material-form { display:grid; grid-template-columns:1fr 1fr; gap:10px 12px; } #materials #material-form .form-group { margin:0; } #materials #material-form label { color:#536582; font-size:10px; font-weight:800; } #materials #material-form input, #materials #material-form select, #materials #material-form textarea { min-height:36px; border-color:#d4e0f2; border-radius:7px; color:#526887; font-size:11px; } #materials #material-form textarea { min-height:70px; } #materials #material-form > .material-span-all, #materials #material-form > button[type="submit"], #materials #material-form > #material-lines-wrap, #materials #material-form > #material-zone-section, #materials #material-form > #material-site-section { grid-column:1 / -1; }
+            #materials .material-help, #materials .material-summary { border:1px solid #dfe8f5; border-radius:9px; background:#f7faff; padding:13px; } #materials .material-help h4, #materials .material-summary h4 { margin:0 0 9px; color:#35517a; font-size:12px; font-weight:800; } #materials .material-help p { margin:0 0 7px; color:#647794; font-size:10px; line-height:1.4; } #materials .material-summary-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e5ecf6; color:#667795; font-size:10px; } #materials .material-summary-row strong { color:#344d76; } #materials .material-empty { display:grid; place-items:center; min-height:120px; color:#7284a0; font-size:11px; text-align:center; }
+            @media(max-width:1100px){#materials .material-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#materials .material-filters{grid-template-columns:repeat(3,minmax(0,1fr))}#materials .material-form-grid{grid-template-columns:1fr}} @media(max-width:650px){#materials .material-kpis,#materials .material-filters,#materials #material-form{grid-template-columns:1fr}#materials .material-list-head{align-items:flex-start;flex-direction:column}}
+          </style>
           <div class="page-header">
             <h1>Demandes d'approvisionnement</h1>
             <p>Gérez l'approvisionnement en matériel</p>
@@ -9553,18 +9571,16 @@
             <div id="material-folder-quick-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;"></div>
           </div>
 
-          <div class="grid-2">
-            <div class="card">
-              <h3 id="materials-list-title" style="margin-bottom: 15px;">Demandes récentes</h3>
-              <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="material-search" placeholder="Rechercher une demande (projet, produit, demandeur)" />
-              </div>
+          <div class="material-dashboard">
+            <div class="material-kpis"><div class="material-kpi"><span class="material-kpi-icon pending">▤</span><div><div class="material-kpi-value" id="material-kpi-pending">0</div><div class="material-kpi-label">En attente</div><div class="material-kpi-note">À traiter</div></div></div><div class="material-kpi"><span class="material-kpi-icon valid">✓</span><div><div class="material-kpi-value" id="material-kpi-valid">0</div><div class="material-kpi-label">Approuvées</div><div class="material-kpi-note">Demandes validées</div></div></div><div class="material-kpi"><span class="material-kpi-icon rejected">×</span><div><div class="material-kpi-value" id="material-kpi-rejected">0</div><div class="material-kpi-label">Rejetées</div><div class="material-kpi-note">Demandes rejetées</div></div></div><div class="material-kpi"><span class="material-kpi-icon total">▦</span><div><div class="material-kpi-value" id="material-kpi-total">0</div><div class="material-kpi-label">Total des demandes</div><div class="material-kpi-note">Toutes périodes</div></div></div></div>
+            <div class="material-list-card">
+              <div class="material-list-head"><h3 id="materials-list-title">Demandes récentes</h3><button type="button" class="button" onclick="document.getElementById('material-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })">＋ Nouvelle demande</button></div>
+              <div class="material-filters"><div class="material-filter"><label>Projet</label><select id="material-filter-project"><option value="">Tous les projets</option></select></div><div class="material-filter"><label>Site</label><select id="material-filter-site"><option value="">Tous les sites</option></select></div><div class="material-filter"><label>Statut</label><select id="material-filter-status"><option value="">Tous les statuts</option><option value="EN_ATTENTE">En attente</option><option value="APPROUVEE">Approuvée</option><option value="REJETEE">Rejetée</option></select></div><div class="material-filter"><label>Période</label><input id="material-filter-date" type="date" /></div><div class="material-filter"><label>Recherche</label><input type="search" id="material-search" placeholder="Rechercher une demande..." /></div></div>
               <ul id="materials-list" class="list"></ul>
               <div id="material-details" class="card" style="margin-top: 12px; background-color: #f8fafc;"></div>
             </div>
-            <div class="erp-section-sep">Nouvelle demande</div>
-            <div class="card form-card">
-              <h3 style="margin-bottom: 15px;">Nouvelle demande</h3>
+            <div class="material-form-shell">
+              <div class="material-form-grid"><div><div class="material-form-title"><div><h3>Nouvelle demande d'approvisionnement</h3><p>Renseignez les informations puis soumettez votre demande.</p></div><button type="button" class="button button-small button-secondary" onclick="document.getElementById('material-form')?.reset()">↻ Réinitialiser</button></div>
               <div id="material-folder-label" style="margin-bottom: 12px; padding: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; color: #166534; font-weight: 600; display: none;"></div>
               
               <!-- Mode selector for admin/stock managers -->
@@ -9608,9 +9624,9 @@
                   </div>
                 </div>
 
-                <div id="material-villa-type-info" style="display:none;margin-bottom:12px;padding:8px 10px;border-radius:8px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:700;"></div>
+                <div id="material-villa-type-info" class="material-span-all" style="display:none;margin-bottom:12px;padding:8px 10px;border-radius:8px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:700;"></div>
                 
-                <div class="form-group">
+                <div class="form-group material-span-all" id="material-lines-wrap">
                   <label>Étape d'approvisionnement *</label>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                     <select id="material-stage-main" required>
@@ -9631,15 +9647,7 @@
                   <label>Entrepôt de retrait *</label>
                   <select id="material-warehouse" required></select>
                 </div>
-                <div class="form-group">
-                  <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
-                    <label style="margin: 0;">Matériaux demandés *</label>
-                    <button type="button" id="material-add-line" class="button button-small button-secondary">+ Ajouter une ligne</button>
-                  </div>
-                  <div id="material-lines" style="display: grid; gap: 8px;"></div>
-                  <datalist id="mc-material-names-datalist"></datalist>
-                </div>
-                <div id="material-catalog-hint" style="display:none;margin-top:4px;padding:6px 10px;border-radius:6px;font-size:12px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;"></div>
+                <div id="material-catalog-hint" class="material-span-all" style="display:none;margin-top:4px;padding:6px 10px;border-radius:6px;font-size:12px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;"></div>
                 <div class="form-group">
                   <label>Demandeur *</label>
                   <input type="text" id="material-requester" required />
@@ -9654,6 +9662,7 @@
                 </div>
                 <button type="submit" class="button button-primary" style="width: 100%;">Créer la demande</button>
               </form>
+              </div><aside><div class="material-help"><h4>ⓘ Informations utiles</h4><p>Les demandes sont traitées selon leur priorité et la disponibilité en stock.</p><p>Choisissez une étape et un site pour charger les matériaux correspondants.</p></div><div class="material-summary material-request-lines-panel" style="margin-top:12px;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><h4 id="material-lines-title">Matériaux demandés (0)</h4><button type="button" id="material-add-line" class="button button-small button-secondary">+ Ajouter un matériau</button></div><div id="material-lines" style="display:grid;gap:8px;"></div><datalist id="mc-material-names-datalist"></datalist><div class="material-empty" id="material-summary-empty">▦<br />Ajoutez un matériau ou choisissez une étape pour charger automatiquement le catalogue.</div></div><div class="material-summary" style="margin-top:12px;"><h4>Résumé de la demande</h4><div class="material-summary-row"><span>Nombre d'articles</span><strong id="material-summary-count">0</strong></div><div class="material-summary-row"><span>Statut</span><strong>Brouillon</strong></div></div></aside></div>
             </div>
           </div>
         </div>
@@ -14376,6 +14385,17 @@
       });
     }
 
+    function updateMaterialRequestLinesSummary() {
+      const lines = getMaterialRequestFormLines();
+      const count = lines.filter(line => String(line.itemName || '').trim()).length;
+      const countEl = document.getElementById('material-summary-count');
+      const titleEl = document.getElementById('material-lines-title');
+      const emptyEl = document.getElementById('material-summary-empty');
+      if (countEl) countEl.textContent = String(count);
+      if (titleEl) titleEl.textContent = `Matériaux demandés (${count})`;
+      if (emptyEl) emptyEl.style.display = count ? 'none' : '';
+    }
+
     function createMaterialLineRow(initial = {}) {
       const row = document.createElement('div');
       row.className = 'material-line-row';
@@ -14405,12 +14425,14 @@
         }
         updateMaterialCatalogHint();
         updateMaterialRequestLineWarehouseHints();
+        updateMaterialRequestLinesSummary();
       });
 
       row.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', () => {
           updateMaterialCatalogHint();
           updateMaterialRequestLineWarehouseHints();
+          updateMaterialRequestLinesSummary();
         });
       });
 
@@ -14427,6 +14449,7 @@
       rows.forEach(row => container.appendChild(createMaterialLineRow(row)));
       updateMaterialCatalogHint();
       updateMaterialRequestLineWarehouseHints();
+      updateMaterialRequestLinesSummary();
     }
 
     function getMaterialRequestFormLines() {
@@ -23119,7 +23142,11 @@
         autoPopulateMaterialRequestLinesFromCatalog();
         updateMaterialCatalogHint();
         const listTitle = document.getElementById('materials-list-title');
-        const searchValue = normalizeText(materialSearchTerm.trim());
+        const projectFilter = String(document.getElementById('material-filter-project')?.value || '').trim();
+        const siteFilter = String(document.getElementById('material-filter-site')?.value || '').trim();
+        const statusFilter = String(document.getElementById('material-filter-status')?.value || '').trim().toUpperCase();
+        const dateFilter = String(document.getElementById('material-filter-date')?.value || '').trim();
+        const searchValue = normalizeText(String(document.getElementById('material-search')?.value || materialSearchTerm || '').trim());
         const isSearchActive = Boolean(searchValue);
         const materialGroups = groupMaterialRequests(materialRequestsCache)
           .sort((groupA, groupB) => {
@@ -23127,14 +23154,34 @@
             const latestB = Math.max(...groupB.map(item => toRecentTimestamp(item?.dateDemande || item?.updatedAt || item?.createdAt || item?.id)));
             return latestB - latestA;
           });
-        const filteredGroups = searchValue
-          ? materialGroups.filter(groupReqs => {
+        const fillMaterialFilter = (id, values, label) => {
+          const select = document.getElementById(id);
+          if (!select) return;
+          const current = String(select.value || '');
+          select.innerHTML = `<option value="">${label}</option>` + values.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
+          if (values.includes(current)) select.value = current;
+        };
+        fillMaterialFilter('material-filter-project', [...new Set(materialGroups.map(group => String(group[0]?.projetNom || '').trim()).filter(Boolean))].sort(), 'Tous les projets');
+        fillMaterialFilter('material-filter-site', [...new Set(materialGroups.map(group => String(getMaterialRequestHouseNumber(group[0]) || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true })), 'Tous les sites');
+        const updateMaterialKpi = (id, count) => {
+          const element = document.getElementById(id);
+          if (element) element.textContent = String(count);
+        };
+        updateMaterialKpi('material-kpi-pending', materialGroups.filter(group => String(group[0]?.statut || '').toUpperCase() === 'EN_ATTENTE').length);
+        updateMaterialKpi('material-kpi-valid', materialGroups.filter(group => ['APPROUVEE', 'APPROUVÉE', 'VALIDEE', 'VALIDÉE'].includes(String(group[0]?.statut || '').toUpperCase())).length);
+        updateMaterialKpi('material-kpi-rejected', materialGroups.filter(group => String(group[0]?.statut || '').toUpperCase() === 'REJETEE').length);
+        updateMaterialKpi('material-kpi-total', materialGroups.length);
+        const filteredGroups = materialGroups.filter(groupReqs => {
               const first = groupReqs[0] || {};
               const articles = groupReqs.map(r => `${r.itemName || ''} ${r.description || ''}`).join(' ');
               const haystack = normalizeText(`${getMaterialRequestDisplayName(first)} ${first.projetNom || ''} ${first.demandeur || ''} ${first.statut || ''} ${articles}`);
-              return haystack.includes(searchValue);
-            })
-          : materialGroups.slice(0, 12);
+              const requestDate = String(first.dateDemande || '').slice(0, 10);
+              return (!searchValue || haystack.includes(searchValue))
+                && (!projectFilter || String(first.projetNom || '').trim() === projectFilter)
+                && (!siteFilter || String(getMaterialRequestHouseNumber(first) || '').trim() === siteFilter)
+                && (!statusFilter || String(first.statut || '').toUpperCase() === statusFilter)
+                && (!dateFilter || requestDate === dateFilter);
+            }).slice(0, 12);
         const list = document.getElementById('materials-list');
 
         if (listTitle) {
@@ -23153,39 +23200,28 @@
           selectedMaterialRequestId = filteredGroups[0][0].id;
         }
 
+        const setMaterialRequestKpi = (id, value) => {
+          const element = document.getElementById(id);
+          if (element) element.textContent = String(value);
+        };
+        setMaterialRequestKpi('material-kpi-pending', materialGroups.filter(group => String(group[0]?.statut || '').toUpperCase() === 'EN_ATTENTE').length);
+        setMaterialRequestKpi('material-kpi-valid', materialGroups.filter(group => ['APPROUVEE', 'APPROUVÉE', 'VALIDEE', 'VALIDÉE'].includes(String(group[0]?.statut || '').toUpperCase())).length);
+        setMaterialRequestKpi('material-kpi-rejected', materialGroups.filter(group => String(group[0]?.statut || '').toUpperCase() === 'REJETEE').length);
+        setMaterialRequestKpi('material-kpi-total', materialGroups.length);
+
         list.innerHTML = filteredGroups.length
-          ? filteredGroups.map(groupReqs => {
+          ? `<table class="material-request-table"><thead><tr><th># Demande</th><th>Projet / Site</th><th>Étape</th><th>Matériaux (nb)</th><th>Demandeur</th><th>Date de demande</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${filteredGroups.map(groupReqs => {
               const first = groupReqs[0];
               const groupIdsArg = groupReqs.map(item => Number(item.id)).filter(id => Number.isInteger(id) && id > 0).join(',');
-              const articlesMeta = groupReqs.map(item => `${item.itemName || '-'} (${Number(item.quantiteDemandee || 0).toFixed(2)})`).join(', ');
               const groupSelected = groupReqs.some(item => Number(selectedMaterialRequestId) === Number(item.id));
               const modifierAction = `editMaterialRequest(${first.id})`;
-              const inlineAuthorizationContainerId = `material-authorization-doc-inline-${Number(first.id)}`;
-              const statusClass = first.statut === 'EN_ATTENTE' ? 'waiting' : first.statut === 'REJETEE' ? 'rejected' : 'done';
+              const normalizedStatus = String(first.statut || 'EN_ATTENTE').toUpperCase();
+              const statusClass = normalizedStatus === 'EN_ATTENTE' ? 'pending' : normalizedStatus === 'REJETEE' ? 'rejected' : 'valid';
+              const requestNumber = mapMaterialRequestTrackingRow(first).requestNumber;
               return `
-              <li class="list-item status-${statusClass}">
-                <div class="list-item-content project-item-clickable ${groupSelected ? 'project-item-selected' : ''}" onclick="viewMaterialRequest(${first.id})">
-                  <div class="list-item-title">${escapeHtml(getMaterialRequestDisplayName(first))}</div>
-                  <div class="list-item-meta">${first.projetNom || '-'} • ${escapeHtml(getMaterialRequestStageLabel(first))} • Site N°${escapeHtml(getMaterialRequestHouseNumber(first))} • Unité: ${escapeHtml(getMaterialRequestUnitLabel(first))} • ${first.demandeur || '-'}</div>
-                  <div class="list-item-meta">${groupReqs.length} article${groupReqs.length > 1 ? 's' : ''}: ${escapeHtml(articlesMeta)}</div>
-                </div>
-                <div class="action-buttons">
-                  <details class="actions-menu">
-                    <summary aria-label="Actions demande">&#8942;</summary>
-                    <div class="actions-dropdown">
-                      <button type="button" onclick="${modifierAction}">Modifier</button>
-                      ${groupIdsArg ? `<button type="button" onclick="downloadMaterialRequestPdfForGroup(${groupIdsArg})">Téléchargement</button>` : ''}
-                      ${canTrashRecentMaterialRequests() ? `<button type="button" onclick="deleteMaterialRequestGroup(${groupIdsArg})">Mettre en corbeille</button>` : ''}
-                    </div>
-                  </details>
-                </div>
-                <span class="badge ${first.statut === 'EN_ATTENTE' ? 'badge-yellow' : first.statut === 'REJETEE' ? 'badge-red' : 'badge-green'}">${first.statut}</span>
-                ${groupSelected
-                  ? `<div class="material-inline-details">${buildMaterialRequestDetailsHtml(first, { authorizationContainerId: inlineAuthorizationContainerId })}</div>`
-                  : ''}
-              </li>
+              <tr class="${groupSelected ? 'selected' : ''}" onclick="viewMaterialRequest(${first.id})"><td><div class="material-request-title">${escapeHtml(requestNumber)}</div></td><td><div class="material-request-title">${escapeHtml(first.projetNom || '-')}</div><div class="material-request-sub">Site ${escapeHtml(getMaterialRequestHouseNumber(first))}</div></td><td>${escapeHtml(getMaterialRequestStageLabel(first))}</td><td>${groupReqs.length} article${groupReqs.length > 1 ? 's' : ''}</td><td><div class="material-request-title">${escapeHtml(first.demandeur || '-')}</div><div class="material-request-sub">Demandeur</div></td><td>${escapeHtml(formatDate(first.dateDemande))}</td><td><span class="material-status ${statusClass}">${escapeHtml(first.statut || 'EN_ATTENTE')}</span></td><td onclick="event.stopPropagation()"><div class="material-row-actions"><button type="button" title="Voir" onclick="viewMaterialRequest(${first.id})">◉</button><button type="button" title="Modifier" onclick="${modifierAction}">✎</button><button type="button" title="Télécharger" onclick="downloadMaterialRequestPdfForGroup(${groupIdsArg})">↓</button></div></td></tr>
             `;
-            }).join('')
+            }).join('')}</tbody></table>`
           : (materials.length
               ? '<div class="empty-state"><p>Aucune demande ne correspond à la recherche</p></div>'
               : '<div class="empty-state"><p>Aucune demande de matériel</p></div>');
@@ -30915,6 +30951,10 @@
       loadMaterials();
     });
 
+    ['material-filter-project', 'material-filter-site', 'material-filter-status', 'material-filter-date'].forEach(id => {
+      document.getElementById(id)?.addEventListener('change', () => loadMaterials());
+    });
+
     document.getElementById('material-zone').addEventListener('change', e => {
       const zoneKey = e.target.value;
       selectedMaterialRequestFolderKey = zoneKey || '';
@@ -31212,6 +31252,7 @@
       container.appendChild(createMaterialLineRow());
       updateMaterialCatalogHint();
       updateMaterialRequestLineWarehouseHints();
+      updateMaterialRequestLinesSummary();
     });
 
     document.getElementById('database-upload-project-folder').addEventListener('change', e => {
