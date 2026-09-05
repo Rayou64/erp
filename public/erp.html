@@ -10272,21 +10272,55 @@
         </div>
 
         <div id="sortie-autorisations" class="module">
-          <div class="page-header">
-            <h1>Autorisation de sortir de stock</h1>
-            <p>Validation des demandes de sortie avant déduction du stock</p>
-          </div>
-          <div class="card">
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
-              <select id="sia-filter-status" style="min-width:180px;">
-                <option value="ALL" selected>Tous les statuts</option>
-                <option value="EN_ATTENTE">En attente</option>
-                <option value="VALIDEE">Validées</option>
-                <option value="REJETEE">Rejetées</option>
-              </select>
-              <button type="button" id="sia-refresh" class="button button-small button-secondary">🔄 Actualiser</button>
+          <style>
+            #sortie-autorisations { --sia-ink:#17325c; --sia-muted:#60728f; --sia-line:#e4ebf5; --sia-blue:#2563eb; --sia-green:#059669; --sia-red:#ef4444; --sia-amber:#f59e0b; font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif; }
+            #sortie-autorisations .sia-shell { display:grid; gap:12px; color:var(--sia-ink); }
+            #sortie-autorisations .sia-title { margin:0; font-size:23px; line-height:1.15; font-weight:800; color:#15335d; }
+            #sortie-autorisations .sia-subtitle { margin:4px 0 0; color:var(--sia-muted); font-size:12px; font-weight:600; }
+            #sortie-autorisations .sia-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+            #sortie-autorisations .sia-kpi { min-height:76px; display:grid; grid-template-columns:40px 1fr; align-items:center; gap:10px; padding:12px; background:#fff; border:1px solid var(--sia-line); border-radius:8px; box-shadow:0 5px 15px rgba(30,65,115,.06); }
+            #sortie-autorisations .sia-kpi-icon { width:36px; height:36px; display:grid; place-items:center; border-radius:8px; font-size:19px; font-weight:800; }
+            #sortie-autorisations .sia-kpi-icon.pending { color:#ea8a00; background:#fff1d6; } #sortie-autorisations .sia-kpi-icon.valid { color:#16a34a; background:#dcfce7; } #sortie-autorisations .sia-kpi-icon.rejected { color:#ef4444; background:#fee2e2; } #sortie-autorisations .sia-kpi-icon.total { color:#2563eb; background:#dbeafe; }
+            #sortie-autorisations .sia-kpi-label { color:#506581; font-size:10px; font-weight:700; } #sortie-autorisations .sia-kpi-value { margin-top:2px; color:#142e55; font-size:21px; line-height:1; font-weight:800; }
+            #sortie-autorisations .sia-toolbar { display:grid; grid-template-columns:1fr 1fr 1fr 1.25fr 1.6fr auto; gap:10px; align-items:end; padding:10px; background:#fff; border:1px solid var(--sia-line); border-radius:8px; box-shadow:0 5px 15px rgba(30,65,115,.05); }
+            #sortie-autorisations .sia-filter { min-width:0; } #sortie-autorisations .sia-filter label { display:block; margin:0 0 4px; color:#345070; font-size:10px; font-weight:800; }
+            #sortie-autorisations .sia-filter select, #sortie-autorisations .sia-filter input { width:100%; height:32px; padding:0 9px; border:1px solid #d9e4f2; border-radius:5px; background:#fff; color:#49617f; font:600 10px "Segoe UI",Tahoma,Geneva,Verdana,sans-serif; }
+            #sortie-autorisations .sia-toolbar .button { height:32px; min-height:32px; padding:0 11px; border-radius:5px; font-size:10px; white-space:nowrap; }
+            #sortie-autorisations .sia-list-card { padding:10px; background:#fff; border:1px solid var(--sia-line); border-radius:8px; box-shadow:0 5px 15px rgba(30,65,115,.05); }
+            #sortie-autorisations .sia-list-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 9px; } #sortie-autorisations .sia-list-head h3 { margin:0; color:#1b355e; font-size:12px; font-weight:800; }
+            #sortie-autorisations .sia-sort { display:flex; align-items:center; gap:6px; color:#59708d; font-size:9px; font-weight:700; } #sortie-autorisations .sia-sort select { height:27px; border:1px solid #d9e4f2; border-radius:5px; background:#fff; color:#385473; font-size:9px; font-weight:700; padding:0 7px; }
+            #sortie-autorisations #sia-list { display:grid; gap:8px; margin:0; }
+            #sortie-autorisations #sia-list .list-item { display:grid; grid-template-columns:92px minmax(160px,1.12fr) minmax(210px,1.35fr) minmax(140px,.95fr) 132px; gap:10px; align-items:center; margin:0; padding:9px; border:1px solid #e8eef6; border-left:3px solid #d9e5f7; border-radius:7px; background:#fff; box-shadow:0 2px 8px rgba(34,67,113,.035); }
+            #sortie-autorisations #sia-list .list-item.sia-pending { border-left-color:var(--sia-amber); } #sortie-autorisations #sia-list .list-item.sia-valid { border-left-color:var(--sia-green); } #sortie-autorisations #sia-list .list-item.sia-rejected { border-left-color:var(--sia-red); }
+            #sortie-autorisations .sia-status { display:inline-flex; width:max-content; align-items:center; gap:4px; padding:5px 7px; border-radius:5px; font-size:8px; font-weight:800; text-transform:uppercase; } #sortie-autorisations .sia-status.pending { color:#d97706; background:#fff2d7; } #sortie-autorisations .sia-status.valid { color:#078554; background:#ddf8e9; } #sortie-autorisations .sia-status.rejected { color:#dc2626; background:#fee2e2; }
+            #sortie-autorisations .sia-ref { margin-top:7px; color:#253e63; font-size:10px; font-weight:800; } #sortie-autorisations .sia-date { margin-top:6px; color:#627591; font-size:9px; line-height:1.35; }
+            #sortie-autorisations .sia-stage { color:#1c365d; font-size:11px; line-height:1.25; font-weight:800; } #sortie-autorisations .sia-substage { margin-top:4px; color:#4a6c9e; font-size:8px; font-weight:700; text-transform:uppercase; }
+            #sortie-autorisations .sia-project { display:grid; gap:5px; margin-top:9px; color:#506b90; font-size:9px; font-weight:600; } #sortie-autorisations .sia-project span { display:flex; align-items:center; gap:5px; }
+            #sortie-autorisations .sia-items-table { width:100%; border-collapse:collapse; font-size:8px; } #sortie-autorisations .sia-items-table th { padding:4px 5px; text-align:left; background:#f4f7fc; color:#59708d; font-size:7px; text-transform:uppercase; } #sortie-autorisations .sia-items-table th:last-child, #sortie-autorisations .sia-items-table td:last-child { text-align:right; } #sortie-autorisations .sia-items-table td { padding:4px 5px; border-bottom:1px solid #edf1f7; color:#385474; } #sortie-autorisations .sia-items-table tr:last-child td { border-bottom:0; }
+            #sortie-autorisations .sia-requester { display:grid; grid-template-columns:25px 1fr; gap:7px; align-items:start; } #sortie-autorisations .sia-avatar { width:25px; height:25px; display:grid; place-items:center; border-radius:50%; background:#e1ebff; color:#4070db; font-size:12px; } #sortie-autorisations .sia-requester-name { color:#254266; font-size:9px; font-weight:800; } #sortie-autorisations .sia-requester-role { margin-top:2px; color:#6c7f99; font-size:8px; } #sortie-autorisations .sia-note { grid-column:1 / -1; padding:5px 7px; border-radius:4px; background:#f2f6fc; color:#5d6f89; font-size:8px; line-height:1.25; }
+            #sortie-autorisations .sia-action-buttons { display:grid; grid-template-columns:1fr; gap:5px; width:auto; margin:0; } #sortie-autorisations .sia-action-buttons .button { width:100%; min-width:0; min-height:22px; height:22px; padding:0 6px; border-radius:4px; color:#fff; font-size:9px; font-weight:800; } #sortie-autorisations .sia-action-buttons .button-success { background:#079669; } #sortie-autorisations .sia-action-buttons .button-danger { background:#f0474b; } #sortie-autorisations .sia-action-buttons .button-secondary { border-color:#d7e3f5; background:#fff; color:#2563eb; }
+            #sortie-autorisations .sia-details { grid-column:2 / 5; padding-top:8px; border-top:1px solid #e9eff7; }
+            #sortie-autorisations .sia-empty { padding:30px; text-align:center; color:#64748b; font-weight:700; }
+            @media (max-width:1100px) { #sortie-autorisations .sia-toolbar { grid-template-columns:repeat(3,minmax(0,1fr)); } #sortie-autorisations #sia-list .list-item { grid-template-columns:100px 1fr 1fr; } #sortie-autorisations .sia-action-buttons { grid-column:2 / 4; grid-template-columns:repeat(3,1fr); } }
+            @media (max-width:680px) { #sortie-autorisations .sia-kpis, #sortie-autorisations .sia-toolbar, #sortie-autorisations #sia-list .list-item { grid-template-columns:1fr; } #sortie-autorisations .sia-action-buttons, #sortie-autorisations .sia-details { grid-column:auto; } #sortie-autorisations .sia-action-buttons { grid-template-columns:repeat(3,1fr); } }
+          </style>
+          <div class="sia-shell">
+            <div><h1 class="sia-title">Autorisations de sortie</h1><p class="sia-subtitle">Validation des demandes avant déduction du stock</p></div>
+            <div class="sia-kpis">
+              <div class="sia-kpi"><span class="sia-kpi-icon pending">⌛</span><div><div class="sia-kpi-label">En attente</div><div id="sia-kpi-pending" class="sia-kpi-value">0</div></div></div>
+              <div class="sia-kpi"><span class="sia-kpi-icon valid">✓</span><div><div class="sia-kpi-label">Validées</div><div id="sia-kpi-valid" class="sia-kpi-value">0</div></div></div>
+              <div class="sia-kpi"><span class="sia-kpi-icon rejected">×</span><div><div class="sia-kpi-label">Rejetées</div><div id="sia-kpi-rejected" class="sia-kpi-value">0</div></div></div>
+              <div class="sia-kpi"><span class="sia-kpi-icon total">□</span><div><div class="sia-kpi-label">Total des demandes</div><div id="sia-kpi-total" class="sia-kpi-value">0</div></div></div>
             </div>
-            <ul id="sia-list" class="list"></ul>
+            <div class="sia-toolbar">
+              <div class="sia-filter"><label for="sia-filter-project">Projet</label><select id="sia-filter-project"><option value="">Tous les projets</option></select></div>
+              <div class="sia-filter"><label for="sia-filter-site">Site</label><select id="sia-filter-site"><option value="">Tous les sites</option></select></div>
+              <div class="sia-filter"><label for="sia-filter-status">Statut</label><select id="sia-filter-status"><option value="ALL">Tous les statuts</option><option value="EN_ATTENTE">En attente</option><option value="VALIDEE">Validées</option><option value="REJETEE">Rejetées</option></select></div>
+              <div class="sia-filter"><label for="sia-filter-date">Période</label><input id="sia-filter-date" type="date" /></div>
+              <div class="sia-filter"><label for="sia-search">Recherche</label><input id="sia-search" type="search" placeholder="Projet, article, demandeur..." /></div>
+              <button type="button" id="sia-refresh" class="button button-secondary">↻ Réinitialiser</button>
+            </div>
+            <div class="sia-list-card"><div class="sia-list-head"><h3>Liste des demandes d'autorisation de sortie</h3><label class="sia-sort">Trier par <select id="sia-sort"><option value="recent">Date (plus récente)</option><option value="oldest">Date (plus ancienne)</option><option value="status">Statut</option></select></label></div><ul id="sia-list" class="list"></ul></div>
           </div>
         </div>
 
@@ -25210,6 +25244,7 @@
     let siaCurrentDecision = 'VALIDEE';
     let siaDocPreviewObjectUrl = null;
     const stockIssueAuthorizationById = new Map();
+    let siaRowsCache = [];
 
     function clearSiaDocPreview() {
       const docPreview = document.getElementById('sia-sign-doc-preview');
@@ -25242,61 +25277,95 @@
 
     async function loadStockIssueAuthorizations() {
       const filterEl = document.getElementById('sia-filter-status');
-      const filterContainer = filterEl ? filterEl.closest('div[style*="display:flex"]') : null;
-      if (filterContainer) filterContainer.style.display = isSiteChief() ? 'none' : '';
       if (isSiteChief() && filterEl) filterEl.value = 'ALL';
-      const rawStatusFilter = String(filterEl?.value || '').trim().toUpperCase();
-      const statusFilter = (rawStatusFilter === '' || rawStatusFilter === 'ALL' || rawStatusFilter === 'TOUS')
-        ? ''
-        : rawStatusFilter;
-      const url = '/api/stock-issue-authorizations' + (statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : '');
       const list = document.getElementById('sia-list');
       if (!list) return;
       try {
-        const rows = await fetchJson(url);
+        const rows = await fetchJson('/api/stock-issue-authorizations');
+        siaRowsCache = Array.isArray(rows) ? rows : [];
         stockIssueAuthorizationById.clear();
-        (rows || []).forEach(row => {
+        siaRowsCache.forEach(row => {
           const rowId = Number(row?.id || 0);
           if (rowId > 0) {
             stockIssueAuthorizationById.set(rowId, row);
           }
         });
-        if (!rows.length) {
-          list.innerHTML = '<div class="empty-state"><p>Aucune demande de sortie</p></div>';
+
+        const countByStatus = status => siaRowsCache.filter(row => String(row.status || 'EN_ATTENTE').toUpperCase() === status).length;
+        const setKpi = (id, value) => {
+          const element = document.getElementById(id);
+          if (element) element.textContent = String(value);
+        };
+        setKpi('sia-kpi-pending', countByStatus('EN_ATTENTE'));
+        setKpi('sia-kpi-valid', countByStatus('VALIDEE'));
+        setKpi('sia-kpi-rejected', countByStatus('REJETEE'));
+        setKpi('sia-kpi-total', siaRowsCache.length);
+
+        const projectEl = document.getElementById('sia-filter-project');
+        const siteEl = document.getElementById('sia-filter-site');
+        const populateSelect = (element, values, fallback) => {
+          if (!element) return;
+          const selected = String(element.value || '');
+          element.innerHTML = `<option value="">${fallback}</option>` + values.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
+          if (values.includes(selected)) element.value = selected;
+        };
+        populateSelect(projectEl, [...new Set(siaRowsCache.map(row => String(row.nomProjet || '').trim()).filter(Boolean))].sort(), 'Tous les projets');
+        populateSelect(siteEl, [...new Set(siaRowsCache.map(row => String(row.numeroMaison || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true })), 'Tous les sites');
+
+        const selectedProject = String(projectEl?.value || '').trim();
+        const selectedSite = String(siteEl?.value || '').trim();
+        const selectedStatus = String(filterEl?.value || 'ALL').trim().toUpperCase();
+        const selectedDate = String(document.getElementById('sia-filter-date')?.value || '').trim();
+        const searchTerm = normalizeText(String(document.getElementById('sia-search')?.value || '').trim());
+        const sortMode = String(document.getElementById('sia-sort')?.value || 'recent');
+        const visibleRows = siaRowsCache.filter(row => {
+          const status = String(row.status || 'EN_ATTENTE').toUpperCase();
+          const rowDate = String(row.requestedAt || row.decidedAt || '').slice(0, 10);
+          const items = Array.isArray(row.items) ? row.items : [];
+          const searchable = normalizeText([row.nomProjet, row.numeroMaison, row.requestedBy, row.etapeApprovisionnement, row.requestEtape, row.itemName, ...items.map(item => item.itemName)].join(' '));
+          return (!selectedProject || String(row.nomProjet || '').trim() === selectedProject)
+            && (!selectedSite || String(row.numeroMaison || '').trim() === selectedSite)
+            && (selectedStatus === 'ALL' || !selectedStatus || status === selectedStatus)
+            && (!selectedDate || rowDate === selectedDate)
+            && (!searchTerm || searchable.includes(searchTerm));
+        }).sort((first, second) => {
+          if (sortMode === 'status') return String(first.status || '').localeCompare(String(second.status || ''), 'fr');
+          const firstTime = new Date(first.requestedAt || first.decidedAt || 0).getTime();
+          const secondTime = new Date(second.requestedAt || second.decidedAt || 0).getTime();
+          return sortMode === 'oldest' ? firstTime - secondTime : secondTime - firstTime;
+        });
+
+        if (!visibleRows.length) {
+          list.innerHTML = '<li class="sia-empty">Aucune demande ne correspond aux critères.</li>';
           return;
         }
-        list.innerHTML = rows.map(row => {
+        list.innerHTML = visibleRows.map(row => {
           const rowId = Number(row.id || 0);
           const status = String(row.status || 'EN_ATTENTE').toUpperCase();
-          const badgeClass = status === 'VALIDEE' ? 'badge-green' : status === 'REJETEE' ? 'badge-red' : 'badge-yellow';
           const statusLabel = status === 'VALIDEE' ? 'Validée' : status === 'REJETEE' ? 'Rejetée' : 'En attente';
           const etape = String(row.etapeApprovisionnement || row.requestEtape || 'Étape').trim();
+          const [mainStage, ...subStageParts] = etape.split('::');
+          const subStage = subStageParts.join('::').trim();
           const siteNum = extractSiteNumberLabel(row.numeroMaison || '-');
-          const title = `${etape}-${siteNum}`;
           const rowSelected = rowId > 0 && rowId === Number(selectedStockIssueAuthorizationId || 0);
           const canDecide = status === 'EN_ATTENTE' && (isExecutive() || isAdmin());
           const items = Array.isArray(row.items) ? row.items : [];
-          const itemsLabel = items.length
-            ? items.map(item => `${item.itemName} (${Number(item.quantiteSortie || 0).toFixed(2)})`).join(', ')
-            : `${row.itemName || '-'} (${Number(row.quantiteSortie || 0).toFixed(2)})`;
+          const displayItems = items.length ? items : [{ itemName: row.itemName || '-', quantiteSortie: row.quantiteSortie || 0 }];
+          const statusClass = status === 'VALIDEE' ? 'valid' : status === 'REJETEE' ? 'rejected' : 'pending';
+          const dateValue = row.requestedAt || row.decidedAt;
           return `
-            <li class="list-item">
-              <div class="list-item-content project-item-clickable ${rowSelected ? 'project-item-selected' : ''}" onclick="viewStockIssueAuthorizationDetails(${rowId})">
-                <div class="sia-card-top">
-                  <div class="list-item-title">${escapeHtml(title)}</div>
-                  <span class="badge ${badgeClass}">${escapeHtml(statusLabel)}</span>
-                </div>
-                <div class="list-item-meta">Projet: ${escapeHtml(row.nomProjet || '-')} ${row.numeroMaison ? `• Site ${escapeHtml(row.numeroMaison)}` : ''}</div>
-                <div class="list-item-meta">Articles: ${escapeHtml(itemsLabel)}</div>
-                <div class="list-item-meta">Total: ${Number(row.totalQuantite || row.quantiteSortie || 0).toFixed(2)} • ${Number(row.itemCount || items.length || 1)} article(s) • Demandé par: ${escapeHtml(row.requestedBy || '-')} • ${formatDate(row.requestedAt)}</div>
-                ${row.decisionNote ? `<div class="list-item-meta" style="color:#dc2626;">Note: ${escapeHtml(row.decisionNote)}</div>` : ''}
-              </div>
+            <li class="list-item sia-${statusClass}">
+              <div><span class="sia-status ${statusClass}">${status === 'VALIDEE' ? '✓' : status === 'REJETEE' ? '↳' : '⌛'} ${escapeHtml(statusLabel)}</span><div class="sia-ref">#AS-${String(rowId).padStart(4, '0')}</div><div class="sia-date">▣ ${escapeHtml(formatDate(dateValue))}</div></div>
+              <div class="project-item-clickable ${rowSelected ? 'project-item-selected' : ''}" onclick="viewStockIssueAuthorizationDetails(${rowId})"><div class="sia-stage">${escapeHtml(mainStage || 'Étape')}</div>${subStage ? `<div class="sia-substage">${escapeHtml(subStage)}</div>` : ''}<div class="sia-project"><span>▦ Projet : ${escapeHtml(row.nomProjet || '-')}</span><span>⌖ Site : ${escapeHtml(siteNum)}</span></div></div>
+              <div><table class="sia-items-table"><thead><tr><th>Article</th><th>Unité</th><th>Qté</th></tr></thead><tbody>${displayItems.map(item => `<tr><td>${escapeHtml(item.itemName || item.article || '-')}</td><td>${escapeHtml(item.unite || '-')}</td><td>${Number(item.quantiteSortie || item.quantite || 0).toFixed(2)}</td></tr>`).join('')}</tbody></table></div>
+              <div class="sia-requester"><span class="sia-avatar">♟</span><div><div class="sia-requester-name">${escapeHtml(row.requestedBy || '-')}</div><div class="sia-requester-role">Demandeur</div></div></div>
               <div class="action-buttons sia-action-buttons decision-actions">
-                ${canDecide ? `<button type="button" class="button button-small button-success" onclick="openSiaSignModal(${Number(row.id)}, 'VALIDEE')">Valider</button>` : ''}
-                ${canDecide ? `<button type="button" class="button button-small button-danger" onclick="openSiaSignModal(${Number(row.id)}, 'REJETEE')">Rejeter</button>` : ''}
-                <button type="button" class="button button-small button-secondary" onclick="downloadSiaPdfById(${Number(row.id)})">Télécharger</button>
+                ${canDecide ? `<button type="button" class="button button-small button-success" onclick="openSiaSignModal(${rowId}, 'VALIDEE')">✓ Valider</button>` : `<button type="button" class="button button-small button-success" disabled>✓ Validée</button>`}
+                ${canDecide ? `<button type="button" class="button button-small button-danger" onclick="openSiaSignModal(${rowId}, 'REJETEE')">× Rejeter</button>` : `<button type="button" class="button button-small button-danger" disabled>× Rejetée</button>`}
+                <button type="button" class="button button-small button-secondary" onclick="downloadSiaPdfById(${rowId})">↧ PDF</button>
               </div>
-              ${rowSelected ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">${renderStockIssueAuthorizationItemsTable(row)}</div>` : ''}
+              ${row.decisionNote ? `<div class="sia-note">Note : ${escapeHtml(row.decisionNote)}</div>` : ''}
+              ${rowSelected ? `<div class="sia-details">${renderStockIssueAuthorizationItemsTable(row)}</div>` : ''}
             </li>
           `;
         }).join('');
@@ -25389,8 +25458,16 @@
 
     document.getElementById('sia-sign-validate').addEventListener('click', () => submitSiaDecision('VALIDEE'));
     document.getElementById('sia-sign-reject').addEventListener('click', () => submitSiaDecision('REJETEE'));
-    document.getElementById('sia-refresh').addEventListener('click', () => loadStockIssueAuthorizations());
-    document.getElementById('sia-filter-status').addEventListener('change', () => loadStockIssueAuthorizations());
+    document.getElementById('sia-refresh').addEventListener('click', () => {
+      ['sia-filter-project', 'sia-filter-site', 'sia-filter-status', 'sia-filter-date', 'sia-search', 'sia-sort'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.value = id === 'sia-filter-status' ? 'ALL' : id === 'sia-sort' ? 'recent' : '';
+      });
+      loadStockIssueAuthorizations();
+    });
+    ['sia-filter-project', 'sia-filter-site', 'sia-filter-status', 'sia-filter-date', 'sia-search', 'sia-sort'].forEach(id => {
+      document.getElementById(id)?.addEventListener(id === 'sia-search' ? 'input' : 'change', () => loadStockIssueAuthorizations());
+    });
 
     function renderStockIssueAuthorizationItemsTable(row) {
       const items = Array.isArray(row?.items) && row.items.length
