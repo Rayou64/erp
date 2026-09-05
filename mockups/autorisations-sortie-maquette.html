@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maquette - Autorisations de sortie</title>
+  <style>
+    :root { --ink:#19345d; --muted:#62748e; --line:#e3eaf4; --blue:#3154ef; --green:#0b9c67; --red:#fa4b51; --amber:#ef9413; --panel:#ffffff; --canvas:#f5f8fd; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--canvas); color:var(--ink); font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif; }
+    .page { max-width:1000px; margin:0 auto; padding:12px 14px; }
+    .topbar { display:grid; grid-template-columns:minmax(260px,1fr) 240px auto; gap:18px; align-items:center; margin-bottom:26px; }
+    .topbar-title h1 { margin:0; color:#183660; font-size:18px; font-weight:800; } .topbar-title p { margin:4px 0 0; color:#58708f; font-size:9px; font-weight:600; }
+    .global-search { height:30px; border:1px solid #d9e4f2; border-radius:5px; background:#fff; color:#7590af; padding:0 10px; font:600 9px inherit; }
+    .topbar-actions { display:flex; align-items:center; justify-content:flex-end; gap:11px; } .top-icon { position:relative; border:0; background:transparent; color:#245be9; font-size:16px; cursor:pointer; } .notice { position:absolute; top:-8px; right:-7px; display:grid; place-items:center; width:12px; height:12px; border-radius:50%; background:#fb4a54; color:#fff; font-size:7px; font-weight:800; } .logout { height:30px; border:0; border-radius:5px; background:#f1f5fb; color:#1d345b; padding:0 10px; font:800 9px inherit; } .brand { color:#3154ef; font-size:30px; font-weight:900; line-height:1; } .new-request { grid-column:3; justify-self:end; height:29px; margin-top:-15px; border:0; border-radius:5px; background:#3154ef; color:#fff; padding:0 14px; font:800 9px inherit; }
+    .kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; }
+    .kpi { min-height:68px; display:flex; align-items:center; gap:11px; padding:10px; background:var(--panel); border:1px solid var(--line); border-radius:7px; box-shadow:0 3px 10px rgba(20,52,93,.045); }
+    .kpi-icon { width:38px; height:38px; display:grid; place-items:center; border-radius:8px; font-size:20px; font-weight:800; }
+    .kpi-copy small { display:block; color:#547094; font-size:8px; font-weight:700; }
+    .kpi-copy strong { display:block; margin:2px 0 4px; color:#17335f; font-size:19px; line-height:1; }
+    .kpi-copy span { font-size:7px; font-weight:700; }
+    .pending .kpi-icon { background:#fff0d5; color:#ef8b00; } .pending .kpi-copy span { color:#e98200; }
+    .valid .kpi-icon { background:#dcfae9; color:#06a960; } .valid .kpi-copy span { color:#08a55e; }
+    .rejected .kpi-icon { background:#ffe3e5; color:#fa3d46; } .rejected .kpi-copy span { color:#f4444c; }
+    .total .kpi-icon { background:#e4eeff; color:#246af3; } .total .kpi-copy span { color:#55739b; }
+    .filters { display:grid; grid-template-columns:1fr 1fr 1fr 1.18fr 1.5fr auto; gap:10px; align-items:end; margin-top:12px; padding:10px; background:var(--panel); border:1px solid var(--line); border-radius:7px; box-shadow:0 3px 12px rgba(20,52,93,.045); }
+    .field label { display:block; margin:0 0 6px; color:#385474; font-size:10px; font-weight:800; }
+    .field select,.field input { width:100%; height:35px; border:1px solid #dce6f3; border-radius:5px; padding:0 10px; background:#fff; color:#5e7494; font:600 10px inherit; }
+    .reset { height:35px; border:1px solid #d8e3ff; border-radius:5px; padding:0 14px; background:#edf4ff; color:#245ceb; font:800 10px inherit; cursor:pointer; white-space:nowrap; }
+    .list-panel { margin-top:13px; padding:10px; background:var(--panel); border:1px solid var(--line); border-radius:7px; box-shadow:0 3px 12px rgba(20,52,93,.045); }
+    .panel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:13px; }
+    .panel-head h1 { margin:0; font-size:14px; font-weight:800; color:#16345f; }
+    .sort { display:flex; align-items:center; gap:8px; color:#55708d; font-size:9px; font-weight:700; }
+    .sort select { height:30px; min-width:170px; border:1px solid #dce6f3; border-radius:5px; color:#4e6887; background:#fff; padding:0 8px; font:700 10px inherit; }
+    .requests { display:grid; gap:10px; }
+    .request { display:grid; grid-template-columns:136px 1.24fr 1.4fr 1fr 150px 20px; gap:13px; align-items:center; min-height:132px; padding:12px; border:1px solid #e6edf6; border-radius:7px; box-shadow:0 2px 7px rgba(29,61,101,.035); }
+    .request.pending { border-left:3px solid var(--amber); } .request.approved { border-left:3px solid var(--green); } .request.denied { border-left:3px solid var(--red); }
+    .badge { display:inline-flex; align-items:center; gap:4px; padding:6px 8px; border-radius:5px; font-size:9px; font-weight:900; } .badge.pending { color:#ed8500; background:#fff0d3; } .badge.approved { color:#078b55; background:#dcf7e7; } .badge.denied { color:#ef4048; background:#ffe1e3; }
+    .reference { margin-top:9px; font-size:11px; font-weight:900; } .date { display:flex; gap:6px; margin-top:10px; color:#60738e; font-size:9px; font-weight:700; line-height:1.4; }
+    .stage { font-size:12px; font-weight:900; line-height:1.3; } .substage { margin-top:6px; color:#3d669b; font-size:8px; font-weight:800; text-transform:uppercase; }
+    .location { display:grid; gap:8px; margin-top:13px; color:#557393; font-size:10px; font-weight:700; } .location span { display:flex; gap:7px; align-items:center; }
+    table { width:100%; border-collapse:collapse; font-size:9px; } th { padding:5px 7px; text-align:left; background:#f3f6fc; color:#58708e; font-size:8px; font-weight:800; } td { padding:5px 7px; border-bottom:1px solid #edf2f8; color:#3c5678; } th:last-child,td:last-child { text-align:right; } tr:last-child td { border-bottom:0; }
+    .person { display:grid; grid-template-columns:28px 1fr; gap:8px; align-items:start; } .avatar { width:28px; height:28px; display:grid; place-items:center; border-radius:50%; background:#e5edff; color:#3b73f1; font-size:15px; } .person b { display:block; font-size:10px; } .person small { display:block; margin-top:3px; color:#6f8198; font-size:8px; font-weight:700; }
+    .message { display:flex; gap:6px; margin-top:10px; padding:6px 8px; border-radius:5px; background:#f3f6fb; color:#5d708d; font-size:8px; font-weight:700; line-height:1.35; } .message.ok { background:#e3f8eb; color:#0c955b; } .message.no { background:#ffe7e8; color:#ed4048; }
+    .actions { display:grid; gap:7px; } .action { height:27px; border-radius:5px; border:1px solid transparent; color:#fff; font:800 10px inherit; cursor:pointer; } .approve { background:#09a36c; } .reject { background:#f5464c; } .download { border-color:#d7e4f9; background:#fff; color:#1b5be8; } .disabled { opacity:.32; cursor:default; }
+    .more { border:0; background:transparent; color:#164ab9; font-size:21px; cursor:pointer; }
+    .footer { display:flex; justify-content:space-between; align-items:center; margin-top:13px; color:#60738e; font-size:9px; font-weight:700; } .pages { display:flex; gap:5px; align-items:center; } .pages button { min-width:26px; height:25px; border:1px solid #d8e4f4; border-radius:4px; background:#fff; color:#315cbd; font:800 9px inherit; } .pages .active { background:#3154ef; border-color:#3154ef; color:#fff; } .per-page { height:27px; border:1px solid #d8e4f4; border-radius:5px; color:#58708e; background:#fff; font:700 9px inherit; }
+    @media (max-width:1050px) { .topbar { grid-template-columns:1fr auto; } .global-search { display:none; } .new-request { grid-column:2; } .filters { grid-template-columns:repeat(3,1fr); } .request { grid-template-columns:125px 1fr 1fr; } .actions { grid-column:2 / 4; grid-template-columns:repeat(3,1fr); } .more { grid-column:3; grid-row:1; justify-self:end; } }
+    @media (max-width:660px) { .page { padding:10px; } .kpis,.filters,.request { grid-template-columns:1fr; } .request { gap:11px; } .actions { grid-column:auto; grid-template-columns:repeat(3,1fr); } .more { grid-column:auto; grid-row:auto; } .panel-head,.footer { align-items:flex-start; flex-direction:column; gap:10px; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="topbar-title"><h1>Autorisations de sortie</h1><p>Validez, rejetez ou téléchargez les demandes de sortie de matériaux</p></div>
+      <input class="global-search" type="search" placeholder="⌕  Rechercher dans l'ERP..." />
+      <div class="topbar-actions"><button class="top-icon">♟<span class="notice">7</span></button><button class="top-icon">◕</button><button class="logout">Déconnexion</button><span class="brand">R</span></div>
+      <button class="new-request">＋ Nouvelle demande</button>
+    </header>
+    <section class="kpis">
+      <article class="kpi pending"><div class="kpi-icon">⌛</div><div class="kpi-copy"><small>En attente</small><strong>7</strong><span>↗ +2 depuis la semaine dernière</span></div></article>
+      <article class="kpi valid"><div class="kpi-icon">✓</div><div class="kpi-copy"><small>Validées</small><strong>28</strong><span>↘ +12% ce mois</span></div></article>
+      <article class="kpi rejected"><div class="kpi-icon">×</div><div class="kpi-copy"><small>Rejetées</small><strong>3</strong><span>↗ -25% ce mois</span></div></article>
+      <article class="kpi total"><div class="kpi-icon">□</div><div class="kpi-copy"><small>Total des demandes</small><strong>38</strong><span>Toutes périodes</span></div></article>
+    </section>
+    <section class="filters">
+      <div class="field"><label>Projet</label><select><option>Tous les projets</option></select></div>
+      <div class="field"><label>Site</label><select><option>Tous les sites</option></select></div>
+      <div class="field"><label>Statut</label><select><option>Tous les statuts</option></select></div>
+      <div class="field"><label>Période</label><input type="text" placeholder="▣  Sélectionner une période" /></div>
+      <div class="field"><label>&nbsp;</label><input type="search" placeholder="⌕  Rechercher (projet, article, demandeur...)" /></div>
+      <button class="reset">⟳ Réinitialiser</button>
+    </section>
+    <section class="list-panel">
+      <header class="panel-head"><h1>Liste des demandes d'autorisation de sortie</h1><label class="sort">Trier par <select><option>Date (plus récente)</option></select></label></header>
+      <div class="requests">
+        <article class="request pending">
+          <div><span class="badge pending">⌛ EN ATTENTE</span><div class="reference">#AS-2026-015</div><div class="date">▣ <span>4 septembre 2026<br />10:32</span></div></div>
+          <div><div class="stage">Montage élévation 10 rangs RDC - DUPLEX</div><div class="substage">Montage et coulage chaînage haut-193</div><div class="location"><span>▦ Projet : Songon Kassemble</span><span>⌖ Site : 193</span></div></div>
+          <div><table><thead><tr><th>Articles demandés</th><th>Unité</th><th>Qté</th></tr></thead><tbody><tr><td>Ciment CPJ 42,5</td><td>Sac</td><td>50</td></tr><tr><td>Gravier (4.00)</td><td>m³</td><td>6.50</td></tr><tr><td>Voyage de Sable (1.00)</td><td>Voyage</td><td>1</td></tr></tbody></table></div>
+          <div><div class="person"><span class="avatar">♟</span><span><b>Admin</b><small>Administrateur</small></span></div><div class="message">▢ <span>Besoin pour la continuité<br />du chantier haut.</span></div></div>
+          <div class="actions"><button class="action approve">✓ &nbsp;Valider</button><button class="action reject">× &nbsp;Rejeter</button><button class="action download">↧ &nbsp;Télécharger PDF</button></div><button class="more">⋮</button>
+        </article>
+        <article class="request approved">
+          <div><span class="badge approved">↳ VALIDÉE</span><div class="reference">#AS-2026-014</div><div class="date">▣ <span>2 septembre 2026<br />14:18</span></div></div>
+          <div><div class="stage">Ferraillage des semelles S1 à S6</div><div class="location"><span>▦ Projet : Songon Kassemble</span><span>⌖ Site : 193</span></div></div>
+          <div><table><thead><tr><th>Articles demandés</th><th>Unité</th><th>Qté</th></tr></thead><tbody><tr><td>Fer à béton HA12</td><td>Tonne</td><td>2.5</td></tr><tr><td>Fil de ligature</td><td>Rouleau</td><td>5</td></tr><tr><td>Cale d'enrobement</td><td>Pièce</td><td>200</td></tr></tbody></table></div>
+          <div><div class="person"><span class="avatar">♟</span><span><b>KOUADIO Jean</b><small>Chef de chantier</small></span></div><div class="message ok">● <span>Approuvée le 2 sept. 2026<br />par Ryan Kouadou</span></div></div>
+          <div class="actions"><button class="action approve disabled">✓ &nbsp;Validée</button><button class="action reject">× &nbsp;Rejeter</button><button class="action download">↧ &nbsp;Télécharger PDF</button></div><button class="more">⋮</button>
+        </article>
+        <article class="request denied">
+          <div><span class="badge denied">↳ REJETÉE</span><div class="reference">#AS-2026-013</div><div class="date">▣ <span>1 septembre 2026<br />09:45</span></div></div>
+          <div><div class="stage">Béton de propreté fondations</div><div class="location"><span>▦ Projet : Cité des Arts</span><span>⌖ Site : 1</span></div></div>
+          <div><table><thead><tr><th>Articles demandés</th><th>Unité</th><th>Qté</th></tr></thead><tbody><tr><td>Béton prêt à l'emploi</td><td>m³</td><td>5</td></tr><tr><td>Plastifiant</td><td>L</td><td>20</td></tr></tbody></table></div>
+          <div><div class="person"><span class="avatar">♟</span><span><b>TRAORE Ibrahim</b><small>Chef de chantier</small></span></div><div class="message no">⊗ <span>Rejetée le 1 sept. 2026<br />Motif : Quantité non justifiée</span></div></div>
+          <div class="actions"><button class="action approve">✓ &nbsp;Valider</button><button class="action reject disabled">× &nbsp;Rejetée</button><button class="action download">↧ &nbsp;Télécharger PDF</button></div><button class="more">⋮</button>
+        </article>
+        <article class="request pending">
+          <div><span class="badge pending">⌛ EN ATTENTE</span><div class="reference">#AS-2026-012</div><div class="date">▣ <span>31 août 2026<br />16:20</span></div></div>
+          <div><div class="stage">Coffrage voile béton - Zone B</div><div class="location"><span>▦ Projet : Résidence Les Flamboyants</span><span>⌖ Site : 2</span></div></div>
+          <div><table><thead><tr><th>Articles demandés</th><th>Unité</th><th>Qté</th></tr></thead><tbody><tr><td>Contreplaqué 18 mm</td><td>Feuille</td><td>40</td></tr><tr><td>Poutrelle bois</td><td>Pièce</td><td>25</td></tr><tr><td>Clous 100 mm</td><td>Boîte</td><td>3</td></tr></tbody></table></div>
+          <div><div class="person"><span class="avatar">♟</span><span><b>SANGARE Adama</b><small>Chef de chantier</small></span></div><div class="message">▢ <span>Matériaux nécessaires<br />pour les voiles.</span></div></div>
+          <div class="actions"><button class="action approve">✓ &nbsp;Valider</button><button class="action reject">× &nbsp;Rejeter</button><button class="action download">↧ &nbsp;Télécharger PDF</button></div><button class="more">⋮</button>
+        </article>
+      </div>
+      <footer class="footer"><span>Affichage de 1 à 4 sur 38 demandes</span><span class="pages"><button>«</button><button>‹</button><button class="active">1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>…</button><button>›</button></span><select class="per-page"><option>10 / page</option></select></footer>
+    </section>
+  </main>
+</body>
+</html>
