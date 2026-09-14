@@ -4165,6 +4165,65 @@
       border-radius: 10px;
     }
 
+    .purchase-orders-module #po-suggestions-list .list-item > .po-request-inline-details {
+      grid-column: 1 / -1;
+      min-width: 0;
+    }
+
+    .purchase-orders-module .po-request-inline-details .table-wrapper {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      margin-top: 6px;
+      border: 1px solid #dce6f5;
+      border-radius: 9px;
+      background: #ffffff;
+    }
+
+    .purchase-orders-module .po-request-inline-details .table {
+      width: 100%;
+      min-width: 420px;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .purchase-orders-module .po-request-inline-details .table th {
+      padding: 9px 10px;
+      background: linear-gradient(180deg, #f8fbff, #eef4fc);
+      border-bottom: 1px solid #d7e2f1;
+      color: #53627d;
+      font-size: 10px;
+      font-weight: 800;
+      text-align: left;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .purchase-orders-module .po-request-inline-details .table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #edf1f8;
+      color: #52617b;
+      vertical-align: middle;
+    }
+
+    .purchase-orders-module .po-request-inline-details .table th:last-child,
+    .purchase-orders-module .po-request-inline-details .table td:last-child {
+      width: 170px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .purchase-orders-module .po-request-inline-details .table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .purchase-orders-module .po-request-preview-more {
+      margin: 7px 0 0;
+      color: #526b98;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
     .purchase-orders-module .po-suggestion-head {
       display: flex;
       align-items: flex-start;
@@ -10426,6 +10485,7 @@
             #purchase-orders .po-create-card #po-items-wrap .po-items-table { background:#ffffff !important; }
             #purchase-orders .po-items-table tbody .po-item-row { display:table-row !important; border:0; border-radius:0; padding:0; background:#fff; }
             #purchase-orders .po-items-table tbody .po-item-row > td { display:table-cell; }
+            #purchase-orders #po-suggestions-list .list-item > .po-request-inline-details { grid-column:1 / -1 !important; grid-row:auto !important; width:100% !important; max-width:none !important; min-width:0; align-self:stretch; }
             @media(max-width:1100px){#purchase-orders .grid-2{grid-template-columns:1fr !important}#purchase-orders .po-create-card,#purchase-orders .po-demands-card{grid-column:1;grid-row:auto}#purchase-orders #po-form{grid-template-columns:1fr 1fr}#purchase-orders .po-form-grid,#purchase-orders .po-site-grid{grid-column:1 / -1}#purchase-orders #po-suggestions-list .po-demand-item{grid-template-columns:112px 1fr 1fr}#purchase-orders #po-suggestions-list .po-mock-actions{grid-column:2 / 4;grid-template-columns:repeat(3,1fr)}#purchase-orders .po-received-more{grid-column:3;grid-row:1;justify-self:end}#purchase-orders .po-reference-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#purchase-orders .po-reference-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
             @media(max-width:650px){#purchase-orders .po-reference-kpis,#purchase-orders .po-reference-filters{grid-template-columns:1fr}#purchase-orders .po-reference-head{align-items:flex-start;flex-direction:column}}
           </style>
@@ -19846,11 +19906,13 @@
         const [mainStage, ...subStageParts] = stage.split('::');
         const subStage = subStageParts.join('::').trim();
         const initials = String(demandeur || '-').split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase();
+        const previewItems = groupReqs.slice(0, 5);
+        const hiddenItemsCount = Math.max(0, groupReqs.length - previewItems.length);
         return `
           <li class="list-item po-demand-item is-new" tabindex="0" aria-label="Demande ${escapeHtml(title)} de ${escapeHtml(demandeur)} sur ${escapeHtml(site)}">
             <div><span class="po-received-status">⌛ EN ATTENTE</span><div class="po-received-ref">${escapeHtml(requestNumber)}</div><div class="po-received-date">▣ ${escapeHtml(latestDate)}</div></div>
             <div><div class="po-received-stage">${escapeHtml(mainStage || title)}</div>${subStage ? `<div class="po-received-stage-sub">${escapeHtml(subStage)}</div>` : ''}<div class="po-received-meta"><span>▦ Projet : ${escapeHtml(site)}</span><span>⌖ Site : ${escapeHtml(getMaterialRequestHouseNumber(first))}</span></div></div>
-            <div><table class="po-received-items"><thead><tr><th>Article demandé</th><th>Unité</th><th>Qté</th></tr></thead><tbody>${groupReqs.map(item => `<tr><td>${escapeHtml(item.itemName || '-')}</td><td>${escapeHtml(getMaterialRequestUnitLabel(item) || '-')}</td><td>${Number(item.quantiteRestante || item.quantiteDemandee || 0).toFixed(2)}</td></tr>`).join('')}</tbody></table></div>
+            <div><table class="po-received-items"><thead><tr><th>Article demandé</th><th>Unité</th><th>Qté</th></tr></thead><tbody>${previewItems.map(item => `<tr><td>${escapeHtml(item.itemName || '-')}</td><td>${escapeHtml(getMaterialRequestUnitLabel(item) || '-')}</td><td>${Number(item.quantiteRestante || item.quantiteDemandee || 0).toFixed(2)}</td></tr>`).join('')}</tbody></table>${hiddenItemsCount ? `<p class="po-request-preview-more">+ ${hiddenItemsCount} article${hiddenItemsCount > 1 ? 's' : ''} supplémentaire${hiddenItemsCount > 1 ? 's' : ''}. Cliquez sur « Voir détails » pour afficher la demande complète.</p>` : ''}</div>
             <div><div class="po-received-person"><span class="po-received-avatar">${escapeHtml(initials)}</span><span><b>${escapeHtml(demandeur)}</b><small>Demandeur</small></span></div><div class="po-received-message">▢ <span>Demande en attente de traitement pour préparer le bon de commande.</span></div></div>
             ${isOpsReviewer() ? '' : `<div class="po-mock-actions" aria-label="Actions demande recente">
               <button type="button" class="po-btn po-btn-primary" onclick="prepareGroupFromRequests(${idsArg})">＋ Créer le bon</button>
