@@ -3914,6 +3914,7 @@
     }
 
     .purchase-orders-module .po-item-row {
+      display: table-row;
       border-color: #cfe1ff;
       background: linear-gradient(180deg, #ffffff, #f3f8ff);
       border-radius: 12px;
@@ -10423,6 +10424,8 @@
             #purchase-orders .po-create-card #po-items-wrap { grid-column:1 / -1 !important; background:#ffffff !important; }
             #purchase-orders .po-create-card #po-items-wrap .po-items-table-wrap { background:#ffffff !important; }
             #purchase-orders .po-create-card #po-items-wrap .po-items-table { background:#ffffff !important; }
+            #purchase-orders .po-items-table tbody .po-item-row { display:table-row !important; border:0; border-radius:0; padding:0; background:#fff; }
+            #purchase-orders .po-items-table tbody .po-item-row > td { display:table-cell; }
             @media(max-width:1100px){#purchase-orders .grid-2{grid-template-columns:1fr !important}#purchase-orders .po-create-card,#purchase-orders .po-demands-card{grid-column:1;grid-row:auto}#purchase-orders #po-form{grid-template-columns:1fr 1fr}#purchase-orders .po-form-grid,#purchase-orders .po-site-grid{grid-column:1 / -1}#purchase-orders #po-suggestions-list .po-demand-item{grid-template-columns:112px 1fr 1fr}#purchase-orders #po-suggestions-list .po-mock-actions{grid-column:2 / 4;grid-template-columns:repeat(3,1fr)}#purchase-orders .po-received-more{grid-column:3;grid-row:1;justify-self:end}#purchase-orders .po-reference-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#purchase-orders .po-reference-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
             @media(max-width:650px){#purchase-orders .po-reference-kpis,#purchase-orders .po-reference-filters{grid-template-columns:1fr}#purchase-orders .po-reference-head{align-items:flex-start;flex-direction:column}}
           </style>
