@@ -10788,7 +10788,7 @@ function serializeCsvSet(values) {
 function getAccessProfileBaselineModules(role) {
   const normalizedRole = String(role || '').trim().toLowerCase();
   const presets = {
-    admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'stock-management', 'sortie-autorisations', 'material-catalog', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'],
+    admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'assignments', 'materials', 'material-requests-tracking', 'inventory', 'stock-management', 'sortie-autorisations', 'purchase-orders', 'purchase-orders-tracking', 'material-catalog', 'parc-auto-maintenance', 'parc-auto-transport', 'maps', 'expenses', 'revenues', 'reports', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'users', 'settings', 'audit-log'],
     directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp'],
     dirigeant: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp'],
     commis: ['stock-management', 'inventory'],
@@ -11115,6 +11115,56 @@ app.patch('/api/admin/access-profiles/:username', async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ error: 'Erreur sauvegarde dossier profil', details: String(err?.message || err) });
+  }
+});
+
+app.post('/api/admin/access-profiles/restore-all', async (req, res) => {
+  try {
+    if (String(req.user?.role || '').trim() !== 'admin') {
+      return res.status(403).json({ error: 'Acces reserve a admin' });
+    }
+    await ensureAccessProfileSchema();
+
+    const users = await all('SELECT id, username, role FROM users ORDER BY username ASC');
+    const actor = String(req.user?.username || 'admin').trim() || 'admin';
+    const now = new Date().toISOString();
+    let restored = 0;
+
+    for (const user of (users || [])) {
+      const username = String(user?.username || '').trim();
+      if (!username) continue;
+
+      const baselineModules = Array.from(getAccessProfileBaselineModules(user?.role || ''));
+      const existing = await get('SELECT id, accreditationLevel, notes FROM user_access_profiles WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [username]);
+      const accreditationLevel = String(existing?.accreditationLevel || 'standard').trim().toLowerCase() || 'standard';
+      const notes = String(existing?.notes || '').trim();
+
+      if (existing?.id) {
+        await run(
+          `UPDATE user_access_profiles
+           SET roleSnapshot = ?, allowedModules = ?, deniedModules = '', forcedModule = '', accreditationLevel = ?, notes = ?, updatedAt = ?, updatedBy = ?
+           WHERE id = ?`,
+          [String(user?.role || '').trim(), serializeCsvSet(baselineModules), accreditationLevel, notes, now, actor, Number(existing.id)]
+        );
+      } else {
+        await run(
+          `INSERT INTO user_access_profiles
+           (id, username, roleSnapshot, accreditationLevel, allowedModules, deniedModules, forcedModule, notes, createdAt, updatedAt, updatedBy)
+           VALUES (?, ?, ?, ?, ?, '', '', ?, ?, ?, ?)`,
+          [await getNextTableId('user_access_profiles'), username, String(user?.role || '').trim(), accreditationLevel, serializeCsvSet(baselineModules), notes, now, now, actor]
+        );
+      }
+
+      await run(
+        'INSERT INTO user_access_profile_audit (id, username, action, payloadJson, changedBy, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
+        [await getNextTableId('user_access_profile_audit'), username, 'restore_access_profile_baseline', JSON.stringify({ baselineModules }), actor, now]
+      );
+      restored += 1;
+    }
+
+    return res.json({ restored, message: `${restored} profil(s) restauré(s)` });
+  } catch (err) {
+    return res.status(500).json({ error: 'Erreur restauration globale des profils', details: String(err?.message || err) });
   }
 });
 

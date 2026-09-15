@@ -11439,6 +11439,7 @@
               </div>
               <div class="action-buttons" style="gap:8px;">
                 <button type="button" class="button button-small" onclick="loadAccessProfilesModule()">Actualiser</button>
+                <button type="button" class="button button-small button-secondary" id="access-profile-restore-all">Restaurer tous les profils</button>
               </div>
             </div>
 
@@ -14056,18 +14057,11 @@
       const row = (Array.isArray(accessProfilesCache) ? accessProfilesCache : []).find(item => String(item?.username || '').trim().toLowerCase() === safeUsername.toLowerCase());
       if (!row) return;
       const baselineModules = Array.from(getAccessProfileBaselineModules(row.role, row.username));
-      const accreditationLevel = String(row.accreditationLevel || 'standard').trim().toLowerCase() || 'standard';
-      const keepsPrivilegedAccreditation = row.role === 'admin' || row.role === 'directeur_rh' || row.role === 'dirigeant';
-      let restoredModules = baselineModules.slice();
-      if (accreditationLevel === 'restricted' && !keepsPrivilegedAccreditation) {
-        const restrictedModules = baselineModules.filter(moduleKey => RESTRICTED_DEFAULT_ALLOWED_MODULES.has(String(moduleKey || '').trim().toLowerCase()));
-        restoredModules = restrictedModules.length ? restrictedModules : Array.from(RESTRICTED_DEFAULT_ALLOWED_MODULES);
-      }
       const payload = {
-        accreditationLevel: String(row.accreditationLevel || 'standard').trim(),
-        allowedModules: restoredModules.join(','),
-        deniedModules: Array.isArray(row.deniedModules) ? row.deniedModules : String(row.deniedModules || ''),
-        forcedModule: String(row.forcedModule || '').trim(),
+        accreditationLevel: String(row.accreditationLevel || 'standard').trim() || 'standard',
+        allowedModules: baselineModules.join(','),
+        deniedModules: [],
+        forcedModule: '',
         notes: String(row.notes || '').trim(),
       };
       try {
@@ -14203,6 +14197,25 @@
           await loadAccessProfilesModule();
         } catch (err) {
           showMessage('Erreur création profil RH: ' + err.message, 'error');
+        }
+      });
+    }
+    const restoreAllAccessProfilesButton = document.getElementById('access-profile-restore-all');
+    if (restoreAllAccessProfilesButton) {
+      restoreAllAccessProfilesButton.addEventListener('click', async () => {
+        if (!isAdmin()) {
+          showMessage('Acces refuse: admin uniquement', 'error');
+          return;
+        }
+        if (!confirm('Restaurer les modules par défaut de tous les profils et supprimer leurs restrictions personnalisées ?')) {
+          return;
+        }
+        try {
+          const result = await fetchJson('/api/admin/access-profiles/restore-all', { method: 'POST' });
+          showMessage(result?.message || 'Tous les profils ont été restaurés');
+          await loadAccessProfilesModule();
+        } catch (err) {
+          showMessage('Erreur restauration globale: ' + err.message, 'error');
         }
       });
     }
