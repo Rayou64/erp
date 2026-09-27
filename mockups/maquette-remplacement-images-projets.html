@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maquette - Images des modules projet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root { --ink:#14253d; --muted:#687b91; --line:#dce5ef; --paper:#fff; --page:#edf2f7; --blue:#0759e5; --teal:#0f766e; --green:#08b582; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--page); color:var(--ink); font-family:'DM Sans','Segoe UI',sans-serif; }
+    .review-top { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:16px 24px; border-bottom:1px solid #dce4ed; background:#fff; }
+    .review-brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+    .brand-mark { display:grid; width:34px; height:34px; place-items:center; border-radius:8px; background:#1d4ed8; color:#fff; font:800 18px Manrope,sans-serif; }
+    .review-note { color:var(--muted); font-size:12px; }
+    .review-layout { display:grid; grid-template-columns:220px minmax(0,1fr); min-height:calc(100vh - 65px); }
+    .sidebar { padding:20px 12px; background:#173b84; color:#e7efff; }
+    .profile { display:flex; align-items:center; gap:9px; padding:10px; border:1px solid rgba(255,255,255,.17); border-radius:8px; background:rgba(255,255,255,.08); }
+    .avatar { display:grid; width:34px; height:34px; place-items:center; border-radius:50%; background:#f2c968; color:#533e13; font-size:12px; font-weight:800; }
+    .profile small { display:block; color:#b9d7ff; font-size:9px; text-transform:uppercase; }
+    .profile strong { display:block; margin-top:3px; color:white; font-size:13px; }
+    .nav-label { margin:24px 10px 8px; color:#aecdf9; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    .nav-item { margin:3px 0; padding:9px 10px; border-radius:6px; color:#e6efff; font-size:12px; }
+    .nav-item.active { border-left:3px solid #f2c968; background:rgba(255,255,255,.1); font-weight:700; }
+    main { min-width:0; padding:24px; }
+    .crumb { margin:0 0 5px; color:#657b93; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
+    h1 { margin:0; font:800 22px/1.2 Manrope,sans-serif; }
+    .lead { margin:6px 0 22px; color:var(--muted); font-size:12px; }
+    .preview { margin-bottom:18px; overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--paper); box-shadow:0 5px 18px rgba(24,46,75,.06); }
+    .preview-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid #e8edf3; }
+    .preview-head h2 { margin:0; font:800 13px Manrope,sans-serif; }
+    .preview-head span { color:#7a8ca0; font-size:10px; }
+    .preview-body { padding:16px; }
+    .screen-context { margin:0 0 4px; color:#60748d; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    .screen-title { margin:0; color:#18304d; font:800 19px/1.2 Manrope,sans-serif; }
+    .screen-copy { margin:5px 0 16px; color:#687b91; font-size:11px; }
+    .choice-shell { padding:14px; border:1px solid #dce5ef; border-radius:10px; background:#fff; box-shadow:0 4px 14px rgba(24,46,75,.05); }
+    .choice-shell h3 { margin:0 0 6px; color:#26384d; font:800 15px Manrope,sans-serif; }
+    .choice-shell p { margin:0 0 12px; color:#64748b; font-size:11px; line-height:1.45; }
+    .project-choice { display:flex; width:100%; min-height:110px; flex-direction:column; align-items:flex-start; justify-content:center; gap:6px; padding:12px 14px; border:0; border-radius:8px; background:#0f766e; color:#fff; text-align:left; }
+    .project-choice strong { font-size:13px; line-height:1.25; font-weight:800; }
+    .project-choice span { color:rgba(255,255,255,.94); font-size:11px; line-height:1.25; }
+    .dashboard-sample { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:14px; }
+    .dashboard-stat { padding:12px; border:1px solid #dfe8f3; border-radius:8px; background:#fff; }
+    .dashboard-stat small { display:block; color:#718096; font-size:9px; }
+    .dashboard-stat strong { display:block; margin-top:5px; color:#173b84; font:800 18px Manrope,sans-serif; }
+    @media(max-width:700px) { .review-layout { grid-template-columns:1fr; } .sidebar { display:none; } main { padding:15px 12px; } .review-top { padding:12px; } .review-note { display:none; } .dashboard-sample { grid-template-columns:repeat(2,minmax(0,1fr)); } .preview-body { padding:10px; } }
+  </style>
+</head>
+<body>
+  <header class="review-top"><div class="review-brand"><span class="brand-mark">R</span><span>RyanERP · Aperçu local</span></div><div class="review-note">Proposition visuelle uniquement · aucune modification de l'ERP</div></header>
+  <div class="review-layout">
+    <aside class="sidebar"><div class="profile"><span class="avatar">AD</span><div><small>Profil actif</small><strong>Direction</strong></div></div><div class="nav-label">Construction</div><div class="nav-item active">Projets</div><div class="nav-item">Suivi des projets</div><div class="nav-item">Journal de chantier</div><div class="nav-label">Approvisionnement</div><div class="nav-item">Inventaire</div><div class="nav-item">Gestion de stock</div></aside>
+    <main>
+      <p class="crumb">Construction</p><h1>Maquettes · Choix rapide des projets</h1><p class="lead">La tuile verte de ta capture est reproduite dans les deux modules; aucun changement n'est encore appliqué à l'ERP.</p>
+      <section class="preview"><header class="preview-head"><h2>Maquette 1 · Module Projets</h2><span>Choix rapide avec la tuile de référence</span></header><div class="preview-body"><p class="screen-context">Construction</p><h3 class="screen-title">Projets de construction</h3><p class="screen-copy">Gérez vos projets et chantiers.</p><div class="choice-shell"><h3>Choix rapide des projets</h3><p>Clique d'abord sur un projet, puis choisis une zone.</p><button class="project-choice" type="button"><strong>Songon Kassemble</strong><span>Construction de Villa</span><span>1 zone • 1 site</span></button></div></div></section>
+      <section class="preview"><header class="preview-head"><h2>Maquette 2 · Suivi des projets</h2><span>Même tuile, données de suivi conservées</span></header><div class="preview-body"><p class="screen-context">Construction</p><h3 class="screen-title">Suivi des projets</h3><p class="screen-copy">Choisissez un projet pour consulter son avancement.</p><div class="choice-shell"><h3>Choix rapide des projets</h3><p>Sélectionnez un projet pour afficher ses sites et son suivi.</p><button class="project-choice" type="button"><strong>Songon Kassemble</strong><span>Construction de Villa</span><span>1 zone • 1 site</span></button></div><div class="dashboard-sample"><div class="dashboard-stat"><small>Avancement moyen</small><strong>0%</strong></div><div class="dashboard-stat"><small>Sites suivis</small><strong>1</strong></div><div class="dashboard-stat"><small>Étapes terminées</small><strong>0</strong></div><div class="dashboard-stat"><small>Dernière activité</small><strong>—</strong></div></div></div></section>
+    </main>
+  </div>
+</body>
+</html>

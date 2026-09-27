@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="profile-bootstrap">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -45,6 +45,26 @@
         radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.35), transparent 24%),
         linear-gradient(180deg, #12398b 0%, #1d4ed8 38%, var(--bg-page) 100%);
       color: var(--text-main);
+    }
+
+    .profile-bootstrap .erp-container {
+      visibility: hidden;
+    }
+
+    #profile-bootstrap-indicator {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      place-items: center;
+      background: #f5f8fc;
+      color: #334155;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .profile-bootstrap #profile-bootstrap-indicator {
+      display: grid;
     }
 
     .sr-only {
@@ -7669,6 +7689,7 @@
   </style>
 </head>
 <body>
+  <div id="profile-bootstrap-indicator" role="status" aria-live="polite">Chargement de votre profil…</div>
   <div class="erp-container">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -8515,7 +8536,7 @@
           </div>
           <div id="project-folder-selector-card" class="project-open-shell" style="margin-bottom: 20px;">
             <div class="project-open-head">
-              <div class="project-open-title-row"><span class="project-open-icon"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg></span><div><h3 class="project-open-title">Choix rapide des projets</h3><p class="project-open-subtitle">Accédez rapidement à vos projets et suivez l'avancement de vos chantiers.</p></div></div>
+              <div class="project-open-title-row"><span class="project-open-icon"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg></span><div><h3 class="project-open-title">Choix rapide des projets</h3><p class="project-open-subtitle">Clique d'abord sur un projet, puis choisis une zone.</p></div></div>
               <div class="project-open-view-toggle"><button type="button" class="active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Vue carte</button><button type="button"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg> Vue liste</button></div>
             </div>
             <div id="project-open-hero"></div>
@@ -8887,6 +8908,27 @@
             #project-progress .ppx-history-item.warn::before { background:#ef4444; }
             #project-progress .ppx-history-item strong { display:block; color:#102449; font-size:11px; }
             #project-progress .ppx-history-item small { float:right; color:#7084a6; font-size:9px; }
+            #project-progress .ppx-shell { color:#152b46; font-family:'DM Sans',sans-serif; }
+            #project-progress .ppx-card { border-color:#d8e2ee; box-shadow:0 5px 16px rgba(31,45,72,.06); }
+            #project-progress .ppx-title { font-size:17px; }
+            #project-progress .ppx-overview-left b { font-size:13px; }
+            #project-progress .ppx-overview-left small,
+            #project-progress .ppx-overview-left a { font-size:11px; }
+            #project-progress .ppx-stat strong { font-size:21px; }
+            #project-progress .ppx-stat span { font-size:11px; }
+            #project-progress .ppx-stat small { font-size:10px; }
+            #project-progress .ppx-alert { font-size:12px; }
+            #project-progress .ppx-table { min-width:940px; }
+            #project-progress .ppx-table th { font-size:10px; }
+            #project-progress .ppx-table td { font-size:12px; }
+            #project-progress .ppx-site-cell small,
+            #project-progress .ppx-sub { font-size:10px; }
+            #project-progress .ppx-stage-name { white-space:normal; }
+            #project-progress #ppx-table-pagination { font-size:11px; }
+            #project-progress .ppx-flow-item { font-size:10px; }
+            #project-progress .ppx-history-item { font-size:12px; }
+            #project-progress .ppx-history-item strong { font-size:13px; }
+            #project-progress .ppx-history-item small { font-size:10px; }
             @media (max-width:1100px){#project-progress .ppx-overview-grid{grid-template-columns:1fr 1fr}#project-progress .ppx-bottom-grid{grid-template-columns:1fr}}
             @media (max-width:700px){#project-progress .ppx-overview-grid{grid-template-columns:1fr}#project-progress .ppx-section-head{align-items:flex-start;flex-direction:column}.ppx-tools input{min-width:0;width:100%}}
           </style>
@@ -8954,9 +8996,10 @@
             #journal-chantier .jc-title-block h1 { margin:0; font-size:24px; font-weight:800; color:#0f172a; letter-spacing:0; }
             #journal-chantier .jc-title-block p { margin:6px 0 0; font-size:12px; color:#64748b; font-weight:600; }
             #journal-chantier .jc-actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+            #journal-chantier .jc-date-actions { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin:0 0 16px; }
             #journal-chantier .date-filter { height:42px; display:flex; align-items:center; gap:8px; border:1px solid #e2e8f0; border-radius:7px; background:#fff; padding:0 12px; color:#334155; box-shadow:0 1px 2px rgba(15,23,42,.03); }
             #journal-chantier .date-filter input { width:124px; border:0; padding:0; font-size:12px; font-weight:700; color:#334155; background:transparent; }
-            #journal-chantier .jc-actions button { height:42px; border-radius:7px; border:1px solid #e2e8f0; background:#fff; color:#334155; font-weight:700; font-size:12px; padding:0 16px; cursor:pointer; box-shadow:0 1px 2px rgba(15,23,42,.03); }
+            #journal-chantier .jc-actions button, #journal-chantier .jc-date-actions button { height:36px; border-radius:7px; border:1px solid #e2e8f0; background:#fff; color:#334155; font-weight:700; font-size:12px; padding:0 12px; cursor:pointer; box-shadow:0 1px 2px rgba(15,23,42,.03); }
             #journal-chantier .jc-actions .btn-new { background:#4f46e5; color:#fff; border-color:#4f46e5; box-shadow:0 10px 18px rgba(79,70,229,.18); }
             #journal-chantier .jc-kpi-grid { display:grid; grid-template-columns:repeat(5,minmax(150px,1fr)); gap:18px; margin-bottom:22px; }
             #journal-chantier .jc-kpi-card { min-height:96px; border:1px solid #e7edf5; border-radius:10px; background:#fff; padding:18px; display:flex; align-items:center; gap:16px; box-shadow:0 8px 20px rgba(15,23,42,.05); }
@@ -9039,7 +9082,7 @@
             #journal-chantier .jc-empty { text-align:center; padding:40px 20px; color:#94a3b8; font-size:13px; }
             @media (max-width:1280px) { #journal-chantier .jc-kpi-grid { grid-template-columns:repeat(3,1fr); } #journal-chantier .jc-filter-row { grid-template-columns:repeat(3,1fr); } }
             @media (max-width:980px) { #journal-chantier .jc-header { flex-direction:column; } #journal-chantier .jc-container { grid-template-columns:1fr; } #journal-chantier .jc-kpi-grid { grid-template-columns:repeat(2,1fr); } }
-            @media (max-width:640px) { #journal-chantier .jc-kpi-grid, #journal-chantier .jc-filter-row { grid-template-columns:1fr; } #journal-chantier .jc-actions, #journal-chantier .date-filter { width:100%; } }
+            @media (max-width:640px) { #journal-chantier .jc-kpi-grid, #journal-chantier .jc-filter-row { grid-template-columns:1fr; } #journal-chantier .jc-actions, #journal-chantier .jc-date-actions, #journal-chantier .date-filter { width:100%; } #journal-chantier .jc-date-actions { flex-wrap:wrap; justify-content:flex-start; } }
           </style>
           
           <div class="jc-header">
@@ -9048,12 +9091,6 @@
               <p>Suivi quotidien des étapes et activités par site</p>
             </div>
             <div class="jc-actions">
-              <div class="date-filter">
-                <input type="date" id="jc-date-from" style="width:120px;" />
-                <span>-</span>
-                <input type="date" id="jc-date-to" style="width:120px;" />
-              </div>
-              <button id="jc-filters-btn" title="Filtres">▽ Filtres</button>
               <button id="jc-new-btn" class="btn-new">+ Nouveau suivi</button>
             </div>
           </div>
@@ -9079,6 +9116,15 @@
               <div class="jc-kpi-icon">☁</div>
               <div><div class="jc-kpi-label">Photos ajoutées</div><div class="jc-kpi-value" id="jc-kpi-photos">0</div><div class="jc-kpi-trend">Ce mois</div></div>
             </div>
+          </div>
+
+          <div class="jc-date-actions">
+            <div class="date-filter">
+              <input type="date" id="jc-date-from" aria-label="Date de début" />
+              <span>-</span>
+              <input type="date" id="jc-date-to" aria-label="Date de fin" />
+            </div>
+            <button id="jc-filters-btn" title="Filtres">▽ Filtres</button>
           </div>
 
           <div class="jc-container">
@@ -9396,57 +9442,104 @@
 
         <!-- Assignments Module -->
         <div id="assignments" class="module">
-          <div class="page-header">
-            <h1>Assignations de projet</h1>
-            <p>Attribuez les ressources aux projets</p>
-          </div>
-          <div class="grid-2">
-            <div class="card form-card">
-              <h3 style="margin-bottom: 15px;">Créer une assignation</h3>
-              <form id="assignment-form">
-                <div class="form-group">
-                  <label>Dossier projet *</label>
-                  <select id="assignment-project" required></select>
-                </div>
-                <div class="form-group">
-                  <label>Site *</label>
-                  <select id="assignment-house" required></select>
-                </div>
-                <div class="form-group">
-                  <label>Nom de l'utilisateur *</label>
-                  <input type="text" id="assignment-name" required />
-                </div>
-                <div class="form-group">
-                  <label>Rôle joué *</label>
-                  <input type="text" id="assignment-role" required />
-                </div>
-                <div class="form-group">
-                  <label>Département</label>
-                  <input type="text" id="assignment-department" placeholder="Ex: Chantier, Études, Finances" />
-                </div>
-                <div class="form-group">
-                  <label>Email</label>
-                  <input type="email" id="assignment-email" placeholder="nom@ryanerp.com" />
-                </div>
-                <div class="form-group">
-                  <label>Statut</label>
-                  <select id="assignment-status"><option value="ACTIF">Actif</option><option value="CONGE">En congé</option><option value="INACTIF">Inactif</option></select>
-                </div>
-                <div class="form-group">
-                  <label>Numéro de téléphone</label>
-                  <input type="tel" id="assignment-phone" placeholder="Ex: 07 12 34 56 78" />
-                </div>
-                <button type="submit" class="button button-primary" style="width: 100%;">Assigner</button>
+          <style>
+            #assignments > .page-header { display:none; }
+            #assignments { --assignment-blue:#2676f5; --assignment-ink:#18304d; --assignment-muted:#73869d; --assignment-line:#d8e5f6; background:#f4f7fc; }
+            #assignments .assignment-layout { display:grid; grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr); gap:20px; align-items:stretch; }
+            #assignments .assignment-panel { min-width:0; padding:20px; border:1px solid #dce7f5; border-radius:12px; background:#fff; box-shadow:0 8px 24px rgba(39,83,145,.07); }
+            #assignments .assignment-create-panel { border-left:3px solid #54a8ff; }
+            #assignments .assignment-panel-heading { display:flex; align-items:center; gap:13px; margin-bottom:19px; }
+            #assignments .assignment-heading-icon { display:grid; width:46px; height:46px; flex:0 0 46px; place-items:center; border-radius:11px; background:#e8f1ff; color:#2879f6; }
+            #assignments .assignment-heading-icon svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #assignments .assignment-panel-heading h2 { margin:0; color:#1d3456; font-size:17px; line-height:1.25; font-weight:800; }
+            #assignments .assignment-panel-heading p { margin:4px 0 0; color:#71829a; font-size:11px; line-height:1.4; }
+            #assignments .assignment-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 14px; }
+            #assignments .assignment-form-grid .form-group { min-width:0; margin:0; }
+            #assignments .assignment-form-grid label { display:block; margin:0 0 6px; color:#2d4261; font-size:11px; font-weight:800; }
+            #assignments .assignment-required { color:#e34d63; }
+            #assignments .assignment-control { position:relative; }
+            #assignments .assignment-control svg { position:absolute; top:50%; left:11px; width:16px; height:16px; transform:translateY(-50%); fill:none; stroke:#3280f7; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+            #assignments .assignment-control input, #assignments .assignment-control select { width:100%; height:40px; min-height:40px; margin:0; padding:0 10px 0 36px; border:1px solid #cdddf3; border-radius:7px; background:#fff; color:#334b68; font-size:11px; box-shadow:none; }
+            #assignments .assignment-control input::placeholder { color:#8b9db5; }
+            #assignments .assignment-control input:focus, #assignments .assignment-control select:focus { border-color:#6ea5ff; outline:0; box-shadow:0 0 0 3px rgba(55,126,243,.1); }
+            #assignments .assignment-span-all { grid-column:1 / -1; }
+            #assignments #assignment-comments { min-height:62px; padding-top:10px; padding-bottom:10px; resize:vertical; }
+            #assignments .assignment-form-actions { display:grid; grid-template-columns:.9fr 1fr; gap:10px; margin-top:2px; }
+            #assignments .assignment-form-actions button { height:40px; min-height:40px; margin:0; border-radius:7px; font-size:11px; font-weight:800; }
+            #assignments #assignment-reset { border:0; background:#e9eef6; color:#334b68; box-shadow:none; }
+            #assignments #assignment-submit { background:linear-gradient(105deg,#2e87ff,#5752e8); box-shadow:0 6px 14px rgba(47,105,228,.18); }
+            #assignments .assignment-history-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px; }
+            #assignments .assignment-history-title { display:flex; align-items:center; gap:12px; min-width:0; }
+            #assignments .assignment-history-title h2 { margin:0; color:#1d3456; font-size:16px; line-height:1.2; font-weight:800; }
+            #assignments .assignment-history-title p { margin:4px 0 0; color:#71829a; font-size:10px; }
+            #assignments .assignment-search-wrap { position:relative; flex:0 1 265px; min-width:170px; }
+            #assignments .assignment-search-wrap svg { position:absolute; top:50%; left:10px; width:15px; height:15px; transform:translateY(-50%); fill:none; stroke:#8194ad; stroke-width:2; pointer-events:none; }
+            #assignments #assignment-search { width:100%; height:36px; min-height:36px; margin:0; padding:0 10px 0 32px; border:1px solid #cfdef2; border-radius:7px; background:#fff; font-size:10px; box-shadow:none; }
+            #assignments .assignment-filter-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+            #assignments .assignment-status-filters { display:flex; flex-wrap:wrap; gap:7px; }
+            #assignments .assignment-filter-chip { display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 10px; border:1px solid #e3eaf4; border-radius:7px; background:#f5f7fb; color:#596f8b; font-size:10px; font-weight:700; cursor:pointer; }
+            #assignments .assignment-filter-chip.active { border-color:#2878f5; background:#2878f5; color:#fff; }
+            #assignments .assignment-filter-chip .chip-dot { width:7px; height:7px; border-radius:50%; background:#1fbd84; }
+            #assignments .assignment-filter-chip[data-filter="INACTIF"] .chip-dot { background:#ef6070; }
+            #assignments #assignment-period-filter { height:30px; min-height:30px; width:auto; margin:0; padding:0 9px; border:1px solid #e1e8f1; border-radius:7px; background:#f7f9fc; color:#536985; font-size:10px; }
+            #assignments .assignment-table-wrap { width:100%; overflow-x:auto; }
+            #assignments .assignment-table { width:100%; min-width:650px; border-collapse:collapse; table-layout:fixed; }
+            #assignments .assignment-table th { padding:9px 7px; border-bottom:1px solid #e2eaf4; background:#f4f7fb; color:#344c6c; font-size:9px; font-weight:800; text-align:left; white-space:nowrap; }
+            #assignments .assignment-table td { padding:9px 7px; border-bottom:1px solid #edf1f6; color:#4d6380; font-size:9px; line-height:1.35; vertical-align:middle; }
+            #assignments .assignment-table tbody tr:hover { background:#f9fbfe; }
+            #assignments .assignment-user-cell { display:flex; align-items:center; gap:8px; min-width:0; }
+            #assignments .assignment-avatar { display:grid; width:28px; height:28px; flex:0 0 28px; place-items:center; border-radius:50%; background:#e7efff; color:#315ed5; font-size:9px; font-weight:800; }
+            #assignments .assignment-avatar:nth-child(odd) { background:#f4e7ff; color:#a332be; }
+            #assignments .assignment-user-name { display:block; overflow:hidden; color:#2a4160; font-size:9px; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
+            #assignments .assignment-user-department { display:block; margin-top:2px; color:#8797ab; font-size:8px; }
+            #assignments .assignment-status-pill { display:inline-flex; align-items:center; gap:5px; padding:4px 8px; border-radius:999px; background:#dff8ed; color:#119765; font-size:8px; font-weight:800; white-space:nowrap; }
+            #assignments .assignment-status-pill::before { width:6px; height:6px; border-radius:50%; background:currentColor; content:''; }
+            #assignments .assignment-status-pill.leave { background:#fff1d8; color:#b97612; }
+            #assignments .assignment-status-pill.inactive { background:#ffe7eb; color:#d94660; }
+            #assignments .assignment-actions-cell { text-align:center; }
+            #assignments .assignment-actions-menu { position:relative; display:inline-block; }
+            #assignments .assignment-actions-menu summary { display:grid; width:26px; height:28px; place-items:center; border-radius:5px; color:#385472; font-size:18px; cursor:pointer; list-style:none; }
+            #assignments .assignment-actions-menu summary::-webkit-details-marker { display:none; }
+            #assignments .assignment-actions-menu .actions-dropdown { right:0; left:auto; }
+            #assignments .assignment-empty { padding:30px 12px !important; color:#71829a !important; font-size:12px !important; text-align:center; }
+            #assignments .assignment-pagination { display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:12px; color:#71829a; font-size:10px; }
+            #assignments .assignment-page-controls { display:flex; align-items:center; gap:6px; }
+            #assignments .assignment-page-controls button { width:28px; height:28px; min-height:28px; margin:0; padding:0; border:1px solid #e1e8f1; border-radius:6px; background:#f5f7fb; color:#5e718a; font-size:14px; box-shadow:none; }
+            #assignments .assignment-page-controls button:disabled { opacity:.4; cursor:default; }
+            #assignments #assignment-page-number { display:grid; width:28px; height:28px; place-items:center; border-radius:6px; background:#2878f5; color:#fff; font-size:10px; font-weight:800; }
+            @media(max-width:1050px) { #assignments .assignment-layout { grid-template-columns:1fr; } #assignments .assignment-table { min-width:700px; } }
+            @media(max-width:600px) { #assignments .assignment-panel { padding:14px; } #assignments .assignment-form-grid { gap:10px; } #assignments .assignment-history-head { align-items:flex-start; flex-direction:column; } #assignments .assignment-search-wrap { width:100%; flex:1 1 100%; } #assignments .assignment-filter-row { align-items:flex-start; flex-direction:column; } #assignments .assignment-form-actions { grid-template-columns:1fr 1fr; } }
+          </style>
+          <div class="assignment-layout">
+            <section class="card assignment-panel assignment-create-panel">
+              <header class="assignment-panel-heading">
+                <span class="assignment-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7M12 13v6M9 16h6"/></svg></span>
+                <div><h2>Créer une assignation de projet</h2><p>Assignez un utilisateur à un projet avec un rôle et un site.</p></div>
+              </header>
+              <form id="assignment-form" class="assignment-form-grid">
+                <div class="form-group"><label for="assignment-project">Dossier projet <span class="assignment-required">*</span></label><div class="assignment-control"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 9h18"/></svg><select id="assignment-project" required></select></div></div>
+                <div class="form-group"><label for="assignment-house">Site <span class="assignment-required">*</span></label><div class="assignment-control"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg><select id="assignment-house" required></select></div></div>
+                <div class="form-group"><label for="assignment-name">Nom de l'utilisateur <span class="assignment-required">*</span></label><div class="assignment-control"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><input type="text" id="assignment-name" list="assignment-user-options" placeholder="Rechercher un utilisateur..." required /></div><datalist id="assignment-user-options"></datalist></div>
+                <div class="form-group"><label for="assignment-role">Rôle joué <span class="assignment-required">*</span></label><div class="assignment-control"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h10M7 13h6"/></svg><input type="text" id="assignment-role" list="assignment-role-options" placeholder="Sélectionner un rôle..." required /></div><datalist id="assignment-role-options"><option value="Chef de chantier"></option><option value="Ingénieur"></option><option value="Contrôleur"></option><option value="Responsable stock"></option><option value="Superviseur"></option><option value="Chef d'équipe"></option><option value="Technicien"></option><option value="Analyste"></option><option value="Manœuvre"></option></datalist></div>
+                <div class="form-group"><label for="assignment-department">Département</label><div class="assignment-control"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="19" r="2"/><path d="M12 7v5M12 12H6v5M12 12h6v5"/></svg><input type="text" id="assignment-department" list="assignment-department-options" placeholder="Ex: Chantier, Études, Finances" /></div><datalist id="assignment-department-options"><option value="Chantier"></option><option value="Études"></option><option value="Finances"></option><option value="Approvisionnement"></option></datalist></div>
+                <div class="form-group"><label for="assignment-status">Statut <span class="assignment-required">*</span></label><div class="assignment-control"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg><select id="assignment-status"><option value="ACTIF">Actif</option><option value="CONGE">En congé</option><option value="INACTIF">Inactif</option></select></div></div>
+                <div class="form-group"><label for="assignment-start-date">Date de début <span class="assignment-required">*</span></label><div class="assignment-control"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><input type="date" id="assignment-start-date" required /></div></div>
+                <div class="form-group"><label for="assignment-end-date">Date de fin</label><div class="assignment-control"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><input type="date" id="assignment-end-date" /></div></div>
+                <div class="form-group"><label for="assignment-phone">Numéro de téléphone</label><div class="assignment-control"><svg viewBox="0 0 24 24"><path d="M7 3H4a1 1 0 0 0-1 1c0 9.4 7.6 17 17 17a1 1 0 0 0 1-1v-3l-5-2-2 3a14 14 0 0 1-8-8l3-2z"/></svg><input type="tel" id="assignment-phone" placeholder="Ex: 07 12 34 56 78" /></div></div>
+                <div class="form-group"><label for="assignment-email">Email</label><div class="assignment-control"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><input type="email" id="assignment-email" placeholder="nom@ryanerp.com" /></div></div>
+                <div class="form-group assignment-span-all"><label for="assignment-comments">Commentaires (optionnel)</label><div class="assignment-control"><svg style="top:18px;transform:none;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg><textarea id="assignment-comments" placeholder="Ajouter des informations supplémentaires..."></textarea></div></div>
+                <div class="assignment-form-actions assignment-span-all"><button type="reset" id="assignment-reset">↻ Réinitialiser</button><button type="submit" id="assignment-submit" class="button button-primary">＋ Créer l'assignation</button></div>
               </form>
-            </div>
-            <div class="erp-section-sep">Historique récent</div>
-            <div class="card">
-              <h3 id="assignments-list-title" style="margin-bottom: 15px;">Assignations récentes</h3>
-              <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="assignment-search" placeholder="Rechercher une assignation (nom, rôle, projet, téléphone)" />
-              </div>
-              <ul id="assignments-list" class="list"></ul>
-            </div>
+            </section>
+            <section class="card assignment-panel assignment-history-panel">
+              <header class="assignment-history-head">
+                <div class="assignment-history-title"><span class="assignment-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 5h13M3 10h10M3 15h7"/><circle cx="17" cy="16" r="5"/><path d="M17 13v3l2 1"/></svg></span><div><h2 id="assignments-list-title">Assignations récentes</h2><p>Liste des dernières assignations créées.</p></div></div>
+                <div class="assignment-search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input type="search" id="assignment-search" placeholder="Rechercher une assignation (nom, rôle, projet...)" /></div>
+              </header>
+              <div class="assignment-filter-row"><div class="assignment-status-filters" role="group" aria-label="Filtrer par statut"><button type="button" class="assignment-filter-chip active" data-assignment-status-filter="ALL">◉ Toutes <span id="assignment-count-all">0</span></button><button type="button" class="assignment-filter-chip" data-assignment-status-filter="ACTIF"><span class="chip-dot"></span> Actif <span id="assignment-count-active">0</span></button><button type="button" class="assignment-filter-chip" data-assignment-status-filter="INACTIF"><span class="chip-dot"></span> Inactif <span id="assignment-count-inactive">0</span></button><button type="button" class="assignment-filter-chip" data-assignment-status-filter="CONGE"><span class="chip-dot"></span> En congé <span id="assignment-count-leave">0</span></button></div><select id="assignment-period-filter" aria-label="Filtrer par période"><option value="ALL">▣ Toute période</option><option value="MONTH">Ce mois</option><option value="QUARTER">3 derniers mois</option><option value="YEAR">Cette année</option></select></div>
+              <div class="assignment-table-wrap"><table class="assignment-table"><thead><tr><th>Utilisateur</th><th>Projet</th><th>Site</th><th>Rôle</th><th>Début</th><th>Fin</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="assignments-list"></tbody></table></div>
+              <footer class="assignment-pagination"><span id="assignments-pagination-info">Affichage de 0 assignation</span><div class="assignment-page-controls"><button type="button" id="assignments-page-prev" aria-label="Page précédente" disabled>‹</button><span id="assignment-page-number">1</span><button type="button" id="assignments-page-next" aria-label="Page suivante" disabled>›</button></div></footer>
+            </section>
           </div>
         </div>
 
@@ -9753,6 +9846,7 @@
             <div class="inv-kpis"><div class="inv-kpi"><div class="inv-icon blue">▦</div><div><div class="inv-value" id="inv-kpi-products">0</div><div class="inv-label">Total matériaux</div><div class="inv-note">Références</div></div></div><div class="inv-kpi"><div class="inv-icon green">▣</div><div><div class="inv-value" id="inv-kpi-stock">0</div><div class="inv-label">Stock total</div><div class="inv-note">Quantité totale</div></div></div><div class="inv-kpi"><div class="inv-icon orange">▥</div><div><div class="inv-value" id="inv-kpi-value">0</div><div class="inv-label">Valeur totale</div><div class="inv-note">FCFA</div></div></div><div class="inv-kpi"><div class="inv-icon red">⚠</div><div><div class="inv-value" id="inv-kpi-low">0</div><div class="inv-label">Stocks faibles</div><div class="inv-note">Références</div></div></div><div class="inv-kpi"><div class="inv-icon purple">▱</div><div><div class="inv-value" id="inv-kpi-transit">0</div><div class="inv-label">En transit</div><div class="inv-note">Références</div></div></div></div>
             <div class="card inv-filter-card"><div class="inv-filter-title"><span>⚱ Filtres de recherche</span><span style="color:#5a70ed;font-size:10px;">× Filtres avancés　⌃</span></div><div class="inv-filter-grid"><div class="inv-field"><label>Projet</label><select id="inventory-project-quick-filter"></select></div><div class="inv-field"><label>Zone</label><select id="inventory-project-filter"></select></div><div class="inv-field"><label>Site / Lot</label><select id="inventory-house-filter"></select></div><div class="inv-field"><label>Entrepôt</label><select id="inventory-warehouse-filter"></select></div><div class="inv-field"><label>Catégorie</label><select id="inventory-filter-category"><option value="">Toutes les catégories</option></select></div><div class="inv-field"><label>Famille</label><select id="inventory-filter-family"><option value="">Toutes les familles</option></select></div><div class="inv-field"><label>Statut</label><select id="inventory-filter-status"><option value="">Tous</option></select></div><div class="inv-field"><label>Stock</label><select id="inventory-filter-stock"><option value="">Tous</option><option value="available">Disponible</option><option value="low">Faible</option><option value="empty">Épuisé</option></select></div><div class="inv-field"><label>Recherche par mot clé</label><input id="inventory-filter-search" type="search" placeholder="Rechercher par mot clé..." /></div><div class="inv-actions"><button type="button" id="inventory-filter-reset">↻ Réinitialiser</button><button type="button" id="inventory-filter-apply" class="primary">⌕ Rechercher</button></div></div></div>
             <div class="card inv-table-card"><div class="inv-tabs"><button type="button" class="active" data-inventory-tab="product">Stock par produit</button><button type="button" data-inventory-tab="warehouse">Stock par entrepôt</button><button type="button" data-inventory-tab="movements">Mouvements récents</button><button type="button" data-inventory-tab="low">Alerte stock faible</button></div><div id="inventory-project-view-card" style="margin-top:12px;"><div class="inv-table-wrap"><table class="inv-table"><thead><tr><th>Produit</th><th>Catégorie</th><th>Entrepôt</th><th>Projet / Site</th><th>Unité</th><th>Stock total</th><th>Stock disponible</th><th>Stock réservé</th><th>Valeur totale</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="inventory-list"></tbody></table></div><div class="inv-pagination"><span id="inventory-pagination-meta">Affichage des données réelles</span><div class="inv-page-controls"><button type="button">Précédent</button><button type="button" class="selected">1</button><button type="button">Suivant</button></div></div></div></div>
+            <div id="inventory-movements-view" style="display:none;margin-top:12px;"><div class="inv-table-wrap"><table class="inv-table"><thead><tr><th>Date / heure</th><th>Matériau</th><th>Quantité</th><th>Entrepôt source</th><th>Site destinataire</th><th>Sortie par</th><th>Statut</th></tr></thead><tbody id="inventory-movements-list"></tbody></table></div></div>
             <div id="inventory-global-view-card" style="display:none;"><h3 id="inventory-global-view-title">Inventaire total</h3><tbody id="inventory-summary-list"></tbody></div>
             <div id="inventory-legacy-controls" style="display:none"><button id="inventory-mode-warehouse"></button><button id="inventory-mode-site"></button><div id="inventory-focus-banner"><span id="inventory-focus-title"></span><span id="inventory-focus-subtitle"></span><span id="inventory-kpi-products"></span><span id="inventory-kpi-remaining"></span><span id="inventory-kpi-used"></span></div><select id="inventory-view-search"><option value="product_warehouse">Entrepôt précis</option><option value="building">Site précis</option></select><label id="inventory-warehouse-label"></label><label id="inventory-project-label"></label><label id="inventory-house-label"></label><th id="inventory-col-stage"></th><th id="inventory-col-used"></th></div>
           </div>
@@ -10243,6 +10337,46 @@
             #stock-management #stock-issue-lines .stock-available-status { font-size:10px !important; font-weight:700 !important; color:#20a45a !important; }
             #stock-management #stock-issue-lines .stock-qty-control button,
             #stock-management #stock-issue-lines .stock-issue-line-qty { font-size:12px !important; font-weight:700 !important; }
+            #stock-management #stock-warehouse-selector-card { margin:0 0 20px !important; padding:18px !important; border:1px solid #e3ebf7 !important; border-radius:12px !important; background:rgba(255,255,255,.88) !important; box-shadow:0 7px 20px rgba(41,75,126,.05) !important; }
+            #stock-management .warehouse-chooser-heading { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+            #stock-management .warehouse-chooser-icon { display:grid; width:54px; height:54px; flex:0 0 54px; place-items:center; border:1px solid #dbe8fb; border-radius:12px; background:#eef5ff; color:#2678f5; }
+            #stock-management .warehouse-chooser-icon svg { width:27px; height:27px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #stock-management .warehouse-chooser-title { min-width:0; }
+            #stock-management .warehouse-chooser-title h2 { margin:0; color:#172b49; font-size:20px; line-height:1.2; font-weight:800; }
+            #stock-management .warehouse-chooser-title p { margin:5px 0 0; color:#71829a; font-size:12px; line-height:1.4; }
+            #stock-management #stock-toggle-add-warehouse { display:inline-flex; align-items:center; gap:9px; height:40px; min-height:40px; margin-left:auto; padding:0 15px; border:0; border-radius:8px; background:#2878f5; color:#fff; font-size:12px; font-weight:800; box-shadow:none; }
+            #stock-management #stock-toggle-add-warehouse:hover { background:#1d66da; }
+            #stock-management .warehouse-add-icon { font-size:21px; font-weight:400; line-height:1; }
+            #stock-management .warehouse-search-wrap { position:relative; margin-bottom:14px; }
+            #stock-management .warehouse-search-wrap svg { position:absolute; top:50%; left:13px; width:18px; height:18px; transform:translateY(-50%); fill:none; stroke:#687f9b; stroke-width:2; stroke-linecap:round; pointer-events:none; }
+            #stock-management #stock-warehouse-search { width:100%; height:44px; min-height:44px; margin:0; padding:0 13px 0 42px; border:1px solid #d4e1f4; border-radius:8px; background:#fff; color:#304563; font-size:13px; box-shadow:none; }
+            #stock-management #stock-warehouse-quick-grid { display:grid !important; grid-template-columns:repeat(5,minmax(0,1fr)) !important; gap:12px !important; }
+            #stock-management .stock-warehouse-card-wrap { position:relative; min-width:0; }
+            #stock-management .stock-warehouse-card { position:relative; display:grid !important; width:100% !important; min-width:0; min-height:222px !important; grid-template-rows:1fr auto; align-items:stretch !important; justify-items:stretch !important; padding:18px 16px 0 !important; border:1px solid #dce6f4 !important; border-radius:10px !important; background:#fff !important; color:#1c3150 !important; text-align:left !important; font-size:12px !important; box-shadow:0 3px 10px rgba(35,66,112,.035) !important; }
+            #stock-management .stock-warehouse-card:hover { transform:translateY(-1px); border-color:#a9c9ff !important; box-shadow:0 7px 15px rgba(37,99,235,.08) !important; }
+            #stock-management .stock-warehouse-card.is-selected { border:2px solid #2878f5 !important; padding:17px 15px 0 !important; background:#f8fbff !important; }
+            #stock-management .warehouse-card-main { display:grid; grid-template-columns:54px minmax(0,1fr); gap:12px; align-items:center; min-width:0; padding-bottom:14px; }
+            #stock-management .warehouse-card-icon { display:grid; width:54px; height:54px; place-items:center; border-radius:50%; background:#e7efff; color:#2878f5; }
+            #stock-management .warehouse-card-icon svg { width:26px; height:26px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+            #stock-management .stock-warehouse-card-wrap:nth-child(5n + 2) .warehouse-card-icon { background:#e3f8f3; color:#17a889; }
+            #stock-management .stock-warehouse-card-wrap:nth-child(5n + 3) .warehouse-card-icon { background:#f1eaff; color:#8b55da; }
+            #stock-management .stock-warehouse-card-wrap:nth-child(5n + 4) .warehouse-card-icon { background:#fff3df; color:#e79b19; }
+            #stock-management .stock-warehouse-card-wrap:nth-child(5n) .warehouse-card-icon { background:#ffe9ed; color:#e45a72; }
+            #stock-management .warehouse-card-name { display:block; overflow:hidden; color:#192f4d; font-size:14px; line-height:1.25; font-weight:800; text-overflow:ellipsis; }
+            #stock-management .warehouse-card-code { display:block; margin-top:5px; color:#6f829b; font-size:12px; }
+            #stock-management .warehouse-card-location { display:flex; align-items:center; gap:5px; margin-top:9px; overflow:hidden; color:#6a7f9a; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+            #stock-management .warehouse-card-location svg { width:14px; height:14px; flex:0 0 14px; fill:none; stroke:#59728f; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #stock-management .warehouse-card-count { display:flex; align-items:center; gap:8px; min-height:47px; border-top:1px solid #e7edf5; color:#253d5e; font-size:12px; font-weight:700; }
+            #stock-management .warehouse-card-count svg { width:20px; height:20px; flex:0 0 20px; fill:none; stroke:#5b7392; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #stock-management .stock-warehouse-card.is-selected .warehouse-card-count { color:#2678f5; }
+            #stock-management .stock-warehouse-card.is-selected .warehouse-card-count svg { stroke:#2678f5; }
+            #stock-management .warehouse-card-selected { position:absolute; top:14px; right:14px; display:grid; width:28px; height:28px; place-items:center; border-radius:50%; background:#2878f5; color:#fff; font-size:16px; font-weight:800; }
+            #stock-management .stock-delete-warehouse { z-index:2; background:#fff !important; color:#72839a !important; border:1px solid #e1e8f1 !important; box-shadow:0 2px 5px rgba(23,43,73,.08); }
+            #stock-management .warehouse-empty { grid-column:1/-1; padding:20px; border:1px dashed #d8e3f1; border-radius:8px; color:#74859a; font-size:12px; text-align:center; }
+            @media(min-width:1101px) and (max-width:1550px) { #stock-management #stock-warehouse-quick-grid { grid-template-columns:repeat(4,minmax(0,1fr)) !important; } }
+            @media(max-width:1100px) { #stock-management #stock-warehouse-quick-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; } }
+            @media(max-width:680px) { #stock-management #stock-warehouse-selector-card { padding:13px !important; } #stock-management .warehouse-chooser-heading { align-items:flex-start; flex-wrap:wrap; } #stock-management .warehouse-chooser-title h2 { font-size:17px; } #stock-management #stock-toggle-add-warehouse { margin-left:68px; } #stock-management #stock-warehouse-quick-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px !important; } #stock-management .stock-warehouse-card { min-height:175px !important; padding:12px 10px 0 !important; } #stock-management .stock-warehouse-card.is-selected { padding:11px 9px 0 !important; } #stock-management .warehouse-card-main { grid-template-columns:40px minmax(0,1fr); gap:8px; } #stock-management .warehouse-card-icon { width:40px; height:40px; } #stock-management .warehouse-card-icon svg { width:21px; height:21px; } #stock-management .warehouse-card-name { font-size:12px; } #stock-management .warehouse-card-code { font-size:10px; } #stock-management .warehouse-card-location { font-size:10px; } #stock-management .warehouse-card-count { font-size:10px; } }
+            @media(max-width:420px) { #stock-management #stock-warehouse-quick-grid { grid-template-columns:1fr !important; } }
             @media (max-width:1100px) { #stock-management .stock-topbar{align-items:flex-start;flex-direction:column} #stock-management .stock-main-grid{grid-template-columns:1fr} #stock-management #stock-site-preview{grid-template-columns:repeat(2,minmax(0,1fr))} }
             @media (max-width:680px) { #stock-management .stock-kpis{width:100%;grid-template-columns:1fr 1fr} #stock-management .stock-destination-grid,#stock-management .stock-stage-grid,#stock-management .stock-material-layout{grid-template-columns:1fr} #stock-management #stock-site-preview{grid-template-columns:1fr} }
           </style>
@@ -10250,12 +10384,14 @@
             <h1>Gestion de stock</h1>
             <p>Réception des commandes et sorties de matériel</p>
           </div>
-          <div id="stock-warehouse-selector-card" class="card" style="margin-bottom: 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-              <h3 style="margin:0;">Choix rapide des entrepôts</h3>
-              <button type="button" id="stock-toggle-add-warehouse" class="button button-small button-secondary">Ajouter un entrepôt</button>
+          <div id="stock-warehouse-selector-card" class="card">
+            <div class="warehouse-chooser-heading">
+              <span class="warehouse-chooser-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21V7l9-4 9 4v14M3 10h18M8 10v4M12 10v4M16 10v4M9 21v-5h6v5"/></svg></span>
+              <div class="warehouse-chooser-title"><h2>Choix rapide des entrepôts</h2><p>Sélectionnez un entrepôt pour afficher son stock et gérer vos mouvements.</p></div>
+              <button type="button" id="stock-toggle-add-warehouse" class="button"><span class="warehouse-add-icon" aria-hidden="true">+</span>Ajouter un entrepôt</button>
             </div>
-            <div id="stock-warehouse-quick-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;"></div>
+            <div class="warehouse-search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input type="search" id="stock-warehouse-search" placeholder="Rechercher un entrepôt (nom, code, site...)" aria-label="Rechercher un entrepôt" /></div>
+            <div id="stock-warehouse-quick-grid"></div>
           </div>
           <div id="stock-add-warehouse-card" class="card" style="margin-bottom: 20px; display:none;">
             <h3 style="margin-bottom: 12px;">Ajouter un entrepôt lié à un projet</h3>
@@ -10344,10 +10480,6 @@
           <style>
             #sortie-autorisations { --sia-ink:#29416c; --sia-muted:#52617b; --sia-line:#e1e9f7; --sia-blue:#5367f5; --sia-green:#20a45a; --sia-red:#f15b62; --sia-amber:#ef9d25; font-family:inherit; }
             #sortie-autorisations .sia-shell { display:grid; gap:14px; color:var(--sia-ink); }
-            #sortie-autorisations .sia-appbar { display:grid; grid-template-columns:minmax(260px,1fr) minmax(200px,240px) auto; gap:18px; align-items:center; margin-bottom:8px; }
-            #sortie-autorisations .sia-appbar-title h1 { margin:0; color:#183660; font-size:18px; font-weight:800; } #sortie-autorisations .sia-appbar-title p { margin:4px 0 0; color:#58708f; font-size:9px; font-weight:600; }
-            #sortie-autorisations .sia-appbar-search { height:30px; border:1px solid #d9e4f2; border-radius:5px; background:#fff; color:#7590af; padding:0 10px; font:600 9px "Segoe UI",Tahoma,Geneva,Verdana,sans-serif; }
-            #sortie-autorisations .sia-appbar-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; } #sortie-autorisations .sia-appbar-icon { position:relative; border:0; background:transparent; color:#245be9; font-size:15px; cursor:pointer; } #sortie-autorisations .sia-appbar-notice { position:absolute; top:-8px; right:-7px; display:grid; place-items:center; width:12px; height:12px; border-radius:50%; background:#fb4a54; color:#fff; font-size:7px; font-weight:800; } #sortie-autorisations .sia-appbar-logout { height:30px; border:0; border-radius:5px; background:#f1f5fb; color:#1d345b; padding:0 10px; font:800 9px "Segoe UI",Tahoma,Geneva,Verdana,sans-serif; } #sortie-autorisations .sia-appbar-brand { color:#3154ef; font-size:29px; font-weight:900; line-height:1; } #sortie-autorisations .sia-new-request { grid-column:3; justify-self:end; height:29px; margin-top:-10px; border:0; border-radius:5px; background:#3154ef; color:#fff; padding:0 14px; font:800 9px "Segoe UI",Tahoma,Geneva,Verdana,sans-serif; cursor:pointer; }
             #sortie-autorisations .sia-title { margin:0; font-size:23px; line-height:1.15; font-weight:800; color:#15335d; }
             #sortie-autorisations .sia-subtitle { margin:4px 0 0; color:var(--sia-muted); font-size:12px; font-weight:600; }
             #sortie-autorisations .sia-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
@@ -10375,11 +10507,10 @@
             #sortie-autorisations .sia-details { grid-column:2 / 6; padding-top:8px; border-top:1px solid #e9eff7; }
             #sortie-autorisations .sia-empty { padding:30px; text-align:center; color:#64748b; font-weight:700; }
             #sortie-autorisations .sia-pagination { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0 0; color:#61738f; font-size:8px; font-weight:700; } #sortie-autorisations .sia-pagination-controls { display:flex; align-items:center; gap:5px; } #sortie-autorisations .sia-pagination button { width:24px; height:22px; padding:0; border:1px solid #d9e4f2; border-radius:4px; background:#fff; color:#2c61d8; font-size:10px; cursor:pointer; } #sortie-autorisations .sia-pagination button.active { border-color:#355bea; background:#355bea; color:#fff; } #sortie-autorisations .sia-pagination button:disabled { opacity:.42; cursor:default; } #sortie-autorisations .sia-pagination select { height:24px; border:1px solid #d9e4f2; border-radius:4px; background:#fff; color:#49617f; padding:0 6px; font-size:8px; font-weight:700; }
-            @media (max-width:1100px) { #sortie-autorisations .sia-appbar { grid-template-columns:1fr auto; } #sortie-autorisations .sia-appbar-search { display:none; } #sortie-autorisations .sia-new-request { grid-column:2; } #sortie-autorisations .sia-toolbar { grid-template-columns:repeat(3,minmax(0,1fr)); } #sortie-autorisations #sia-list .list-item { grid-template-columns:100px 1fr 1fr; } #sortie-autorisations .sia-action-buttons { grid-column:2 / 4; grid-template-columns:repeat(3,1fr); } }
+            @media (max-width:1100px) { #sortie-autorisations .sia-toolbar { grid-template-columns:repeat(3,minmax(0,1fr)); } #sortie-autorisations #sia-list .list-item { grid-template-columns:100px 1fr 1fr; } #sortie-autorisations .sia-action-buttons { grid-column:2 / 4; grid-template-columns:repeat(3,1fr); } }
             @media (max-width:680px) { #sortie-autorisations .sia-kpis, #sortie-autorisations .sia-toolbar, #sortie-autorisations #sia-list .list-item { grid-template-columns:1fr; } #sortie-autorisations .sia-action-buttons, #sortie-autorisations .sia-details { grid-column:auto; } #sortie-autorisations .sia-action-buttons { grid-template-columns:repeat(3,1fr); } }
           </style>
           <div class="sia-shell">
-            <div class="sia-appbar"><div class="sia-appbar-title"><h1>Autorisations de sortie</h1><p>Validez, rejetez ou téléchargez les demandes de sortie de matériaux</p></div><input class="sia-appbar-search" type="search" placeholder="⌕  Rechercher dans l'ERP..." aria-label="Rechercher dans l'ERP" /><div class="sia-appbar-actions"><button type="button" class="sia-appbar-icon" aria-label="Notifications">♟<span class="sia-appbar-notice">7</span></button><button type="button" class="sia-appbar-icon" aria-label="Thème">◕</button><button type="button" class="sia-appbar-logout" onclick="logout()">Déconnexion</button><span class="sia-appbar-brand" aria-hidden="true">R</span></div><button type="button" class="sia-new-request" onclick="document.querySelector('.menu-item[data-module=&quot;stock-management&quot;]')?.click()">＋ Nouvelle demande</button></div>
             <div class="sia-kpis">
               <div class="sia-kpi"><span class="sia-kpi-icon pending">⌛</span><div><div class="sia-kpi-label">En attente</div><div id="sia-kpi-pending" class="sia-kpi-value">0</div><div class="sia-kpi-note pending">À traiter</div></div></div>
               <div class="sia-kpi"><span class="sia-kpi-icon valid">✓</span><div><div class="sia-kpi-label">Validées</div><div id="sia-kpi-valid" class="sia-kpi-value">0</div><div class="sia-kpi-note valid">Toutes périodes</div></div></div>
@@ -10401,22 +10532,28 @@
         <div id="material-requests-tracking" class="module">
           <style>
             #material-requests-tracking .mr-track-shell { display:grid; gap:16px; }
+            #material-requests-tracking .mr-track-header { order:-1; }
             #material-requests-tracking .mr-track-header h1 { margin:0; font-size:26px; line-height:1.2; color:#223556; letter-spacing:-.4px; }
             #material-requests-tracking .mr-track-header p { margin:7px 0 0; color:#6f7f9f; font-weight:600; font-size:14px; }
             #material-requests-tracking .mr-track-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:14px; border:1px solid #e4ebfb; border-radius:16px; background:#fff; box-shadow:0 10px 26px rgba(99,125,182,.09); }
-            #material-requests-tracking .mr-track-search-wrap { position:relative; flex:1; min-width:280px; max-width:620px; }
-            #material-requests-tracking .mr-track-search-wrap input { width:100%; height:48px; border-radius:13px; border:1px solid #dbe6fb; background:#fff; padding:0 44px 0 14px; font-size:15px; color:#1e3255; outline:none; }
-            #material-requests-tracking .mr-track-search-wrap::after { content:'⌕'; position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#6f86b6; font-size:18px; pointer-events:none; }
+            #material-requests-tracking .mr-track-kpi-grid { order:0; }
+            #material-requests-tracking .mr-track-toolbar { order:1; gap:8px; padding:9px 11px; border-radius:8px; box-shadow:0 4px 12px rgba(99,125,182,.06); }
+            #material-requests-tracking .mr-track-search-wrap { position:relative; flex:0 1 360px; min-width:190px; max-width:360px; }
+            #material-requests-tracking .mr-track-search-wrap input { width:100%; height:36px; border-radius:7px; border:1px solid #dbe6fb; background:#fff; padding:0 34px 0 10px; font-size:12px; color:#1e3255; outline:none; }
+            #material-requests-tracking .mr-track-search-wrap::after { content:'⌕'; position:absolute; right:10px; top:50%; transform:translateY(-50%); color:#6f86b6; font-size:16px; pointer-events:none; }
             #material-requests-tracking .mr-track-search-wrap input:focus { border-color:#7ea4f3; box-shadow:0 0 0 3px rgba(125,167,245,.22); }
-            #material-requests-tracking .mr-track-export-actions { display:flex; gap:8px; flex-wrap:wrap; }
-            #material-requests-tracking .mr-track-export-actions button { height:40px; border-radius:11px; border:1px solid #d9e4fb; background:#fff; color:#3e5788; font-weight:700; font-size:13px; padding:0 14px; }
-            #material-requests-tracking .mr-track-filters-card, #material-requests-tracking .mr-track-table-card { border:1px solid #e4ebfb; background:#fff; border-radius:16px; box-shadow:0 10px 26px rgba(99,125,182,.09); }
-            #material-requests-tracking .mr-track-filters-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px 14px; align-items:end; }
+            #material-requests-tracking .mr-track-export-actions { display:flex; gap:6px; flex-wrap:wrap; }
+            #material-requests-tracking .mr-track-export-actions button { height:34px; border-radius:7px; border:1px solid #d9e4fb; background:#fff; color:#3e5788; font-weight:700; font-size:11px; padding:0 10px; }
+            #material-requests-tracking #mr-track-filters-toggle { height:34px; border:1px solid #d9e4fb; border-radius:7px; background:#fff; color:#3e5788; font-size:11px; font-weight:700; padding:0 11px; cursor:pointer; }
+            #material-requests-tracking .mr-track-filters-card { order:2; padding:12px; border:1px solid #e4ebfb; background:#fff; border-radius:8px; box-shadow:0 4px 12px rgba(99,125,182,.06); }
+            #material-requests-tracking .mr-track-table-card { order:3; border:1px solid #e4ebfb; background:#fff; border-radius:8px; box-shadow:0 4px 12px rgba(99,125,182,.06); }
+            #material-requests-tracking #mr-track-filters[hidden] { display:none !important; }
+            #material-requests-tracking .mr-track-filters-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px 10px; align-items:end; }
             #material-requests-tracking .mr-track-filters-grid .form-group { margin-bottom:0; }
-            #material-requests-tracking .mr-track-filters-grid label { font-size:13px; font-weight:700; color:#3f5786; margin-bottom:5px; }
-            #material-requests-tracking .mr-track-filters-grid select, #material-requests-tracking .mr-track-filters-grid input { height:44px; border:1px solid #d7e3fb; border-radius:11px; font-size:14px; color:#3c5786; background:#fff; }
-            #material-requests-tracking .mr-track-filter-actions { display:flex; gap:10px; align-items:center; justify-content:flex-end; }
-            #material-requests-tracking .mr-track-filter-actions .button { min-width:126px; height:42px; border-radius:11px; font-weight:700; font-size:14px; box-shadow:none; }
+            #material-requests-tracking .mr-track-filters-grid label { font-size:11px; font-weight:700; color:#3f5786; margin-bottom:4px; }
+            #material-requests-tracking .mr-track-filters-grid select, #material-requests-tracking .mr-track-filters-grid input { height:35px; min-height:35px; padding:0 8px; border:1px solid #d7e3fb; border-radius:7px; font-size:12px; color:#3c5786; background:#fff; }
+            #material-requests-tracking .mr-track-filter-actions { display:flex; gap:7px; align-items:center; justify-content:flex-end; }
+            #material-requests-tracking .mr-track-filter-actions .button { min-width:100px; height:34px; min-height:34px; border-radius:7px; font-weight:700; font-size:12px; box-shadow:none; }
             #material-requests-tracking .mr-track-kpi-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
             #material-requests-tracking .mr-track-kpi-card { border:1px solid #e3ebfb; border-radius:15px; background:#fff; box-shadow:0 10px 24px rgba(97,126,190,.08); padding:14px 16px; display:grid; grid-template-columns:52px 1fr; gap:12px; align-items:center; }
             #material-requests-tracking .mr-track-kpi-icon { width:52px; height:52px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; }
@@ -10434,8 +10571,8 @@
           </style>
           <div class="mr-track-shell">
             <div class="mr-track-header"><h1>Suivi des demandes d'approvisionnement</h1><p>Consultez et suivez l'état de vos demandes</p></div>
-            <div class="mr-track-toolbar card"><div class="mr-track-search-wrap"><input type="search" id="material-requests-tracking-search" placeholder="Rechercher une demande..." /></div><div class="mr-track-export-actions"><button type="button" id="mr-track-export-csv">📗 Exporter Excel</button><button type="button" id="mr-track-export-pdf">📕 Exporter PDF</button><button type="button" id="mr-track-print">🖨️ Imprimer</button></div></div>
-            <div class="card mr-track-filters-card"><div class="mr-track-filters-grid">
+            <div class="mr-track-toolbar card"><div class="mr-track-search-wrap"><input type="search" id="material-requests-tracking-search" placeholder="Rechercher une demande..." /></div><button type="button" id="mr-track-filters-toggle" aria-expanded="false" aria-controls="mr-track-filters">▽ Filtres</button><div class="mr-track-export-actions"><button type="button" id="mr-track-export-csv">📗 Exporter Excel</button><button type="button" id="mr-track-export-pdf">📕 Exporter PDF</button><button type="button" id="mr-track-print">🖨️ Imprimer</button></div></div>
+            <div class="card mr-track-filters-card" id="mr-track-filters" hidden><div class="mr-track-filters-grid">
               <div class="form-group"><label>Projet</label><select id="mr-track-filter-project"><option value="">Tous les projets</option></select></div><div class="form-group"><label>Lot</label><select id="mr-track-filter-lot"><option value="">Tous les lots</option></select></div><div class="form-group"><label>Zone</label><select id="mr-track-filter-zone"><option value="">Toutes les zones</option></select></div><div class="form-group"><label>Statut</label><select id="mr-track-filter-status"><option value="">Tous les statuts</option><option value="VALIDEE">Validée</option><option value="EN_ATTENTE">En attente</option><option value="REJETEE">Rejetée</option></select></div><div class="form-group"><label>Validateur</label><select id="mr-track-filter-validator"><option value="">Tous les validateurs</option></select></div>
               <div class="form-group"><label>Date début</label><input type="date" id="mr-track-filter-date-from" /></div><div class="form-group"><label>Date fin</label><input type="date" id="mr-track-filter-date-to" /></div><div class="form-group"><label>Demandeur</label><select id="mr-track-filter-requester"><option value="">Tous les demandeurs</option></select></div><div></div><div class="mr-track-filter-actions"><button type="button" id="mr-track-apply" class="button button-primary">⌕ Rechercher</button><button type="button" id="mr-track-reset" class="button button-secondary">↻ Réinitialiser</button></div>
             </div></div>
@@ -10665,23 +10802,25 @@
                 <div id="purchase-orders-tracking" class="module">
           <style>
             #purchase-orders-tracking .po-track-shell { display:grid; gap:16px; }
-            #purchase-orders-tracking .po-track-header h1 { margin:0; font-size:26px; line-height:1.2; color:#223556; letter-spacing:-0.4px; }
-            #purchase-orders-tracking .po-track-header p { margin:7px 0 0; color:#6f7f9f; font-weight:600; font-size:14px; }
-            #purchase-orders-tracking .po-track-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:14px; border:1px solid #e4ebfb; border-radius:16px; background:#fff; box-shadow:0 10px 26px rgba(99,125,182,.09); }
-            #purchase-orders-tracking .po-track-search-wrap { position:relative; flex:1; min-width:280px; max-width:620px; }
-            #purchase-orders-tracking .po-track-search-wrap input { width:100%; height:48px; border-radius:13px; border:1px solid #dbe6fb; background:#fff; padding:0 44px 0 14px; font-size:15px; color:#1e3255; outline:none; }
-            #purchase-orders-tracking .po-track-search-wrap::after { content:'⌕'; position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#6f86b6; font-size:18px; pointer-events:none; }
+            #purchase-orders-tracking .po-track-kpi-grid { order:1; }
+            #purchase-orders-tracking .po-track-toolbar { order:2; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; padding:9px 11px; border:1px solid #e4ebfb; border-radius:8px; background:#fff; box-shadow:0 4px 12px rgba(99,125,182,.06); }
+            #purchase-orders-tracking .po-track-search-wrap { position:relative; flex:0 1 360px; min-width:190px; max-width:360px; }
+            #purchase-orders-tracking .po-track-search-wrap input { width:100%; height:36px; min-height:36px; border-radius:7px; border:1px solid #dbe6fb; background:#fff; padding:0 34px 0 10px; font-size:12px; color:#1e3255; outline:none; }
+            #purchase-orders-tracking .po-track-search-wrap::after { content:'⌕'; position:absolute; right:10px; top:50%; transform:translateY(-50%); color:#6f86b6; font-size:16px; pointer-events:none; }
             #purchase-orders-tracking .po-track-search-wrap input:focus { border-color:#7ea4f3; box-shadow:0 0 0 3px rgba(125,167,245,.22); }
-            #purchase-orders-tracking .po-track-export-actions { display:flex; gap:8px; flex-wrap:wrap; }
-            #purchase-orders-tracking .po-track-export-actions button { height:40px; border-radius:11px; border:1px solid #d9e4fb; background:#fff; color:#3e5788; font-weight:700; font-size:13px; padding:0 14px; }
-            #purchase-orders-tracking .po-track-filters-card { border:1px solid #e4ebfb; background:#fff; border-radius:16px; box-shadow:0 10px 26px rgba(99,125,182,.09); }
-            #purchase-orders-tracking .po-track-filters-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px 14px; align-items:end; }
+            #purchase-orders-tracking .po-track-export-actions { display:flex; gap:6px; flex-wrap:wrap; }
+            #purchase-orders-tracking .po-track-export-actions button { height:34px; min-height:34px; border-radius:7px; border:1px solid #d9e4fb; background:#fff; color:#3e5788; font-weight:700; font-size:11px; padding:0 10px; }
+            #purchase-orders-tracking #po-track-filters-toggle { height:34px; border:1px solid #d9e4fb; border-radius:7px; background:#fff; color:#3e5788; font-size:11px; font-weight:700; padding:0 11px; cursor:pointer; }
+            #purchase-orders-tracking .po-track-filters-card { order:3; padding:12px; border:1px solid #e4ebfb; background:#fff; border-radius:8px; box-shadow:0 4px 12px rgba(99,125,182,.06); }
+            #purchase-orders-tracking #po-track-filters[hidden] { display:none !important; }
+            #purchase-orders-tracking .po-track-filters-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px 10px; align-items:end; }
             #purchase-orders-tracking .po-track-filters-grid .form-group { margin-bottom:0; }
-            #purchase-orders-tracking .po-track-filters-grid label { font-size:13px; font-weight:700; color:#3f5786; margin-bottom:5px; }
+            #purchase-orders-tracking .po-track-filters-grid label { font-size:11px; font-weight:700; color:#3f5786; margin-bottom:4px; }
             #purchase-orders-tracking .po-track-filters-grid select,
-            #purchase-orders-tracking .po-track-filters-grid input { height:44px; border:1px solid #d7e3fb; border-radius:11px; font-size:14px; color:#3c5786; background:#fff; }
-            #purchase-orders-tracking .po-track-filter-actions { display:flex; gap:10px; align-items:center; justify-content:flex-end; }
-            #purchase-orders-tracking .po-track-filter-actions .button { min-width:126px; height:42px; border-radius:11px; font-weight:700; font-size:14px; box-shadow:none; }
+            #purchase-orders-tracking .po-track-filters-grid input { height:35px; min-height:35px; padding:0 8px; border:1px solid #d7e3fb; border-radius:7px; font-size:12px; color:#3c5786; background:#fff; }
+            #purchase-orders-tracking .po-track-filters-grid select { height:35px; min-height:35px; padding:0 8px; border:1px solid #d7e3fb; border-radius:7px; font-size:12px; color:#3c5786; background:#fff; }
+            #purchase-orders-tracking .po-track-filter-actions { display:flex; gap:7px; align-items:center; justify-content:flex-end; }
+            #purchase-orders-tracking .po-track-filter-actions .button { min-width:100px; height:34px; min-height:34px; border-radius:7px; font-weight:700; font-size:12px; box-shadow:none; }
             #purchase-orders-tracking .po-track-kpi-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; }
             #purchase-orders-tracking .po-track-kpi-card { border:1px solid #e3ebfb; border-radius:15px; background:#fff; box-shadow:0 10px 24px rgba(97,126,190,.08); padding:14px 16px; display:grid; grid-template-columns:52px 1fr; gap:12px; align-items:center; }
             #purchase-orders-tracking .po-track-kpi-icon { width:52px; height:52px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; border:1px solid transparent; }
@@ -10698,7 +10837,7 @@
             #purchase-orders-tracking .po-track-kpi-note.pending { color:#e48e19; }
             #purchase-orders-tracking .po-track-kpi-note.rejected { color:#e15f63; }
             #purchase-orders-tracking .po-track-kpi-note.amount { color:#5372f2; }
-            #purchase-orders-tracking .po-track-table-card { border:1px solid #e3eafa; border-radius:16px; background:#fff; overflow:hidden; box-shadow:0 12px 28px rgba(95,126,185,.08); }
+            #purchase-orders-tracking .po-track-table-card { order:4; border:1px solid #e3eafa; border-radius:8px; background:#fff; overflow:hidden; box-shadow:0 5px 16px rgba(95,126,185,.06); }
             #purchase-orders-tracking .po-track-table-wrap { width:100%; overflow-x:auto; }
             #purchase-orders-tracking .po-track-table { width:100%; min-width:1500px; border-collapse:separate; border-spacing:0; font-size:14px; }
             #purchase-orders-tracking .po-track-table th { background:#f4f8ff; color:#2b63da; text-align:left; font-weight:800; border-bottom:1px solid #dce6fa; padding:12px 14px; white-space:nowrap; }
@@ -10723,22 +10862,16 @@
             #purchase-orders-tracking .po-track-pagination-controls select { border-radius:10px; border:1px solid #d7e3fb; padding:7px 10px; color:#3e5889; font-size:12px; background:#fff; font-weight:700; }
             #purchase-orders-tracking .po-track-empty { text-align:center; color:#5f739f; padding:26px 8px; font-weight:700; }
             @media (max-width:1200px) { #purchase-orders-tracking .po-track-filters-grid, #purchase-orders-tracking .po-track-kpi-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-            @media (max-width:900px) { #purchase-orders-tracking .po-track-header h1{font-size:22px;} #purchase-orders-tracking .po-track-header p{font-size:12px;} #purchase-orders-tracking .po-track-filters-grid, #purchase-orders-tracking .po-track-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } #purchase-orders-tracking .po-track-kpi-value{font-size:30px;} #purchase-orders-tracking .po-track-kpi-value.po-track-kpi-blue{font-size:34px;} }
+            @media (max-width:900px) { #purchase-orders-tracking .po-track-filters-grid, #purchase-orders-tracking .po-track-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } #purchase-orders-tracking .po-track-kpi-value{font-size:30px;} #purchase-orders-tracking .po-track-kpi-value.po-track-kpi-blue{font-size:34px;} }
             @media (max-width:620px) { #purchase-orders-tracking .po-track-filters-grid, #purchase-orders-tracking .po-track-kpi-grid { grid-template-columns:1fr; } #purchase-orders-tracking .po-track-filter-actions{justify-content:stretch;} #purchase-orders-tracking .po-track-filter-actions .button{flex:1;} }
           </style>
 
           <div class="po-track-shell">
-            <div class="po-track-header">
-              <div>
-                <h1>Suivi des bons de commande</h1>
-                <p>Consultez et suivez l'état de vos bons de commande</p>
-              </div>
-            </div>
-
             <div class="po-track-toolbar card">
               <div class="po-track-search-wrap">
                 <input type="text" id="po-track-search" placeholder="Rechercher un bon de commande..." />
               </div>
+              <button type="button" id="po-track-filters-toggle" aria-expanded="false" aria-controls="po-track-filters">▽ Filtres</button>
               <div class="po-track-export-actions">
                 <button type="button" id="po-track-export-csv" class="button button-small button-secondary">📗 Exporter Excel</button>
                 <button type="button" id="po-track-export-pdf" class="button button-small button-secondary">📕 Exporter PDF</button>
@@ -10746,7 +10879,7 @@
               </div>
             </div>
 
-            <div class="card po-track-filters-card">
+            <div class="card po-track-filters-card" id="po-track-filters" hidden>
               <div class="po-track-filters-grid">
                 <div class="form-group"><label>Projet</label><select id="po-track-filter-project"><option value="">Tous les projets</option></select></div>
                 <div class="form-group"><label>Lot</label><select id="po-track-filter-lot"><option value="">Tous les lots</option></select></div>
@@ -11727,6 +11860,18 @@
         <select id="edit-assignment-status"><option value="ACTIF">Actif</option><option value="CONGE">En congé</option><option value="INACTIF">Inactif</option></select>
       </div>
       <div class="form-group">
+        <label>Date de début *</label>
+        <input type="date" id="edit-assignment-start-date" />
+      </div>
+      <div class="form-group">
+        <label>Date de fin</label>
+        <input type="date" id="edit-assignment-end-date" />
+      </div>
+      <div class="form-group">
+        <label>Commentaires</label>
+        <textarea id="edit-assignment-comments"></textarea>
+      </div>
+      <div class="form-group">
         <label>Supérieur dans l'organigramme</label>
         <select id="edit-assignment-parent"><option value="">Aucun</option></select>
       </div>
@@ -12019,6 +12164,10 @@
     let expandedProjectTreeZoneKey = null;
     let projectSearchTerm = '';
     let assignmentSearchTerm = '';
+    let assignmentStatusFilter = 'ALL';
+    let assignmentPeriodFilter = 'ALL';
+    let assignmentCurrentPage = 1;
+    const assignmentPageSize = 10;
     let materialSearchTerm = '';
     let purchaseOrderSearchTerm = '';
     let expenseSearchTerm = '';
@@ -12029,6 +12178,7 @@
     let stockOrderSearchTerm = '';
     let inventoryViewSearchTerm = 'product_warehouse';
     let inventoryViewMode = 'product_warehouse';
+    let inventoryActiveTab = 'product';
     let selectedInventoryWarehouseId = '';
     let selectedInventoryProjectFolderKey = '';
     let selectedInventoryHouseId = '';
@@ -14695,43 +14845,7 @@
       const stageKey = normalizeStageKey(stageFilter);
       const issueTotalsByRequestId = getProgressIssueTotalsByRequestId();
       const selectedProject = getProjectById(projectId) || projectsCache.find(project => Number(project?.id || 0) === Number(projectId));
-      const catalogRows = [];
-
-      if (selectedProject && Array.isArray(materialCatalogCache) && materialCatalogCache.length) {
-        const projectName = String(selectedProject.nomProjet || '').trim();
-        const villaType = getProjectVillaTypeLabel(selectedProject);
-        const candidateFolders = [
-          villaType ? `${projectName} - ${villaType}` : '',
-          projectName,
-          getProjectFolderLabel(selectedProject),
-        ].filter(Boolean);
-        const seenCatalogIds = new Set();
-
-        candidateFolders.forEach(folderName => {
-          getCatalogEntriesForFolderWithFallback(folderName).forEach(entry => {
-            const idKey = String(entry.id || `${entry.projectFolder || ''}:${entry.materialName || entry.nom || entry.name || ''}`);
-            if (seenCatalogIds.has(idKey)) return;
-            seenCatalogIds.add(idKey);
-
-            const rawStage = String(getCatalogEntryStage(entry) || '').trim();
-            const fullStageKey = normalizeStageKey(rawStage);
-            const mainStageKey = normalizeStageKey(extractProgressMainStage(rawStage));
-            if (stageKey && rawStage && fullStageKey !== stageKey && mainStageKey !== stageKey) return;
-
-            const itemName = String(entry.materialName || entry.nom || entry.name || '').trim();
-            if (!itemName) return;
-            catalogRows.push({ itemName, quantiteRestante: 0, fromCatalog: true });
-          });
-        });
-      }
-
       const grouped = new Map();
-      catalogRows.forEach(row => {
-        const key = row.itemName.toLowerCase();
-        if (!grouped.has(key)) {
-          grouped.set(key, { itemName: row.itemName, quantiteRestante: 0, fromCatalog: true });
-        }
-      });
 
       materialRequestsCache
         .filter(row => {
@@ -14745,7 +14859,13 @@
         })
         .forEach(row => {
           const issueTotals = issueTotalsByRequestId[Number(row.id)] || { transferredQty: 0, consumedQty: 0 };
-          const siteRemaining = Math.max(Number(issueTotals.transferredQty || 0) - Number(issueTotals.consumedQty || 0), 0);
+          const hasTransferHistory = Number(issueTotals.transferredQty || 0) > 0;
+          const inventoryRemaining = String(row?.statut || '').toUpperCase() === 'EN_STOCK'
+            ? Number(row?.quantiteRestante || 0)
+            : 0;
+          const siteRemaining = hasTransferHistory
+            ? Math.max(Number(issueTotals.transferredQty || 0) - Number(issueTotals.consumedQty || 0), 0)
+            : Math.max(inventoryRemaining, 0);
           if (!(siteRemaining > 0)) return;
 
           const itemName = String(row.itemName || '').trim();
@@ -14773,7 +14893,7 @@
         .filter(item => item.itemName && Number(item.quantiteRestante || 0) > 0)
         .map(item => ({
           itemName: item.itemName,
-          quantite: Number(item.quantiteRestante || 0),
+          quantite: '',
           fromCatalog: false,
         }));
     }
@@ -15236,18 +15356,44 @@
       const grid = document.getElementById('stock-warehouse-quick-grid');
       if (!grid) return;
 
-      const visibleWarehouses = getVisibleStockWarehouses();
+      const search = normalizeText(String(document.getElementById('stock-warehouse-search')?.value || '').trim());
+      const allVisibleWarehouses = getVisibleStockWarehouses();
+      const visibleWarehouses = allVisibleWarehouses.filter(warehouse => {
+        if (!search) return true;
+        return normalizeText([
+          warehouse.name,
+          warehouse.id,
+          warehouse.code,
+          warehouse.linkedProjectName,
+          warehouse.linkedZoneName,
+          warehouse.prefecture,
+        ].join(' ')).includes(search);
+      });
       grid.innerHTML = visibleWarehouses.length
-        ? visibleWarehouses.map(warehouse => `
-            <div style="position:relative;">
-              <button type="button" class="stock-warehouse-card" data-warehouse-id="${escapeHtml(warehouse.id)}" style="width:100%; min-height: 120px; border: none; border-radius: 12px; background: ${warehouse.color || '#2563eb'}; color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 16px; cursor: pointer; padding: 12px; text-align: center;">
-                <span>${escapeHtml(warehouse.name || 'Entrepôt')}</span>
-                ${warehouse.linkedProjectName ? `<span style="font-size: 12px; font-weight: 600; opacity: 0.9;">${escapeHtml(getWarehouseDisplayLabel(warehouse))}</span>` : ''}
+        ? visibleWarehouses.map((warehouse, index) => {
+            const warehouseId = String(warehouse.id || '').trim();
+            const warehouseRows = (Array.isArray(stockAvailableCache) ? stockAvailableCache : [])
+              .filter(row => getWarehouseIdForRequest(row) === warehouseId);
+            const itemCount = new Set(warehouseRows.map(row => normalizeText(row.itemName || '')).filter(Boolean)).size;
+            const location = String(warehouse.linkedZoneName || warehouse.prefecture || warehouse.linkedProjectName || warehouse.projectName || warehouse.name || 'Emplacement non précisé').trim();
+            const code = String(warehouse.code || warehouse.reference || `ENT-${String(allVisibleWarehouses.indexOf(warehouse) + 1).padStart(3, '0')}`);
+            const selectedWarehouseId = String(selectedStockWarehouseId || allVisibleWarehouses[0]?.id || '').trim();
+            const selected = warehouseId === selectedWarehouseId;
+            return `
+            <div class="stock-warehouse-card-wrap">
+              <button type="button" class="stock-warehouse-card${selected ? ' is-selected' : ''}" data-warehouse-id="${escapeHtml(warehouseId)}" aria-pressed="${selected}">
+                <span class="warehouse-card-main">
+                  <span class="warehouse-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21V7l9-4 9 4v14M3 10h18M8 10v4M12 10v4M16 10v4M9 21v-5h6v5"/></svg></span>
+                  <span><strong class="warehouse-card-name">${escapeHtml(warehouse.name || 'Entrepôt')}</strong><span class="warehouse-card-code">${escapeHtml(code)}</span><span class="warehouse-card-location"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg>${escapeHtml(location)}</span></span>
+                </span>
+                <span class="warehouse-card-count"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="M3 8v9l9 5 9-5V8M12 13v9"/></svg>${itemCount} article${itemCount === 1 ? '' : 's'}</span>
               </button>
-              ${warehouse.custom ? `<button type="button" class="stock-delete-warehouse" data-warehouse-id="${escapeHtml(warehouse.id)}" title="Supprimer cet entrepôt" style="position:absolute; top:8px; right:8px; border:none; background:rgba(15,23,42,.82); color:#fff; width:28px; height:28px; border-radius:999px; cursor:pointer; font-weight:700; line-height:1;">×</button>` : ''}
+              ${selected ? '<span class="warehouse-card-selected" aria-label="Entrepôt sélectionné">✓</span>' : ''}
+              ${warehouse.custom ? `<button type="button" class="stock-delete-warehouse" data-warehouse-id="${escapeHtml(warehouseId)}" title="Supprimer cet entrepôt" aria-label="Supprimer ${escapeHtml(warehouse.name || 'cet entrepôt')}">×</button>` : ''}
             </div>
-          `).join('')
-        : '<div class="empty-state"><p>Aucun entrepôt rapide disponible. Ajoute un entrepôt lié à un projet.</p></div>';
+          `;
+          }).join('')
+        : `<div class="warehouse-empty">${search ? 'Aucun entrepôt ne correspond à cette recherche.' : 'Aucun entrepôt rapide disponible. Ajoute un entrepôt lié à un projet.'}</div>`;
 
       grid.querySelectorAll('.stock-warehouse-card').forEach(button => {
         button.addEventListener('click', async () => {
@@ -20108,43 +20254,89 @@
       if (!list) return;
 
       const searchValue = normalizeText(assignmentSearchTerm.trim());
-      const isSearchActive = Boolean(searchValue);
-      const filteredAssignments = searchValue
-        ? assignmentsCache.filter(a => {
-            const haystack = normalizeText(
-              `${a.displayName || a.assigneeName || a.username || ''} ${a.role || ''} ${a.nomProjet || ''} ${a.phoneNumber || ''}`
-            );
-            return haystack.includes(searchValue);
-          })
-        : assignmentsCache.slice(0, 12);
+      const normalizedStatus = assignment => String(assignment?.status || 'ACTIF').trim().toUpperCase();
+      const getDateValue = assignment => parseDateValue(assignment?.assignedAt || assignment?.createdAt || null)?.getTime() || 0;
+      const now = new Date();
+      const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      if (assignmentPeriodFilter === 'QUARTER') periodStart.setMonth(periodStart.getMonth() - 3);
+      if (assignmentPeriodFilter === 'YEAR') periodStart.setMonth(0);
+      const periodStartTime = assignmentPeriodFilter === 'ALL' ? 0 : periodStart.getTime();
 
-      if (listTitle) {
-        listTitle.textContent = isSearchActive ? 'Résultats de recherche' : 'Assignations récentes';
-      }
+      const filteredAssignments = assignmentsCache.filter(assignment => {
+        const status = normalizedStatus(assignment);
+        if (assignmentStatusFilter !== 'ALL' && status !== assignmentStatusFilter) return false;
+        const dateValue = getDateValue(assignment);
+        if (periodStartTime && dateValue && dateValue < periodStartTime) return false;
+        if (searchValue) {
+          const haystack = normalizeText([
+            assignment.displayName,
+            assignment.assigneeName,
+            assignment.username,
+            assignment.role,
+            assignment.nomProjet,
+            assignment.numeroMaison,
+            assignment.nomSite,
+            assignment.department,
+            assignment.phoneNumber,
+            assignment.email,
+          ].join(' '));
+          if (!haystack.includes(searchValue)) return false;
+        }
+        return true;
+      });
 
-      list.innerHTML = filteredAssignments.length
-        ? filteredAssignments.map(a => `
-            <li class="list-item">
-              <div class="list-item-content">
-                <div class="list-item-title">${a.displayName || a.assigneeName || a.username}</div>
-                <div class="list-item-meta">${a.nomProjet} • ${a.role}${a.phoneNumber ? ` • 📞 ${a.phoneNumber}` : ''}</div>
-                <div class="list-item-meta">Assigné le ${formatDate(a.assignedAt)}</div>
-              </div>
-              ${canManageAssignments() ? `<div class="action-buttons">
-                <details class="actions-menu">
-                  <summary aria-label="Actions assignation">&#8942;</summary>
-                  <div class="actions-dropdown">
-                    <button type="button" onclick="editAssignment(${a.id})">Modifier</button>
-                    <button type="button" onclick="deleteAssignment(${a.id})">Mettre en corbeille</button>
-                  </div>
-                </details>
-              </div>` : ''}
-              <span class="badge badge-green">${a.role}</span>
-            </li>
-          `).join('')
-        : (assignmentsCache.length
-            ? '<div class="empty-state"><p>Aucune assignation ne correspond à la recherche</p></div>'
-            : '<div class="empty-state"><p>Aucune assignation</p></div>');
+      if (listTitle) listTitle.textContent = searchValue ? 'Résultats de recherche' : 'Assignations récentes';
+      const countByStatus = status => assignmentsCache.filter(assignment => normalizedStatus(assignment) === status).length;
+      const setText = (id, value) => { const element = document.getElementById(id); if (element) element.textContent = String(value); };
+      setText('assignment-count-all', assignmentsCache.length);
+      setText('assignment-count-active', countByStatus('ACTIF'));
+      setText('assignment-count-inactive', countByStatus('INACTIF'));
+      setText('assignment-count-leave', countByStatus('CONGE'));
+
+      const pageCount = Math.max(1, Math.ceil(filteredAssignments.length / assignmentPageSize));
+      assignmentCurrentPage = Math.min(Math.max(assignmentCurrentPage, 1), pageCount);
+      const startIndex = (assignmentCurrentPage - 1) * assignmentPageSize;
+      const pageRows = filteredAssignments.slice(startIndex, startIndex + assignmentPageSize);
+      const firstResult = filteredAssignments.length ? startIndex + 1 : 0;
+      const lastResult = Math.min(startIndex + assignmentPageSize, filteredAssignments.length);
+      setText('assignments-pagination-info', `Affichage de ${firstResult} à ${lastResult} sur ${filteredAssignments.length} assignation${filteredAssignments.length === 1 ? '' : 's'}`);
+      setText('assignment-page-number', assignmentCurrentPage);
+      const previousButton = document.getElementById('assignments-page-prev');
+      const nextButton = document.getElementById('assignments-page-next');
+      if (previousButton) previousButton.disabled = assignmentCurrentPage <= 1;
+      if (nextButton) nextButton.disabled = assignmentCurrentPage >= pageCount;
+      document.querySelectorAll('[data-assignment-status-filter]').forEach(button => {
+        button.classList.toggle('active', button.dataset.assignmentStatusFilter === assignmentStatusFilter);
+      });
+
+      const initials = value => String(value || '?').trim().split(/\s+/).map(part => part[0] || '').join('').slice(0, 2).toUpperCase();
+      const statusInfo = status => status === 'INACTIF'
+        ? { label: 'Inactif', className: 'inactive' }
+        : status === 'CONGE'
+          ? { label: 'En congé', className: 'leave' }
+          : { label: 'Actif', className: 'active' };
+
+      list.innerHTML = pageRows.length
+        ? pageRows.map(assignment => {
+            const status = statusInfo(normalizedStatus(assignment));
+            const name = assignment.displayName || assignment.assigneeName || assignment.username || 'Utilisateur';
+            const site = assignment.numeroMaison
+              ? `${assignment.numeroMaison}${assignment.typeMaison ? ` (${assignment.typeMaison})` : ''}`
+              : (assignment.nomSite || '-');
+            return `
+              <tr>
+                <td><div class="assignment-user-cell"><span class="assignment-avatar">${escapeHtml(initials(name))}</span><span><strong class="assignment-user-name">${escapeHtml(name)}</strong><small class="assignment-user-department">${escapeHtml(assignment.department || '-')}</small></span></div></td>
+                <td title="${escapeHtml(assignment.nomProjet || 'Projet')}">${escapeHtml(assignment.nomProjet || 'Projet')}</td>
+                <td>${escapeHtml(site)}</td>
+                <td>${escapeHtml(assignment.role || '-')}</td>
+                <td>${escapeHtml(formatDate(assignment.assignedAt))}</td>
+                <td>${escapeHtml(formatDate(assignment.endAt || assignment.endDate || ''))}</td>
+                <td><span class="assignment-status-pill ${status.className}">${status.label}</span></td>
+                <td class="assignment-actions-cell">${canManageAssignments() ? `<details class="actions-menu assignment-actions-menu"><summary aria-label="Actions assignation">⋮</summary><div class="actions-dropdown"><button type="button" onclick="editAssignment(${Number(assignment.id)})">Modifier</button><button type="button" onclick="deleteAssignment(${Number(assignment.id)})">Mettre en corbeille</button></div></details>` : '—'}</td>
+              </tr>
+            `;
+          }).join('')
+        : `<tr><td colspan="8" class="assignment-empty">${assignmentsCache.length ? 'Aucune assignation ne correspond aux filtres.' : 'Aucune assignation enregistrée.'}</td></tr>`;
     }
 
     function renderProjectDetails(project, projectAssignments = []) {
@@ -23145,13 +23337,27 @@
 
     async function loadAssignments() {
       try {
-        const assignments = await fetchJson('/api/project-assignments');
+        const [assignments, employees] = await Promise.all([
+          fetchJson('/api/project-assignments'),
+          Array.isArray(hrEmployeesCache) && hrEmployeesCache.length
+            ? Promise.resolve(hrEmployeesCache)
+            : fetchJson('/api/hr/employees').catch(() => []),
+        ]);
         assignmentsCache = sortRecent(assignments, row => row?.assignedAt || row?.createdAt || row?.id);
+        if (Array.isArray(employees) && employees.length) hrEmployeesCache = employees;
+        const employeeOptions = document.getElementById('assignment-user-options');
+        if (employeeOptions) {
+          const names = [...new Set([
+            ...hrEmployeesCache.map(employee => employee?.fullName || ''),
+            ...assignmentsCache.map(assignment => assignment?.displayName || assignment?.assigneeName || assignment?.username || ''),
+          ].map(name => String(name || '').trim()).filter(Boolean))];
+          employeeOptions.innerHTML = names.map(name => `<option value="${escapeHtml(name)}"></option>`).join('');
+        }
         renderAssignmentsList();
       } catch (err) {
         console.error('Failed to load assignments:', err);
         const list = document.getElementById('assignments-list');
-        if (list) list.innerHTML = '<div class="empty-state"><p>Erreur lors du chargement</p></div>';
+        if (list) list.innerHTML = '<tr><td colspan="8" class="assignment-empty">Erreur lors du chargement des assignations.</td></tr>';
       }
     }
 
@@ -23352,6 +23558,33 @@
       }
     }
 
+    function renderInventoryMovements(stockIssues, materials) {
+      const list = document.getElementById('inventory-movements-list');
+      if (!list) return;
+      const requestsById = new Map((Array.isArray(materials) ? materials : []).map(row => [Number(row.id), row]));
+      const keyword = normalizeText(String(document.getElementById('inventory-filter-search')?.value || '').trim());
+      const rows = sortRecent(Array.isArray(stockIssues) ? stockIssues : [], issue => issue?.issuedAt || issue?.createdAt || issue?.id)
+        .filter(issue => {
+          const rawType = String(issue?.issueType || '').trim().toUpperCase();
+          const issueType = rawType || (String(issue?.note || '').startsWith('Consommation chantier') ? 'CONSUMPTION' : 'SITE_TRANSFER');
+          if (issueType !== 'SITE_TRANSFER') return false;
+          const request = requestsById.get(Number(issue?.materialRequestId || 0));
+          if (selectedInventoryWarehouseId && getWarehouseIdForRequest(request || issue) !== selectedInventoryWarehouseId) return false;
+          if (!keyword) return true;
+          return normalizeText([issue?.itemName, request?.itemName, issue?.nomProjet, issue?.nomSite, issue?.numeroMaison, issue?.issuedBy].join(' ')).includes(keyword);
+        });
+
+      list.innerHTML = rows.length
+        ? rows.slice(0, 50).map(issue => {
+            const request = requestsById.get(Number(issue?.materialRequestId || 0));
+            const site = issue?.numeroMaison
+              ? `Site N°${issue.numeroMaison}`
+              : String(issue?.nomSite || issue?.nomProjet || '-');
+            return `<tr><td>${escapeHtml(formatDate(issue?.issuedAt || issue?.createdAt))}</td><td><div class="inv-product">${escapeHtml(issue?.itemName || request?.itemName || 'Matériau')}</div></td><td class="inv-num">${Number(issue?.quantiteSortie || 0).toFixed(2)} ${escapeHtml(request?.unite || '')}</td><td>${escapeHtml(getWarehouseNameById(getWarehouseIdForRequest(request || issue)))}</td><td>${escapeHtml(site)}</td><td>${escapeHtml(issue?.issuedBy || '-')}</td><td><span class="inv-status ok">SUR SITE</span></td></tr>`;
+          }).join('')
+        : '<tr><td colspan="7" style="text-align:center;padding:20px;">Aucune sortie vers un site enregistrée</td></tr>';
+    }
+
     async function loadInventory() {
       try {
         const [materials, projects, stockIssues, purchaseOrders, stockAuthorizations, materialCatalog] = await Promise.all([
@@ -23449,6 +23682,8 @@
 
         const list = document.getElementById('inventory-list');
         const summaryList = document.getElementById('inventory-summary-list');
+        const projectView = document.getElementById('inventory-project-view-card');
+        const movementsView = document.getElementById('inventory-movements-view');
         const houseFilter = document.getElementById('inventory-house-filter');
         const detailTitle = document.getElementById('inventory-project-view-title');
         const globalTitle = document.getElementById('inventory-global-view-title');
@@ -23529,6 +23764,13 @@
         if (inventoryViewInput) {
           inventoryViewInput.value = inventoryViewMode;
         }
+        document.querySelectorAll('#inventory [data-inventory-tab]').forEach(button => {
+          button.classList.toggle('active', button.dataset.inventoryTab === inventoryActiveTab);
+        });
+        const isMovementTab = inventoryActiveTab === 'movements';
+        if (projectView) projectView.style.display = isMovementTab ? 'none' : '';
+        if (movementsView) movementsView.style.display = isMovementTab ? '' : 'none';
+        if (isMovementTab) renderInventoryMovements(stockIssues, inventoryMaterials);
 
         const selectedFolder = folders.find(folder => folder.key === selectedInventoryProjectFolderKey) || null;
         const selectedProjectIds = selectedFolder
@@ -23774,9 +24016,12 @@
           });
         }
 
-        if (list) {
-          list.innerHTML = detailedRows.length
-            ? detailedRows.map(row => `
+        const visibleRows = inventoryActiveTab === 'low'
+          ? detailedRows.filter(row => Number(row.totalRestant || 0) <= 0 || Number(row.totalRestant || 0) < Number(row.totalDemande || 0))
+          : detailedRows;
+        if (list && !isMovementTab) {
+          list.innerHTML = visibleRows.length
+            ? visibleRows.map(row => `
                 <tr${row.statut === 'SUR_SITE' ? ' style="background:#fffaf0;"' : ''}>
                   <td><div class="inv-product">${escapeHtml(row.materialName)}</div><div class="inv-code">MAT-${String(row.materialName || '').slice(0, 3).toUpperCase()}</div></td>
                   <td>${escapeHtml(row.category || 'Non renseignée')}</td>
@@ -24245,6 +24490,15 @@
       if (poTrackingState.eventsBound) return;
       poTrackingState.eventsBound = true;
 
+      const filtersToggle = document.getElementById('po-track-filters-toggle');
+      const filtersPanel = document.getElementById('po-track-filters');
+      filtersToggle?.addEventListener('click', () => {
+        const expanded = filtersToggle.getAttribute('aria-expanded') === 'true';
+        filtersToggle.setAttribute('aria-expanded', String(!expanded));
+        filtersToggle.textContent = expanded ? '▽ Filtres' : '△ Masquer les filtres';
+        if (filtersPanel) filtersPanel.hidden = expanded;
+      });
+
       document.getElementById('po-track-apply')?.addEventListener('click', () => applyPoTrackingFilters());
       document.getElementById('po-track-search')?.addEventListener('input', () => applyPoTrackingFilters());
       document.getElementById('po-track-filter-project')?.addEventListener('change', () => applyPoTrackingFilters());
@@ -24373,6 +24627,14 @@
 
     function bindMaterialRequestTrackingEvents() {
       if (materialRequestsTrackingState.eventsBound) return; materialRequestsTrackingState.eventsBound = true;
+      const filtersToggle = document.getElementById('mr-track-filters-toggle');
+      const filtersPanel = document.getElementById('mr-track-filters');
+      filtersToggle?.addEventListener('click', () => {
+        const expanded = filtersToggle.getAttribute('aria-expanded') === 'true';
+        filtersToggle.setAttribute('aria-expanded', String(!expanded));
+        filtersToggle.textContent = expanded ? '▽ Filtres' : '△ Masquer les filtres';
+        if (filtersPanel) filtersPanel.hidden = expanded;
+      });
       ['mr-track-apply', 'material-requests-tracking-search', 'mr-track-filter-project', 'mr-track-filter-lot', 'mr-track-filter-zone', 'mr-track-filter-status', 'mr-track-filter-requester', 'mr-track-filter-validator', 'mr-track-filter-date-from', 'mr-track-filter-date-to'].forEach(id => document.getElementById(id)?.addEventListener(id === 'mr-track-apply' ? 'click' : 'input', () => applyMaterialRequestTrackingFilters()));
       ['mr-track-filter-project', 'mr-track-filter-lot', 'mr-track-filter-zone', 'mr-track-filter-status', 'mr-track-filter-requester', 'mr-track-filter-validator', 'mr-track-filter-date-from', 'mr-track-filter-date-to'].forEach(id => document.getElementById(id)?.addEventListener('change', () => applyMaterialRequestTrackingFilters()));
       document.getElementById('mr-track-reset')?.addEventListener('click', () => { ['material-requests-tracking-search', 'mr-track-filter-project', 'mr-track-filter-lot', 'mr-track-filter-zone', 'mr-track-filter-status', 'mr-track-filter-requester', 'mr-track-filter-validator', 'mr-track-filter-date-from', 'mr-track-filter-date-to'].forEach(id => { const element = document.getElementById(id); if (element) element.value = ''; }); applyMaterialRequestTrackingFilters(); });
@@ -28654,6 +28916,7 @@
         currentUserUsername = user.username || null;
         currentUserRole = user.role || null;
         currentUserScope = user.scope || null;
+        currentUserAccessProfile = user.accessProfile || null;
         if (isHrDirector()) {
           databaseSection = 'hr_presence';
         }
@@ -29258,7 +29521,7 @@
     };
 
     window.editAssignment = async id => {
-      const assignment = assignmentsCache.find(a => a.id === id);
+      const assignment = assignmentsCache.find(a => Number(a.id) === Number(id));
       if (!assignment) {
         showMessage('Assignation introuvable', 'error');
         return;
@@ -29270,6 +29533,12 @@
       document.getElementById('edit-assignment-department').value = assignment.department || '';
       document.getElementById('edit-assignment-email').value = assignment.email || '';
       document.getElementById('edit-assignment-status').value = String(assignment.status || 'ACTIF').toUpperCase();
+      const editStart = document.getElementById('edit-assignment-start-date');
+      const editEnd = document.getElementById('edit-assignment-end-date');
+      const editComments = document.getElementById('edit-assignment-comments');
+      if (editStart) editStart.value = String(assignment.assignedAt || '').slice(0, 10);
+      if (editEnd) editEnd.value = String(assignment.endAt || '').slice(0, 10);
+      if (editComments) editComments.value = String(assignment.comments || '');
       const parentSelect = document.getElementById('edit-assignment-parent');
       if (parentSelect) {
         const projectAssignments = assignmentsCache.filter(item => Number(item.projectId) === Number(assignment.projectId) && Number(item.id) !== Number(id));
@@ -29355,17 +29624,24 @@
       const department = document.getElementById('edit-assignment-department').value.trim();
       const email = document.getElementById('edit-assignment-email').value.trim();
       const status = document.getElementById('edit-assignment-status').value;
+      const assignedAt = String(document.getElementById('edit-assignment-start-date')?.value || '').trim();
+      const endAt = String(document.getElementById('edit-assignment-end-date')?.value || '').trim();
+      const comments = String(document.getElementById('edit-assignment-comments')?.value || '').trim();
       const parentAssignmentId = Number(document.getElementById('edit-assignment-parent').value || 0) || null;
 
       if (!name || !role) {
         showMessage('Nom et rôle sont obligatoires', 'error');
         return;
       }
+      if (!assignedAt || (endAt && endAt < assignedAt)) {
+        showMessage(endAt ? 'La date de fin doit être postérieure à la date de début' : 'La date de début est obligatoire', 'error');
+        return;
+      }
 
       try {
         await fetchJson(`/api/project-assignments/${currentEditingAssignmentId}`, {
           method: 'PATCH',
-          body: JSON.stringify({ assigneeName: name, role, phoneNumber: phone, department, email, status, parentAssignmentId }),
+          body: JSON.stringify({ assigneeName: name, role, phoneNumber: phone, department, email, status, parentAssignmentId, assignedAt, endAt, comments }),
         });
         showMessage('Assignation modifiée');
         document.getElementById('assignment-edit-modal').classList.remove('open');
@@ -29806,6 +30082,13 @@
 
     const assignmentForm = document.getElementById('assignment-form');
     if (assignmentForm && document.getElementById('assignment-name')) {
+      const assignmentStartDate = document.getElementById('assignment-start-date');
+      if (assignmentStartDate) assignmentStartDate.value = formatDateForInput();
+      assignmentForm.addEventListener('reset', () => {
+        window.setTimeout(() => {
+          if (assignmentStartDate) assignmentStartDate.value = formatDateForInput();
+        }, 0);
+      });
       assignmentForm.addEventListener('submit', async e => {
         e.preventDefault();
         try {
@@ -29813,6 +30096,8 @@
           const selectedProjectId = document.getElementById('assignment-house').value;
           const assigneeName = document.getElementById('assignment-name').value.trim();
           const role = document.getElementById('assignment-role').value.trim();
+          const assignedAt = String(document.getElementById('assignment-start-date')?.value || '').trim();
+          const endAt = String(document.getElementById('assignment-end-date')?.value || '').trim();
           if (!selectedProjectFolderKey) {
             showMessage('Sélectionne un dossier projet', 'error');
             return;
@@ -29823,6 +30108,10 @@
           }
           if (!assigneeName || !role) {
             showMessage('Nom et rôle sont obligatoires', 'error');
+            return;
+          }
+          if (!assignedAt || (endAt && endAt < assignedAt)) {
+            showMessage(endAt ? 'La date de fin doit être postérieure à la date de début' : 'La date de début est obligatoire', 'error');
             return;
           }
 
@@ -29837,9 +30126,13 @@
               department: document.getElementById('assignment-department')?.value.trim() || '',
               email: document.getElementById('assignment-email')?.value.trim() || '',
               status: document.getElementById('assignment-status')?.value || 'ACTIF',
+              assignedAt,
+              endAt,
+              comments: String(document.getElementById('assignment-comments')?.value || '').trim(),
             }),
           });
           e.target.reset();
+          if (assignmentStartDate) assignmentStartDate.value = formatDateForInput();
           showMessage('Assignation créée');
           populateProjectSelects(projectsCache);
           loadAssignments();
@@ -30920,9 +31213,31 @@
     if (assignmentSearchInput) {
       assignmentSearchInput.addEventListener('input', e => {
         assignmentSearchTerm = e.target.value;
+        assignmentCurrentPage = 1;
         renderAssignmentsList();
       });
     }
+
+    document.querySelectorAll('[data-assignment-status-filter]').forEach(button => {
+      button.addEventListener('click', () => {
+        assignmentStatusFilter = String(button.dataset.assignmentStatusFilter || 'ALL').toUpperCase();
+        assignmentCurrentPage = 1;
+        renderAssignmentsList();
+      });
+    });
+    document.getElementById('assignment-period-filter')?.addEventListener('change', event => {
+      assignmentPeriodFilter = String(event.target.value || 'ALL').toUpperCase();
+      assignmentCurrentPage = 1;
+      renderAssignmentsList();
+    });
+    document.getElementById('assignments-page-prev')?.addEventListener('click', () => {
+      assignmentCurrentPage = Math.max(1, assignmentCurrentPage - 1);
+      renderAssignmentsList();
+    });
+    document.getElementById('assignments-page-next')?.addEventListener('click', () => {
+      assignmentCurrentPage += 1;
+      renderAssignmentsList();
+    });
 
     const assignmentProjectSelect = document.getElementById('assignment-project');
     if (assignmentProjectSelect) {
@@ -31313,13 +31628,15 @@
 
     document.querySelectorAll('#inventory [data-inventory-tab]').forEach(button => {
       button.addEventListener('click', () => {
-        const tab = button.dataset.inventoryTab;
-        if (tab === 'warehouse' || tab === 'product') {
-          inventoryViewMode = tab === 'warehouse' ? 'building' : 'product_warehouse';
-          const viewInput = document.getElementById('inventory-view-search');
-          if (viewInput) viewInput.value = inventoryViewMode;
-          loadInventory();
-        }
+        inventoryActiveTab = String(button.dataset.inventoryTab || 'product');
+        inventoryViewMode = 'product_warehouse';
+        inventoryViewSearchTerm = 'product_warehouse';
+        const viewInput = document.getElementById('inventory-view-search');
+        if (viewInput) viewInput.value = inventoryViewMode;
+        document.querySelectorAll('#inventory [data-inventory-tab]').forEach(tabButton => {
+          tabButton.classList.toggle('active', tabButton === button);
+        });
+        loadInventory();
       });
     });
     document.getElementById('inventory-filter-apply')?.addEventListener('click', () => loadInventory());
@@ -31471,6 +31788,10 @@
         const warehouseId = card.dataset.warehouseId;
         selectStockWarehouseAndOpen(warehouseId);
       });
+    });
+
+    document.getElementById('stock-warehouse-search')?.addEventListener('input', () => {
+      renderStockWarehouseQuickChoices();
     });
 
     document.getElementById('stock-toggle-add-warehouse')?.addEventListener('click', () => {
@@ -33742,10 +34063,33 @@
       loadDatabaseTrashFromStorage();
       loadDatabaseHiddenIdsFromStorage();
       loadDemoWarehouseAssignments();
+      const allowedModules = getAllowedModules();
+      const forcedModule = String(currentUserAccessProfile?.forcedModule || '').trim().toLowerCase();
+      const hasForcedModule = forcedModule && allowedModules.has(forcedModule);
+      const firstAllowedModule = hasForcedModule
+        ? forcedModule
+        : (allowedModules.has('dashboard')
+          ? 'dashboard'
+          : (Array.from(allowedModules)[0] || 'dashboard'));
+
+      if (openModuleFromPush && allowedModules.has(openModuleFromPush)) {
+        showModule(openModuleFromPush);
+      } else {
+        showModule(firstAllowedModule);
+      }
+
+      document.documentElement.classList.remove('profile-bootstrap');
+      if (window.innerWidth <= 900) {
+        setSidebarCollapsed(true);
+      }
+
       await loadCustomStockWarehouses();
 
       document.getElementById('material-date').value = formatDateForInput();
       document.getElementById('progress-date').value = formatDateForInput();
+      const journalToday = formatDateForInput();
+      document.getElementById('jc-date-from').value = journalToday;
+      document.getElementById('jc-date-to').value = journalToday;
       resetProgressMaterialLines();
       document.getElementById('po-date').value = formatDateForInput();
       document.getElementById('revenue-date').value = formatDateForInput();
@@ -33763,24 +34107,6 @@
       loadProjects();
       addPoItemRow();
       updatePoOrderTotal();
-      const allowedModules = getAllowedModules();
-      const forcedModule = String(currentUserAccessProfile?.forcedModule || '').trim().toLowerCase();
-      const hasForcedModule = forcedModule && allowedModules.has(forcedModule);
-      const firstAllowedModule = hasForcedModule
-        ? forcedModule
-        : (allowedModules.has('dashboard')
-          ? 'dashboard'
-          : (Array.from(allowedModules)[0] || 'dashboard'));
-
-      if (openModuleFromPush && allowedModules.has(openModuleFromPush)) {
-        showModule(openModuleFromPush);
-      } else {
-        showModule(firstAllowedModule);
-      }
-
-      if (window.innerWidth <= 900) {
-        setSidebarCollapsed(true);
-      }
     })();
   </script>
 </body>

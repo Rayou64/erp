@@ -3031,10 +3031,14 @@ async function initDb() {
     parentAssignmentId INTEGER,
     role TEXT NOT NULL,
     assignedAt TEXT NOT NULL,
+    endAt TEXT NOT NULL DEFAULT '',
+    comments TEXT NOT NULL DEFAULT '',
     FOREIGN KEY(projectId) REFERENCES projects(id) ON DELETE CASCADE,
     FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY(employeeId) REFERENCES hr_employees(id) ON DELETE SET NULL
   )`);
+  try { await run("ALTER TABLE project_assignments ADD COLUMN endAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+  try { await run("ALTER TABLE project_assignments ADD COLUMN comments TEXT NOT NULL DEFAULT ''"); } catch (e) {}
 
   await run(`CREATE TABLE IF NOT EXISTS hr_employees (
     id INTEGER PRIMARY KEY,
@@ -9841,6 +9845,18 @@ app.get('/api/hr/employees/:employeeId/documents', async (req, res) => {
   }
 });
 
+function normalizeAssignmentDateOnly(value) {
+  const raw = String(value || '').trim().slice(0, 10);
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return '';
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return date.getUTCFullYear() === Number(match[1])
+    && date.getUTCMonth() === Number(match[2]) - 1
+    && date.getUTCDate() === Number(match[3])
+    ? raw
+    : '';
+}
+
 app.post('/api/project-assignments', async (req, res) => {
   async function ensureAssignmentEmployee({ assigneeName, role, phoneNumber = '', createdBy = 'admin', projectName = '', siteNumber = '' }) {
     const fullName = String(assigneeName || '').trim();
@@ -9902,10 +9918,20 @@ app.post('/api/project-assignments', async (req, res) => {
     return nextEmployeeId;
   }
 
-  const { projetId, projectId, userId, assigneeName, role, phoneNumber = '', email = '', department = '', status = 'ACTIF', parentAssignmentId = null } = req.body;
+  const { projetId, projectId, userId, assigneeName, role, phoneNumber = '', email = '', department = '', status = 'ACTIF', parentAssignmentId = null, assignedAt = '', endAt = '', comments = '' } = req.body;
   const assignmentProjectId = Number(projectId || projetId);
   if (!assignmentProjectId || !role || !assigneeName || !String(assigneeName).trim()) {
     return res.status(400).json({ error: 'Champs obligatoires manquants' });
+  }
+  const assignedDate = String(assignedAt || '').trim()
+    ? normalizeAssignmentDateOnly(assignedAt)
+    : new Date().toISOString().slice(0, 10);
+  const endDate = normalizeAssignmentDateOnly(endAt);
+  if (!assignedDate || (String(endAt || '').trim() && !endDate)) {
+    return res.status(400).json({ error: 'Date de début ou de fin invalide' });
+  }
+  if (endDate && endDate < assignedDate) {
+    return res.status(400).json({ error: 'La date de fin doit être postérieure à la date de début' });
   }
 
   const numericUserId = Number(userId);
@@ -9936,7 +9962,7 @@ app.post('/api/project-assignments', async (req, res) => {
   });
 
   const result = await run(
-    'INSERT INTO project_assignments (projectId, userId, employeeId, assigneeName, phoneNumber, email, department, status, parentAssignmentId, role, assignedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO project_assignments (projectId, userId, employeeId, assigneeName, phoneNumber, email, department, status, parentAssignmentId, role, assignedAt, endAt, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       assignmentProjectId,
       effectiveUserId,
@@ -9948,7 +9974,9 @@ app.post('/api/project-assignments', async (req, res) => {
       String(status || 'ACTIF').trim().toUpperCase() || 'ACTIF',
       Number(parentAssignmentId) || null,
       String(role).trim(),
-      new Date().toISOString(),
+      assignedDate,
+      endDate,
+      String(comments || '').trim(),
     ]
   );
 
@@ -9980,7 +10008,7 @@ app.get('/api/project-assignments', async (_req, res) => {
 
 app.patch('/api/project-assignments/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const { assigneeName, role, phoneNumber = '', email = '', department = '', status = 'ACTIF', parentAssignmentId = null } = req.body;
+  const { assigneeName, role, phoneNumber = '', email = '', department = '', status = 'ACTIF', parentAssignmentId = null, assignedAt, endAt, comments } = req.body;
 
   if (!id || !assigneeName || !String(assigneeName).trim() || !role || !String(role).trim()) {
     return res.status(400).json({ error: 'Nom et role sont obligatoires' });
@@ -10000,7 +10028,7 @@ app.patch('/api/project-assignments/:id', async (req, res) => {
   }
 
   const existingAssignment = await get(
-    `SELECT pa.id, pa.employeeId, p.nomProjet, p.nomSite, p.numeroMaison
+    `SELECT pa.id, pa.employeeId, pa.assignedAt, pa.endAt, pa.comments, p.nomProjet, p.nomSite, p.numeroMaison
      FROM project_assignments pa
      JOIN projects p ON p.id = pa.projectId
      WHERE pa.id = ?`,
@@ -10017,6 +10045,21 @@ app.patch('/api/project-assignments/:id', async (req, res) => {
   const normalizedDepartment = String(department || '').trim();
   const normalizedStatus = String(status || 'ACTIF').trim().toUpperCase() || 'ACTIF';
   const normalizedParentId = Number(parentAssignmentId) || null;
+  const normalizedAssignedAt = assignedAt === undefined
+    ? String(existingAssignment.assignedAt || '')
+    : normalizeAssignmentDateOnly(assignedAt);
+  const normalizedEndAt = endAt === undefined
+    ? String(existingAssignment.endAt || '')
+    : normalizeAssignmentDateOnly(endAt);
+  const normalizedComments = comments === undefined
+    ? String(existingAssignment.comments || '')
+    : String(comments || '').trim();
+  if (!normalizedAssignedAt || (String(endAt || '').trim() && !normalizedEndAt)) {
+    return res.status(400).json({ error: 'Date de début ou de fin invalide' });
+  }
+  if (normalizedEndAt && normalizedEndAt < normalizedAssignedAt.slice(0, 10)) {
+    return res.status(400).json({ error: 'La date de fin doit être postérieure à la date de début' });
+  }
   const roleNormalized = normalizeTextValue(normalizedRole);
   const isChefChantier = roleNormalized.includes('chef') && roleNormalized.includes('chantier');
   const addressLabel = isChefChantier
@@ -10086,8 +10129,8 @@ app.patch('/api/project-assignments/:id', async (req, res) => {
   }
 
   const result = await run(
-    'UPDATE project_assignments SET employeeId = ?, assigneeName = ?, role = ?, phoneNumber = ?, email = ?, department = ?, status = ?, parentAssignmentId = ? WHERE id = ?',
-    [linkedEmployeeId, normalizedAssignee, normalizedRole, normalizedPhone, normalizedEmail, normalizedDepartment, normalizedStatus, normalizedParentId, id]
+    'UPDATE project_assignments SET employeeId = ?, assigneeName = ?, role = ?, phoneNumber = ?, email = ?, department = ?, status = ?, parentAssignmentId = ?, assignedAt = ?, endAt = ?, comments = ? WHERE id = ?',
+    [linkedEmployeeId, normalizedAssignee, normalizedRole, normalizedPhone, normalizedEmail, normalizedDepartment, normalizedStatus, normalizedParentId, normalizedAssignedAt, normalizedEndAt, normalizedComments, id]
   );
 
   if (result.changes === 0) {

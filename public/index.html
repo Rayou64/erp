@@ -7,18 +7,26 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="page">
+  <div class="page login-shell">
     <div class="card auth-card">
-      <h1>Connexion</h1>
+      <div class="brand-mark" aria-hidden="true">R</div>
+      <div class="auth-header">
+        <span class="eyebrow">RyanERP</span>
+        <h1>Connexion</h1>
+      </div>
       <p class="hint">Profils : <strong>admin</strong> / admin123 &nbsp;|&nbsp; <strong>achat_user</strong> / achat@123 &nbsp;|&nbsp; <strong>chef_chantier_site15</strong> / chefsite15@123</p>
       <form id="login-form">
-        <label>Nom d’utilisateur</label>
-        <input type="text" id="username" required autocomplete="username" />
-        <label>Mot de passe</label>
-        <input type="password" id="password" required autocomplete="current-password" />
+        <div class="field-group">
+          <label for="username">Nom d’utilisateur</label>
+          <input type="text" id="username" required autocomplete="username" placeholder="Nom d’utilisateur" />
+        </div>
+        <div class="field-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" required autocomplete="current-password" placeholder="********" />
+        </div>
         <button type="submit">Se connecter</button>
       </form>
-      <div id="login-error" class="error"></div>
+      <div id="login-error" class="error" aria-live="polite"></div>
     </div>
   </div>
 
