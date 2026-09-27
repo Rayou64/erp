@@ -5387,7 +5387,21 @@ app.post('/api/material-requests', async (req, res) => {
 app.get('/api/material-requests', async (req, res) => {
   const rows = await all(`
     SELECT mr.*, COALESCE(p.nomProjet, 'Projet supprime') as projetNom, p.numeroMaison, p.typeMaison, pomax.dateProduitRecu,
-      COALESCE(NULLIF(TRIM(mr.warehouseId), ''), po.warehouseId) as warehouseId
+      COALESCE(NULLIF(TRIM(mr.warehouseId), ''), po.warehouseId) as warehouseId,
+      CASE WHEN EXISTS (
+        SELECT 1
+        FROM purchase_orders validated_po
+        WHERE UPPER(COALESCE(NULLIF(TRIM(validated_po.statutValidation), ''), validated_po.statut, '')) IN ('VALIDEE', 'LIVREE')
+          AND (
+            COALESCE(validated_po.materialRequestId, 0) = mr.id
+            OR EXISTS (
+              SELECT 1
+              FROM purchase_order_items validated_poi
+              WHERE validated_poi.purchaseOrderId = validated_po.id
+                AND validated_poi.materialRequestId = mr.id
+            )
+          )
+      ) THEN 1 ELSE 0 END AS hasValidatedPurchaseOrder
     FROM material_requests mr
     LEFT JOIN projects p ON p.id = mr.projetId
     LEFT JOIN (
@@ -10208,7 +10222,7 @@ app.post('/api/project-progress', async (req, res) => {
 
   const progressProjectId = Number(projectId || projetId);
   const stageLabel = String(stage || etape || '').trim();
-  const progressStageKey = normalizeStageLabel(stageLabel);
+  const progressStageKey = normalizeStageLabel(parseCatalogStageLabels(stageLabel)[0] || stageLabel);
   const noteValue = String(note || commentaire || '').trim();
 
   if (!progressProjectId) {
@@ -10274,89 +10288,73 @@ app.post('/api/project-progress', async (req, res) => {
   }
 
   const issueTypeExpr = "COALESCE(NULLIF(TRIM(si.issueType), ''), CASE WHEN si.note LIKE 'Consommation chantier%' THEN 'CONSUMPTION' ELSE 'SITE_TRANSFER' END)";
+  const hasValidatedPurchaseOrderExpr = `EXISTS (
+    SELECT 1
+    FROM purchase_orders po
+    WHERE UPPER(COALESCE(NULLIF(TRIM(po.statutValidation), ''), po.statut, '')) IN ('VALIDEE', 'LIVREE')
+      AND (
+        COALESCE(po.materialRequestId, 0) = mr.id
+        OR EXISTS (
+          SELECT 1
+          FROM purchase_order_items poi
+          WHERE poi.purchaseOrderId = po.id
+            AND poi.materialRequestId = mr.id
+        )
+      )
+  )`;
+  const siteStockRows = await all(
+    `SELECT mr.id,
+            mr.itemName,
+            mr.etapeApprovisionnement,
+            mr.dateDemande,
+            CASE WHEN ${hasValidatedPurchaseOrderExpr} THEN 1 ELSE 0 END AS hasValidatedPurchaseOrder,
+            COALESCE(SUM(CASE WHEN ${issueTypeExpr} = 'SITE_TRANSFER' THEN COALESCE(si.quantiteSortie, 0) ELSE 0 END), 0) AS transferredQty,
+            COALESCE(SUM(CASE WHEN ${issueTypeExpr} = 'CONSUMPTION' THEN COALESCE(si.quantiteSortie, 0) ELSE 0 END), 0) AS consumedQty
+     FROM material_requests mr
+     LEFT JOIN stock_issues si ON si.materialRequestId = mr.id
+     WHERE mr.projetId = ?
+     GROUP BY mr.id, mr.itemName, mr.etapeApprovisionnement, mr.dateDemande
+     ORDER BY mr.dateDemande ASC, mr.id ASC`,
+    [progressProjectId]
+  );
+  const eligibleSiteStockRows = siteStockRows
+    .map(row => ({
+      id: Number(row.id),
+      itemName: String(row.itemName || '').trim(),
+      stageKey: normalizeStageLabel(parseCatalogStageLabels(row.etapeApprovisionnement)[0] || row.etapeApprovisionnement),
+      hasValidatedPurchaseOrder: Number(row.hasValidatedPurchaseOrder || 0) === 1,
+      siteRemaining: Math.max(Number(row.transferredQty || 0) - Number(row.consumedQty || 0), 0),
+    }))
+    .filter(row => row.hasValidatedPurchaseOrder && row.itemName && row.siteRemaining > 0);
+  const availableRowsForStage = eligibleSiteStockRows.filter(row => !progressStageKey || row.stageKey === progressStageKey);
+
+  if (!availableRowsForStage.length) {
+    return res.status(400).json({
+      error: `Aucune étape disponible: aucun matériau transféré sur ce site depuis un bon validé (${stageLabel}).`,
+    });
+  }
 
   const availableRowsByMaterial = new Map();
   if (normalizedUsageLines.length > 0) {
     for (const usageLine of normalizedUsageLines) {
-      const rawRows = await all(
-        `SELECT mr.id,
-                mr.itemName,
-                mr.etapeApprovisionnement,
-                mr.dateDemande,
-                COALESCE(SUM(CASE WHEN ${issueTypeExpr} = 'SITE_TRANSFER' THEN COALESCE(si.quantiteSortie, 0) ELSE 0 END), 0) AS transferredQty,
-                COALESCE(SUM(CASE WHEN ${issueTypeExpr} = 'CONSUMPTION' THEN COALESCE(si.quantiteSortie, 0) ELSE 0 END), 0) AS consumedQty
-         FROM material_requests mr
-         LEFT JOIN stock_issues si ON si.materialRequestId = mr.id
-         WHERE mr.projetId = ?
-           AND LOWER(TRIM(mr.itemName)) = LOWER(TRIM(?))
-         GROUP BY mr.id, mr.itemName, mr.dateDemande
-         ORDER BY mr.dateDemande ASC, mr.id ASC`,
-        [progressProjectId, usageLine.itemName]
-      );
-
-      const availableRows = rawRows
-        .map(row => {
-          const transferredQty = Number(row.transferredQty || 0);
-          const consumedQty = Number(row.consumedQty || 0);
-          const siteRemaining = Math.max(transferredQty - consumedQty, 0);
-          return {
-            id: Number(row.id),
-            itemName: row.itemName,
-            stageKey: normalizeStageLabel(row.etapeApprovisionnement),
-            siteRemaining,
-          };
-        })
-        .filter(row => !progressStageKey || row.stageKey === progressStageKey)
-        .filter(row => row.siteRemaining > 0);
-
+      const availableRows = availableRowsForStage
+        .filter(row => row.itemName.toLowerCase() === usageLine.itemName.toLowerCase());
       const totalAvailable = availableRows.reduce((sum, row) => sum + Number(row.siteRemaining || 0), 0);
       if (usageLine.quantite > totalAvailable) {
         return res.status(400).json({
           error: `Stock insuffisant sur site pour ${usageLine.itemName} (${stageLabel}). Disponible: ${totalAvailable.toFixed(2)}, demandé: ${usageLine.quantite.toFixed(2)}`,
         });
       }
-
       availableRowsByMaterial.set(usageLine.itemName.toLowerCase(), availableRows);
     }
   } else if (normalizedMaterialUsedQty > 0) {
-    const rawRows = await all(
-      `SELECT mr.id,
-              mr.itemName,
-              mr.etapeApprovisionnement,
-              mr.dateDemande,
-              COALESCE(SUM(CASE WHEN ${issueTypeExpr} = 'SITE_TRANSFER' THEN COALESCE(si.quantiteSortie, 0) ELSE 0 END), 0) AS transferredQty,
-              COALESCE(SUM(CASE WHEN ${issueTypeExpr} = 'CONSUMPTION' THEN COALESCE(si.quantiteSortie, 0) ELSE 0 END), 0) AS consumedQty
-       FROM material_requests mr
-       LEFT JOIN stock_issues si ON si.materialRequestId = mr.id
-       WHERE mr.projetId = ?
-       GROUP BY mr.id, mr.itemName, mr.dateDemande
-       ORDER BY mr.dateDemande ASC, mr.id ASC`,
-      [progressProjectId]
-    );
-
-    const availableRows = rawRows
-      .map(row => {
-        const transferredQty = Number(row.transferredQty || 0);
-        const consumedQty = Number(row.consumedQty || 0);
-        const siteRemaining = Math.max(transferredQty - consumedQty, 0);
-        return {
-          id: Number(row.id),
-          itemName: row.itemName,
-          stageKey: normalizeStageLabel(row.etapeApprovisionnement),
-          siteRemaining,
-        };
-      })
-      .filter(row => !progressStageKey || row.stageKey === progressStageKey)
-      .filter(row => row.siteRemaining > 0);
-
-    const totalAvailable = availableRows.reduce((sum, row) => sum + Number(row.siteRemaining || 0), 0);
+    const totalAvailable = availableRowsForStage.reduce((sum, row) => sum + Number(row.siteRemaining || 0), 0);
     if (normalizedMaterialUsedQty > totalAvailable) {
       return res.status(400).json({
         error: `Stock insuffisant sur site pour l'étape ${stageLabel}. Disponible: ${totalAvailable.toFixed(2)}, demandé: ${normalizedMaterialUsedQty.toFixed(2)}`,
       });
     }
-
-    availableRowsByMaterial.set('__legacy__', availableRows);
+    availableRowsByMaterial.set('__legacy__', availableRowsForStage);
   }
 
   let createdAt = new Date().toISOString();

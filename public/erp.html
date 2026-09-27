@@ -14752,6 +14752,28 @@
       }, {});
     }
 
+    function getProgressValidatedMaterialRequestIds() {
+      const validatedStatuses = new Set(['VALIDEE', 'LIVREE']);
+      const requestIds = new Set();
+      (Array.isArray(materialRequestsCache) ? materialRequestsCache : []).forEach(request => {
+        if (request?.hasValidatedPurchaseOrder === true || Number(request?.hasValidatedPurchaseOrder || 0) === 1) {
+          const requestId = Number(request?.id || 0);
+          if (requestId > 0) requestIds.add(requestId);
+        }
+      });
+      (Array.isArray(purchaseOrdersCache) ? purchaseOrdersCache : []).forEach(order => {
+        const status = String(order?.statutValidation || order?.statusValidation || order?.statut || order?.status || '').trim().toUpperCase();
+        if (!validatedStatuses.has(status)) return;
+        const directRequestId = Number(order?.materialRequestId || 0);
+        if (directRequestId > 0) requestIds.add(directRequestId);
+        (Array.isArray(order?.items) ? order.items : []).forEach(item => {
+          const requestId = Number(item?.materialRequestId || item?.requestId || 0);
+          if (requestId > 0) requestIds.add(requestId);
+        });
+      });
+      return requestIds;
+    }
+
     function extractProgressMainStage(stageValue) {
       const parsed = parseCatalogStage(String(stageValue || '').trim());
       return String(parsed.mainStage || stageValue || '').trim();
@@ -14762,37 +14784,11 @@
       if (!pid) return [];
 
       const issueTotalsByRequestId = getProgressIssueTotalsByRequestId();
+      const validatedRequestIds = getProgressValidatedMaterialRequestIds();
       const stageByKey = new Map();
-      const selectedProject = getProjectById(pid) || projectsCache.find(project => Number(project?.id || 0) === pid);
-
-      if (selectedProject && Array.isArray(materialCatalogCache) && materialCatalogCache.length) {
-        const projectName = String(selectedProject.nomProjet || '').trim();
-        const villaType = getProjectVillaTypeLabel(selectedProject);
-        const candidateFolders = [
-          villaType ? `${projectName} - ${villaType}` : '',
-          projectName,
-          getProjectFolderLabel(selectedProject),
-        ].filter(Boolean);
-        const seenCatalogIds = new Set();
-
-        candidateFolders.forEach(folderName => {
-          getCatalogEntriesForFolderWithFallback(folderName).forEach(entry => {
-            const idKey = String(entry.id || `${entry.projectFolder || ''}:${entry.materialName || entry.nom || entry.name || ''}:${entry.notes || ''}`);
-            if (seenCatalogIds.has(idKey)) return;
-            seenCatalogIds.add(idKey);
-
-            const mainStage = extractProgressMainStage(getCatalogEntryStage(entry) || '');
-            if (!mainStage) return;
-            const key = normalizeStageKey(mainStage) || mainStage.toLowerCase();
-            if (!stageByKey.has(key)) {
-              stageByKey.set(key, mainStage);
-            }
-          });
-        });
-      }
 
       materialRequestsCache
-        .filter(row => Number(row?.projetId) === pid && String(row?.statut || '').toUpperCase() !== 'REJETEE')
+        .filter(row => Number(row?.projetId) === pid && validatedRequestIds.has(Number(row?.id || 0)))
         .forEach(row => {
           const issueTotals = issueTotalsByRequestId[Number(row.id)] || { transferredQty: 0, consumedQty: 0 };
           const siteRemaining = Math.max(Number(issueTotals.transferredQty || 0) - Number(issueTotals.consumedQty || 0), 0);
@@ -14844,13 +14840,13 @@
     function getProgressAvailableMaterials(projectId, stageFilter = '') {
       const stageKey = normalizeStageKey(stageFilter);
       const issueTotalsByRequestId = getProgressIssueTotalsByRequestId();
-      const selectedProject = getProjectById(projectId) || projectsCache.find(project => Number(project?.id || 0) === Number(projectId));
+      const validatedRequestIds = getProgressValidatedMaterialRequestIds();
       const grouped = new Map();
 
       materialRequestsCache
         .filter(row => {
           if (Number(row?.projetId) !== Number(projectId)) return false;
-          if (String(row?.statut || '').toUpperCase() === 'REJETEE') return false;
+          if (!validatedRequestIds.has(Number(row?.id || 0))) return false;
           if (!stageKey) return true;
           const rawStage = String(row?.etapeApprovisionnement || '').trim();
           const fullStageKey = normalizeStageKey(rawStage);
@@ -14859,13 +14855,7 @@
         })
         .forEach(row => {
           const issueTotals = issueTotalsByRequestId[Number(row.id)] || { transferredQty: 0, consumedQty: 0 };
-          const hasTransferHistory = Number(issueTotals.transferredQty || 0) > 0;
-          const inventoryRemaining = String(row?.statut || '').toUpperCase() === 'EN_STOCK'
-            ? Number(row?.quantiteRestante || 0)
-            : 0;
-          const siteRemaining = hasTransferHistory
-            ? Math.max(Number(issueTotals.transferredQty || 0) - Number(issueTotals.consumedQty || 0), 0)
-            : Math.max(inventoryRemaining, 0);
+          const siteRemaining = Math.max(Number(issueTotals.transferredQty || 0) - Number(issueTotals.consumedQty || 0), 0);
           if (!(siteRemaining > 0)) return;
 
           const itemName = String(row.itemName || '').trim();
@@ -14973,22 +14963,41 @@
         if (!hint) return;
 
         if (!projectIdValue || !itemName) {
+          const qtyInput = row.querySelector('.progress-material-line-qty');
+          if (qtyInput) {
+            qtyInput.removeAttribute('max');
+            qtyInput.setCustomValidity('');
+          }
           hint.textContent = projectIdValue ? 'Choisis un matériau disponible' : 'Sélectionne un site';
           hint.style.color = '#64748b';
           return;
         }
 
         const availability = findProgressMaterialAvailability(projectIdValue, itemName, stageValue);
+        const qtyInput = row.querySelector('.progress-material-line-qty');
         if (!availability) {
+          if (qtyInput) {
+            qtyInput.max = '0';
+            qtyInput.setCustomValidity(qty > 0 ? 'Ce matériau n’est pas disponible sur le site.' : '');
+          }
           hint.textContent = 'Matériau introuvable dans le stock du site';
           hint.style.color = '#b91c1c';
           return;
         }
 
+        const otherRequested = Array.from(document.querySelectorAll('#progress-material-lines .progress-material-line-row'))
+          .filter(otherRow => otherRow !== row
+            && String(otherRow.querySelector('.progress-material-line-name')?.value || '').trim().toLowerCase() === itemName.toLowerCase())
+          .reduce((sum, otherRow) => sum + Math.max(0, Number(otherRow.querySelector('.progress-material-line-qty')?.value || 0)), 0);
+        const remaining = Number(availability.quantiteRestante || 0);
+        const maxForLine = Math.max(0, remaining - otherRequested);
+        if (qtyInput) {
+          qtyInput.max = maxForLine.toFixed(2);
+          qtyInput.setCustomValidity(qty > maxForLine ? `Maximum restant disponible: ${maxForLine.toFixed(2)}` : '');
+        }
         const requested = linesSummary
           .filter(line => line.itemName.toLowerCase() === itemName.toLowerCase())
           .reduce((sum, line) => sum + Number(line.quantite || 0), 0);
-        const remaining = Number(availability.quantiteRestante || 0);
         const ok = requested <= remaining && (!(qty > 0) || qty <= remaining);
 
         hint.textContent = `Restant site: ${remaining.toFixed(2)}${requested > 0 ? ` • Saisi total: ${requested.toFixed(2)}` : ''}`;
@@ -18337,7 +18346,7 @@
 
     async function loadProjectProgress() {
       try {
-        const [updates, projects, materials, stockIssues, projectFolders, projectCatalog, materialCatalog] = await Promise.all([
+        const [updates, projects, materials, stockIssues, projectFolders, projectCatalog, materialCatalog, purchaseOrders] = await Promise.all([
           fetchJson('/api/project-progress').catch(() => []),
           fetchJson('/api/projects').catch(() => projectsCache),
           fetchJson('/api/material-requests').catch(() => materialRequestsCache),
@@ -18345,6 +18354,7 @@
           fetchJson('/api/project-folders').catch(() => projectFoldersCache),
           fetchJson('/api/project-catalog').catch(() => projectCatalogCache),
           fetchJson('/api/material-catalog').catch(() => materialCatalogCache),
+          fetchJson('/api/purchase-orders').catch(() => purchaseOrdersCache),
         ]);
 
         if (Array.isArray(projects) && projects.length) {
@@ -18369,6 +18379,10 @@
 
         if (Array.isArray(materialCatalog)) {
           setMaterialCatalogCache(materialCatalog);
+        }
+
+        if (Array.isArray(purchaseOrders)) {
+          purchaseOrdersCache = purchaseOrders;
         }
 
         projectProgressCache = sortRecent(updates, item => item?.createdAt || item?.updatedAt || item?.id);
@@ -30505,35 +30519,6 @@
             dateEtape: dateEtape || null,
           }),
         });
-
-        const progressId = Number(progressResult?.id || 0);
-
-        // Créer automatiquement les sorties de stock pour les matériaux utilisés
-        if (progressId && materialUsageDetails.length) {
-          for (const matLine of materialUsageDetails) {
-            try {
-              const matchingRequests = materialRequestsCache.filter(r => 
-                Number(r.projetId) === Number(projetId) &&
-                String(r.itemName || '').trim().toLowerCase() === String(matLine.itemName || '').trim().toLowerCase()
-              );
-
-              if (matchingRequests.length) {
-                const requestId = Number(matchingRequests[0].id);
-                await fetchJson('/api/stock-management/issues', {
-                  method: 'POST',
-                  body: JSON.stringify({
-                    materialRequestId: requestId,
-                    quantiteSortie: Number(matLine.quantite),
-                    issueType: 'CONSUMPTION',
-                    note: `Consommation chantier - suivi étape #${progressId}`,
-                  }),
-                }).catch(err => console.warn('Erreur création sortie stock:', err));
-              }
-            } catch (err) {
-              console.warn('Erreur création sortie stock pour', matLine.itemName, ':', err);
-            }
-          }
-        }
 
         e.target.reset();
         resetProgressMaterialLines();
