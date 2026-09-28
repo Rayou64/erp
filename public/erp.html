@@ -28257,7 +28257,7 @@
         const [vehiclesWithLocations, costs, maintenanceRecords, autoProjects] = await Promise.all([
           fetchJson('/api/auto-vehicle-locations'),
           fetchJson('/api/auto-transport-costs'),
-          fetchJson('/api/auto-maintenance-records'),
+          fetchJson('/api/auto-maintenance-records').catch(() => []),
           fetchJson('/api/projects').catch(() => []),
         ]);
 
