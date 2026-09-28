@@ -11541,6 +11541,33 @@
             #parc-auto .auto-transport-actions summary::-webkit-details-marker { display:none; }
             #parc-auto .auto-transport-actions button { position:absolute; z-index:3; top:27px; right:0; width:140px; padding:8px 10px; border:1px solid #e2eaf4; border-radius:6px; background:#fff; color:#a33434; text-align:left; font:500 10px 'DM Sans','Segoe UI',sans-serif; box-shadow:0 6px 16px rgba(31,55,99,.12); cursor:pointer; }
             #parc-auto .auto-transport-empty { padding:28px 12px; color:#74859b; text-align:center; font-size:10px; }
+            #parc-auto .auto-maintenance-card,
+            #parc-auto .auto-transport-card { padding:18px; border-radius:12px; }
+            #parc-auto .auto-maintenance-card h2,
+            #parc-auto .auto-transport-card h2 { font-size:16px; }
+            #parc-auto .auto-maintenance-card-subtitle,
+            #parc-auto .auto-transport-card-subtitle { font-size:11px; }
+            #parc-auto .auto-maintenance-form label,
+            #parc-auto .auto-transport-form label { font-size:10px; font-weight:700; }
+            #parc-auto .auto-maintenance-form input,
+            #parc-auto .auto-maintenance-form select,
+            #parc-auto .auto-maintenance-form textarea,
+            #parc-auto .auto-transport-form input,
+            #parc-auto .auto-transport-form select,
+            #parc-auto .auto-transport-form textarea { height:38px; font-size:11px; border-radius:7px; }
+            #parc-auto .auto-maintenance-form textarea,
+            #parc-auto .auto-transport-form textarea { height:64px; }
+            #parc-auto .auto-maintenance-table th,
+            #parc-auto .auto-transport-table th { padding:12px 9px; font-size:10px; font-weight:800; }
+            #parc-auto .auto-maintenance-table td,
+            #parc-auto .auto-transport-table td { padding:13px 9px; font-size:12px; }
+            #parc-auto .auto-maintenance-table,
+            #parc-auto .auto-transport-table { min-width:1050px; }
+            #parc-auto .auto-maintenance-status { padding:5px 9px; font-size:10px; font-weight:800; }
+            #parc-auto .auto-transport-project small,
+            #parc-auto .auto-transport-vehicle small,
+            #parc-auto .auto-maintenance-vehicle small { font-size:10px; }
+            #parc-auto .auto-transport-total { font-size:13px; }
             @media (max-width:1050px) {
               #parc-auto .auto-transport-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
               #parc-auto .auto-transport-layout { grid-template-columns:minmax(250px,.8fr) minmax(0,1.6fr); }
@@ -11864,138 +11891,278 @@
 
         <!-- Expenses Module -->
         <div id="expenses" class="module">
+          <style>
+            #expenses { --exp-ink:#142947; --exp-muted:#647892; --exp-line:#dfe8f5; --exp-blue:#1677f2; --exp-green:#0ea77d; --exp-orange:#e99a22; --exp-purple:#7658df; background:#f4f8fd; color:var(--exp-ink); }
+            #expenses > .page-header { display:none; }
+            #expenses .expenses-page-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:12px; }
+            #expenses .expenses-page-title h1 { margin:0; color:#142947; font:750 22px/1.1 'Manrope','DM Sans',sans-serif; }
+            #expenses .expenses-page-title p { margin:4px 0 0; color:#647892; font-size:10px; }
+            #expenses .expenses-period-control { display:flex; align-items:center; gap:8px; padding:5px 9px; border:1px solid #dce6f2; border-radius:7px; background:#fff; color:#5c718d; font-size:9px; }
+            #expenses .expenses-period-control input { height:26px; border:0; background:transparent; color:#253b5a; font:600 10px 'DM Sans','Segoe UI',sans-serif; }
+            #expenses .expenses-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; margin-bottom:12px; }
+            #expenses .expenses-kpi { display:grid; min-width:0; min-height:74px; grid-template-columns:38px minmax(0,1fr); align-items:center; gap:9px; padding:10px 11px; border:1px solid #e0e9f5; border-radius:8px; background:linear-gradient(180deg,#fff 0%,#f9fbff 100%); box-shadow:0 6px 16px rgba(31,55,99,.045); }
+            #expenses .expenses-kpi-icon { display:grid; width:38px; height:38px; place-items:center; border-radius:50%; background:#e8f1ff; color:var(--exp-blue); }
+            #expenses .expenses-kpi-icon svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #expenses .expenses-kpi:nth-child(2) .expenses-kpi-icon { background:#e5f8f1; color:var(--exp-green); }
+            #expenses .expenses-kpi:nth-child(3) .expenses-kpi-icon { background:#e8f1ff; color:#1677f2; }
+            #expenses .expenses-kpi:nth-child(4) .expenses-kpi-icon { background:#fff2df; color:var(--exp-orange); }
+            #expenses .expenses-kpi:nth-child(5) .expenses-kpi-icon { background:#eee9ff; color:var(--exp-purple); }
+            #expenses .expenses-kpi small { display:block; overflow:hidden; color:#627691; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+            #expenses .expenses-kpi strong { display:block; margin-top:4px; color:#102546; font-size:20px; line-height:1.05; font-weight:800; white-space:nowrap; }
+            #expenses .expenses-kpi em { display:block; margin-top:5px; color:#8291a7; font-size:10px; font-style:normal; }
+            #expenses .expenses-panel { min-width:0; padding:18px; border:1px solid var(--exp-line); border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(31,55,99,.06); }
+            #expenses .expenses-panel-heading { display:flex; align-items:center; gap:9px; margin-bottom:3px; }
+            #expenses .expenses-panel-heading h2 { margin:0; color:#172d4b; font:700 16px/1.2 'Manrope','DM Sans',sans-serif; }
+            #expenses .expenses-heading-icon { display:grid; width:32px; height:32px; place-items:center; border-radius:50%; background:#e9f2ff; color:#1677f2; }
+            #expenses .expenses-heading-icon svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+            #expenses .expenses-panel-subtitle { margin:0 0 14px 41px; color:#6c7e97; font-size:11px; }
+            #expenses .expenses-form-card { margin-bottom:10px; border-left:2px solid #3d8bfa; }
+            #expenses .expenses-form-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px 12px; }
+            #expenses .expenses-form-grid .form-group { min-width:0; margin:0; }
+            #expenses .expenses-form-grid .description-field { grid-column:span 1; }
+            #expenses .expenses-form-grid label { display:block; margin:0 0 5px; color:#415873; font-size:10px; font-weight:700; }
+            #expenses .expenses-form-grid input,
+            #expenses .expenses-form-grid select,
+            #expenses .expenses-form-grid textarea { width:100%; min-width:0; height:36px; padding:0 10px; border:1px solid #d8e3f1; border-radius:7px; background:#fff; color:#334b68; font:400 11px 'DM Sans','Segoe UI',sans-serif; }
+            #expenses .expenses-form-grid textarea { height:42px; padding:9px; resize:vertical; }
+            #expenses .expenses-save { display:flex; min-height:38px; align-items:center; justify-content:center; gap:7px; grid-column:1; border:0; border-radius:7px; background:linear-gradient(90deg,#5865ed,#12b8dc); color:#fff; font:700 11px 'DM Sans','Segoe UI',sans-serif; cursor:pointer; }
+            #expenses .expenses-save svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2; }
+            #expenses .expenses-filter-card { margin-bottom:10px; border-left:2px solid #3695f7; }
+            #expenses .expenses-filter-heading { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+            #expenses .expenses-filter-heading .expenses-heading-icon { width:24px; height:24px; }
+            #expenses .expenses-filter-heading h2 { margin:0; color:#172d4b; font:700 15px/1.2 'Manrope','DM Sans',sans-serif; }
+            #expenses .expenses-filter-row { display:grid; grid-template-columns:1fr 1fr 1.2fr 1.5fr auto; align-items:end; gap:8px; }
+            #expenses .expenses-filter-field { min-width:0; }
+            #expenses .expenses-filter-field label { display:block; margin:0 0 4px; color:#536780; font-size:10px; font-weight:700; }
+            #expenses .expenses-filter-field input,
+            #expenses .expenses-filter-field select { width:100%; min-width:0; height:36px; padding:0 9px; border:1px solid #dbe5f1; border-radius:7px; background:#fff; color:#425a77; font:400 11px 'DM Sans','Segoe UI',sans-serif; }
+            #expenses .expenses-search-row { display:flex; gap:7px; margin-top:8px; }
+            #expenses .expenses-search-row input { flex:1; min-width:0; height:30px; padding:0 9px; border:1px solid #dbe5f1; border-radius:6px; font:400 9px 'DM Sans','Segoe UI',sans-serif; }
+            #expenses .expenses-filter-reset { display:flex; height:36px; align-items:center; gap:5px; padding:0 12px; border:1px solid #dce6f2; border-radius:7px; background:#fff; color:#276ed1; font-size:11px; cursor:pointer; }
+            #expenses .expenses-history-card { padding:13px 15px 9px; }
+            #expenses .expenses-history-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+            #expenses .expenses-history-heading .expenses-panel-subtitle { margin:0 0 0 35px; }
+            #expenses .expenses-table-wrap { overflow-x:auto; border:1px solid #e5edf6; border-radius:7px; }
+            #expenses .expenses-table-head,
+            #expenses #expenses-list > li { display:grid; grid-template-columns:28px 100px minmax(150px,1.25fr) 112px minmax(180px,1.7fr) 68px 112px 120px 125px 42px; gap:9px; align-items:center; min-width:1130px; }
+            #expenses .expenses-table-head { min-height:42px; padding:9px 12px; background:#f5f8fd; color:#53627d; font-size:10px; font-weight:800; text-transform:uppercase; }
+            #expenses #expenses-list { display:grid; gap:0; min-width:1130px; margin:0; padding:0; }
+            #expenses #expenses-list > li { min-height:54px; margin:0; padding:9px 12px; border:0; border-bottom:1px solid #edf1f6; border-radius:0; background:#fff; box-shadow:none; color:#52617b; font-size:12px; }
+            #expenses #expenses-list > li:last-child { border-bottom:0; }
+            #expenses .expense-select-cell { display:grid; place-items:center; }
+            #expenses .expense-date-cell { color:#566c87; font-size:12px; white-space:nowrap; }
+            #expenses .expense-project-cell { overflow:hidden; color:#4e627d; text-overflow:ellipsis; white-space:nowrap; }
+            #expenses .expense-category-badge { display:inline-flex; width:max-content; align-items:center; gap:4px; padding:5px 8px; border-radius:5px; background:#e9f2ff; color:#276ac9; font-size:10px; font-weight:800; white-space:nowrap; }
+            #expenses .expense-category-badge.transport { background:#e4f8f3; color:#0c987e; }
+            #expenses .expense-category-badge.labor { background:#fff2df; color:#be7811; }
+            #expenses .expense-category-badge.other { background:#f0ebff; color:#7554cf; }
+            #expenses .expense-description-cell { overflow:hidden; color:#415772; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+            #expenses .expense-source-badge { display:inline-flex; width:max-content; align-items:center; gap:4px; padding:5px 8px; border-radius:5px; background:#e8f7ef; color:#168357; font-size:10px; font-weight:700; white-space:nowrap; }
+            #expenses .expense-source-badge.transport { background:#e8f1ff; color:#2868ca; }
+            #expenses .expense-source-badge.manual { background:#f0ebff; color:#7554cf; }
+            #expenses .expense-amount-cell { color:#172d4b; font-size:12px; font-weight:800; white-space:nowrap; }
+            #expenses .expenses-table-actions { position:relative; }
+            #expenses .expenses-table-actions summary { display:grid; width:23px; height:23px; place-items:center; border:1px solid #e5edf6; border-radius:5px; color:#506984; cursor:pointer; list-style:none; }
+            #expenses .expenses-table-actions summary::-webkit-details-marker { display:none; }
+            #expenses .expenses-table-actions button { position:relative; z-index:3; display:block; width:100%; padding:8px 9px; border:0; border-bottom:1px solid #edf1f6; background:#fff; color:#a33434; text-align:left; font:600 11px 'DM Sans','Segoe UI',sans-serif; cursor:pointer; }
+            #expenses .expenses-table-actions button:last-child { border-bottom:0; }
+            #expenses .expenses-table-actions .expense-download-action { color:#276ac9; }
+            #expenses > .expenses-table-actions .expense-download-action,
+            #expenses .expense-download-action[aria-label] { display:grid; width:32px; height:30px; place-items:center; padding:0; border:1px solid #d9e3f3; border-radius:6px; background:#fff; color:#276ac9; font-size:16px; cursor:pointer; }
+            #expenses .expenses-table-actions[open] { z-index:4; }
+            #expenses .expenses-table-actions[open] button { position:absolute; right:0; width:180px; border:1px solid #e2eaf4; box-shadow:0 6px 16px rgba(31,55,99,.12); }
+            #expenses .expenses-table-actions[open] button:first-of-type { top:27px; }
+            #expenses .expenses-table-actions[open] button:nth-of-type(2) { top:65px; }
+            #expenses .expenses-analytics-card { margin-top:14px; padding:20px; border:1px solid #dfe8f5; border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(31,55,99,.06); }
+            #expenses .expenses-analytics-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+            #expenses .expenses-analytics-heading h2 { margin:0; color:#172d4b; font:700 18px/1.2 'Manrope','DM Sans',sans-serif; }
+            #expenses .expenses-analytics-description { margin:0 0 16px; color:#647892; font-size:12px; }
+            #expenses .expenses-distribution-grid { display:grid; grid-template-columns:minmax(320px,.8fr) minmax(0,1.2fr); gap:16px; align-items:stretch; }
+            #expenses .expenses-distribution-panel { min-width:0; padding:16px; border:1px solid #e3ebf6; border-radius:10px; background:#fbfdff; }
+            #expenses .expenses-distribution-panel h3 { margin:0 0 14px; color:#273d5f; font-size:14px; font-weight:800; }
+            #expenses #expenses-category-donut { min-height:300px; display:grid; place-items:center; }
+            #expenses #expenses-category-donut > div { width:100%; justify-content:center !important; }
+            #expenses #expenses-category-donut svg { width:min(100%,330px); height:auto; }
+            #expenses #expenses-category-donut svg + div { max-width:100%; }
+            #expenses #expenses-category-bars { min-height:300px; display:grid; place-items:center; overflow-x:auto; }
+            #expenses #expenses-category-bars svg { width:100%; min-width:560px; height:300px; }
+            #expenses .expenses-bar-chart-wrap { width:100%; }
+            #expenses .expenses-bar-legend { display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-top:4px; color:#536984; font-size:11px; }
+            #expenses .expenses-bar-legend-item { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+            #expenses .expenses-bar-legend-item i { width:10px; height:10px; border-radius:50%; }
+            #expenses .expenses-by-project-summary { display:grid; grid-template-columns:minmax(0,1fr) minmax(340px,.8fr); gap:15px; align-items:start; }
+            #expenses .expenses-summary-chart { display:grid; place-items:center; min-height:360px; padding:12px; border:1px solid #e8eef6; border-radius:8px; background:#fbfdff; }
+            #expenses .expenses-summary-chart > div { width:100%; justify-content:center !important; }
+            #expenses #expenses-by-project-chart svg { width:min(100%,360px); height:auto; }
+            #expenses .expenses-chart-legend { display:grid; width:100%; gap:6px; margin-top:9px; }
+            #expenses .expenses-chart-legend-row { display:grid; grid-template-columns:12px minmax(0,1fr) auto; align-items:center; gap:8px; color:#536984; font-size:11px; }
+            #expenses .expenses-chart-legend-row i { width:9px; height:9px; border-radius:50%; }
+            #expenses .expenses-chart-legend-row strong { color:#273d5b; font-size:11px; font-weight:700; white-space:nowrap; }
+            #expenses .expenses-breakdown { display:grid; gap:1px; border:1px solid #e5edf6; border-radius:7px; overflow:hidden; }
+            #expenses .expenses-breakdown-row { display:grid; grid-template-columns:minmax(150px,1.1fr) repeat(4,minmax(105px,1fr)) minmax(125px,1.1fr) 70px; gap:8px; align-items:center; min-height:50px; padding:9px 12px; border-bottom:1px solid #edf1f6; color:#526781; font-size:12px; }
+            #expenses .expenses-breakdown-row.header { min-height:44px; background:#f4f7fb; color:#586b84; font-size:10px; font-weight:800; text-transform:uppercase; }
+            #expenses .expenses-breakdown-row.total { background:#edf6ff; color:#1268cf; font-weight:700; }
+            #expenses .expenses-breakdown-row strong { color:#203755; font-weight:750; text-align:right; white-space:nowrap; }
+            #expenses .expenses-breakdown-row span:last-child { text-align:right; }
+            #expenses .expenses-project-progress { height:6px; overflow:hidden; border-radius:999px; background:#e5edf6; }
+            #expenses .expenses-project-progress i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#1677f2,#16b9de); }
+            @media (max-width:1150px) {
+              #expenses .expenses-kpis { grid-template-columns:repeat(3,minmax(0,1fr)); }
+              #expenses .expenses-by-project-summary { grid-template-columns:minmax(0,1fr); }
+              #expenses .expenses-summary-chart { min-height:320px; }
+              #expenses .expenses-distribution-grid { grid-template-columns:1fr; }
+            }
+            @media (max-width:760px) {
+              #expenses .expenses-page-head { align-items:flex-start; flex-direction:column; }
+              #expenses .expenses-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+              #expenses .expenses-form-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+              #expenses .expenses-filter-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+              #expenses .expenses-summary-chart { min-height:0; }
+              #expenses #expenses-by-project-chart svg { width:min(100%,320px); }
+              #expenses .expenses-breakdown { overflow-x:auto; }
+              #expenses .expenses-breakdown-row { min-width:790px; }
+            }
+            @media (max-width:460px) {
+              #expenses .expenses-kpis { grid-template-columns:minmax(0,1fr); }
+              #expenses .expenses-form-grid { grid-template-columns:minmax(0,1fr); }
+              #expenses .expenses-form-grid .description-field { grid-column:auto; }
+              #expenses .expenses-save { grid-column:auto; }
+              #expenses .expenses-filter-row { grid-template-columns:minmax(0,1fr); }
+            }
+          </style>
           <div class="page-header">
-            <h1>Dépenses</h1>
-            <p>Enregistrement des frais généraux</p>
+            <h1>Gestion des dépenses</h1>
+            <p>Enregistrez, suivez et analysez toutes les dépenses de vos projets.</p>
           </div>
-          <div class="grid-2">
-            <div class="card form-card">
-              <h3 style="margin-bottom: 15px;">Enregistrer une dépense</h3>
-              <form id="expense-form">
-                <div class="form-group">
-                  <label>Projet (optionnel)</label>
-                  <select id="expense-project"></select>
-                </div>
-                <div class="form-group">
-                  <label>Catégorie *</label>
-                  <select id="expense-category" required>
-                    <option value="">Choisir</option>
-                    <option value="salaires">Salaires</option>
-                    <option value="fournitures">Fournitures</option>
-                    <option value="transport">Transport</option>
-                    <option value="location">Location d'équipement</option>
-                    <option value="autres">Autres</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Description *</label>
-                  <input type="text" id="expense-desc" required />
-                </div>
-                <div class="form-group">
-                  <label>Quantité *</label>
-                  <input type="number" id="expense-qty" step="0.01" required />
-                </div>
-                <div class="form-group">
-                  <label>Prix unitaire (FCFA) *</label>
-                  <input type="number" id="expense-price" step="0.01" required />
-                </div>
-                <button type="submit" class="button button-primary" style="width: 100%;">Enregistrer</button>
-              </form>
+          <div class="expenses-page-head"><div class="expenses-page-title"><h1>Gestion des dépenses</h1><p>Enregistrez, suivez et analysez toutes les dépenses de vos projets.</p></div><label class="expenses-period-control">Période <input id="expenses-period" type="month"></label></div>
+          <section class="expenses-kpis" aria-label="Indicateurs des dépenses">
+            <article class="expenses-kpi"><span class="expenses-kpi-icon"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3zM7 7V4h10v3M7 12h10M7 16h5"/></svg></span><span><small>Total des dépenses</small><strong id="expenses-kpi-total">0 FCFA</strong><em id="expenses-kpi-total-share">Sur la période</em></span></article>
+            <article class="expenses-kpi"><span class="expenses-kpi-icon"><svg viewBox="0 0 24 24"><path d="M3 4h2l2 12h11l3-8H6M9 20h.01M17 20h.01"/></svg></span><span><small>Achats de matériaux</small><strong id="expenses-kpi-materials">0 FCFA</strong><em id="expenses-kpi-materials-share">0% du total</em></span></article>
+            <article class="expenses-kpi"><span class="expenses-kpi-icon"><svg viewBox="0 0 24 24"><path d="M3 11h18l-2-5H5zM5 11v7h14v-7M8 18v2m8-2v2M7 14h.01M17 14h.01"/></svg></span><span><small>Coûts de transports</small><strong id="expenses-kpi-transport">0 FCFA</strong><em id="expenses-kpi-transport-share">0% du total</em></span></article>
+            <article class="expenses-kpi"><span class="expenses-kpi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-4 3-7 8-7s8 3 8 7"/></svg></span><span><small>Main d'œuvre / Salaires</small><strong id="expenses-kpi-labor">0 FCFA</strong><em id="expenses-kpi-labor-share">0% du total</em></span></article>
+            <article class="expenses-kpi"><span class="expenses-kpi-icon"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span><span><small>Autres dépenses</small><strong id="expenses-kpi-other">0 FCFA</strong><em id="expenses-kpi-other-share">0% du total</em></span></article>
+          </section>
+          <section class="expenses-panel expenses-form-card">
+            <div class="expenses-panel-heading"><span class="expenses-heading-icon"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><h2>Enregistrer une dépense</h2></div>
+            <p class="expenses-panel-subtitle">Ajoutez une nouvelle dépense dans vos projets (dépense manuelle).</p>
+            <form id="expense-form" class="expenses-form-grid">
+              <div class="form-group"><label for="expense-project">Projet *</label><select id="expense-project"><option value="">Sélectionner un projet</option></select></div>
+              <div class="form-group"><label for="expense-category">Catégorie *</label><select id="expense-category" required><option value="">Choisir une catégorie</option><option value="fournitures">Matériaux</option><option value="transport">Transports</option><option value="mainOeuvre">Main d'œuvre</option><option value="salaires">Salaires</option><option value="autres">Autres</option></select></div>
+              <div class="form-group"><label for="expense-date">Date de la dépense *</label><input id="expense-date" type="date" required></div>
+              <div class="form-group description-field"><label for="expense-desc">Description *</label><input id="expense-desc" type="text" placeholder="Ex: Ciment, transport, main d'œuvre, location..." required></div>
+              <div class="form-group"><label for="expense-qty">Quantité *</label><input id="expense-qty" type="number" min="0.01" step="0.01" placeholder="Ex: 10" required></div>
+              <div class="form-group"><label for="expense-price">Prix unitaire (FCFA) *</label><input id="expense-price" type="number" min="0" step="0.01" placeholder="Ex: 5000" required></div>
+              <div class="form-group"><label for="expense-note">Note (optionnel)</label><textarea id="expense-note" placeholder="Détails supplémentaires..."></textarea></div>
+              <button type="submit" class="expenses-save"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Enregistrer la dépense</button>
+            </form>
+          </section>
+          <section class="expenses-panel expenses-filter-card">
+            <div class="expenses-filter-heading"><span class="expenses-heading-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v5l-4 2v-7z"/></svg></span><h2>Filtres des dépenses</h2></div>
+            <div class="expenses-filter-row">
+              <div class="expenses-filter-field"><label for="expenses-filter-project">Projet</label><select id="expenses-filter-project"><option value="">Tous les projets</option></select></div>
+              <div class="expenses-filter-field"><label for="expenses-filter-category">Catégorie</label><select id="expenses-filter-category"><option value="">Toutes les catégories</option><option value="materials">Matériaux</option><option value="transport">Transports</option><option value="labor">Main d'œuvre / Salaires</option><option value="other">Autres</option></select></div>
+              <div class="expenses-filter-field"><label>Période</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;"><input type="date" id="expenses-filter-date-from" aria-label="Date de début"><input type="date" id="expenses-filter-date-to" aria-label="Date de fin"></div></div>
+              <div class="expenses-filter-field"><label for="expense-search">Recherche</label><input type="search" id="expense-search" placeholder="Rechercher une dépense (description, projet...)"></div>
+              <button type="button" class="expenses-filter-reset" onclick="resetExpensesFilters()">↻ Réinitialiser</button>
             </div>
-            <div class="erp-section-sep">Historique récent</div>
-            <div class="card">
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
-                <h3 id="expenses-list-title" style="margin:0;">Dépenses récentes</h3>
-                <div style="display:flex; gap:8px;">
-                  <button type="button" class="btn-export-excel" onclick="exportTableToExcel('expenses-list','depenses')">📥 Excel</button>
-                  <button type="button" class="button button-small button-danger" onclick="clearAllExpenses()">Vider tout</button>
-                </div>
-              </div>
-              <div class="filter-bar" id="expenses-filter-bar" style="margin-bottom:12px;">
-                <label>Catégorie</label>
-                <select id="expenses-filter-category">
-                  <option value="">Toutes</option>
-                  <option value="salaires">Salaires</option>
-                  <option value="fournitures">Fournitures</option>
-                  <option value="transport">Transport</option>
-                  <option value="location">Location</option>
-                  <option value="autres">Autres</option>
-                </select>
-                <label>Depuis</label>
-                <input type="date" id="expenses-filter-date-from" />
-                <label>Jusqu'au</label>
-                <input type="date" id="expenses-filter-date-to" />
-                <label>Projet</label>
-                <input type="text" id="expenses-filter-project" placeholder="Projet" style="width:130px;" />
-                <span class="filter-reset" onclick="resetExpensesFilters()">Réinitialiser</span>
-              </div>
-              <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="expense-search" placeholder="Rechercher une dépense (description, catégorie, projet)" />
-              </div>
-              <ul id="expenses-list" class="list"></ul>
-              <div id="expenses-pagination" class="pagination-bar" style="display:none;"></div>
-            </div>
-          </div>
-          <div class="card" style="margin-top: 20px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:15px;">
-              <h3 style="margin:0;">Dépenses totales par projet</h3>
-              <div style="display:flex;gap:8px;">
-                <button type="button" class="button button-secondary" style="font-size:12px;padding:5px 12px;" onclick="downloadTableCsv('expenses-by-project-table', 'depenses-totales.csv')">⬇ CSV</button>
-                <button type="button" class="button button-secondary" style="font-size:12px;padding:5px 12px;" onclick="downloadChartSvg('expenses-by-project-chart', 'depenses-totales.svg')">⬇ Graphique</button>
-              </div>
-            </div>
-            <div class="grid-2" style="align-items: start;">
-              <div id="expenses-by-project-table"></div>
-              <div id="expenses-by-project-chart"></div>
-            </div>
-          </div>
-          <div class="card" style="margin-top: 20px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:15px;">
-              <h3 style="margin:0;">Détails des dépenses par projet</h3>
+          </section>
+          <section class="expenses-panel expenses-history-card">
+            <div class="expenses-history-heading"><div><div class="expenses-panel-heading"><span class="expenses-heading-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h2 id="expenses-list-title">Dépenses récentes</h2></div><p class="expenses-panel-subtitle">Liste des dernières dépenses enregistrées.</p></div><div style="display:flex;gap:7px;align-items:center;"><button type="button" class="btn-export-excel" onclick="exportTableToExcel('expenses-list','depenses')">Excel</button><button type="button" class="button button-small button-danger" onclick="clearAllExpenses()">Vider tout</button></div></div>
+            <div class="expenses-table-wrap"><div class="expenses-table-head"><span></span><span>Date</span><span>Projet</span><span>Catégorie</span><span>Description</span><span>Quantité</span><span>Prix unitaire (FCFA)</span><span>Montant (FCFA)</span><span>Source</span><span>Actions</span></div><ul id="expenses-list" class="list"></ul></div>
+            <div id="expenses-pagination" class="pagination-bar" style="display:none;"></div>
+          </section>
+          <section class="expenses-analytics-card">
+            <div class="expenses-analytics-heading">
+              <h2>Dépenses par projet et catégorie</h2>
               <button type="button" class="button button-secondary" style="font-size:12px;padding:5px 12px;" onclick="downloadTableCsv('expenses-detailed-by-project-table', 'details-depenses.csv')">⬇ CSV</button>
             </div>
-            <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Regroupement par dossier projet avec détail matériaux, main d'oeuvre et salaires.</p>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Comparaison des montants enregistrés dans chaque catégorie.</p>
             <div id="expenses-detailed-by-project-table" style="overflow-x: auto;"></div>
-          </div>
+          </section>
+          <section class="expenses-analytics-card">
+            <div class="expenses-analytics-heading">
+              <h2>Répartition des dépenses</h2>
+              <button type="button" class="button button-secondary" style="font-size:12px;padding:5px 12px;" onclick="downloadChartSvg('expenses-distribution-charts', 'repartition-depenses.svg')">⬇ Graphique</button>
+            </div>
+            <p class="expenses-analytics-description">Distribution des dépenses par catégorie et évolution des montants enregistrés.</p>
+            <div id="expenses-distribution-charts" class="expenses-distribution-grid">
+              <div class="expenses-distribution-panel"><h3>Répartition par catégorie</h3><div id="expenses-category-donut"></div></div>
+              <div class="expenses-distribution-panel"><h3>Évolution des dépenses par catégorie</h3><div id="expenses-category-bars"></div></div>
+            </div>
+          </section>
         </div>
 
         <!-- Revenues Module -->
         <div id="revenues" class="module">
+          <style>
+            #revenues { background:#f4f8fd; color:#142947; }
+            #revenues > .page-header { display:none; }
+            #revenues .revenue-page-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:12px; }
+            #revenues .revenue-page-title h1 { margin:0; color:#142947; font:800 22px/1.1 'Manrope','DM Sans',sans-serif; }
+            #revenues .revenue-page-title p { margin:4px 0 0; color:#647892; font-size:11px; }
+            #revenues .revenue-period-control { display:flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid #dce6f2; border-radius:7px; background:#fff; color:#5c718d; font-size:11px; }
+            #revenues .revenue-period-control input { height:28px; border:0; background:transparent; color:#253b5a; font:700 11px 'DM Sans','Segoe UI',sans-serif; }
+            #revenues .revenue-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+            #revenues .revenue-kpi { display:grid; min-width:0; min-height:80px; grid-template-columns:46px minmax(0,1fr); align-items:center; gap:10px; padding:13px; border:1px solid #e2eaf7; border-radius:12px; background:#fff; box-shadow:0 8px 20px rgba(74,103,160,.08); }
+            #revenues .revenue-kpi-icon { display:grid; width:46px; height:46px; place-items:center; border-radius:50%; background:#eaf0ff; color:#4167df; font-size:20px; font-weight:800; }
+            #revenues .revenue-kpi:nth-child(2) .revenue-kpi-icon { background:#e9f9ef; color:#24a158; }
+            #revenues .revenue-kpi:nth-child(3) .revenue-kpi-icon { background:#eeeaff; color:#7455d8; }
+            #revenues .revenue-kpi:nth-child(4) .revenue-kpi-icon { background:#fff3df; color:#ef9d25; }
+            #revenues .revenue-kpi:nth-child(5) .revenue-kpi-icon { background:#eaf0ff; color:#4167df; }
+            #revenues .revenue-kpi small { display:block; color:#4f6285; font-size:11px; font-weight:700; }
+            #revenues .revenue-kpi strong { display:block; margin-top:5px; color:#29416c; font-size:20px; line-height:1; font-weight:800; white-space:nowrap; }
+            #revenues .revenue-kpi em { display:block; margin-top:4px; color:#7b8cac; font-size:10px; font-style:normal; }
+            #revenues .revenue-layout { display:grid; grid-template-columns:minmax(280px,.82fr) minmax(0,2fr); gap:14px; align-items:start; }
+            #revenues .revenue-card { min-width:0; padding:18px; border:1px solid #e1e9f7; border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
+            #revenues .revenue-card h2 { margin:0; color:#162b4b; font:800 16px/1.25 'Manrope','DM Sans',sans-serif; }
+            #revenues .revenue-card-subtitle { margin:5px 0 15px; color:#6a7d96; font-size:11px; line-height:1.4; }
+            #revenues .revenue-form { display:grid; gap:11px; }
+            #revenues .revenue-form .form-group { min-width:0; margin:0; }
+            #revenues .revenue-form label { display:block; margin:0 0 5px; color:#536582; font-size:10px; font-weight:800; }
+            #revenues .revenue-form input, #revenues .revenue-form select { width:100%; height:38px; padding:0 10px; border:1px solid #d4e0f2; border-radius:7px; color:#526887; background:#fff; font-size:11px; }
+            #revenues .revenue-submit { width:100%; min-height:40px; border:0; border-radius:7px; background:linear-gradient(90deg,#5367f5,#12b8dc); color:#fff; font-size:11px; font-weight:800; cursor:pointer; }
+            #revenues .revenue-list-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+            #revenues .revenue-list-tools { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; gap:9px; margin-bottom:12px; }
+            #revenues .revenue-list-tools select, #revenues .revenue-list-tools input, #revenues .revenue-list-tools button { width:100%; height:38px; padding:0 10px; border:1px solid #d4e0f2; border-radius:7px; background:#fff; color:#526887; font-size:11px; }
+            #revenues .revenue-list-tools button { color:#266fd8; font-weight:700; cursor:pointer; }
+            #revenues #revenues-list { display:grid; gap:0; margin:0; padding:0; border:1px solid #e5edf6; border-radius:8px; overflow:hidden; }
+            #revenues #revenues-list > li { display:grid; grid-template-columns:90px minmax(150px,1.1fr) minmax(180px,1.7fr) minmax(120px,1fr) 145px 38px; gap:10px; align-items:center; min-height:54px; padding:9px 12px; border:0; border-bottom:1px solid #edf1f6; border-radius:0; color:#52617b; font-size:12px; }
+            #revenues .revenue-table-head { display:grid; grid-template-columns:90px minmax(150px,1.1fr) minmax(180px,1.7fr) minmax(120px,1fr) 145px 38px; gap:10px; padding:10px 12px; background:#f5f8fd; color:#53627d; font-size:10px; font-weight:800; text-transform:uppercase; }
+            #revenues .revenue-amount { color:#172c4c; font-size:13px; font-weight:800; white-space:nowrap; }
+            #revenues .revenue-type { display:inline-flex; width:max-content; padding:5px 8px; border-radius:5px; background:#e4f8f3; color:#0c987e; font-size:10px; font-weight:800; }
+            #revenues .revenue-action { display:grid; width:30px; height:30px; place-items:center; border:1px solid #d9e3f3; border-radius:6px; background:#fff; color:#55709e; cursor:pointer; }
+            @media(max-width:1100px){#revenues .revenue-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+            @media(max-width:760px){#revenues .revenue-layout{grid-template-columns:1fr}#revenues .revenue-list-tools{grid-template-columns:repeat(2,minmax(0,1fr))}#revenues .revenue-table-head,#revenues #revenues-list > li{min-width:820px}#revenues .revenue-list-wrap{overflow-x:auto}}
+            @media(max-width:460px){#revenues .revenue-kpis{grid-template-columns:1fr}#revenues .revenue-list-tools{grid-template-columns:1fr}}
+          </style>
           <div class="page-header">
             <h1>Revenus</h1>
             <p>Enregistrement des revenus de projets</p>
           </div>
-          <div class="grid-2">
-            <div class="card form-card">
-              <h3 style="margin-bottom: 15px;">Enregistrer un revenu</h3>
-              <form id="revenue-form">
-                <div class="form-group">
-                  <label>Projet *</label>
-                  <select id="revenue-project" required></select>
-                </div>
-                <div class="form-group">
-                  <label>Description *</label>
-                  <input type="text" id="revenue-desc" required />
-                </div>
-                <div class="form-group">
-                  <label>Montant (FCFA) *</label>
-                  <input type="number" id="revenue-amount" step="0.01" required />
-                </div>
-                <div class="form-group">
-                  <label>Date du revenu *</label>
-                  <input type="date" id="revenue-date" required />
-                </div>
-                <button type="submit" class="button button-primary" style="width: 100%;">Enregistrer</button>
+          <div class="revenue-page-head"><div class="revenue-page-title"><h1>Gestion des revenus</h1><p>Enregistrez et suivez tous les paiements reçus.</p></div><label class="revenue-period-control">Période <input id="revenues-period" type="month"></label></div>
+          <section class="revenue-kpis" aria-label="Indicateurs des revenus">
+            <article class="revenue-kpi"><span class="revenue-kpi-icon">▣</span><span><small>Total des revenus</small><strong id="revenues-kpi-total">0 FCFA</strong><em id="revenues-kpi-total-note">Tous les projets</em></span></article>
+            <article class="revenue-kpi"><span class="revenue-kpi-icon">●</span><span><small>Paiements clients</small><strong id="revenues-kpi-client">0 FCFA</strong><em>0% du total</em></span></article>
+            <article class="revenue-kpi"><span class="revenue-kpi-icon">▥</span><span><small>Subventions</small><strong id="revenues-kpi-grant">0 FCFA</strong><em>0% du total</em></span></article>
+            <article class="revenue-kpi"><span class="revenue-kpi-icon">↶</span><span><small>Remboursements</small><strong id="revenues-kpi-refund">0 FCFA</strong><em>0% du total</em></span></article>
+            <article class="revenue-kpi"><span class="revenue-kpi-icon">•••</span><span><small>Autres revenus</small><strong id="revenues-kpi-other">0 FCFA</strong><em>0% du total</em></span></article>
+          </section>
+          <div class="revenue-layout">
+            <section class="revenue-card">
+              <h2>Enregistrer un revenu</h2><p class="revenue-card-subtitle">Ajoutez un nouveau revenu dans vos projets.</p>
+              <form id="revenue-form" class="revenue-form">
+                <div class="form-group"><label>Projet *</label><select id="revenue-project" required></select></div>
+                <div class="form-group"><label>Description *</label><input type="text" id="revenue-desc" placeholder="Ex: Paiement maçonnerie, subvention..." required /></div>
+                <div class="form-group"><label>Montant (FCFA) *</label><input type="number" id="revenue-amount" step="0.01" placeholder="Ex: 500 000" required /></div>
+                <div class="form-group"><label>Date du revenu *</label><input type="date" id="revenue-date" required /></div>
+                <button type="submit" class="revenue-submit">Enregistrer un revenu</button>
               </form>
-            </div>
-            <div class="erp-section-sep">Historique récent</div>
-            <div class="card">
-              <h3 id="revenues-list-title" style="margin-bottom: 15px;">Revenus récents</h3>
-              <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="revenue-search" placeholder="Rechercher un revenu (description, projet, date)" />
-              </div>
-              <ul id="revenues-list" class="list"></ul>
-            </div>
+            </section>
+            <section class="revenue-card">
+              <div class="revenue-list-head"><div><h2 id="revenues-list-title">Revenus récents</h2><p class="revenue-card-subtitle">Liste des derniers revenus enregistrés.</p></div><button type="button" class="button button-secondary" onclick="exportTableToExcel('revenues-list','revenus')">⬆ Exporter (Excel)</button></div>
+              <div class="revenue-list-tools"><select aria-label="Tous les projets"><option>Tous les projets</option></select><select aria-label="Tous les types"><option>Tous les types</option></select><input type="search" id="revenue-search" placeholder="Rechercher un revenu (description, projet...)" /><button type="button" onclick="document.getElementById('revenue-search').value=''; revenueSearchTerm=''; loadRevenues();">Réinitialiser</button></div>
+              <div class="revenue-list-wrap"><div class="revenue-table-head"><span>Date</span><span>Projet</span><span>Description</span><span>Type de revenu</span><span>Montant (FCFA)</span><span>Actions</span></div><ul id="revenues-list" class="list"></ul></div>
+            </section>
           </div>
         </div>
 
@@ -21322,110 +21489,78 @@
       ].join(' ');
     }
 
-    function renderExpensesByProject(expenses) {
-      const tableContainer = document.getElementById('expenses-by-project-table');
-      const chartContainer = document.getElementById('expenses-by-project-chart');
-      if (!tableContainer || !chartContainer) return;
+    function renderExpenseDistributionCharts(expenses) {
+      const donutContainer = document.getElementById('expenses-category-donut');
+      const barContainer = document.getElementById('expenses-category-bars');
+      if (!donutContainer || !barContainer) return;
 
-      const totalsByProject = {};
-      expenses.forEach(expense => {
-        const linkedProject = getProjectById(expense?.projetId);
-        let projectKey = '';
-        let projectLabel = '';
+      const categories = [
+        { key: 'materials', label: 'Matériaux', color: '#1677f2' },
+        { key: 'transport', label: 'Transports', color: '#13b8d0' },
+        { key: 'labor', label: "Main d'œuvre", color: '#f5ad21' },
+        { key: 'other', label: 'Autres', color: '#8358e8' },
+      ];
+      const totals = Object.fromEntries(categories.map(category => [category.key, 0]));
+      const monthly = {};
+      const monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'short' });
 
-        if (linkedProject) {
-          projectKey = `project_${linkedProject.id}`;
-          const houseLabel = String(linkedProject.numeroMaison || '').trim();
-          const displayName = getProjectDisplayName(linkedProject) || linkedProject.nomProjet || `Projet ${linkedProject.id}`;
-          projectLabel = houseLabel
-            ? `${displayName} - Bâtiment N°${houseLabel}`
-            : displayName;
-        } else {
-          const projectBucket = getExpenseProjectBucket(expense);
-          projectKey = projectBucket.key;
-          projectLabel = projectBucket.label;
+      (Array.isArray(expenses) ? expenses : []).forEach(expense => {
+        const category = getExpensesDashboardCategory(expense);
+        const parsedAmount = Number(expense?.montantTotal || 0);
+        const amount = Number.isFinite(parsedAmount) ? parsedAmount : 0;
+        totals[category] += amount;
+        const dateValue = String(expense?.dateExpense || expense?.date || expense?.createdAt || '');
+        const monthKey = dateValue.slice(0, 7);
+        if (monthKey) {
+          if (!monthly[monthKey]) monthly[monthKey] = Object.fromEntries(categories.map(item => [item.key, 0]));
+          monthly[monthKey][category] += amount;
         }
-
-        const amount = Number(expense.montantTotal || 0);
-        if (!totalsByProject[projectKey]) {
-          totalsByProject[projectKey] = {
-            project: projectLabel,
-            total: 0,
-          };
-        }
-        totalsByProject[projectKey].total += amount;
       });
 
-      const entries = Object.values(totalsByProject)
-        .sort((a, b) => b.total - a.total);
-
-      if (!entries.length) {
-        tableContainer.innerHTML = '<p style="color: #64748b;">Aucune dépense enregistrée.</p>';
-        chartContainer.innerHTML = '<p style="color: #64748b;">Aucune donnée pour le diagramme.</p>';
+      const entries = categories.map(category => ({
+        label: category.label,
+        total: totals[category.key],
+      })).filter(entry => entry.total > 0);
+      const grandTotal = entries.reduce((sum, entry) => sum + entry.total, 0);
+      if (!grandTotal) {
+        donutContainer.innerHTML = '<p style="color:#64748b;">Aucune donnée disponible.</p>';
+        barContainer.innerHTML = '<p style="color:#64748b;">Aucune donnée disponible.</p>';
         return;
       }
 
-      const grandTotal = entries.reduce((sum, item) => sum + item.total, 0);
+      donutContainer.innerHTML = buildPieChartHtml(entries, 'Répartition des dépenses par catégorie');
 
-      tableContainer.innerHTML = `
-        <div class="table-wrapper" style="overflow-x: auto;">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Projet</th>
-                <th>Total dépenses (FCFA)</th>
-                <th>Part</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${entries.map(item => `
-                <tr>
-                  <td>${escapeHtml(item.project)}</td>
-                  <td>${item.total.toFixed(2)}</td>
-                  <td>${((item.total / grandTotal) * 100).toFixed(1)}%</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
-
-      const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316'];
-      const cx = 110;
-      const cy = 110;
-      const radius = 90;
-      let currentAngle = 0;
-
-      const slices = entries.map((item, index) => {
-        const angle = (item.total / grandTotal) * 360;
-        const startAngle = currentAngle;
-        const endAngle = currentAngle + angle;
-        currentAngle += angle;
-        const color = colors[index % colors.length];
-
-        return `<path d="${describeArc(cx, cy, radius, startAngle, endAngle)}" fill="${color}"></path>`;
+      const months = Object.keys(monthly).sort();
+      const chartWidth = Math.max(620, months.length * 92 + 80);
+      const chartHeight = 300;
+      const chartLeft = 48;
+      const chartRight = chartWidth - 18;
+      const chartTop = 20;
+      const chartBottom = 246;
+      const chartValues = months.flatMap(month => categories.map(category => Number(monthly[month][category]) || 0));
+      const chartMax = Math.max(...chartValues, 1);
+      const barWidth = Math.min(16, Math.max(8, 56 / Math.max(categories.length, 1)));
+      const groupWidth = months.length ? (chartRight - chartLeft) / months.length : chartRight - chartLeft;
+      const formatAxisValue = value => value >= 1000000 ? `${(value / 1000000).toFixed(1)}M` : value >= 1000 ? `${Math.round(value / 1000)}k` : `${Math.round(value)}`;
+      const gridLines = [0, .25, .5, .75, 1].map(ratio => {
+        const y = chartBottom - ratio * (chartBottom - chartTop);
+        const value = chartMax * ratio;
+        return `<line x1="${chartLeft}" y1="${y}" x2="${chartRight}" y2="${y}" stroke="#e3ebf6"/><text x="${chartLeft - 8}" y="${y + 4}" text-anchor="end" fill="#71829d" font-size="11">${formatAxisValue(value)}</text>`;
       }).join('');
-
-      const legend = entries.map((item, index) => {
-        const color = colors[index % colors.length];
-        return `
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px;">
-            <span style="display:inline-block; width: 10px; height: 10px; border-radius: 50%; background:${color};"></span>
-            <span>${escapeHtml(item.project)} (${item.total.toFixed(2)} FCFA)</span>
-          </div>
-        `;
+      const bars = months.map((month, monthIndex) => {
+        const groupStart = chartLeft + monthIndex * groupWidth + (groupWidth - categories.length * (barWidth + 3)) / 2;
+        const monthBars = categories.map((category, categoryIndex) => {
+          const value = monthly[month][category.key];
+          const height = value / chartMax * (chartBottom - chartTop);
+          const x = groupStart + categoryIndex * (barWidth + 3);
+          const y = chartBottom - height;
+          return `<rect x="${x}" y="${y}" width="${barWidth}" height="${Math.max(height, value ? 2 : 0)}" rx="3" fill="${category.color}"><title>${escapeHtml(category.label)}: ${Math.round(value).toLocaleString('fr-FR')} FCFA</title></rect>`;
+        }).join('');
+        const monthLabel = monthFormatter.format(new Date(`${month}-01T12:00:00`)).replace('.', '');
+        return `${monthBars}<text x="${chartLeft + monthIndex * groupWidth + groupWidth / 2}" y="${chartBottom + 24}" text-anchor="middle" fill="#596d89" font-size="11">${escapeHtml(monthLabel)}</text>`;
       }).join('');
-
-      chartContainer.innerHTML = `
-        <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
-          <svg width="220" height="220" viewBox="0 0 220 220" role="img" aria-label="Diagramme circulaire des dépenses par projet">
-            ${slices}
-            <circle cx="${cx}" cy="${cy}" r="40" fill="#ffffff"></circle>
-            <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" style="font-size: 11px; fill: #334155;">${grandTotal.toFixed(0)} FCFA</text>
-          </svg>
-          <div>${legend}</div>
-        </div>
-      `;
+      const legend = categories.map(category => `<span class="expenses-bar-legend-item"><i style="background:${category.color}"></i>${escapeHtml(category.label)}</span>`).join('');
+      barContainer.innerHTML = `<div class="expenses-bar-chart-wrap"><svg viewBox="0 0 ${chartWidth} ${chartHeight}" role="img" aria-label="Évolution des dépenses par catégorie">${gridLines}<line x1="${chartLeft}" y1="${chartBottom}" x2="${chartRight}" y2="${chartBottom}" stroke="#b9c9de"/>${bars}</svg><div class="expenses-bar-legend">${legend}</div></div>`;
     }
 
     function getExpenseProjectBucket(expense) {
@@ -21470,95 +21605,44 @@
       if (!container) return;
 
       const grouped = {};
+      const categories = ['materials', 'transport', 'labor', 'other'];
 
       expenses.forEach(expense => {
         const bucket = getExpenseProjectBucket(expense);
-        const category = getExpenseCategory(expense.categorie);
-        const detailLabel = String(expense.description || expense.itemName || 'Sans precision').trim() || 'Sans precision';
-        const amount = Number(expense.montantTotal || 0);
+        const category = getExpensesDashboardCategory(expense);
+        const parsedAmount = Number(expense.montantTotal || 0);
+        const amount = Number.isFinite(parsedAmount) ? parsedAmount : 0;
 
         if (!grouped[bucket.key]) {
           grouped[bucket.key] = {
             label: bucket.label,
-            details: {},
-            totals: {
-              materiaux: 0,
-              mainOeuvre: 0,
-              salaires: 0,
-              total: 0,
-            },
+            categories: { materials: 0, transport: 0, labor: 0, other: 0 },
+            total: 0,
           };
         }
 
-        const detailKey = `${category}__${normalizeText(detailLabel)}`;
-        if (!grouped[bucket.key].details[detailKey]) {
-          grouped[bucket.key].details[detailKey] = {
-            category,
-            detailLabel,
-            amount: 0,
-          };
-        }
-
-        grouped[bucket.key].details[detailKey].amount += amount;
-        grouped[bucket.key].totals[category] += amount;
-        grouped[bucket.key].totals.total += amount;
+        grouped[bucket.key].categories[category] += amount;
+        grouped[bucket.key].total += amount;
       });
 
-      const projects = Object.values(grouped).sort((a, b) => b.totals.total - a.totals.total);
+      const projects = Object.values(grouped).sort((a, b) => b.total - a.total);
 
       if (!projects.length) {
         container.innerHTML = '<p style="color: #64748b;">Aucune dépense enregistrée.</p>';
         return;
       }
 
-      const categoryOrder = { materiaux: 0, mainOeuvre: 1, salaires: 2 };
+      const grandTotal = projects.reduce((sum, project) => sum + project.total, 0);
+      const formatMoney = amount => `${Math.round(amount).toLocaleString('fr-FR')} FCFA`;
+      const categoryLabels = ['Matériaux', 'Transport', "Main d'œuvre", 'Autres'];
 
-      let html = `
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Projet</th>
-              <th>Catégorie</th>
-              <th>Détail</th>
-              <th>Montant (FCFA)</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
+      let html = `<div class="expenses-breakdown"><div class="expenses-breakdown-row header"><span>Projet</span>${categoryLabels.map(label => `<span>${label}</span>`).join('')}<span>Total</span><span>Part</span></div>`;
       projects.forEach(project => {
-        html += `
-          <tr style="background: #f8fafc;">
-            <td><strong>${escapeHtml(project.label)}</strong></td>
-            <td><strong>Total projet</strong></td>
-            <td>
-              Matériaux: ${project.totals.materiaux.toFixed(2)} FCFA<br>
-              Main d'oeuvre: ${project.totals.mainOeuvre.toFixed(2)} FCFA<br>
-              Salaires: ${project.totals.salaires.toFixed(2)} FCFA
-            </td>
-            <td><strong>${project.totals.total.toFixed(2)} FCFA</strong></td>
-          </tr>
-        `;
-
-        const details = Object.values(project.details).sort((a, b) => {
-          const categoryCompare = (categoryOrder[a.category] || 99) - (categoryOrder[b.category] || 99);
-          if (categoryCompare !== 0) return categoryCompare;
-          return a.detailLabel.localeCompare(b.detailLabel, 'fr');
-        });
-
-        details.forEach(detail => {
-          html += `
-            <tr>
-              <td>${escapeHtml(project.label)}</td>
-              <td>${escapeHtml(getExpenseCategoryLabel(detail.category))}</td>
-              <td>${escapeHtml(detail.detailLabel)}</td>
-              <td>${detail.amount.toFixed(2)} FCFA</td>
-            </tr>
-          `;
-        });
+        const share = grandTotal ? project.total / grandTotal * 100 : 0;
+        html += `<div class="expenses-breakdown-row"><span title="${escapeHtml(project.label)}">${escapeHtml(project.label)}</span>${categories.map(category => `<strong>${formatMoney(project.categories[category])}</strong>`).join('')}<strong>${formatMoney(project.total)}</strong><span><span class="expenses-project-progress"><i style="width:${share.toFixed(1)}%"></i></span>${share.toFixed(0)}%</span></div>`;
       });
-
-      html += '</tbody></table>';
+      const categoryTotals = categories.map(category => projects.reduce((sum, project) => sum + project.categories[category], 0));
+      html += `<div class="expenses-breakdown-row total"><span>Total général</span>${categoryTotals.map(total => `<strong>${formatMoney(total)}</strong>`).join('')}<strong>${formatMoney(grandTotal)}</strong><span>100%</span></div></div>`;
       container.innerHTML = html;
     }
 
@@ -21658,6 +21742,7 @@
         return {
           kind: 'purchase-order',
           purchaseOrderId: Number(group.purchaseOrderId),
+          projetId: Number(order?.projetId || firstExpense?.projetId || 0),
           title: displayTitle,
           projetNom: order?.nomProjet || firstExpense?.projetNom || 'Autre',
           fournisseur: String(order?.fournisseur || firstExpense?.fournisseur || '').trim(),
@@ -21673,6 +21758,47 @@
 
       const allRows = [...groupedRows, ...standaloneRows];
       return sortRecent(allRows, row => row?.rowDate || row?.id);
+    }
+
+    function renderExpenseTableRow(row) {
+      const money = value => Math.round(Number(value || 0)).toLocaleString('fr-FR');
+      if (row.kind === 'purchase-order') {
+        const quantity = (row.articles || []).reduce((sum, item) => sum + Number(item.quantite || 0), 0);
+        const unitPrice = quantity ? Number(row.montantTotal || 0) / quantity : 0;
+        const articles = (row.articles || []).map(item => item.article).filter(Boolean).join(', ');
+        const expenseIdsArg = (row.expenseIds || []).join(',');
+        return `<li class="list-item" data-expense-category="materials" data-project-id="${Number(row.projetId || 0)}" data-expense-date="${escapeHtml(String(row.rowDate || '').slice(0, 10))}">
+          <span class="expense-select-cell"><input type="checkbox" aria-label="Sélectionner le bon #${Number(row.purchaseOrderId)}" disabled></span>
+          <span class="expense-date-cell">${escapeHtml(formatDate(row.rowDate))}</span>
+          <span class="expense-project-cell" title="${escapeHtml(row.projetNom || 'Autre')}">${escapeHtml(row.projetNom || 'Autre')}</span>
+          <span><span class="expense-category-badge">Matériaux</span></span>
+          <span class="expense-description-cell" title="${escapeHtml(articles || row.title || '')}">${escapeHtml(row.title || articles || `Bon #${row.purchaseOrderId}`)}</span>
+          <span>${quantity.toLocaleString('fr-FR')}</span>
+          <span>${money(unitPrice)}</span>
+          <span class="expense-amount-cell">${money(row.montantTotal)}</span>
+          <span><span class="expense-source-badge">Achat matériaux</span></span>
+          <span>${isExecutive() ? `<button type="button" class="expense-download-action" title="Télécharger le bon de commande" aria-label="Télécharger le bon de commande ${Number(row.purchaseOrderId)}" onclick="downloadPurchaseOrderPdf(${Number(row.purchaseOrderId)})">↓</button>` : `<details class="expenses-table-actions"><summary aria-label="Actions dépense bon">⋮</summary><button type="button" class="expense-download-action" onclick="downloadPurchaseOrderPdf(${Number(row.purchaseOrderId)})">Télécharger le bon de commande</button><button type="button" onclick="deleteExpenseGroup('${expenseIdsArg}', ${Number(row.purchaseOrderId)})">Mettre en corbeille</button></details>`}</span>
+        </li>`;
+      }
+
+      const expense = row.expense || {};
+      const category = getExpensesDashboardCategory(expense);
+      const project = getExpenseProjectBucket(expense).label;
+      const sourceIsTransport = category === 'transport' && (normalizeText(expense.fournisseur || '').includes('station') || normalizeText(expense.description || '').includes('carburant'));
+      const sourceLabel = sourceIsTransport ? 'Coût transport' : 'Saisie manuelle';
+      const sourceClass = sourceIsTransport ? 'transport' : 'manual';
+      return `<li class="list-item" data-expense-category="${category}" data-project-id="${Number(expense.projetId || 0)}" data-expense-date="${escapeHtml(String(row.rowDate || expense.dateExpense || expense.date || '').slice(0, 10))}">
+        <span class="expense-select-cell"><input type="checkbox" aria-label="Sélectionner ${escapeHtml(expense.description || 'cette dépense')}" disabled></span>
+        <span class="expense-date-cell">${escapeHtml(formatDate(row.rowDate || expense.dateExpense || expense.date))}</span>
+        <span class="expense-project-cell" title="${escapeHtml(project)}">${escapeHtml(project)}</span>
+        <span><span class="expense-category-badge ${category}">${escapeHtml(getExpensesDashboardCategoryLabel(category))}</span></span>
+        <span class="expense-description-cell" title="${escapeHtml(expense.description || '')}">${escapeHtml(expense.description || '-')}</span>
+        <span>${Number(expense.quantite || 0).toLocaleString('fr-FR')}</span>
+        <span>${money(expense.prixUnitaire)}</span>
+        <span class="expense-amount-cell">${money(expense.montantTotal)}</span>
+        <span><span class="expense-source-badge ${sourceClass}">${sourceLabel}</span></span>
+        <span>${isExecutive() ? '—' : `<details class="expenses-table-actions"><summary aria-label="Actions dépense">⋮</summary><button type="button" onclick="deleteExpense(${Number(expense.id)})">Mettre en corbeille</button></details>`}</span>
+      </li>`;
     }
 
     function showMessage(message, type = 'success') {
@@ -28655,86 +28781,52 @@
           buildFinancialExpenses(expenses, purchaseOrders),
           entry => entry?.dateExpense || entry?.date || entry?.createdAt || entry?.id
         );
+        window._lastFinancialExpenses = financialExpenses;
+        renderExpensesKpis(financialExpenses);
         const expenseListRows = buildExpenseListRows(financialExpenses, purchaseOrders);
 
         const list = document.getElementById('expenses-list');
         const listTitle = document.getElementById('expenses-list-title');
         const searchValue = normalizeText(expenseSearchTerm.trim());
         const isSearchActive = Boolean(searchValue);
-        const filteredExpenses = searchValue
+        const filteredExpenses = isSearchActive
           ? expenseListRows.filter(row => {
               if (row.kind === 'purchase-order') {
                 const articlesText = (row.articles || []).map(item => `${item.article} ${item.quantite}`).join(' ');
                 const haystack = normalizeText(`${row.title || ''} ${row.projetNom || ''} ${row.fournisseur || ''} ${row.statut || ''} ${articlesText}`);
                 return haystack.includes(searchValue);
               }
-
-              const e = row.expense;
-              const projectLabel = getExpenseProjectBucket(e).label;
-              const haystack = normalizeText(`${e.description || ''} ${e.categorie || ''} ${e.projetNom || ''} ${projectLabel}`);
+              const expense = row.expense;
+              const projectLabel = getExpenseProjectBucket(expense).label;
+              const haystack = normalizeText(`${expense.description || ''} ${expense.categorie || ''} ${expense.projetNom || ''} ${projectLabel} ${expense.fournisseur || ''}`);
               return haystack.includes(searchValue);
             })
-          : expenseListRows.slice(0, 12);
+          : expenseListRows;
 
         if (listTitle) {
           listTitle.textContent = isSearchActive ? 'Résultats de recherche' : 'Dépenses récentes';
         }
 
         list.innerHTML = filteredExpenses.length
-          ? filteredExpenses.map(row => {
-              if (row.kind === 'purchase-order') {
-                const articlesLabel = (row.articles || []).map(item => (
-                  `${item.article} (${Number(item.quantite || 0).toFixed(2)} × ${Number(item.prixUnitaire || 0).toFixed(2)} = ${Number(item.totalLigne || 0).toFixed(2)} FCFA)`
-                )).join(' • ');
-                const expenseIdsArg = (row.expenseIds || []).join(',');
-                return `
-                  <li class="list-item">
-                    <div class="list-item-content">
-                      <div class="list-item-title">${escapeHtml(row.title)} • Bon #${row.purchaseOrderId}</div>
-                      <div class="list-item-meta">Matériaux • ${escapeHtml(row.projetNom || 'Autre')} • ${escapeHtml(row.fournisseur || '-')} • ${escapeHtml(row.statut || 'EN_ATTENTE')}</div>
-                      <div class="list-item-meta" style="font-size:0.82em;color:#64748b;">${escapeHtml(articlesLabel || 'Aucun article')}</div>
-                    </div>
-                    ${isExecutive() ? '' : `<div class="action-buttons">
-                      <details class="actions-menu">
-                        <summary aria-label="Actions dépense bon">&#8942;</summary>
-                        <div class="actions-dropdown">
-                          <button type="button" onclick="deleteExpenseGroup('${expenseIdsArg}', ${row.purchaseOrderId})">Mettre en corbeille</button>
-                        </div>
-                      </details>
-                    </div>`}
-                    <div style="font-weight: 600;">${Number(row.montantTotal || 0).toFixed(2)} FCFA</div>
-                  </li>
-                `;
-              }
-
-              const e = row.expense;
-              return `
-                <li class="list-item">
-                  <div class="list-item-content">
-                    <div class="list-item-title">${e.description}</div>
-                    <div class="list-item-meta">${e.categorie} • ${e.quantite} × ${e.prixUnitaire} FCFA • ${getExpenseProjectBucket(e).label}</div>
-                  </div>
-                  ${isExecutive() ? '' : `<div class="action-buttons">
-                    <details class="actions-menu">
-                      <summary aria-label="Actions dépense">&#8942;</summary>
-                      <div class="actions-dropdown">
-                        <button type="button" onclick="deleteExpense(${e.id})">Mettre en corbeille</button>
-                      </div>
-                    </details>
-                  </div>`}
-                  <div style="font-weight: 600;">${(e.montantTotal || 0).toFixed(2)} FCFA</div>
-                </li>
-              `;
-            }).join('')
+          ? filteredExpenses.map(renderExpenseTableRow).join('')
           : (expenseListRows.length
-              ? '<div class="empty-state"><p>Aucune dépense ne correspond à la recherche</p></div>'
-              : '<div class="empty-state"><p>Aucune dépense enregistrée</p></div>');
+              ? '<li class="list-item expense-empty-row"><span>Aucune dépense ne correspond aux filtres.</span></li>'
+              : '<li class="list-item expense-empty-row"><span>Aucune dépense enregistrée.</span></li>');
 
         const select = document.getElementById('expense-project');
-        select.innerHTML = '<option value="">Sélectionner (optionnel)</option>' +
-          projects.map(p => `<option value="${p.id}">${escapeHtml(getProjectDisplayName(p))}</option>`).join('');
+        const selectedProject = select.value;
+        const projectOptions = projects.map(project => `<option value="${project.id}">${escapeHtml(getProjectDisplayName(project))}</option>`).join('');
+        select.innerHTML = '<option value="">Sélectionner un projet</option>' + projectOptions;
+        if (selectedProject && projects.some(project => String(project.id) === selectedProject)) select.value = selectedProject;
+        const projectFilter = document.getElementById('expenses-filter-project');
+        const selectedFilterProject = projectFilter.value;
+        projectFilter.innerHTML = '<option value="">Tous les projets</option>' + projectOptions;
+        if (selectedFilterProject && projects.some(project => String(project.id) === selectedFilterProject)) projectFilter.value = selectedFilterProject;
+        const expenseDateInput = document.getElementById('expense-date');
+        if (expenseDateInput && !expenseDateInput.value) expenseDateInput.value = formatDateForInput();
+        const periodInput = document.getElementById('expenses-period');
+        if (periodInput && !periodInput.value) periodInput.value = new Date().toISOString().slice(0, 7);
 
-        renderExpensesByProject(financialExpenses);
         if (isExecutive()) {
           const detailedContainer = document.getElementById('expenses-detailed-by-project-table');
           if (detailedContainer) {
@@ -28743,9 +28835,41 @@
         } else {
           renderExpensesDetailedByProject(financialExpenses);
         }
+        renderExpenseDistributionCharts(financialExpenses);
       } catch (err) {
         showMessage('Erreur', 'error');
       }
+    }
+
+    function getRevenueType(revenue) {
+      const text = normalizeText(`${revenue?.type || ''} ${revenue?.description || ''}`);
+      if (text.includes('subvention')) return 'Subvention';
+      if (text.includes('remboursement')) return 'Remboursement';
+      if (text.includes('paiement') || text.includes('client')) return 'Paiement client';
+      return 'Autre revenu';
+    }
+
+    function renderRevenueKpis(revenues) {
+      const periodInput = document.getElementById('revenues-period');
+      if (!periodInput) return;
+      if (!periodInput.value) periodInput.value = new Date().toISOString().slice(0, 7);
+      const period = periodInput.value;
+      const rows = (Array.isArray(revenues) ? revenues : []).filter(row => String(row?.dateRevenue || row?.createdAt || '').slice(0, 7) === period);
+      const totals = { 'Paiement client': 0, Subvention: 0, Remboursement: 0, 'Autre revenu': 0 };
+      rows.forEach(row => {
+        const amount = Number(row?.amount || 0);
+        const type = getRevenueType(row);
+        totals[type] += Number.isFinite(amount) ? amount : 0;
+      });
+      const total = Object.values(totals).reduce((sum, amount) => sum + amount, 0);
+      const formatMoney = amount => `${Math.round(amount).toLocaleString('fr-FR')} FCFA`;
+      const setText = (id, value) => { const element = document.getElementById(id); if (element) element.textContent = value; };
+      setText('revenues-kpi-total', formatMoney(total));
+      setText('revenues-kpi-client', formatMoney(totals['Paiement client']));
+      setText('revenues-kpi-grant', formatMoney(totals.Subvention));
+      setText('revenues-kpi-refund', formatMoney(totals.Remboursement));
+      setText('revenues-kpi-other', formatMoney(totals['Autre revenu']));
+      setText('revenues-kpi-total-note', `${rows.length} revenu${rows.length === 1 ? '' : 's'} sur la période`);
     }
 
     async function loadRevenues() {
@@ -28755,6 +28879,7 @@
           fetchJson('/api/projects'),
         ]);
         const revenues = sortRecent(revenuesRaw, row => row?.dateRevenue || row?.createdAt || row?.id);
+        renderRevenueKpis(revenues);
 
         const list = document.getElementById('revenues-list');
         const listTitle = document.getElementById('revenues-list-title');
@@ -28772,23 +28897,18 @@
         }
 
         list.innerHTML = filteredRevenues.length
-          ? filteredRevenues.map(r => `
-              <li class="list-item">
-                <div class="list-item-content">
-                  <div class="list-item-title">${r.description}</div>
-                  <div class="list-item-meta">${r.projetNom || 'Aucun projet'} • ${formatDate(r.dateRevenue)}</div>
-                </div>
-                ${isExecutive() ? '' : `<div class="action-buttons">
-                  <details class="actions-menu">
-                    <summary aria-label="Actions revenu">&#8942;</summary>
-                    <div class="actions-dropdown">
-                      <button type="button" onclick="deleteRevenue(${r.id})">Mettre en corbeille</button>
-                    </div>
-                  </details>
-                </div>`}
-                <div style="font-weight: 600; color: #10b981;">${r.amount.toFixed(2)} FCFA</div>
-              </li>
-            `).join('')
+          ? filteredRevenues.map(r => {
+              const amount = Number(r.amount || 0);
+              const type = getRevenueType(r);
+              return `<li class="list-item">
+                <span>${escapeHtml(formatDate(r.dateRevenue))}</span>
+                <span>${escapeHtml(r.projetNom || 'Aucun projet')}</span>
+                <span title="${escapeHtml(r.description || '')}">${escapeHtml(r.description || '-')}</span>
+                <span><span class="revenue-type">${escapeHtml(type)}</span></span>
+                <span class="revenue-amount">${Number.isFinite(amount) ? amount.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : '0'} FCFA</span>
+                <span>${isExecutive() ? '—' : `<button type="button" class="revenue-action" aria-label="Actions revenu" onclick="deleteRevenue(${Number(r.id)})">⋮</button>`}</span>
+              </li>`;
+            }).join('')
           : (revenues.length
               ? '<div class="empty-state"><p>Aucun revenu ne correspond à la recherche</p></div>'
               : '<div class="empty-state"><p>Aucun revenu enregistré</p></div>');
@@ -31785,13 +31905,16 @@
           body: JSON.stringify({
             projetId: document.getElementById('expense-project').value || null,
             categorie: document.getElementById('expense-category').value,
+            dateExpense: document.getElementById('expense-date').value,
             description: document.getElementById('expense-desc').value,
             quantite: document.getElementById('expense-qty').value,
             prixUnitaire: document.getElementById('expense-price').value,
+            note: document.getElementById('expense-note').value.trim(),
             fournisseur: '',
           }),
         });
         e.target.reset();
+        document.getElementById('expense-date').value = formatDateForInput();
         showMessage('Dépense enregistrée');
         loadExpenses();
         loadDashboard();
@@ -33803,6 +33926,51 @@
       return 'materiaux'; // Par défaut
     }
 
+    function getExpensesDashboardCategory(expense) {
+      const category = normalizeText(expense?.categorie || '');
+      const details = normalizeText(`${expense?.description || ''} ${expense?.itemName || ''}`);
+      if (category.includes('transport') || details.includes('transport') || details.includes('carburant') || details.includes('essence')) return 'transport';
+      if (category.includes('salaire') || category.includes('mainoeuvre') || category.includes('main d oeuvre') || category.includes('personnel')) return 'labor';
+      if (category.includes('mater') || category.includes('fourniture') || category.includes('achat')) return 'materials';
+      return 'other';
+    }
+
+    function getExpensesDashboardCategoryLabel(category) {
+      if (category === 'materials') return 'Matériaux';
+      if (category === 'transport') return 'Transports';
+      if (category === 'labor') return "Main d'œuvre";
+      return 'Autres';
+    }
+
+    function renderExpensesKpis(expenses) {
+      const periodInput = document.getElementById('expenses-period');
+      if (!periodInput) return;
+      if (!periodInput.value) periodInput.value = new Date().toISOString().slice(0, 7);
+      const period = periodInput.value;
+      const periodExpenses = (Array.isArray(expenses) ? expenses : []).filter(expense => String(expense?.dateExpense || expense?.date || '').slice(0, 7) === period);
+      const totals = { materials:0, transport:0, labor:0, other:0 };
+      periodExpenses.forEach(expense => {
+        totals[getExpensesDashboardCategory(expense)] += Number(expense?.montantTotal || 0);
+      });
+      const total = Object.values(totals).reduce((sum, amount) => sum + amount, 0);
+      const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      };
+      const formatMoney = amount => `${Math.round(amount).toLocaleString('fr-FR')} FCFA`;
+      const share = amount => `${total ? Math.round(amount / total * 100) : 0}% du total`;
+      setText('expenses-kpi-total', formatMoney(total));
+      setText('expenses-kpi-materials', formatMoney(totals.materials));
+      setText('expenses-kpi-transport', formatMoney(totals.transport));
+      setText('expenses-kpi-labor', formatMoney(totals.labor));
+      setText('expenses-kpi-other', formatMoney(totals.other));
+      setText('expenses-kpi-total-share', `${periodExpenses.length} dépense${periodExpenses.length === 1 ? '' : 's'} sur la période`);
+      setText('expenses-kpi-materials-share', share(totals.materials));
+      setText('expenses-kpi-transport-share', share(totals.transport));
+      setText('expenses-kpi-labor-share', share(totals.labor));
+      setText('expenses-kpi-other-share', share(totals.other));
+    }
+
     function getExpenseDetailKey(label) {
       const compact = String(label || '').replace(/\s+/g, ' ').trim();
       if (!compact) return 'sans-precision';
@@ -34025,7 +34193,7 @@
 
       const filtered = items.filter(li => {
         const text = (li.textContent || '').toLowerCase();
-        const itemDate = parseDateFromText(text);
+        const itemDate = String(li.dataset.expenseDate || parseDateFromText(text));
         const statusOk = !status || text.includes(status);
         const projectOk = !projectSearch || text.includes(projectSearch);
         return statusOk && projectOk && applyDateFilter(itemDate, fromDate, toDate);
@@ -34059,8 +34227,10 @@
       const filtered = items.filter(li => {
         const text = (li.textContent || '').toLowerCase();
         const itemDate = parseDateFromText(text);
-        const categoryOk = !category || text.includes(category);
-        const projectOk = !projectSearch || text.includes(projectSearch);
+        const rowCategory = String(li.dataset.expenseCategory || '').toLowerCase();
+        const rowProject = String(li.dataset.projectId || '');
+        const categoryOk = !category || rowCategory === category;
+        const projectOk = !projectSearch || rowProject === projectSearch;
         return categoryOk && projectOk && applyDateFilter(itemDate, fromDate, toDate);
       });
 
@@ -34093,11 +34263,12 @@
     }
 
     function resetExpensesFilters() {
-      const ids = ['expenses-filter-category', 'expenses-filter-date-from', 'expenses-filter-date-to', 'expenses-filter-project'];
+      const ids = ['expenses-filter-category', 'expenses-filter-date-from', 'expenses-filter-date-to', 'expenses-filter-project', 'expense-search'];
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
+      expenseSearchTerm = '';
       expensesCurrentPage = 1;
       applyExpensesFiltersAndPagination();
     }
@@ -34797,6 +34968,15 @@
           expensesCurrentPage = 1;
           applyExpensesFiltersAndPagination();
         });
+      });
+
+      const expensesPeriod = document.getElementById('expenses-period');
+      if (expensesPeriod) expensesPeriod.addEventListener('change', () => {
+        renderExpensesKpis(window._lastFinancialExpenses || []);
+      });
+      const revenuesPeriod = document.getElementById('revenues-period');
+      if (revenuesPeriod) revenuesPeriod.addEventListener('change', () => {
+        loadRevenues();
       });
 
       ['audit-filter-user', 'audit-filter-action', 'audit-filter-date'].forEach(id => {

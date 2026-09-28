@@ -706,6 +706,7 @@ async function insertExpenseRecord({
   quantite,
   prixUnitaire,
   fournisseur = '',
+  note = '',
   categorie,
   statut = 'EN_ATTENTE',
   createdBy = 'system',
@@ -756,6 +757,7 @@ async function insertExpenseRecord({
   pushColumnIfExists('date', dateExpense);
   pushColumnIfExists('fournisseur', fournisseur);
   pushColumnIfExists('supplier', fournisseur);
+  pushColumnIfExists('note', String(note || '').trim());
   pushColumnIfExists('categorie', expenseCategory);
   pushColumnIfExists('category', expenseCategory);
   pushColumnIfExists('statut', statut);
@@ -2835,6 +2837,8 @@ async function initDb() {
     FOREIGN KEY(purchaseOrderId) REFERENCES purchase_orders(id) ON DELETE SET NULL,
     FOREIGN KEY(projetId) REFERENCES projects(id) ON DELETE CASCADE
   )`);
+
+  try { await run("ALTER TABLE expenses ADD COLUMN note TEXT NOT NULL DEFAULT ''"); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_vehicles (
     id INTEGER PRIMARY KEY,
@@ -7797,6 +7801,8 @@ app.post('/api/expenses', async (req, res) => {
     quantite,
     prixUnitaire,
     fournisseur = '',
+    note = '',
+    dateExpense = '',
     categorie,
     item,
     category,
@@ -7814,6 +7820,9 @@ app.post('/api/expenses', async (req, res) => {
   if (!expenseDescription || !expenseQuantity || !expenseUnitPrice || !expenseCategory) {
     return res.status(400).json({ error: 'Champs obligatoires manquants' });
   }
+  if (dateExpense && !isValidIsoDate(dateExpense)) {
+    return res.status(400).json({ error: 'Date de dépense invalide' });
+  }
 
   const expense = await insertExpenseRecord({
     materialId: materialId || null,
@@ -7822,9 +7831,10 @@ app.post('/api/expenses', async (req, res) => {
     quantite: expenseQuantity,
     prixUnitaire: expenseUnitPrice,
     fournisseur,
+    note,
     categorie: expenseCategory,
     createdBy: req.user.username,
-    dateExpense: new Date().toISOString(),
+    dateExpense: dateExpense ? new Date(`${dateExpense}T12:00:00`).toISOString() : new Date().toISOString(),
   });
 
   res.status(201).json(expense);
