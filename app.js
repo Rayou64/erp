@@ -242,6 +242,7 @@ const DATA_PURGE_TABLES = [
   'auto_vehicle_locations',
   'auto_tracking_devices',
   'auto_transport_costs',
+  'auto_maintenance_records',
   'auto_vehicles',
   'expenses',
   'revenues',
@@ -2934,6 +2935,26 @@ async function initDb() {
   } catch (error) {
     // Colonne deja presente ou table existante non compatible; ignore.
   }
+  try { await run('ALTER TABLE auto_transport_costs ADD COLUMN projectId INTEGER'); } catch (error) {}
+  try { await run("ALTER TABLE auto_transport_costs ADD COLUMN trajet TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+
+  await run(`CREATE TABLE IF NOT EXISTS auto_maintenance_records (
+    id INTEGER PRIMARY KEY,
+    vehicleId INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    dateMaintenance TEXT NOT NULL,
+    mileage REAL NOT NULL DEFAULT 0,
+    cost REAL NOT NULL DEFAULT 0,
+    supplier TEXT NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    nextMaintenanceDate TEXT NOT NULL DEFAULT '',
+    partsReplaced TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'Terminée',
+    createdBy TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    FOREIGN KEY(vehicleId) REFERENCES auto_vehicles(id) ON DELETE CASCADE
+  )`);
 
   await run(`CREATE TABLE IF NOT EXISTS revenues (
     id INTEGER PRIMARY KEY,
@@ -3281,6 +3302,7 @@ async function initDb() {
   await run('CREATE INDEX IF NOT EXISTS idx_stock_issues_project_date ON stock_issues(projetId, issuedAt)');
   await run('CREATE INDEX IF NOT EXISTS idx_generated_documents_section_updated ON generated_documents(sectionCode, updatedAt)');
   await run('CREATE INDEX IF NOT EXISTS idx_auto_vehicle_locations_vehicle_recorded ON auto_vehicle_locations(vehicle_id, recorded_at DESC)');
+  await run('CREATE INDEX IF NOT EXISTS idx_auto_maintenance_vehicle_date ON auto_maintenance_records(vehicleId, dateMaintenance DESC)');
   await run('CREATE UNIQUE INDEX IF NOT EXISTS idx_auto_tracking_devices_vehicle ON auto_tracking_devices(vehicleId)');
   await run('CREATE INDEX IF NOT EXISTS idx_auto_tracking_devices_token_active ON auto_tracking_devices(tokenHash, isActive)');
   } catch (e) { console.error('CREATE INDEX error:', e.message); }
@@ -3857,6 +3879,7 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/vehicles\/\d+\/locations$/ },
     { method: 'GET', pattern: /^\/vehicles\/\d+$/ },
     { method: 'GET', pattern: /^\/auto-vehicle-locations$/ },
+    { method: 'GET', pattern: /^\/auto-maintenance-records$/ },
     { method: 'GET', pattern: /^\/auto-transport-costs$/ },
   ];
 
@@ -4802,6 +4825,58 @@ app.get('/api/project-catalog', async (_req, res) => {
     return res.json(rows.filter(row => isInSongonZoneScope(row)));
   }
   res.json(rows);
+});
+
+app.delete('/api/project-catalog/:id', async (req, res) => {
+  const role = String(req.user?.role || '').trim();
+  if (role !== 'admin' && role !== 'dirigeant') {
+    return res.status(403).json({ error: 'Seuls les administrateurs et dirigeants peuvent supprimer un projet' });
+  }
+
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'Identifiant de projet invalide' });
+  }
+
+  const catalogProject = await get('SELECT * FROM project_catalog WHERE id = ?', [id]);
+  if (!catalogProject) {
+    return res.status(404).json({ error: 'Projet introuvable' });
+  }
+
+  const projectName = String(catalogProject.nomProjet || '').trim();
+  const folders = await all(
+    'SELECT id, nomProjet, prefecture FROM project_folders WHERE projectId = ? OR (projectId IS NULL AND LOWER(nomProjet) = LOWER(?))',
+    [id, projectName]
+  );
+  const projectNames = Array.from(new Set([projectName, ...folders.map(folder => String(folder.nomProjet || '').trim())].filter(Boolean)));
+  const projectNamePlaceholders = projectNames.map(() => '?').join(',');
+  const sites = projectNames.length
+    ? await all(`SELECT id FROM projects WHERE LOWER(nomProjet) IN (${projectNamePlaceholders})`, projectNames.map(name => name.toLowerCase()))
+    : [];
+  const siteIds = Array.from(new Set(sites.map(site => Number(site.id)).filter(siteId => Number.isInteger(siteId) && siteId > 0)));
+  const folderIds = Array.from(new Set(folders.map(folder => Number(folder.id)).filter(folderId => Number.isInteger(folderId) && folderId > 0)));
+
+  if (siteIds.length) {
+    const placeholders = siteIds.map(() => '?').join(',');
+    await run(`DELETE FROM project_assignments WHERE projectId IN (${placeholders})`, siteIds);
+    await run(`DELETE FROM material_requests WHERE projetId IN (${placeholders})`, siteIds);
+    await run(`DELETE FROM project_progress_updates WHERE projectId IN (${placeholders})`, siteIds);
+    await run(`DELETE FROM revenues WHERE projetId IN (${placeholders})`, siteIds);
+    await run(`DELETE FROM expenses WHERE projetId IN (${placeholders})`, siteIds);
+    await run(`DELETE FROM stock_issues WHERE projetId IN (${placeholders})`, siteIds);
+    await run(`DELETE FROM stock_issue_authorization_items WHERE projetId IN (${placeholders})`, siteIds);
+    await run(`DELETE FROM stock_issue_authorizations WHERE projetId IN (${placeholders})`, siteIds);
+    await run(`DELETE FROM purchase_orders WHERE siteId IN (${placeholders}) OR projetId IN (${placeholders})`, [...siteIds, ...siteIds]);
+    await run(`DELETE FROM projects WHERE id IN (${placeholders})`, siteIds);
+  }
+
+  if (folderIds.length) {
+    const placeholders = folderIds.map(() => '?').join(',');
+    await run(`DELETE FROM project_folders WHERE id IN (${placeholders})`, folderIds);
+  }
+
+  await run('DELETE FROM project_catalog WHERE id = ?', [id]);
+  res.json({ message: 'Projet supprimé avec succès', deletedZones: folderIds.length, deletedSites: siteIds.length });
 });
 
 app.post('/api/project-folders', async (req, res) => {
@@ -7822,6 +7897,95 @@ app.get('/api/auto-vehicles', async (_req, res) => {
   res.json(rows);
 });
 
+app.get('/api/auto-maintenance-records', async (_req, res) => {
+  const rows = await all(`
+    SELECT amr.*, av.nomVehicule, av.marqueVehicule, av.immatriculation
+    FROM auto_maintenance_records amr
+    JOIN auto_vehicles av ON av.id = amr.vehicleId
+    ORDER BY amr.dateMaintenance DESC, amr.createdAt DESC, amr.id DESC
+  `);
+  res.json(rows);
+});
+
+app.post('/api/auto-maintenance-records', async (req, res) => {
+  const {
+    vehicleId,
+    type = '',
+    dateMaintenance = '',
+    mileage = 0,
+    cost = 0,
+    supplier = '',
+    description = '',
+    nextMaintenanceDate = '',
+    partsReplaced = '',
+    status = 'Terminée',
+  } = req.body || {};
+  const numericVehicleId = Number(vehicleId);
+  const numericMileage = Number(mileage || 0);
+  const numericCost = Number(cost || 0);
+  const maintenanceType = String(type).trim();
+  const maintenanceDate = String(dateMaintenance).trim();
+  const maintenanceStatus = String(status).trim();
+  const allowedStatuses = new Set(['Terminée', 'En attente', 'En cours', 'Annulée']);
+
+  if (!numericVehicleId || !maintenanceType || !maintenanceDate || !/^\d{4}-\d{2}-\d{2}$/.test(maintenanceDate)) {
+    return res.status(400).json({ error: 'Véhicule, type et date de maintenance sont obligatoires' });
+  }
+  if (!Number.isFinite(numericMileage) || numericMileage < 0 || !Number.isFinite(numericCost) || numericCost < 0) {
+    return res.status(400).json({ error: 'Le kilométrage et le coût doivent être des nombres positifs' });
+  }
+  if (!allowedStatuses.has(maintenanceStatus)) {
+    return res.status(400).json({ error: 'Statut de maintenance invalide' });
+  }
+
+  const vehicle = await get('SELECT id FROM auto_vehicles WHERE id = ?', [numericVehicleId]);
+  if (!vehicle) return res.status(404).json({ error: 'Véhicule introuvable' });
+
+  const nextIdRow = await get('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM auto_maintenance_records');
+  const nextId = Number(nextIdRow?.nextId || 1);
+  const now = new Date().toISOString();
+  await run(`
+    INSERT INTO auto_maintenance_records (
+      id, vehicleId, type, dateMaintenance, mileage, cost, supplier, description,
+      nextMaintenanceDate, partsReplaced, status, createdBy, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
+    nextId,
+    numericVehicleId,
+    maintenanceType,
+    new Date(`${maintenanceDate}T12:00:00`).toISOString(),
+    numericMileage,
+    numericCost,
+    String(supplier || '').trim(),
+    String(description || '').trim(),
+    String(nextMaintenanceDate || '').trim(),
+    String(partsReplaced || '').trim(),
+    maintenanceStatus,
+    req.user.username,
+    now,
+    now,
+  ]);
+
+  const record = await get(`
+    SELECT amr.*, av.nomVehicule, av.marqueVehicule, av.immatriculation
+    FROM auto_maintenance_records amr
+    JOIN auto_vehicles av ON av.id = amr.vehicleId
+    WHERE amr.id = ?
+  `, [nextId]);
+  res.status(201).json(record);
+});
+
+app.delete('/api/auto-maintenance-records/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'ID maintenance invalide' });
+  }
+  const record = await get('SELECT id FROM auto_maintenance_records WHERE id = ?', [id]);
+  if (!record) return res.status(404).json({ error: 'Intervention introuvable' });
+  await run('DELETE FROM auto_maintenance_records WHERE id = ?', [id]);
+  res.json({ message: 'Intervention supprimée' });
+});
+
 app.post('/api/auto-vehicles', async (req, res) => {
   const {
     nomVehicule = '',
@@ -8084,9 +8248,10 @@ app.delete('/api/auto-vehicles/:id', async (req, res) => {
 
 app.get('/api/auto-transport-costs', async (_req, res) => {
   const rows = await all(`
-    SELECT atc.*, av.nomVehicule, av.marqueVehicule
+    SELECT atc.*, av.nomVehicule, av.marqueVehicule, av.immatriculation, p.nomProjet AS projetNom
     FROM auto_transport_costs atc
     JOIN auto_vehicles av ON av.id = atc.vehicleId
+    LEFT JOIN projects p ON p.id = atc.projectId
     ORDER BY atc.dateTransport DESC, atc.createdAt DESC, atc.id DESC
   `);
   res.json(rows);
@@ -8099,6 +8264,8 @@ app.post('/api/auto-transport-costs', async (req, res) => {
     niveauEssenceSortie,
     prixLocalEssence,
     dateTransport,
+    projectId = null,
+    trajet = '',
     note = '',
   } = req.body || {};
 
@@ -8106,6 +8273,8 @@ app.post('/api/auto-transport-costs', async (req, res) => {
   const fuelIn = Number(niveauEssenceEntree);
   const fuelOut = Number(niveauEssenceSortie);
   const localFuelPrice = Number(prixLocalEssence);
+  const numericProjectId = projectId ? Number(projectId) : null;
+  const tripLabel = String(trajet || '').trim();
 
   if (!numericVehicleId || Number.isNaN(fuelIn) || Number.isNaN(fuelOut) || Number.isNaN(localFuelPrice)) {
     return res.status(400).json({ error: 'Vehicule, niveaux essence et prix local sont obligatoires' });
@@ -8119,6 +8288,10 @@ app.post('/api/auto-transport-costs', async (req, res) => {
     return res.status(400).json({ error: 'Le niveau de sortie ne peut pas etre superieur au niveau d\'entree' });
   }
 
+  if (projectId && (!Number.isInteger(numericProjectId) || numericProjectId <= 0)) {
+    return res.status(400).json({ error: 'Projet invalide' });
+  }
+
   const quantiteConsommee = fuelIn - fuelOut;
   if (quantiteConsommee <= 0) {
     return res.status(400).json({ error: 'La consommation doit etre superieure a zero' });
@@ -8129,10 +8302,15 @@ app.post('/api/auto-transport-costs', async (req, res) => {
     return res.status(404).json({ error: 'Vehicule introuvable' });
   }
 
+  const project = numericProjectId ? await get('SELECT id, nomProjet FROM projects WHERE id = ?', [numericProjectId]) : null;
+  if (numericProjectId && !project) {
+    return res.status(404).json({ error: 'Projet introuvable' });
+  }
+
   const effectiveDate = dateTransport ? new Date(dateTransport).toISOString() : new Date().toISOString();
-  const expenseDescription = `Carburant - ${vehicle.nomVehicule} (${vehicle.marqueVehicule})`;
+  const expenseDescription = [`Carburant - ${vehicle.nomVehicule} (${vehicle.marqueVehicule})`, tripLabel, project?.nomProjet].filter(Boolean).join(' • ');
   const expense = await insertExpenseRecord({
-    projetId: null,
+    projetId: numericProjectId,
     description: expenseDescription,
     quantite: quantiteConsommee,
     prixUnitaire: localFuelPrice,
@@ -8153,10 +8331,12 @@ app.post('/api/auto-transport-costs', async (req, res) => {
       quantiteConsommee,
       montantTotal,
       dateTransport,
+      projectId,
+      trajet,
       note,
       createdBy,
       createdAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
     [
       numericVehicleId,
       expense.id,
@@ -8166,6 +8346,8 @@ app.post('/api/auto-transport-costs', async (req, res) => {
       quantiteConsommee,
       montantTotal,
       effectiveDate,
+      numericProjectId,
+      tripLabel,
       String(note || '').trim(),
       req.user.username,
       new Date().toISOString(),
@@ -8173,9 +8355,10 @@ app.post('/api/auto-transport-costs', async (req, res) => {
   );
 
   const cost = await get(`
-    SELECT atc.*, av.nomVehicule, av.marqueVehicule
+    SELECT atc.*, av.nomVehicule, av.marqueVehicule, av.immatriculation, p.nomProjet AS projetNom
     FROM auto_transport_costs atc
     JOIN auto_vehicles av ON av.id = atc.vehicleId
+    LEFT JOIN projects p ON p.id = atc.projectId
     WHERE atc.id = ?
   `, [result.lastID]);
 

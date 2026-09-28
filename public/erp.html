@@ -2663,17 +2663,22 @@
     }
 
     .projects-module .project-open-hero {
+      position: relative;
       display: grid;
-      grid-template-columns: 170px 1fr 140px 185px;
-      gap: 26px;
+      width: 100%;
+      box-sizing: border-box;
+      grid-template-columns: 192px minmax(0, 1fr) 112px 212px;
+      gap: 24px;
       align-items: center;
-      min-height: 154px;
+      min-height: 164px;
       margin-bottom: 28px;
-      padding: 16px 18px;
-      border-radius: 10px;
-      background: linear-gradient(120deg, #044bd5 0%, #075bdc 45%, #0240a8 100%);
+      padding: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 9px;
+      background: linear-gradient(90deg,rgba(9,31,69,.92),rgba(10,37,80,.82)),url('/15.04.2026_13.02.19_REC.png') center 48%/cover;
       color: #fff;
-      box-shadow: 0 16px 34px rgba(4, 75, 213, 0.22);
+      box-shadow: 0 8px 22px rgba(14,38,74,.16);
     }
 
     .projects-module .project-open-hero img,
@@ -2683,17 +2688,18 @@
     }
 
     .projects-module .project-open-hero img {
-      width: 170px;
-      height: 118px;
-      border-radius: 9px;
-      box-shadow: 0 10px 24px rgba(6, 28, 72, 0.25);
+      width: 192px;
+      height: 124px;
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: 7px;
+      background: #dce8f4;
     }
 
     .projects-module .project-open-hero h3 {
-      margin: 0 0 10px;
+      margin: 0;
       color: #fff;
       font-size: 25px;
-      font-weight: 900;
+      font-weight: 800;
     }
 
     body.browser-layout-mode #projects .project-open-hero h3,
@@ -2743,66 +2749,67 @@
     }
 
     .projects-module .project-open-type {
-      margin: 0 0 18px;
+      margin: 7px 0 14px;
       color: rgba(255,255,255,.92);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
     }
 
     .projects-module .project-open-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 18px;
+      gap: 12px 22px;
       color: rgba(255,255,255,.92);
-      font-size: 12px;
-      font-weight: 800;
+      font-size: 11px;
+      font-weight: 700;
     }
 
     .projects-module .project-open-donut {
       display: grid;
-      width: 102px;
-      height: 102px;
+      width: 88px;
+      height: 88px;
       place-items: center;
       justify-self: center;
       border-radius: 50%;
-      background: conic-gradient(#fff var(--project-open-progress, 0%), rgba(255,255,255,.28) 0);
+      background: conic-gradient(#73aaff var(--project-open-progress, 0%), rgba(255,255,255,.25) 0);
     }
 
     .projects-module .project-open-donut-core {
       display: grid;
-      width: 76px;
-      height: 76px;
+      width: 72px;
+      height: 72px;
       place-items: center;
+      border: 1px solid rgba(255,255,255,.2);
       border-radius: 50%;
-      background: rgba(5,65,175,.92);
+      background: #163d79;
       text-align: center;
     }
 
     .projects-module .project-open-donut strong {
       display: block;
       color: #fff;
-      font-size: 26px;
+      font-size: 22px;
       line-height: 1;
     }
 
     .projects-module .project-open-donut span {
       display: block;
-      margin-top: 4px;
+      margin-top: 5px;
       color: #fff;
-      font-size: 10px;
-      font-weight: 800;
+      font-size: 9px;
+      font-weight: 700;
     }
 
     .projects-module .project-open-button {
-      height: 46px;
-      border: 0;
-      border-radius: 8px;
-      background: #fff;
-      color: #102449;
-      font-size: 12px;
-      font-weight: 900;
+      min-height: 38px;
+      border: 1px solid #0874f9;
+      border-radius: 7px;
+      background: #0874f9;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 10px 22px rgba(4,35,94,.18);
+      box-shadow: 0 2px 5px rgba(8,116,249,.2);
     }
 
     .projects-module .project-open-tools {
@@ -3020,8 +3027,22 @@
     body.browser-layout-mode #projects .project-open-hero,
     body.app-layout-mode #projects .project-open-hero,
     #projects .project-open-hero {
-      background: linear-gradient(120deg, #034bd7 0%, #075ee4 48%, #0241aa 100%) !important;
+      background: linear-gradient(90deg,rgba(9,31,69,.92),rgba(10,37,80,.82)),url('/15.04.2026_13.02.19_REC.png') center 48%/cover !important;
       color: #ffffff !important;
+    }
+
+    #projects .project-open-hero::after {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      content: '';
+      pointer-events: none;
+      background: linear-gradient(90deg,transparent 35%,rgba(8,28,63,.23));
+    }
+
+    #projects .project-open-hero > * {
+      position: relative;
+      z-index: 1;
     }
 
     body.browser-layout-mode #projects .project-open-hero h3,
@@ -3044,24 +3065,36 @@
       opacity: 1 !important;
     }
 
+    #projects .project-open-hero h3 { color: #ffffff !important; }
+    #projects .project-open-hero .project-open-type { color: #dbeafe !important; }
+    #projects .project-open-hero .project-open-meta,
+    #projects .project-open-hero .project-open-meta span { color: #e5edfa !important; }
+
     body.browser-layout-mode #projects .project-open-hero .project-open-badge.active,
     body.app-layout-mode #projects .project-open-hero .project-open-badge.active,
     #projects .project-open-hero .project-open-badge.active {
-      background: #12a477 !important;
-      color: #eafff4 !important;
+      background: #08b981 !important;
+      color: #ffffff !important;
+    }
+
+    #projects .project-open-hero .project-open-badge {
+      margin-left: 12px;
+      padding: 6px 12px;
+      font-weight: 800;
     }
 
     body.browser-layout-mode #projects .project-open-donut,
     body.app-layout-mode #projects .project-open-donut,
     #projects .project-open-donut {
-      background: conic-gradient(#ffffff var(--project-open-progress, 0%), rgba(255,255,255,.34) 0) !important;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.22);
+      background: conic-gradient(#73aaff var(--project-open-progress, 0%), rgba(255,255,255,.25) 0) !important;
+      box-shadow: none;
     }
 
     body.browser-layout-mode #projects .project-open-donut-core,
     body.app-layout-mode #projects .project-open-donut-core,
     #projects .project-open-donut-core {
-      background: rgba(6, 69, 176, .9) !important;
+      background: #163d79 !important;
+      border: 1px solid rgba(255,255,255,.2);
       color: #ffffff !important;
     }
 
@@ -8475,6 +8508,19 @@
             #projects .project-tab.active::after { height: 4px; background: var(--project-coral); }
             #projects .project-new-project { height: 40px; padding: 0 18px; border-radius: 8px; background: var(--project-coral); box-shadow: 0 9px 20px rgba(239, 118, 95, .26); }
             #projects .project-new-project:hover { background: #df624d; transform: translateY(-1px); }
+            #projects .project-create-dropdown { position: relative; margin-left: auto; }
+            #projects .project-create-menu { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; display: none; width: 230px; padding: 6px; border: 1px solid #dbe7ee; border-radius: 9px; background: #fff; box-shadow: 0 14px 32px rgba(16,42,67,.18); }
+            #projects .project-create-dropdown.open .project-create-menu { display: grid; }
+            #projects .project-create-menu button { padding: 11px 12px; border: 0; border-radius: 6px; background: transparent; color: #17324a; text-align: left; font-size: 13px; font-weight: 700; cursor: pointer; }
+            #projects .project-create-menu button:hover, #projects .project-create-menu button:focus-visible { background: #edf7f5; color: #087c77; outline: 0; }
+            #projects .project-create-dialog { position: fixed; inset: auto; top: 50%; left: 50%; margin: 0; transform: translate(-50%, -50%); width: min(620px, calc(100vw - 32px)); max-width: none; max-height: min(88vh, 850px); padding: 0; overflow: auto; border: 1px solid #dbe7ee; border-radius: 12px; background: #f7fafc; box-shadow: 0 24px 70px rgba(10,32,50,.3); }
+            #projects .project-create-dialog::backdrop { background: rgba(11,28,43,.55); backdrop-filter: blur(2px); }
+            #projects .project-create-dialog-head { position: sticky; z-index: 1; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 17px 20px; border-bottom: 1px solid #dbe7ee; background: #fff; }
+            #projects .project-create-dialog-head h2 { margin: 0; color: #17324a; font-size: 17px; }
+            #projects .project-create-dialog-close { width: 34px; height: 34px; border: 1px solid #dbe7ee; border-radius: 7px; background: #fff; color: #42576a; font-size: 20px; cursor: pointer; }
+            #projects .project-create-dialog-body { padding: 18px; }
+            #projects .project-create-dialog .project-creation-card { display: block; margin: 0; padding: 18px; }
+            #projects .project-creation-section[hidden] { display: none !important; }
             #projects .project-open-shell { border: 1px solid var(--project-line); border-radius: 14px !important; background: rgba(255,255,255,.88); box-shadow: 0 12px 30px rgba(31, 57, 75, .08); overflow: hidden; }
             #projects .project-open-head { padding: 20px 24px; border-bottom: 1px solid #e7eef2; background: linear-gradient(90deg, #ffffff, #f4fbfa); }
             #projects .project-open-title { color: var(--project-ink); font-size: 16px; }
@@ -8486,6 +8532,10 @@
             #projects .project-open-create { height: 38px; border-radius: 8px; background: var(--project-ink); box-shadow: 0 7px 16px rgba(16,42,67,.16); }
             #projects .project-open-grid-head { padding: 16px 24px 10px; color: var(--project-ink); font-size: 12px; font-weight: 900; }
             #projects .project-open-grid { padding: 0 24px 24px; gap: 14px; }
+            #projects .project-open-card-wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 38px; align-items: stretch; gap: 8px; min-width: 0; }
+            #projects .project-open-card-wrap .project-open-card { width: 100%; min-width: 0; text-align: left; }
+            #projects .project-open-delete { align-self: start; display: grid; width: 38px; height: 38px; place-items: center; padding: 0; border: 1px solid #f1c7c2; border-radius: 8px; background: #fff; color: #b42318; font-size: 17px; cursor: pointer; }
+            #projects .project-open-delete:hover { border-color: #d92d20; background: #fff4f2; }
             #projects .project-summary-dashboard, #projects .project-summary-panel, #projects .project-summary-kpi, #projects .project-counter { border-color: var(--project-line); box-shadow: 0 10px 28px rgba(31, 57, 75, .06); }
             #projects .project-summary-dashboard { border-radius: 14px; }
             #projects .project-summary-kpi { border-top: 3px solid var(--project-teal); }
@@ -8528,8 +8578,19 @@
             <button type="button" class="project-tab" data-project-tab="documents">▤ Documents</button>
             <button type="button" class="project-tab" data-project-tab="settings">⚙ Paramètres</button>
             <span class="project-tabs-spacer"></span>
-            <button type="button" class="project-new-project" id="project-new-project-button">+ Nouveau projet⌄</button>
+            <div class="project-create-dropdown" id="project-create-dropdown">
+              <button type="button" class="project-new-project" id="project-new-project-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-create-menu">+ Nouveau projet⌄</button>
+              <div class="project-create-menu" id="project-create-menu" role="menu" aria-label="Créer dans les projets">
+                <button type="button" role="menuitem" data-project-create-action="project">Créer un projet</button>
+                <button type="button" role="menuitem" data-project-create-action="zone">Ajouter une zone</button>
+                <button type="button" role="menuitem" data-project-create-action="site">Ajouter un site</button>
+              </div>
+            </div>
           </nav>
+          <dialog id="project-creation-dialog" class="project-create-dialog" aria-labelledby="project-creation-dialog-title">
+            <div class="project-create-dialog-head"><h2 id="project-creation-dialog-title">Créer un projet</h2><button type="button" class="project-create-dialog-close" id="project-creation-dialog-close" aria-label="Fermer">×</button></div>
+            <div class="project-create-dialog-body" id="project-create-dialog-body"></div>
+          </dialog>
           <div class="page-header">
             <h1>Projets de construction</h1>
             <p>Gérez vos projets et chantiers</p>
@@ -8553,7 +8614,8 @@
             </div>
 
           <div id="parc-auto-maintenance-section" class="grid-2">
-            <div class="card form-card">
+            <div class="card form-card project-creation-card" id="project-creation-form-card">
+              <section class="project-creation-section" data-project-creation-section="project">
               <h3 style="margin-bottom: 12px;">1) Créer un projet</h3>
               <form id="project-create-form" style="margin-bottom: 16px;">
                 <div class="form-group">
@@ -8571,6 +8633,8 @@
                 <button type="submit" class="button button-primary" style="width: 100%;">Créer le projet</button>
               </form>
 
+              </section>
+              <section class="project-creation-section" data-project-creation-section="zone">
               <h3 style="margin-bottom: 12px;">2) Ajouter une zone (préfecture)</h3>
               <form id="project-zone-form" style="margin-bottom: 16px;">
                 <div class="form-group">
@@ -8590,12 +8654,13 @@
                 <button type="submit" class="button button-primary" style="width: 100%;">Ajouter la zone</button>
               </form>
 
+              </section>
+              <section class="project-creation-section" data-project-creation-section="site">
               <h3 id="project-form-title" style="margin-bottom: 15px;">3) Ajouter un site dans une zone</h3>
               <div id="project-site-form-locked" class="card" style="margin-bottom: 12px; background: #fffbeb; border: 1px solid #fcd34d; color:#92400e; display:none;">
                 Sélectionnez ou créez d'abord une zone (préfecture) pour activer l'ajout des sites.
               </div>
               <form id="project-form">
-                <div id="project-site-form-fields">
                 <div class="form-group">
                   <label>Zone (préfecture) *</label>
                   <select id="project-existing-folder">
@@ -8603,6 +8668,7 @@
                   </select>
                   <p id="project-folder-helper" style="font-size: 12px; color: #64748b; margin-top: 6px;">Sélectionne d'abord une zone, puis ajoute les sites qui lui appartiennent.</p>
                 </div>
+                <div id="project-site-form-fields">
                 <div class="form-group">
                   <label>Numéro du site (début) *</label>
                   <input type="text" id="project-site-number-start" required placeholder="Ex: 001" />
@@ -8631,6 +8697,7 @@
                 </div>
                 </div>
               </form>
+              </section>
             </div>
             <div class="erp-section-sep">Historique récent</div>
             <div class="card">
@@ -8931,33 +8998,198 @@
             #project-progress .ppx-history-item small { font-size:10px; }
             @media (max-width:1100px){#project-progress .ppx-overview-grid{grid-template-columns:1fr 1fr}#project-progress .ppx-bottom-grid{grid-template-columns:1fr}}
             @media (max-width:700px){#project-progress .ppx-overview-grid{grid-template-columns:1fr}#project-progress .ppx-section-head{align-items:flex-start;flex-direction:column}.ppx-tools input{min-width:0;width:100%}}
+            #project-progress { padding:0; background:#f1f5fb; }
+            body.project-progress-layout .content-area { padding:20px; background:#f1f5fb; }
+            @media (max-width:760px) { body.project-progress-layout .content-area { padding:12px; } }
+            #project-progress .ppx-shell { display:grid; gap:12px; padding:0 0 20px; color:#183153; font-family:'DM Sans','Segoe UI',sans-serif; }
+            #project-progress .ppx-project-hero-shell #project-carousel { display:block; padding:0; overflow:visible; scroll-snap-type:none; }
+            #project-progress .ppx-project-hero { position:relative; display:grid; width:100%; box-sizing:border-box; grid-template-columns:192px minmax(0,1fr) 112px 212px; align-items:center; gap:24px; min-height:164px; padding:18px; overflow:hidden; border:1px solid rgba(255,255,255,.16); border-radius:9px; color:#fff; background:linear-gradient(90deg,rgba(9,31,69,.92),rgba(10,37,80,.82)),url('/15.04.2026_13.02.19_REC.png') center 48%/cover; box-shadow:0 8px 22px rgba(14,38,74,.16); }
+            #project-progress .ppx-project-hero::after { position:absolute; inset:0; z-index:0; content:''; pointer-events:none; background:linear-gradient(90deg,transparent 35%,rgba(8,28,63,.23)); }
+            #project-progress .ppx-project-hero > * { position:relative; z-index:1; }
+            #project-progress .ppx-hero-photo { width:192px; height:124px; border:1px solid rgba(255,255,255,.55); border-radius:7px; object-fit:cover; background:#dce8f4; }
+            #project-progress .ppx-hero-info { min-width:0; align-self:center; }
+            #project-progress .ppx-hero-kicker { margin-bottom:5px; color:#d7e6ff; font-size:10px; font-weight:800; text-transform:uppercase; }
+            #project-progress .ppx-hero-title-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+            #project-progress .ppx-hero-title { margin:0; color:#fff; font-size:25px; font-weight:800; line-height:1.15; }
+            #project-progress .ppx-hero-status { padding:6px 12px; border-radius:999px; background:#08b981; color:#fff; font-size:10px; font-weight:800; white-space:nowrap; }
+            #project-progress .ppx-hero-type { margin:7px 0 14px; color:#dbeafe; font-size:13px; font-weight:600; }
+            #project-progress .ppx-hero-meta { display:flex; gap:12px 22px; align-items:center; flex-wrap:wrap; color:#e5edfa; font-size:11px; font-weight:700; }
+            #project-progress .ppx-hero-meta span { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
+            #project-progress .ppx-hero-meta svg, #project-progress .ppx-tabs svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
+            #project-progress .ppx-hero-progress { display:grid; width:88px; height:88px; place-items:center; border-radius:50%; background:conic-gradient(#73aaff var(--ppx-progress,0%),rgba(255,255,255,.25) 0); }
+            #project-progress .ppx-hero-progress-core { display:grid; width:72px; height:72px; place-items:center; border:1px solid rgba(255,255,255,.2); border-radius:50%; background:#163d79; color:#fff; text-align:center; }
+            #project-progress .ppx-hero-progress-core strong { font-size:22px; line-height:1; }
+            #project-progress .ppx-hero-progress-label { margin-top:5px; color:#dbeafe; font-size:9px; font-weight:700; }
+            #project-progress .ppx-hero-actions { display:grid; gap:8px; }
+            #project-progress .ppx-hero-action { display:flex; min-height:38px; justify-content:center; align-items:center; gap:8px; border:1px solid rgba(255,255,255,.68); border-radius:7px; background:rgba(255,255,255,.04); color:#fff; font:700 11px 'DM Sans','Segoe UI',sans-serif; cursor:pointer; }
+            #project-progress .ppx-hero-action.primary { border-color:#0874f9; background:#0874f9; }
+            #project-progress .ppx-hero-action:not(.primary) { border-color:rgba(255,255,255,.68); background:rgba(255,255,255,.04); color:#fff; box-shadow:none; }
+            #project-progress .ppx-hero-action:hover { background:#fff; color:#144579; }
+            #project-progress .ppx-hero-switch { position:absolute; top:50%; left:8px; z-index:2; display:none; width:28px; height:28px; transform:translateY(-50%); border:1px solid rgba(255,255,255,.4); border-radius:50%; background:rgba(10,31,65,.55); color:#fff; cursor:pointer; }
+            #project-progress .ppx-hero-switch.next { right:8px; left:auto; }
+            #project-progress .ppx-tabs { display:flex; min-height:50px; align-items:stretch; gap:3px; padding:0 14px; overflow-x:auto; border:1px solid #e4ebf4; border-radius:8px; background:#fff; box-shadow:0 2px 8px rgba(31,55,87,.04); scrollbar-width:thin; }
+            #project-progress .ppx-tabs button { position:relative; display:flex; flex:0 0 auto; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:0 13px; border:0; border-bottom:3px solid transparent; background:transparent; color:#526782; font:600 11px 'DM Sans','Segoe UI',sans-serif; white-space:nowrap; cursor:pointer; }
+            #project-progress .ppx-tabs button:hover { color:#1766d3; background:#f7faff; }
+            #project-progress .ppx-tabs button.active { border-bottom-color:#1768e8; background:#f4f8ff; color:#1768e8; font-weight:800; }
+            #project-progress .ppx-overview { margin:0; padding:0; border:0; background:transparent; box-shadow:none; }
+            #project-progress .ppx-title { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+            #project-progress .ppx-overview-grid { display:grid; grid-template-columns:minmax(265px,1.08fr) repeat(4,minmax(130px,1fr)); gap:12px; align-items:stretch; }
+            #project-progress .ppx-overview-left, #project-progress .ppx-stat { min-width:0; min-height:96px; padding:13px 15px; border:1px solid #e2eaf4; border-radius:8px; background:#fff; box-shadow:0 4px 12px rgba(26,54,91,.04); }
+            #project-progress .ppx-overview-left { gap:13px; }
+            #project-progress .ppx-progress-donut { width:64px; height:64px; flex:0 0 auto; background:conic-gradient(#2678f4 var(--ppx-progress,0%),#e5edf8 0); }
+            #project-progress .ppx-progress-donut-core { width:49px; height:49px; }
+            #project-progress .ppx-progress-donut-core strong { font-size:17px; }
+            #project-progress .ppx-overview-left b { font-size:12px; }
+            #project-progress .ppx-overview-left small { margin-top:4px; font-size:10px; }
+            #project-progress .ppx-overview-left a { margin-top:5px; font-size:10px; }
+            #project-progress .ppx-stat { display:grid; grid-template-columns:42px minmax(0,1fr); grid-template-rows:auto auto; align-content:center; align-items:center; column-gap:11px; padding:13px 15px; }
+            #project-progress .ppx-stat-icon { grid-row:1 / span 2; width:42px; height:42px; margin:0; border-radius:13px; }
+            #project-progress .ppx-stat-icon svg { width:22px; height:22px; }
+            #project-progress .ppx-stat strong { align-self:end; font-size:21px; }
+            #project-progress .ppx-stat span:not(.ppx-stat-icon) { align-self:start; margin-top:3px; font-size:10px; }
+            #project-progress .ppx-stat small { display:none; }
+            #project-progress .ppx-stat:nth-child(3) { background:#fffdfa; }
+            #project-progress .ppx-stat:nth-child(4) { background:#fbfffd; }
+            #project-progress .ppx-stat:nth-child(5) { background:#fdfcff; }
+            #project-progress .ppx-alert { display:none !important; }
+            #project-progress .ppx-top-grid { display:grid; grid-template-columns:minmax(0,1.42fr) minmax(255px,.62fr) minmax(225px,.52fr); gap:12px; align-items:stretch; }
+            #project-progress .ppx-top-grid .ppx-card, #project-progress .ppx-bottom-grid .ppx-card { min-width:0; margin:0; padding:13px 15px; border:1px solid #e2eaf4; border-radius:8px; background:#fff; box-shadow:0 4px 12px rgba(26,54,91,.04); }
+            #project-progress .ppx-top-grid h3, #project-progress .ppx-bottom-grid h3 { margin:0; color:#17365f; font-size:13px; font-weight:800; }
+            #project-progress .ppx-panel-heading { display:flex; min-height:25px; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+            #project-progress .ppx-chart-select { height:27px; padding:0 23px 0 9px; border:1px solid #e0e8f3; border-radius:6px; background:#fff; color:#425978; font:600 9px 'DM Sans','Segoe UI',sans-serif; }
+            #project-progress .ppx-stage-flow { min-height:113px; align-items:flex-start; margin:10px 0 0; }
+            #project-progress .ppx-flow-item { min-width:78px; padding:0 4px; font-size:9px; line-height:1.35; }
+            #project-progress .ppx-flow-item:not(:last-child)::after { top:13px; }
+            #project-progress .ppx-flow-dot { position:relative; z-index:1; width:28px; height:28px; margin-bottom:7px; background:#eff5ff; border-color:#d8e6ff; font-size:10px; font-weight:800; }
+            #project-progress .ppx-flow-item small { display:block; margin-top:6px; color:#1d3760; font-size:10px; font-weight:800; }
+            #project-progress .ppx-chart { height:136px; margin:2px 4px 0 12px; border-color:#dbe5f0; background:repeating-linear-gradient(to bottom,transparent 0,transparent 24%,#edf1f7 24.5%,transparent 25%); }
+            #project-progress .ppx-chart-line polyline { stroke:#1768e8; stroke-width:2; }
+            #project-progress .ppx-chart-line polygon { fill:rgba(23,104,232,.06); }
+            #project-progress .ppx-chart-line circle { stroke:#1768e8; }
+            #project-progress .ppx-chart-label { font-size:8px; }
+            #project-progress .ppx-chart-callout { background:#1768e8; }
+            #project-progress .ppx-dates-list { display:grid; gap:0; margin-top:7px; padding-left:14px; border-left:1px solid #d9e3f0; }
+            #project-progress .ppx-date-item { position:relative; min-height:47px; padding:0 0 10px 13px; color:#17365f; }
+            #project-progress .ppx-date-item::before { position:absolute; top:3px; left:-19px; width:9px; height:9px; border:2px solid #fff; border-radius:50%; background:#1768e8; box-shadow:0 0 0 1px #1768e8; content:''; }
+            #project-progress .ppx-date-item.muted::before { background:#c9d4e4; box-shadow:0 0 0 1px #c9d4e4; }
+            #project-progress .ppx-date-item strong { display:block; font-size:10px; font-weight:800; }
+            #project-progress .ppx-date-item small { display:block; margin-top:4px; color:#7587a0; font-size:9px; }
+            #project-progress .ppx-bottom-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(250px,320px); gap:12px; align-items:start; }
+            #project-progress .ppx-bottom-grid .ppx-section { padding-top:13px; }
+            #project-progress .ppx-section-head { margin-bottom:9px; }
+            #project-progress .ppx-tools { justify-content:flex-end; gap:6px; }
+            #project-progress .ppx-btn { height:31px; padding:0 11px; border-color:#dfe7f1; border-radius:6px; color:#4d6381; font:700 9px 'DM Sans','Segoe UI',sans-serif; white-space:nowrap; }
+            #project-progress .ppx-btn.active { border-color:#1473f8; background:#1473f8; box-shadow:0 2px 5px rgba(20,115,248,.2); color:#fff; }
+            #project-progress .ppx-tools input { min-width:175px; height:32px; border-radius:6px; font:500 10px 'DM Sans','Segoe UI',sans-serif; }
+            #project-progress .ppx-filter-control { position:relative; }
+            #project-progress .ppx-filter-menu { position:absolute; z-index:8; top:calc(100% + 5px); right:0; width:156px; padding:7px; border:1px solid #dfe7f1; border-radius:7px; background:#fff; box-shadow:0 8px 20px rgba(23,54,95,.14); }
+            #project-progress .ppx-filter-menu[hidden] { display:none; }
+            #project-progress .ppx-filter-menu select { width:100%; height:31px; border:1px solid #dfe7f1; border-radius:5px; background:#fff; color:#425978; font:600 10px 'DM Sans','Segoe UI',sans-serif; }
+            #project-progress #pp-add-btn { width:36px; height:34px; padding:0; border:0; border-radius:6px; background:#126cf0; color:#fff; font-size:21px; }
+            #project-progress .ppx-table-wrap { border:1px solid #e6ecf4; border-radius:6px; }
+            #project-progress .ppx-table { min-width:760px; table-layout:auto; }
+            #project-progress .ppx-table thead { background:#f5f7fb; }
+            #project-progress .ppx-table th { padding:9px 8px; background:#f5f7fb; color:#516783; font-size:8px; white-space:nowrap; }
+            #project-progress .ppx-table td { padding:10px 8px; font-size:10px; }
+            #project-progress .ppx-bar { min-width:105px; gap:7px; }
+            #project-progress .ppx-bar-track { width:64px; }
+            #project-progress .ppx-pill { padding:5px 9px; font-size:9px; white-space:nowrap; }
+            #project-progress #ppx-table-pagination { min-height:31px; padding-top:5px; font-size:9px; }
+            #project-progress .ppx-history-list { max-height:265px; overflow:auto; padding:4px 3px 0 18px; }
+            #project-progress .ppx-history-item { min-height:47px; padding:0 0 15px 13px; font-size:10px; line-height:1.4; }
+            #project-progress .ppx-history-item strong { font-size:10px; }
+            #project-progress .ppx-history-item small { font-size:9px; }
+            #project-progress .ppx-empty-history { display:grid; min-height:165px; align-content:center; justify-items:center; gap:8px; border:1px solid #e7edf5; border-radius:7px; background:#fbfcfe; color:#7c8da6; text-align:center; font-size:10px; }
+            #project-progress .ppx-empty-history-icon { display:grid; width:38px; height:38px; place-items:center; border-radius:50%; background:#edf3fc; color:#7192c6; }
+            #project-progress .ppx-empty-history-icon svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.8; }
+            @media (max-width:1200px) {
+              #project-progress .ppx-project-hero { grid-template-columns:150px minmax(0,1fr) 90px 180px; gap:16px; }
+              #project-progress .ppx-hero-photo { width:150px; height:110px; }
+              #project-progress .ppx-overview-grid { grid-template-columns:minmax(220px,1fr) repeat(2,minmax(140px,1fr)); }
+              #project-progress .ppx-top-grid { grid-template-columns:minmax(0,1.3fr) minmax(260px,.8fr); }
+              #project-progress .ppx-dates-panel { grid-column:1/-1; }
+              #project-progress .ppx-dates-list { grid-template-columns:repeat(3,1fr); }
+            }
+            @media (max-width:760px) {
+              #project-progress .ppx-project-hero { grid-template-columns:88px minmax(0,1fr); gap:12px; min-height:0; padding:12px; }
+              #project-progress .ppx-hero-photo { grid-row:1; width:88px; height:88px; }
+              #project-progress .ppx-hero-title { font-size:18px; }
+              #project-progress .ppx-hero-type { margin:5px 0; font-size:11px; }
+              #project-progress .ppx-hero-progress { position:absolute; right:12px; bottom:12px; width:56px; height:56px; }
+              #project-progress .ppx-hero-progress-core { width:45px; height:45px; }
+              #project-progress .ppx-hero-progress-core strong { font-size:15px; }
+              #project-progress .ppx-hero-progress-label { display:none; }
+              #project-progress .ppx-hero-actions { grid-column:1/-1; grid-template-columns:1fr 1fr; padding-right:63px; }
+              #project-progress .ppx-hero-meta { gap:7px 12px; font-size:9px; }
+              #project-progress .ppx-tabs { min-height:44px; padding:0 6px; }
+              #project-progress .ppx-tabs button { min-height:42px; padding:0 10px; font-size:10px; }
+              #project-progress .ppx-overview-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+              #project-progress .ppx-overview-left { grid-column:1/-1; }
+              #project-progress .ppx-stat { min-height:78px; padding:9px; }
+              #project-progress .ppx-stat-icon { width:34px; height:34px; }
+              #project-progress .ppx-top-grid, #project-progress .ppx-bottom-grid { grid-template-columns:1fr; }
+              #project-progress .ppx-dates-panel { grid-column:auto; }
+              #project-progress .ppx-dates-list { grid-template-columns:1fr; }
+              #project-progress .ppx-section-head { align-items:stretch; }
+              #project-progress .ppx-tools { justify-content:flex-start; }
+              #project-progress .ppx-tools input { flex:1 1 100%; min-width:0; }
+              #project-progress .ppx-table { min-width:760px; }
+              #project-progress .ppx-top-grid .ppx-card, #project-progress .ppx-bottom-grid .ppx-card { padding:12px; }
+            }
           </style>
 
           <div class="ppx-shell">
-            <section class="pp-carousel-wrap">
-              <div class="pp-section-title">Choix rapide des projets</div>
-              <p class="pp-section-hint">Clique d'abord sur un projet, puis consulte son suivi par bâtiments et étapes.</p>
+            <section class="ppx-project-hero-shell" aria-label="Projet sélectionné">
               <div class="pp-carousel" id="project-carousel"></div>
-              <button type="button" class="pp-carousel-arrow pp-carousel-arrow-prev" id="pp-carousel-prev" aria-label="Projet précédent">‹</button>
-              <button type="button" class="pp-carousel-arrow pp-carousel-arrow-next" id="pp-carousel-next" aria-label="Projet suivant">›</button>
-              <div class="pp-carousel-dots" id="carousel-dots"></div>
+              <button type="button" class="ppx-hero-switch" id="pp-carousel-prev" aria-label="Projet précédent">‹</button>
+              <button type="button" class="ppx-hero-switch next" id="pp-carousel-next" aria-label="Projet suivant">›</button>
+              <div class="pp-carousel-dots" id="carousel-dots" hidden></div>
             </section>
 
-            <section class="ppx-card ppx-overview">
+            <nav class="ppx-tabs" aria-label="Navigation du projet">
+              <button type="button" class="active" data-project-progress-tab="overview"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M9 20v-6h6v6"/></svg>Vue d'ensemble</button>
+              <button type="button" data-project-progress-tab="stages"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg>Étapes</button>
+              <button type="button" data-project-progress-tab="buildings"><svg viewBox="0 0 24 24"><path d="M4 21V5l8-3 8 3v16M8 9h2m4 0h2m-8 4h2m4 0h2M9 21v-4h6v4"/></svg>Bâtiments</button>
+              <button type="button" data-project-progress-tab="zoning"><svg viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15m6-12v15"/></svg>Zonage</button>
+              <button type="button" data-project-progress-tab="sites"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg>Sites</button>
+              <button type="button" data-project-progress-tab="documents"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16h16V8z"/><path d="M14 2v6h6M8 13h8m-8 4h8"/></svg>Documents</button>
+              <button type="button" data-project-progress-tab="team"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6m1-11a3 3 0 0 1 0 6m2 0c2 .5 3 2 3 5"/></svg>Équipe</button>
+              <button type="button" data-project-progress-tab="costs"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h.01M17 15h.01M12 9v6m2-4c-.5-1-3.5-1-4 0s.5 1.5 2 2 2.5 1 2 2-3.5 1-4 0"/></svg>Suivi des coûts</button>
+              <button type="button" data-project-progress-tab="suppliers"><svg viewBox="0 0 24 24"><path d="M3 7h11v11H3zM14 11h4l3 3v4h-7z"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="17.5" cy="19" r="1.5"/></svg>Fournisseur</button>
+            </nav>
+
+            <section class="ppx-overview" id="ppx-overview-section">
               <h2 class="ppx-title">Vue d'ensemble du projet</h2>
               <div class="ppx-overview-grid" id="ppx-overview-grid"></div>
               <div class="ppx-alert" id="ppx-alert-row"></div>
             </section>
 
-            <section class="ppx-card ppx-section">
+            <div class="ppx-top-grid">
+              <section class="ppx-card ppx-section" id="ppx-stage-panel">
+                <div class="ppx-panel-heading"><h3>Avancement par étapes</h3></div>
+                <div class="ppx-stage-flow" id="ppx-stage-flow"></div>
+              </section>
+              <section class="ppx-card ppx-section" id="ppx-chart-panel">
+                <div class="ppx-panel-heading"><h3>Courbe d'avancement</h3><select class="ppx-chart-select" aria-label="Période de la courbe"><option>Global</option><option>Cette année</option></select></div>
+                <div class="ppx-chart"><div class="ppx-chart-line" id="ppx-progress-chart"></div></div>
+              </section>
+              <section class="ppx-card ppx-section ppx-dates-panel" id="ppx-dates-panel">
+                <div class="ppx-panel-heading"><h3>Dates clés</h3></div>
+                <div class="ppx-dates-list" id="ppx-key-dates"></div>
+              </section>
+            </div>
+
+            <div class="ppx-bottom-grid">
+            <section class="ppx-card ppx-section" id="ppx-buildings-panel">
               <div class="ppx-section-head">
                 <div><h3>Suivi par bâtiments / étapes</h3></div>
                 <div class="ppx-tools">
-                  <button type="button" class="ppx-btn active" id="ppx-view-buildings">Vue par bâtiments</button>
-                  <button type="button" class="ppx-btn" id="ppx-view-stages">Vue par étapes</button>
+                  <button type="button" class="ppx-btn active" id="ppx-view-buildings">Vue bâtiments</button>
+                  <button type="button" class="ppx-btn" id="ppx-view-stages">Vue étapes</button>
+                  <button type="button" class="ppx-btn" id="ppx-view-zones">Vue zones</button>
                   <input type="search" id="project-progress-search" placeholder="Rechercher un bâtiment...">
-                  <button type="button" class="ppx-btn">Filtrer</button>
-                  <button type="button" class="ppx-btn" id="pp-add-btn">+</button>
+                  <div class="ppx-filter-control"><button type="button" class="ppx-btn" id="pp-filter-btn" aria-expanded="false" aria-controls="ppx-filter-menu">⌯ Filtrer⌄</button><div class="ppx-filter-menu" id="ppx-filter-menu" hidden><select id="ppx-status-filter" aria-label="Filtrer par statut"><option value="all">Tous les statuts</option><option value="upcoming">À venir</option><option value="in-progress">En cours</option><option value="complete">Terminés</option></select></div></div>
+                  <button type="button" class="ppx-btn" id="pp-add-btn" aria-label="Ajouter un suivi" title="Ajouter un suivi">+</button>
                 </div>
               </div>
               <div class="ppx-table-wrap">
@@ -8970,17 +9202,10 @@
               <div class="project-documents-pagination" id="ppx-table-pagination"></div>
             </section>
 
-            <div class="ppx-bottom-grid">
-              <section class="ppx-card ppx-section">
-                <h3>Avancement par étapes</h3>
-                <div class="ppx-stage-flow" id="ppx-stage-flow"></div>
-                <h3>Courbe d'avancement</h3>
-                <div class="ppx-chart"><div class="ppx-chart-line" id="ppx-progress-chart"></div></div>
-              </section>
-              <section class="ppx-card ppx-section">
-                <div class="ppx-section-head"><h3>Historique des suivis récents</h3><a href="#" class="project-summary-link">Voir tout</a></div>
-                <div class="ppx-history-list" id="project-progress-list"></div>
-              </section>
+            <section class="ppx-card ppx-section ppx-history-panel">
+              <div class="ppx-section-head"><h3>Derniers suivis</h3><button type="button" class="ppx-history-all" id="ppx-history-all">Voir tout</button></div>
+              <div class="ppx-history-list" id="project-progress-list"></div>
+            </section>
             </div>
           </div>
 
@@ -9927,7 +10152,7 @@
             #stock-management .stock-site-card { padding:10px; border:1px solid #e2eaf4; border-radius:7px; background:#fbfdff; }
             #stock-management .stock-site-card strong { display:block; color:#2c4263; font-size:9px; } #stock-management .stock-site-card small { display:block; margin-top:4px; color:#7485a0; font-size:8px; }
             #stock-management .stock-site-meter { height:5px; margin-top:8px; overflow:hidden; border-radius:5px; background:#e2eaf4; } #stock-management .stock-site-meter i { display:block; height:100%; border-radius:inherit; background:#25ba91; }
-            #stock-management #stock-issues-list, #stock-management .erp-section-sep, #stock-management .stock-create-card > h4 { display:none; }
+            #stock-management .erp-section-sep, #stock-management .stock-create-card > h4 { display:none; }
             #stock-management { background:#f5f8fc; color:#17243d; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
             #stock-management .stock-workspace { width:100%; max-width:none; margin:0; gap:14px; padding:0 0 22px; }
             #stock-management .stock-topbar { align-items:center; }
@@ -10379,6 +10604,133 @@
             @media(max-width:420px) { #stock-management #stock-warehouse-quick-grid { grid-template-columns:1fr !important; } }
             @media (max-width:1100px) { #stock-management .stock-topbar{align-items:flex-start;flex-direction:column} #stock-management .stock-main-grid{grid-template-columns:1fr} #stock-management #stock-site-preview{grid-template-columns:repeat(2,minmax(0,1fr))} }
             @media (max-width:680px) { #stock-management .stock-kpis{width:100%;grid-template-columns:1fr 1fr} #stock-management .stock-destination-grid,#stock-management .stock-stage-grid,#stock-management .stock-material-layout{grid-template-columns:1fr} #stock-management #stock-site-preview{grid-template-columns:1fr} }
+            #stock-management .stock-title { display:none !important; }
+            #stock-management .stock-topbar { display:block !important; }
+            #stock-management .stock-kpis { display:grid !important; width:100% !important; min-width:0 !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+            #stock-management .stock-history-by-site { margin-top:16px; padding-top:14px; border-top:1px solid #e7edf6; }
+            #stock-management .stock-history-by-site .stock-bottom-heading { margin-bottom:10px; }
+            #stock-management #stock-issues-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+            #stock-management .stock-history-site { min-width:0; padding:11px 12px; border:1px solid #e2eaf4; border-radius:8px; background:#f8fbff; }
+            #stock-management .stock-history-site-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; padding-bottom:8px; color:#314665; font-size:10px; }
+            #stock-management .stock-history-site-heading strong { color:#17365e; font-size:10px; font-weight:800; }
+            #stock-management .stock-history-site-heading small { color:#73849d; font-size:8px; white-space:nowrap; }
+            #stock-management .stock-history-site-items { display:grid; }
+            #stock-management .stock-history-movement { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:8px 0; border-top:1px solid #e8eef6; }
+            #stock-management .stock-history-movement strong { display:block; color:#263a59; font-size:9px; font-weight:800; }
+            #stock-management .stock-history-movement small { display:block; margin-top:3px; color:#71829b; font-size:8px; line-height:1.35; }
+            #stock-management .stock-history-movement-type { flex:0 0 auto; padding:4px 7px; border-radius:999px; background:#e9fff4; color:#07865d; font-size:7px; font-weight:900; text-transform:uppercase; }
+            @media (max-width:680px) {
+              #stock-management .stock-kpis { grid-template-columns:1fr !important; }
+              #stock-management #stock-issues-list { grid-template-columns:1fr; }
+            }
+            #stock-management, #stock-management * { font-family:'DM Sans','Segoe UI',sans-serif !important; letter-spacing:0 !important; }
+            #stock-management .stock-panel-title,
+            #stock-management .stock-history-site-heading,
+            #stock-management .stock-history-movement strong,
+            #stock-management .stock-summary h4,
+            #stock-management .stock-bottom-heading h3 { font-family:'Manrope','DM Sans',sans-serif !important; }
+            #stock-management .stock-panel-title { font-size:15px !important; line-height:1.25 !important; font-weight:700 !important; letter-spacing:0 !important; }
+            #stock-management .stock-panel-subtitle { font-size:11px !important; line-height:1.4 !important; font-weight:400 !important; color:#60738f !important; }
+            #stock-management .stock-order-tabs button { font-size:10.5px !important; font-weight:600 !important; }
+            #stock-management .stock-order-tabs button.active { font-weight:700 !important; }
+            #stock-management .stock-order-name { font-size:11px !important; line-height:1.4 !important; font-weight:600 !important; }
+            #stock-management .stock-order-meta-label { font-size:8px !important; font-weight:400 !important; }
+            #stock-management .stock-order-meta-value { font-size:9px !important; line-height:1.35 !important; font-weight:600 !important; }
+            #stock-management .stock-order-status { font-size:8px !important; font-weight:700 !important; }
+            #stock-management .stock-order-articles { font-size:9px !important; font-weight:500 !important; }
+            #stock-management .stock-stepper { font-size:10px !important; font-weight:600 !important; }
+            #stock-management .stock-create-card label { font-size:10px !important; line-height:1.35 !important; font-weight:600 !important; }
+            #stock-management .stock-material-heading { font:600 12px 'Manrope','DM Sans',sans-serif !important; }
+            #stock-management .stock-material-table-head,
+            #stock-management .stock-issue-line { grid-template-columns:24px minmax(150px,1fr) 56px 86px 152px !important; gap:8px !important; }
+            #stock-management .stock-material-table-head { min-height:34px !important; font:600 9px 'DM Sans','Segoe UI',sans-serif !important; }
+            #stock-management .stock-issue-line { min-height:56px !important; }
+            #stock-management .stock-issue-material-name { font-size:11px !important; line-height:1.3 !important; font-weight:600 !important; }
+            #stock-management .stock-issue-material-sub,
+            #stock-management .stock-issue-unit { font-size:8.5px !important; font-weight:400 !important; }
+            #stock-management .stock-issue-available-label { font-size:9px !important; font-weight:400 !important; }
+            #stock-management .stock-issue-available-label strong { font-size:12px !important; font-weight:700 !important; }
+            #stock-management .stock-available-status { font-size:8px !important; font-weight:500 !important; }
+            #stock-management .stock-material-layout { grid-template-columns:minmax(0,1fr) 230px !important; align-items:start !important; }
+            #stock-management .stock-available-card { padding:18px !important; }
+            #stock-management .stock-available-card .stock-summary { width:100% !important; min-width:0 !important; }
+            #stock-management .stock-summary h4 { font-size:12px !important; line-height:1.3 !important; font-weight:700 !important; }
+            #stock-management .stock-summary-row { font-size:9.5px !important; line-height:1.4 !important; font-weight:400 !important; }
+            #stock-management .stock-summary-row strong { font-size:9.5px !important; font-weight:600 !important; }
+            #stock-management .stock-bottom-heading h3 { font-size:13px !important; font-weight:700 !important; }
+            #stock-management .stock-history-site-heading strong { font-size:10px !important; font-weight:700 !important; }
+            #stock-management .stock-history-movement strong { font-size:10px !important; font-weight:600 !important; }
+            #stock-management .stock-kpi small { font-weight:500 !important; }
+            #stock-management .stock-kpi strong,
+            #stock-management .stock-site-card strong { font-weight:700 !important; }
+            #stock-management .stock-kpi { min-height:76px !important; grid-template-columns:40px minmax(0,1fr) !important; gap:13px !important; padding:14px 16px !important; border-radius:10px !important; }
+            #stock-management .stock-kpi-icon { width:38px !important; height:38px !important; border-radius:11px !important; }
+            #stock-management .stock-kpi-icon svg { width:19px !important; height:19px !important; }
+            #stock-management .stock-kpi small { font-size:10px !important; }
+            #stock-management .stock-kpi strong { margin-top:4px !important; font-size:18px !important; line-height:1.15 !important; }
+            #stock-management .stock-order-tabs button,
+            #stock-management .stock-order-search input,
+            #stock-management .stock-order-search::after,
+            #stock-management .stock-order-status,
+            #stock-management .stock-order-ref,
+            #stock-management .stock-order-ref-wrap,
+            #stock-management .stock-order-name,
+            #stock-management .stock-order-meta-label,
+            #stock-management .stock-order-meta-value,
+            #stock-management .stock-order-articles,
+            #stock-management .stock-order-arrive,
+            #stock-management .stock-order-final-status,
+            #stock-management .stock-stepper,
+            #stock-management .stock-create-card label,
+            #stock-management .stock-create-card select,
+            #stock-management .stock-create-card textarea,
+            #stock-management .stock-stage-all,
+            #stock-management .stock-material-search,
+            #stock-management .stock-only-toggle,
+            #stock-management .stock-issue-material-name,
+            #stock-management .stock-issue-material-sub,
+            #stock-management .stock-issue-unit,
+            #stock-management .stock-issue-available-label,
+            #stock-management .stock-issue-available-label strong,
+            #stock-management .stock-available-status,
+            #stock-management .stock-qty-control button,
+            #stock-management .stock-issue-line-qty,
+            #stock-management .stock-summary-row,
+            #stock-management .stock-summary-row strong,
+            #stock-management .stock-summary-actions .button,
+            #stock-management .stock-history-site-heading small,
+            #stock-management .stock-history-movement small,
+            #stock-management .stock-history-movement-type,
+            #stock-management .stock-site-card small { font-family:'DM Sans','Segoe UI',sans-serif !important; }
+            @media (max-width:680px) {
+              #stock-management .stock-material-layout { grid-template-columns:minmax(0,1fr) !important; }
+              #stock-management .stock-material-table-head,
+              #stock-management .stock-issue-line { min-width:660px; }
+            }
+            #stock-management .stock-topbar { display:grid !important; grid-template-columns:minmax(0,1fr) !important; align-items:start !important; gap:12px !important; }
+            #stock-management .stock-kpis { width:100% !important; min-width:0 !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:10px !important; }
+            #stock-management .stock-main-grid { grid-template-columns:minmax(0,1fr) !important; gap:12px !important; }
+            #stock-management .stock-issue-form { display:grid !important; grid-template-columns:minmax(0,1fr); gap:12px; min-width:0; }
+            #stock-management .stock-issue-form > .stock-panel { width:100%; min-width:0; }
+            #stock-management #stock-orders-list { grid-template-columns:repeat(3,minmax(0,1fr)) !important; align-items:stretch; }
+            #stock-management .stock-available-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px; }
+            #stock-management .stock-material-filter-row { display:grid; grid-template-columns:minmax(220px,1fr) auto; align-items:center; gap:10px; width:min(620px,58%); }
+            #stock-management .stock-material-filter-row .stock-material-search { width:100%; min-width:0; margin:0; }
+            #stock-management .stock-material-filter-row .stock-only-toggle { display:flex; align-items:center; gap:7px; margin:0; white-space:nowrap; color:#536985; font-size:9px; font-weight:700; }
+            #stock-management .stock-available-card .stock-material-layout { grid-template-columns:minmax(0,1fr) minmax(235px,285px) !important; }
+            @media (max-width:1100px) {
+              #stock-management #stock-orders-list { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+              #stock-management .stock-material-filter-row { width:min(560px,64%); }
+            }
+            @media (max-width:680px) {
+              #stock-management .stock-kpis { grid-template-columns:1fr !important; }
+              #stock-management #stock-orders-list { grid-template-columns:1fr !important; }
+              #stock-management .stock-destination-grid,
+              #stock-management .stock-stage-grid,
+              #stock-management .stock-available-card .stock-material-layout { grid-template-columns:1fr !important; }
+              #stock-management .stock-available-head { align-items:stretch; flex-direction:column; }
+              #stock-management .stock-material-filter-row { width:100%; grid-template-columns:minmax(0,1fr); }
+            }
           </style>
           <div class="page-header">
             <h1>Gestion de stock</h1>
@@ -10430,10 +10782,10 @@
               </div>
               <ul id="stock-orders-list" class="list"></ul>
             </div>
+            <form id="stock-issue-form" class="stock-issue-form">
             <div class="stock-panel stock-create-card">
               <h3 class="stock-panel-title">Sortie de matériel</h3><p class="stock-panel-subtitle">Sélectionnez le matériel et la destination pour enregistrer une sortie.</p>
               <div class="stock-stepper"><span class="stock-step active"><b>1</b>Destination</span><i class="stock-step-line"></i><span class="stock-step"><b>2</b>Matériel</span><i class="stock-step-line"></i><span class="stock-step"><b>3</b>Détails &amp; validation</span></div>
-              <form id="stock-issue-form">
                 <div class="stock-destination-grid"><div class="form-group">
                   <label>Entrepôt de sortie (mode fictif localhost) *</label>
                   <select id="stock-issue-warehouse" required></select>
@@ -10461,18 +10813,29 @@
                   </label>
                   <input type="hidden" id="stock-issue-stage" />
                 </div>
-                <div class="stock-material-layout"><div class="form-group"><div class="stock-material-heading">Matériel disponible à l'étape sélectionnée</div><div class="stock-material-filter-row"><input id="stock-material-search" class="stock-material-search" type="search" placeholder="Rechercher un matériau..." /><label class="stock-only-toggle"><input type="checkbox" id="stock-material-only-available" />Afficher uniquement en stock</label></div><div class="stock-material-table-head"><span></span><span>Matériau</span><span>Unité</span><span>Disponible</span><span>Quantité à sortir</span></div><div id="stock-issue-lines" style="display: grid; gap: 8px;"></div><div id="stock-issue-lines-hint">Sélectionne un site puis une étape pour afficher les matériaux disponibles.</div></div>
+            </div>
+            <div class="stock-panel stock-available-card">
+              <div class="stock-available-head">
+                <div><h3 class="stock-panel-title">Matériel disponible</h3><p class="stock-panel-subtitle">Matériel correspondant à la destination et à l'étape sélectionnées.</p></div>
+                <div class="stock-material-filter-row"><input id="stock-material-search" class="stock-material-search" type="search" placeholder="Rechercher un matériau..." /><label class="stock-only-toggle"><input type="checkbox" id="stock-material-only-available" />Afficher uniquement en stock</label></div>
+              </div>
+                <div class="stock-material-layout"><div class="form-group"><div class="stock-material-table-head"><span></span><span>Matériau</span><span>Unité</span><span>Disponible</span><span>Quantité à sortir</span></div><div id="stock-issue-lines" style="display: grid; gap: 8px;"></div><div id="stock-issue-lines-hint">Sélectionne un site puis une étape pour afficher les matériaux disponibles.</div></div>
                 <aside class="stock-summary"><h4>Résumé de la sortie</h4><div class="stock-summary-row"><span>Articles sélectionnés</span><strong id="stock-summary-items">0</strong></div><div class="stock-summary-row"><span>Quantité totale</span><strong id="stock-summary-quantity">0 unité</strong></div><div class="stock-summary-row"><span>Destination</span><strong id="stock-summary-destination">-</strong></div><div class="stock-summary-row"><span>Étape</span><strong id="stock-summary-stage">-</strong></div><div class="stock-summary-actions"><button type="submit" class="button button-primary">Valider la sortie</button><button type="button" class="button button-secondary">Enregistrer en brouillon</button></div></aside></div>
                 <div class="form-group stock-note">
                   <label>Note</label>
                   <textarea id="stock-issue-note" placeholder="Ex: sortie pour dalle RDC"></textarea>
                 </div>
-              </form>
-              <h4 style="margin-top: 16px; margin-bottom: 8px; color: #475569; font-size: 13px;">Historique récent des sorties</h4>
-              <ul id="stock-issues-list" class="list"></ul>
             </div>
+            </form>
             </div>
-            <div class="stock-bottom-preview"><div class="stock-bottom-heading"><h3>Aperçu du stock par site</h3><button type="button" class="button button-small button-secondary">Voir tout</button></div><div id="stock-site-preview"></div></div>
+            <div class="stock-bottom-preview">
+              <div class="stock-bottom-heading"><h3>Stock disponible par site</h3><button type="button" class="button button-small button-secondary">Voir tout</button></div>
+              <div id="stock-site-preview"></div>
+              <section class="stock-history-by-site" aria-labelledby="stock-site-history-title">
+                <div class="stock-bottom-heading"><h3 id="stock-site-history-title">Historique récent par site</h3></div>
+                <div id="stock-issues-list" aria-live="polite"></div>
+              </section>
+            </div>
           </div>
         </div>
 
@@ -11043,11 +11406,198 @@
 
         <!-- Parc Auto Module -->
         <div id="parc-auto" class="module">
+          <style>
+            #parc-auto > .page-header { display:none; }
+            #parc-auto .auto-maintenance-dashboard { display:none; gap:14px; color:#233653; }
+            body.parc-auto-maintenance-view #parc-auto .auto-maintenance-dashboard { display:grid; }
+            body.parc-auto-maintenance-view #parc-auto .parc-auto-vehicles-section,
+            body.parc-auto-maintenance-view #parc-auto #parc-auto-transport-section,
+            body.parc-auto-maintenance-view #parc-auto #parc-auto-maps-section { display:none !important; }
+            body.parc-auto-transport-view #parc-auto .auto-maintenance-dashboard,
+            body.parc-auto-transport-view #parc-auto #parc-auto-maps-section { display:none !important; }
+            body.parc-auto-transport-view #parc-auto .parc-auto-vehicles-section,
+            body.parc-auto-transport-view #parc-auto #parc-auto-transport-section { display:grid !important; }
+            #parc-auto .auto-maintenance-toolbar { display:flex; align-items:center; justify-content:flex-end; gap:10px; }
+            #parc-auto .auto-maintenance-period { height:38px; padding:0 11px; border:1px solid #dce6f2; border-radius:7px; background:#fff; color:#415873; font:500 11px 'DM Sans','Segoe UI',sans-serif; }
+            #parc-auto .auto-maintenance-add { display:flex; height:38px; align-items:center; gap:7px; padding:0 14px; border:0; border-radius:7px; background:#1477f8; color:#fff; font:700 11px 'DM Sans','Segoe UI',sans-serif; cursor:pointer; }
+            #parc-auto .auto-maintenance-add svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; }
+            #parc-auto .auto-maintenance-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+            #parc-auto .auto-maintenance-kpi { display:grid; min-width:0; min-height:80px; grid-template-columns:42px minmax(0,1fr); align-items:center; gap:11px; padding:13px 15px; border:1px solid #e2eaf5; border-radius:9px; background:linear-gradient(180deg,#fff 0%,#f9fbff 100%); box-shadow:0 7px 18px rgba(31,55,99,.045); }
+            #parc-auto .auto-maintenance-kpi-icon { display:grid; width:42px; height:42px; place-items:center; border-radius:50%; }
+            #parc-auto .auto-maintenance-kpi-icon svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #parc-auto .auto-maintenance-kpi:nth-child(1) .auto-maintenance-kpi-icon { background:#e8f1ff; color:#2978f5; }
+            #parc-auto .auto-maintenance-kpi:nth-child(2) .auto-maintenance-kpi-icon { background:#e5f8f1; color:#11a77c; }
+            #parc-auto .auto-maintenance-kpi:nth-child(3) .auto-maintenance-kpi-icon { background:#fff2df; color:#e89a22; }
+            #parc-auto .auto-maintenance-kpi:nth-child(4) .auto-maintenance-kpi-icon { background:#eee9ff; color:#7659df; }
+            #parc-auto .auto-maintenance-kpi small { display:block; color:#657792; font-size:10px; font-weight:500; }
+            #parc-auto .auto-maintenance-kpi strong { display:block; margin-top:4px; color:#142746; font-size:19px; line-height:1.1; font-weight:750; }
+            #parc-auto .auto-maintenance-kpi em { display:block; margin-top:4px; color:#70829c; font-size:9px; font-style:normal; }
+            #parc-auto .auto-maintenance-layout { display:grid; grid-template-columns:minmax(285px, .82fr) minmax(0, 2fr); gap:13px; align-items:start; }
+            #parc-auto .auto-maintenance-card { min-width:0; padding:16px; border:1px solid #dfe8f5; border-radius:9px; background:#fff; box-shadow:0 8px 22px rgba(31,55,99,.05); }
+            #parc-auto .auto-maintenance-card h2 { margin:0; color:#162b4b; font:700 14px/1.25 'Manrope','DM Sans',sans-serif; }
+            #parc-auto .auto-maintenance-card-subtitle { margin:4px 0 13px; color:#6a7d96; font-size:10px; line-height:1.4; }
+            #parc-auto .auto-maintenance-form { display:grid; gap:9px; }
+            #parc-auto .auto-maintenance-form .form-group { min-width:0; margin:0; }
+            #parc-auto .auto-maintenance-form label { display:block; margin:0 0 4px; color:#405873; font-size:9px; line-height:1.3; font-weight:600; }
+            #parc-auto .auto-maintenance-form input,
+            #parc-auto .auto-maintenance-form select,
+            #parc-auto .auto-maintenance-form textarea { width:100%; min-width:0; height:34px; padding:0 9px; border:1px solid #d8e3f1; border-radius:6px; background:#fff; color:#304865; font:400 10px 'DM Sans','Segoe UI',sans-serif; }
+            #parc-auto .auto-maintenance-form textarea { height:54px; padding:8px 9px; resize:vertical; }
+            #parc-auto .auto-maintenance-form input::placeholder,
+            #parc-auto .auto-maintenance-form textarea::placeholder { color:#91a0b3; }
+            #parc-auto .auto-maintenance-form .auto-maintenance-submit { display:flex; min-height:37px; justify-content:center; align-items:center; gap:7px; margin-top:2px; border:0; border-radius:6px; background:linear-gradient(90deg,#5865ed,#168bf3); color:#fff; font:650 10px 'DM Sans','Segoe UI',sans-serif; cursor:pointer; }
+            #parc-auto .auto-maintenance-submit svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; }
+            #parc-auto .auto-maintenance-list-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px; }
+            #parc-auto .auto-maintenance-list-tools { display:grid; grid-template-columns:minmax(150px,1.3fr) repeat(3,minmax(105px,1fr)); gap:7px; margin-bottom:12px; }
+            #parc-auto .auto-maintenance-list-tools input,
+            #parc-auto .auto-maintenance-list-tools select { width:100%; min-width:0; height:33px; padding:0 8px; border:1px solid #d8e3f1; border-radius:6px; background:#fff; color:#4d6380; font:400 9px 'DM Sans','Segoe UI',sans-serif; }
+            #parc-auto .auto-maintenance-table-wrap { overflow-x:auto; border:1px solid #e5edf6; border-radius:7px; }
+            #parc-auto .auto-maintenance-table { width:100%; min-width:850px; border-collapse:collapse; }
+            #parc-auto .auto-maintenance-table th { padding:9px 8px; border-bottom:1px solid #e5edf6; background:#f5f8fc; color:#596d87; text-align:left; white-space:nowrap; font-size:8px; font-weight:650; }
+            #parc-auto .auto-maintenance-table td { padding:10px 8px; border-bottom:1px solid #edf1f6; color:#425671; vertical-align:middle; font-size:9px; }
+            #parc-auto .auto-maintenance-table tr:last-child td { border-bottom:0; }
+            #parc-auto .auto-maintenance-vehicle { display:block; color:#263d5c; font-weight:650; }
+            #parc-auto .auto-maintenance-vehicle small { display:block; margin-top:3px; color:#8292a8; font-size:8px; font-weight:400; }
+            #parc-auto .auto-maintenance-status { display:inline-flex; padding:4px 7px; border-radius:5px; background:#e8f7ef; color:#198657; white-space:nowrap; font-size:8px; font-weight:600; }
+            #parc-auto .auto-maintenance-status.pending { background:#fff2dc; color:#bd7812; }
+            #parc-auto .auto-maintenance-status.progress { background:#e8f1ff; color:#2868ca; }
+            #parc-auto .auto-maintenance-status.cancelled { background:#f1f3f6; color:#68788d; }
+            #parc-auto .auto-maintenance-actions { position:relative; }
+            #parc-auto .auto-maintenance-actions summary { display:grid; width:26px; height:26px; place-items:center; border:1px solid #e2eaf4; border-radius:6px; color:#516984; cursor:pointer; list-style:none; }
+            #parc-auto .auto-maintenance-actions summary::-webkit-details-marker { display:none; }
+            #parc-auto .auto-maintenance-actions button { position:absolute; z-index:3; top:28px; right:0; width:130px; padding:8px 10px; border:1px solid #e2eaf4; border-radius:6px; background:#fff; color:#a33434; text-align:left; font:500 10px 'DM Sans','Segoe UI',sans-serif; box-shadow:0 6px 16px rgba(31,55,99,.12); cursor:pointer; }
+            #parc-auto .auto-maintenance-empty { padding:30px 15px; color:#74859b; text-align:center; font-size:10px; }
+            @media (max-width:1050px) {
+              #parc-auto .auto-maintenance-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+              #parc-auto .auto-maintenance-layout { grid-template-columns:minmax(250px,.8fr) minmax(0,1.6fr); }
+              #parc-auto .auto-maintenance-list-tools { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            }
+            @media (max-width:760px) {
+              #parc-auto .auto-maintenance-layout { grid-template-columns:minmax(0,1fr); }
+              #parc-auto .auto-maintenance-list-head { flex-direction:column; }
+              #parc-auto .auto-maintenance-list-tools { grid-template-columns:minmax(0,1fr); }
+              #parc-auto .auto-maintenance-toolbar { justify-content:stretch; }
+              #parc-auto .auto-maintenance-toolbar > * { flex:1; }
+            }
+            @media (max-width:460px) {
+              #parc-auto .auto-maintenance-kpis { grid-template-columns:minmax(0,1fr); }
+            }
+            #parc-auto .auto-transport-dashboard { display:none; gap:13px; color:#233653; }
+            body.parc-auto-transport-view #parc-auto .auto-transport-dashboard { display:grid; }
+            body.parc-auto-transport-view #parc-auto .auto-maintenance-dashboard,
+            body.parc-auto-transport-view #parc-auto .parc-auto-vehicles-section,
+            body.parc-auto-transport-view #parc-auto #parc-auto-maps-section { display:none !important; }
+            body.parc-auto-transport-view #parc-auto #parc-auto-transport-section { display:grid !important; }
+            #parc-auto .auto-transport-toolbar { display:flex; justify-content:flex-end; align-items:center; gap:10px; }
+            #parc-auto .auto-transport-period { height:38px; padding:0 10px; border:1px solid #dce6f2; border-radius:7px; background:#fff; color:#415873; font:500 10px 'DM Sans','Segoe UI',sans-serif; }
+            #parc-auto .auto-transport-add { display:flex; height:38px; align-items:center; gap:7px; padding:0 13px; border:0; border-radius:7px; background:#1477f8; color:#fff; font:650 10px 'DM Sans','Segoe UI',sans-serif; cursor:pointer; }
+            #parc-auto .auto-transport-add svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; }
+            #parc-auto .auto-transport-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:11px; }
+            #parc-auto .auto-transport-kpi { display:grid; min-width:0; min-height:76px; grid-template-columns:42px minmax(0,1fr); align-items:center; gap:10px; padding:12px 14px; border:1px solid #e2eaf5; border-radius:9px; background:linear-gradient(180deg,#fff 0%,#f9fbff 100%); box-shadow:0 7px 18px rgba(31,55,99,.045); }
+            #parc-auto .auto-transport-kpi-icon { display:grid; width:40px; height:40px; place-items:center; border-radius:50%; }
+            #parc-auto .auto-transport-kpi-icon svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #parc-auto .auto-transport-kpi:nth-child(1) .auto-transport-kpi-icon { background:#e8f1ff; color:#2978f5; }
+            #parc-auto .auto-transport-kpi:nth-child(2) .auto-transport-kpi-icon { background:#e5f8f1; color:#11a77c; }
+            #parc-auto .auto-transport-kpi:nth-child(3) .auto-transport-kpi-icon { background:#fff2df; color:#e89a22; }
+            #parc-auto .auto-transport-kpi:nth-child(4) .auto-transport-kpi-icon { background:#eee9ff; color:#7659df; }
+            #parc-auto .auto-transport-kpi small { display:block; color:#657792; font-size:9px; font-weight:500; }
+            #parc-auto .auto-transport-kpi strong { display:block; margin-top:4px; color:#142746; font-size:17px; line-height:1.1; font-weight:700; white-space:nowrap; }
+            #parc-auto .auto-transport-kpi em { display:block; margin-top:4px; color:#70829c; font-size:8px; font-style:normal; }
+            #parc-auto .auto-transport-layout { display:grid; grid-template-columns:minmax(280px,.82fr) minmax(0,2fr); gap:13px; align-items:start; }
+            #parc-auto .auto-transport-card { min-width:0; padding:15px; border:1px solid #dfe8f5; border-radius:9px; background:#fff; box-shadow:0 8px 22px rgba(31,55,99,.05); }
+            #parc-auto .auto-transport-card h2 { margin:0; color:#162b4b; font:700 13px/1.25 'Manrope','DM Sans',sans-serif; }
+            #parc-auto .auto-transport-card-subtitle { margin:4px 0 12px; color:#6a7d96; font-size:9px; line-height:1.4; }
+            #parc-auto .auto-transport-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 10px; }
+            #parc-auto .auto-transport-form .form-group { min-width:0; margin:0; }
+            #parc-auto .auto-transport-form .wide { grid-column:1/-1; }
+            #parc-auto .auto-transport-form label { display:block; margin:0 0 4px; color:#405873; font-size:9px; line-height:1.3; font-weight:600; }
+            #parc-auto .auto-transport-form input,
+            #parc-auto .auto-transport-form select,
+            #parc-auto .auto-transport-form textarea { width:100%; min-width:0; height:33px; padding:0 9px; border:1px solid #d8e3f1; border-radius:6px; background:#fff; color:#304865; font:400 9px 'DM Sans','Segoe UI',sans-serif; }
+            #parc-auto .auto-transport-form textarea { height:52px; padding:8px 9px; resize:vertical; }
+            #parc-auto .auto-transport-form .auto-transport-submit { display:flex; min-height:36px; grid-column:1/-1; justify-content:center; align-items:center; gap:7px; margin-top:2px; border:0; border-radius:6px; background:linear-gradient(90deg,#5865ed,#168bf3); color:#fff; font:650 10px 'DM Sans','Segoe UI',sans-serif; cursor:pointer; }
+            #parc-auto .auto-transport-submit svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; }
+            #parc-auto .auto-transport-list-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:11px; }
+            #parc-auto .auto-transport-list-tools { display:grid; grid-template-columns:repeat(3,minmax(90px,1fr)) auto; gap:7px; margin-bottom:11px; padding:9px; border:1px solid #e7edf6; border-radius:7px; background:#f8fbff; }
+            #parc-auto .auto-transport-list-tools select,
+            #parc-auto .auto-transport-list-tools button { width:100%; min-width:0; height:32px; padding:0 8px; border:1px solid #d8e3f1; border-radius:6px; background:#fff; color:#4d6380; font:400 9px 'DM Sans','Segoe UI',sans-serif; }
+            #parc-auto .auto-transport-list-tools button { color:#266fd8; font-weight:600; cursor:pointer; }
+            #parc-auto .auto-transport-search-wrap { position:relative; margin:0 0 10px; }
+            #parc-auto .auto-transport-search-wrap input { width:100%; height:33px; padding:0 10px 0 31px; border:1px solid #d8e3f1; border-radius:6px; background:#fff; color:#4d6380; font:400 9px 'DM Sans','Segoe UI',sans-serif; }
+            #parc-auto .auto-transport-search-wrap svg { position:absolute; top:9px; left:10px; width:14px; height:14px; fill:none; stroke:#73859d; stroke-width:1.8; }
+            #parc-auto .auto-transport-table-wrap { overflow-x:auto; border:1px solid #e5edf6; border-radius:7px; }
+            #parc-auto .auto-transport-table { width:100%; min-width:720px; border-collapse:collapse; }
+            #parc-auto .auto-transport-table th { padding:8px 7px; border-bottom:1px solid #e5edf6; background:#f5f8fc; color:#596d87; text-align:left; white-space:nowrap; font-size:7px; font-weight:650; }
+            #parc-auto .auto-transport-table td { padding:9px 7px; border-bottom:1px solid #edf1f6; color:#425671; vertical-align:middle; font-size:8px; }
+            #parc-auto .auto-transport-table tr:last-child td { border-bottom:0; }
+            #parc-auto .auto-transport-vehicle { display:block; color:#263d5c; font-weight:650; }
+            #parc-auto .auto-transport-vehicle small,
+            #parc-auto .auto-transport-project small { display:block; margin-top:3px; color:#8292a8; font-size:7px; font-weight:400; }
+            #parc-auto .auto-transport-project { display:flex; align-items:flex-start; gap:6px; color:#425671; }
+            #parc-auto .auto-transport-project svg { width:13px; height:13px; flex:0 0 auto; fill:none; stroke:#2878f5; stroke-width:1.8; }
+            #parc-auto .auto-transport-total { color:#172c4c !important; font-weight:700 !important; white-space:nowrap; }
+            #parc-auto .auto-transport-actions { position:relative; }
+            #parc-auto .auto-transport-actions summary { display:grid; width:25px; height:25px; place-items:center; border:1px solid #e2eaf4; border-radius:6px; color:#516984; cursor:pointer; list-style:none; }
+            #parc-auto .auto-transport-actions summary::-webkit-details-marker { display:none; }
+            #parc-auto .auto-transport-actions button { position:absolute; z-index:3; top:27px; right:0; width:140px; padding:8px 10px; border:1px solid #e2eaf4; border-radius:6px; background:#fff; color:#a33434; text-align:left; font:500 10px 'DM Sans','Segoe UI',sans-serif; box-shadow:0 6px 16px rgba(31,55,99,.12); cursor:pointer; }
+            #parc-auto .auto-transport-empty { padding:28px 12px; color:#74859b; text-align:center; font-size:10px; }
+            @media (max-width:1050px) {
+              #parc-auto .auto-transport-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+              #parc-auto .auto-transport-layout { grid-template-columns:minmax(250px,.8fr) minmax(0,1.6fr); }
+              #parc-auto .auto-transport-list-tools { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            }
+            @media (max-width:760px) {
+              #parc-auto .auto-transport-layout { grid-template-columns:minmax(0,1fr); }
+              #parc-auto .auto-transport-list-head { flex-direction:column; }
+              #parc-auto .auto-transport-form { grid-template-columns:minmax(0,1fr); }
+              #parc-auto .auto-transport-form .wide { grid-column:auto; }
+              #parc-auto .auto-transport-list-tools { grid-template-columns:repeat(2,minmax(0,1fr)); }
+              #parc-auto .auto-transport-toolbar { justify-content:stretch; }
+              #parc-auto .auto-transport-toolbar > * { flex:1; }
+            }
+            @media (max-width:460px) { #parc-auto .auto-transport-kpis { grid-template-columns:minmax(0,1fr); } }
+          </style>
+          <section id="auto-maintenance-dashboard" class="auto-maintenance-dashboard" aria-label="Maintenance et entretien">
+            <div class="auto-maintenance-toolbar">
+              <label for="auto-maintenance-period" style="display:flex;align-items:center;gap:8px;margin:0;color:#63758d;font-size:10px;">Période <input id="auto-maintenance-period" class="auto-maintenance-period" type="month"></label>
+              <button type="button" id="auto-maintenance-add-button" class="auto-maintenance-add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Ajouter une maintenance</button>
+            </div>
+            <div class="auto-maintenance-kpis" aria-label="Indicateurs de maintenance">
+              <article class="auto-maintenance-kpi"><span class="auto-maintenance-kpi-icon"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3zM7 7V4h10v3M7 12h10M7 16h5"/></svg></span><span><small>Total des dépenses</small><strong id="auto-maintenance-kpi-cost">0 FCFA</strong><em>Sur la période</em></span></article>
+              <article class="auto-maintenance-kpi"><span class="auto-maintenance-kpi-icon"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span><span><small>Nombre d'interventions</small><strong id="auto-maintenance-kpi-count">0</strong><em>Sur la période</em></span></article>
+              <article class="auto-maintenance-kpi"><span class="auto-maintenance-kpi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span><small>Interventions en attente</small><strong id="auto-maintenance-kpi-pending">0</strong><em>À planifier</em></span></article>
+              <article class="auto-maintenance-kpi"><span class="auto-maintenance-kpi-icon"><svg viewBox="0 0 24 24"><path d="M3 11h18l-2-5H5zM5 11v7h14v-7M8 18v2m8-2v2M7 14h.01M17 14h.01"/></svg></span><span><small>Véhicules suivis</small><strong id="auto-maintenance-kpi-vehicles">0</strong><em>Dans le parc</em></span></article>
+            </div>
+            <div class="auto-maintenance-layout">
+              <section class="auto-maintenance-card">
+                <h2>Ajouter une maintenance</h2>
+                <p class="auto-maintenance-card-subtitle">Renseignez les informations de l'entretien ou de la réparation.</p>
+                <form id="auto-maintenance-form" class="auto-maintenance-form">
+                  <div class="form-group"><label for="auto-maintenance-vehicle">Véhicule *</label><select id="auto-maintenance-vehicle" required><option value="">Sélectionner un véhicule</option></select></div>
+                  <div class="form-group"><label for="auto-maintenance-type">Type d'intervention *</label><select id="auto-maintenance-type" required><option value="">Sélectionner le type</option><option>Vidange</option><option>Changement pneu</option><option>Réparation frein</option><option>Filtre à air</option><option>Batterie</option><option>Révision générale</option><option>Autre</option></select></div>
+                  <div class="form-group"><label for="auto-maintenance-date">Date d'intervention *</label><input id="auto-maintenance-date" type="date" required></div>
+                  <div class="form-group"><label for="auto-maintenance-mileage">Kilométrage / heures (optionnel)</label><input id="auto-maintenance-mileage" type="number" min="0" step="1" placeholder="Ex: 45 000"></div>
+                  <div class="form-group"><label for="auto-maintenance-cost">Coût (FCFA) *</label><input id="auto-maintenance-cost" type="number" min="0" step="1" placeholder="Ex: 25 000" required></div>
+                  <div class="form-group"><label for="auto-maintenance-supplier">Fournisseur / garage (optionnel)</label><input id="auto-maintenance-supplier" type="text" placeholder="Ex: Garage Songon"></div>
+                  <div class="form-group"><label for="auto-maintenance-description">Description de l'intervention *</label><textarea id="auto-maintenance-description" placeholder="Ex: Vidange, changement de pneu, filtre..." required></textarea></div>
+                  <div class="form-group"><label for="auto-maintenance-next-date">Prochain entretien (optionnel)</label><input id="auto-maintenance-next-date" type="date"></div>
+                  <div class="form-group"><label for="auto-maintenance-parts">Pièces remplacées (optionnel)</label><input id="auto-maintenance-parts" type="text" placeholder="Ex: Filtre à huile, plaquettes de frein..."></div>
+                  <div class="form-group"><label for="auto-maintenance-status">Statut</label><select id="auto-maintenance-status"><option>Terminée</option><option>En attente</option><option>En cours</option><option>Annulée</option></select></div>
+                  <button type="submit" class="auto-maintenance-submit"><svg viewBox="0 0 24 24"><path d="m14 6 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15z"/></svg>Enregistrer la maintenance</button>
+                </form>
+              </section>
+              <section class="auto-maintenance-card">
+                <div class="auto-maintenance-list-head"><div><h2 id="auto-maintenance-list-title">Maintenances récentes</h2><p class="auto-maintenance-card-subtitle">Liste des derniers entretiens et réparations enregistrés.</p></div></div>
+                <div class="auto-maintenance-list-tools"><input id="auto-maintenance-search" type="search" placeholder="Rechercher (véhicule, type, fournisseur...)" aria-label="Rechercher une maintenance"><select id="auto-maintenance-filter-vehicle" aria-label="Filtrer par véhicule"><option value="">Tous les véhicules</option></select><select id="auto-maintenance-filter-type" aria-label="Filtrer par type"><option value="">Tous les types</option></select><select id="auto-maintenance-filter-status" aria-label="Filtrer par statut"><option value="">Tous les statuts</option><option>Terminée</option><option>En attente</option><option>En cours</option><option>Annulée</option></select></div>
+                <div class="auto-maintenance-table-wrap"><table class="auto-maintenance-table"><thead><tr><th>Date</th><th>Véhicule</th><th>Type d'intervention</th><th>Kilométrage / heures</th><th>Coût (FCFA)</th><th>Fournisseur</th><th>Statut</th><th>Prochain entretien</th><th>Actions</th></tr></thead><tbody id="auto-maintenance-table-body"></tbody></table></div>
+              </section>
+            </div>
+          </section>
           <div class="page-header">
             <h1>Parc Auto</h1>
             <p>Suivi des véhicules, entretien et coûts de transport</p>
           </div>
-          <div class="grid-2">
+          <div class="grid-2 parc-auto-vehicles-section">
             <div class="card form-card">
               <h3 style="margin-bottom: 15px;">Maintenance et entretien</h3>
               <form id="auto-vehicle-form">
@@ -11098,47 +11648,41 @@
             </div>
           </div>
 
-          <div id="parc-auto-transport-section" class="grid-2" style="margin-top: 20px;">
-            <div class="card form-card">
-              <h3 style="margin-bottom: 15px;">Coût des transports</h3>
-              <form id="auto-transport-form">
-                <div class="form-group">
-                  <label>Véhicule *</label>
-                  <select id="auto-transport-vehicle" required></select>
-                </div>
-                <div class="form-group">
-                  <label>Niveau essence à l'entrée (L) *</label>
-                  <input type="number" id="auto-fuel-entry" step="0.01" min="0" required />
-                </div>
-                <div class="form-group">
-                  <label>Niveau essence à la sortie (L) *</label>
-                  <input type="number" id="auto-fuel-exit" step="0.01" min="0" required />
-                </div>
-                <div class="form-group">
-                  <label>Prix local essence (FCFA/L) *</label>
-                  <input type="number" id="auto-fuel-price" step="0.01" min="0.01" required />
-                </div>
-                <div class="form-group">
-                  <label>Date transport *</label>
-                  <input type="date" id="auto-transport-date" required />
-                </div>
-                <div class="form-group">
-                  <label>Note (optionnel)</label>
-                  <textarea id="auto-transport-note" placeholder="Ex: trajet dépôt -> chantier Songon"></textarea>
-                </div>
-                <button type="submit" class="button button-primary" style="width: 100%;">Enregistrer le coût transport</button>
-                <p style="margin-top: 10px; color: #64748b; font-size: 12px;">Cette opération crée automatiquement une ligne dans Dépenses (catégorie transport).</p>
-              </form>
+          <section id="parc-auto-transport-section" class="auto-transport-dashboard" aria-label="Coûts des transports">
+            <div class="auto-transport-toolbar">
+              <label style="display:flex;align-items:center;gap:8px;margin:0;color:#63758d;font-size:9px;">Période <input id="auto-transport-period" class="auto-transport-period" type="month"></label>
+              <button type="button" id="auto-transport-add-button" class="auto-transport-add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Enregistrer un transport</button>
             </div>
-            <div class="erp-section-sep">Historique récent</div>
-            <div class="card">
-              <h3 id="auto-transports-list-title" style="margin-bottom: 15px;">Transports récents</h3>
-              <div class="form-group" style="margin-bottom: 12px;">
-                <input type="text" id="auto-transport-search" placeholder="Rechercher un transport (véhicule, marque, date)" />
-              </div>
-              <ul id="auto-transports-list" class="list"></ul>
+            <div class="auto-transport-kpis" aria-label="Indicateurs des transports">
+              <article class="auto-transport-kpi"><span class="auto-transport-kpi-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h8M8 17h4"/></svg></span><span><small>Coût total</small><strong id="auto-transport-kpi-total">0 FCFA</strong><em>Sur la période</em></span></article>
+              <article class="auto-transport-kpi"><span class="auto-transport-kpi-icon"><svg viewBox="0 0 24 24"><path d="M5 3h9v18H5zM14 8h3l3 4v6h-6M8 7h3M8 11h3"/><circle cx="8" cy="19" r="1"/><circle cx="17" cy="19" r="1"/></svg></span><span><small>Nombre de trajets</small><strong id="auto-transport-kpi-count">0</strong><em>Sur la période</em></span></article>
+              <article class="auto-transport-kpi"><span class="auto-transport-kpi-icon"><svg viewBox="0 0 24 24"><path d="M12 3c2.5 3.4 6 7.1 6 11a6 6 0 1 1-12 0c0-3.9 3.5-7.6 6-11Z"/></svg></span><span><small>Consommation totale</small><strong id="auto-transport-kpi-liters">0 L</strong><em>Sur la période</em></span></article>
+              <article class="auto-transport-kpi"><span class="auto-transport-kpi-icon"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h3"/><circle cx="17" cy="14" r="1"/></svg></span><span><small>Coût moyen par trajet</small><strong id="auto-transport-kpi-average">0 FCFA</strong><em>Sur la période</em></span></article>
             </div>
-          </div>
+            <div class="auto-transport-layout">
+              <section class="auto-transport-card">
+                <h2>Enregistrer un coût de transport</h2>
+                <p class="auto-transport-card-subtitle">Renseignez le véhicule, le trajet et la consommation.</p>
+                <form id="auto-transport-form" class="auto-transport-form">
+                  <div class="form-group wide"><label for="auto-transport-vehicle">Véhicule *</label><select id="auto-transport-vehicle" required></select></div>
+                  <div class="form-group"><label for="auto-fuel-entry">Niveau essence à l'entrée (L) *</label><input type="number" id="auto-fuel-entry" step="0.01" min="0" placeholder="Ex: 20" required></div>
+                  <div class="form-group"><label for="auto-fuel-exit">Niveau essence à la sortie (L) *</label><input type="number" id="auto-fuel-exit" step="0.01" min="0" placeholder="Ex: 5" required></div>
+                  <div class="form-group wide"><label for="auto-fuel-price">Prix local essence (FCFA/L) *</label><input type="number" id="auto-fuel-price" step="0.01" min="0.01" placeholder="Ex: 750" required></div>
+                  <div class="form-group wide"><label for="auto-transport-trip">Distance / trajet *</label><input id="auto-transport-trip" type="text" placeholder="Ex: Songon → Chantier Songon" required></div>
+                  <div class="form-group"><label for="auto-transport-date">Date du transport *</label><input type="date" id="auto-transport-date" required></div>
+                  <div class="form-group"><label for="auto-transport-project">Projet</label><select id="auto-transport-project"><option value="">Tous les projets / non affecté</option></select></div>
+                  <div class="form-group wide"><label for="auto-transport-note">Note (optionnel)</label><textarea id="auto-transport-note" placeholder="Détails complémentaires..."></textarea></div>
+                  <button type="submit" class="auto-transport-submit"><svg viewBox="0 0 24 24"><path d="M3 7h12v11H3zM15 11h4l2 3v4h-6zM7 18v2m10-2v2"/></svg>Enregistrer le coût de transport</button>
+                </form>
+              </section>
+              <section class="auto-transport-card">
+                <div class="auto-transport-list-head"><div><h2>Transports récents</h2><p class="auto-transport-card-subtitle">Liste des derniers coûts de transport enregistrés.</p></div></div>
+                <div class="auto-transport-list-tools"><select id="auto-transport-filter-period" aria-label="Filtrer par période"><option value="current">Période sélectionnée</option><option value="all">Toutes les périodes</option></select><select id="auto-transport-filter-vehicle" aria-label="Filtrer par véhicule"><option value="">Tous les véhicules</option></select><select id="auto-transport-filter-project" aria-label="Filtrer par projet"><option value="">Tous les projets</option></select><button type="button" id="auto-transport-reset-filters">Réinitialiser</button></div>
+                <div class="auto-transport-search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input type="search" id="auto-transport-search" placeholder="Rechercher un transport..." aria-label="Rechercher un transport"></div>
+                <div class="auto-transport-table-wrap"><table class="auto-transport-table"><thead><tr><th></th><th>Date</th><th>Véhicule</th><th>Projet / trajet</th><th>Litres</th><th>Prix (FCFA/L)</th><th>Coût total</th><th>Actions</th></tr></thead><tbody id="auto-transports-table-body"></tbody></table></div>
+              </section>
+            </div>
+          </section>
 
           <div id="parc-auto-maps-section" style="margin-top: 20px;">
             <div class="card">
@@ -12174,6 +12718,7 @@
     let revenueSearchTerm = '';
     let autoVehicleSearchTerm = '';
     let autoTransportSearchTerm = '';
+    let autoMaintenanceSearchTerm = '';
     let supplierSearchTerm = '';
     let stockOrderSearchTerm = '';
     let inventoryViewSearchTerm = 'product_warehouse';
@@ -12238,6 +12783,8 @@
     let accessProfileModuleCatalog = [];
     let projectProgressCache = [];
     let projectProgressSearchTerm = '';
+    let projectProgressTableView = 'buildings';
+    let projectProgressStatusFilter = 'all';
     let selectedProjectProgressProjectId = null;
     let selectedProjectProgressFolderKey = '';
     let expandedProjectProgressBuildingId = null;
@@ -12259,6 +12806,8 @@
     let purchaseOrdersCache = [];
     let autoVehiclesCache = [];
     let autoTransportCostsCache = [];
+    let autoTransportProjectsCache = [];
+    let autoMaintenanceCache = [];
     let autoVehicleLocationsCache = [];
     let autoLocationHistoryCache = [];
     let selectedAutoLocationVehicleId = null;
@@ -13774,7 +14323,8 @@
 
       [
         '#project-create-new-folder-quick',
-        '#projects #parc-auto-maintenance-section .form-card',
+        '#project-new-project-button',
+        '#project-creation-form-card',
         '#journal-chantier .form-card',
         '#expenses .form-card',
         '#revenues .form-card',
@@ -17359,6 +17909,10 @@
       renderProjectSummary();
     }
 
+    function projectImage() {
+      return '/15.04.2026_13.02.19_REC.png';
+    }
+
     function renderProjectQuickFolders(projects) {
       const container = document.getElementById('project-folder-quick-list');
       if (!container) return;
@@ -17406,8 +17960,6 @@
         total: '<svg viewBox="0 0 24 24"><path d="M4 21V5a2 2 0 0 1 2-2h9v18"/><path d="M9 21v-6h3v6M8 7h3M8 11h3M15 9h5v12"/></svg>',
       };
 
-      const projectImage = name => `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='116' viewBox='0 0 160 116'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%238ed4ef'/%3E%3Cstop offset='.55' stop-color='%23f3d8a6'/%3E%3Cstop offset='1' stop-color='%2386a163'/%3E%3C/linearGradient%3E%3ClinearGradient id='wall' x1='0' x2='1'%3E%3Cstop stop-color='%23fff7e7'/%3E%3Cstop offset='1' stop-color='%23c88746'/%3E%3C/linearGradient%3E%3Cfilter id='shadow' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeDropShadow dx='0' dy='7' stdDeviation='4' flood-color='%23072130' flood-opacity='.28'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='160' height='116' fill='url(%23sky)'/%3E%3Ccircle cx='18' cy='18' r='12' fill='%23ffd469' opacity='.9'/%3E%3Crect y='78' width='160' height='38' fill='%233d7b6e'/%3E%3Cpath d='M0 95c20-9 42-11 67-5 26 6 51 1 83-8 4-1 7-2 10-2v36H0z' fill='%232f675d'/%3E%3Cg filter='url(%23shadow)'%3E%3Cpath d='M20 79h120l-16 16H6z' fill='%2323484f'/%3E%3Cpath d='M29 52h106v30H29z' fill='url(%23wall)'/%3E%3Cpath d='M31 30h86l25 23H52z' fill='%232f241d'/%3E%3Cpath d='M35 36h80v17H35z' fill='%23f6e8d1'/%3E%3Cpath d='M44 41h24v10H44zM81 41h24v10H81z' fill='%23294652'/%3E%3Cpath d='M42 59h22v16H42zM78 59h23v16H78zM115 59h14v16h-14z' fill='%232b515c'/%3E%3Crect x='31' y='80' width='106' height='5' fill='%23f7ead7'/%3E%3Cpath d='M67 52v30M106 52v30' stroke='%23f2dbc0' stroke-width='3'/%3E%3C/g%3E%3Cpath d='M116 89h25v9h-25z' fill='%232bbbd1' opacity='.75'/%3E%3C/svg%3E`;
-
       const activeProject = hierarchy[0] || null;
       if (hero) {
         if (activeProject) {
@@ -17431,6 +17983,7 @@
 
       if (countBadge) countBadge.textContent = `${hierarchy.length} projet${hierarchy.length > 1 ? 's' : ''}`;
 
+      const canDeleteCatalogProjects = isAdmin() || isExecutive();
       container.innerHTML = hierarchy.length
         ? hierarchy.map((project, index) => {
             const siteCount = project.zones.reduce((sum, z) => sum + (Array.isArray(z.houses) ? z.houses.length : 0), 0);
@@ -17438,16 +17991,21 @@
             const stats = getProjectStats(project);
             const startDate = project.dateDebut ? formatDate(project.dateDebut) : '12 mai 2024';
             return `
-              <button type="button" class="project-open-card project-card-open ${index === 0 ? 'active' : ''}" data-project-id="${Number(project.id)}" data-first-zone-key="${firstZoneKey}">
-                <img src="${projectImage(project.nomProjet || 'Projet')}" alt="${escapeHtml(project.nomProjet || 'Projet')}">
-                <div>
-                  <h4>${escapeHtml(project.nomProjet || 'Projet')} <span class="project-open-badge ${stats.statusClass}" style="margin-left:8px;">${escapeHtml(stats.status)}</span></h4>
-                  <p>${escapeHtml(project.typeProjet || 'Construction de Villa')}</p>
-                  <div class="project-open-card-progress-line"><div class="project-open-card-progress"><span style="width:${stats.progress}%;"></span></div><strong>${stats.progress}%</strong></div>
-                  <div class="project-open-card-meta"><span>${icons.pin} ${project.zones.length} zone${project.zones.length > 1 ? 's' : ''}</span><span>${icons.building} ${siteCount} site${siteCount > 1 ? 's' : ''}</span><span>${icons.calendar} Début : ${escapeHtml(startDate)}</span></div>
-                </div>
-                <span style="color:#8aa0c4;font-size:20px;">›</span>
-              </button>
+              <article class="project-open-card-wrap">
+                <button type="button" class="project-open-card project-card-open ${index === 0 ? 'active' : ''}" data-project-id="${Number(project.id)}" data-first-zone-key="${firstZoneKey}">
+                  <img src="${projectImage(project.nomProjet || 'Projet')}" alt="${escapeHtml(project.nomProjet || 'Projet')}">
+                  <div>
+                    <h4>${escapeHtml(project.nomProjet || 'Projet')} <span class="project-open-badge ${stats.statusClass}" style="margin-left:8px;">${escapeHtml(stats.status)}</span></h4>
+                    <p>${escapeHtml(project.typeProjet || 'Construction de Villa')}</p>
+                    <div class="project-open-card-progress-line"><div class="project-open-card-progress"><span style="width:${stats.progress}%;"></span></div><strong>${stats.progress}%</strong></div>
+                    <div class="project-open-card-meta"><span>${icons.pin} ${project.zones.length} zone${project.zones.length > 1 ? 's' : ''}</span><span>${icons.building} ${siteCount} site${siteCount > 1 ? 's' : ''}</span><span>${icons.calendar} Début : ${escapeHtml(startDate)}</span></div>
+                  </div>
+                  <span style="color:#8aa0c4;font-size:20px;">›</span>
+                </button>
+                ${canDeleteCatalogProjects && Number(project.id) > 0
+                  ? `<button type="button" class="project-open-delete" data-delete-project-catalog="${Number(project.id)}" aria-label="Supprimer le projet ${escapeHtml(project.nomProjet || '')}" title="Supprimer ce projet">🗑</button>`
+                  : ''}
+              </article>
             `;
           }).join('')
         : '<div class="empty-state" style="grid-column: 1 / -1;"><p>Aucun projet trouvé</p></div>';
@@ -17475,6 +18033,13 @@
           showProjectDetails();
           selectProjectForZoneCreation(projectId, { focus: true, scroll: true });
           showMessage('Ce projet n\'a pas encore de zone. Ajoutez une préfecture.', 'error');
+        });
+      });
+
+      container.querySelectorAll('[data-delete-project-catalog]').forEach(button => {
+        button.addEventListener('click', event => {
+          event.stopPropagation();
+          window.deleteProjectCatalog(button.dataset.deleteProjectCatalog);
         });
       });
 
@@ -17909,28 +18474,18 @@
         : recentProgress;
 
       list.innerHTML = filtered.length
-        ? filtered.map(item => {
+        ? filtered.slice(0, 8).map(item => {
             const stageLabel = item.stage || 'Étape';
             const siteLabel = item.nomSite || item.numeroMaison || 'Site';
-            const updateTitle = `${escapeHtml(item.createdBy || 'Chef inconnu')} a mis à jour l'étape ${escapeHtml(stageLabel)}`;
-            const updateDesc = [
-              item.progressPercent !== null && item.progressPercent !== undefined ? `Avancement : ${Number(item.progressPercent).toFixed(0)}%` : '',
-              item.title ? `${escapeHtml(item.title)}` : '',
-              item.note ? `${escapeHtml(item.note)}` : '',
+            const detail = [
+              item.progressPercent !== null && item.progressPercent !== undefined ? `${Number(item.progressPercent).toFixed(0)}%` : '',
+              item.title || '',
+              item.note || '',
             ].filter(Boolean).join(' • ');
-            
-            return `
-              <div class="pp-timeline-item">
-                <div class="pp-timeline-dot"></div>
-                <div class="pp-timeline-content">
-                  <div class="pp-timeline-title">${updateTitle}</div>
-                  <div class="pp-timeline-desc">${escapeHtml(updateDesc)}</div>
-                  <div class="pp-timeline-time">${escapeHtml(formatDateWithSameDayTime(item.createdAt))}</div>
-                </div>
-              </div>
-            `;
+
+            return `<div class="ppx-history-item ${Number(item.progressPercent || 0) < 30 ? 'warn' : ''}"><small>${escapeHtml(formatDateWithSameDayTime(item.createdAt || item.updatedAt))}</small><strong>${escapeHtml(stageLabel)} • ${escapeHtml(siteLabel)}</strong>${escapeHtml(detail || 'Mise à jour enregistrée')}<span class="ppx-sub">${escapeHtml(item.createdBy || 'Équipe projet')}</span></div>`;
           }).join('')
-        : '<div style="text-align:center; padding: 30px; color: #94a3b8; font-size: 12px;">Aucun suivi enregistré</div>';
+        : '<div class="ppx-empty-history"><span class="ppx-empty-history-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16h16V8z"/><path d="M14 2v6h6M8 13h8m-8 4h5"/></svg></span><strong>Aucun suivi récent</strong><span>Les mises à jour des étapes, commentaires et photos apparaîtront ici.</span></div>';
     }
 
     function selectProjectProgressFolder(folderKey) {
@@ -17985,6 +18540,8 @@
 
       renderProgressFolderQuickList();
       renderProjectProgressDashboard();
+      renderProjectProgressList();
+      renderProjectCarousel();
     }
 
     function renderProgressFolderQuickList() {
@@ -18107,102 +18664,82 @@
       if (!carousel || !dots) return;
 
       const scopedProjects = getScopedProjects(projectsCache);
-      const hierarchy = buildProjectHierarchy(scopedProjects, projectFoldersCache, projectCatalogCache);
-      if (!Number.isFinite(Number(selectedProjectProgressProjectId)) && hierarchy.length) {
-        selectedProjectProgressProjectId = Number(hierarchy[0].id);
+      const scopedFolders = getScopedProjectFolders(projectFoldersCache, scopedProjects);
+      const scopedCatalog = getScopedProjectCatalog(projectCatalogCache, scopedProjects);
+      const hierarchy = buildProjectHierarchy(scopedProjects, scopedFolders, scopedCatalog);
+      if (!hierarchy.length) {
+        carousel.innerHTML = '<div class="ppx-project-empty">Aucun projet disponible</div>';
+        dots.innerHTML = '';
+        document.querySelectorAll('.ppx-hero-switch').forEach(button => { button.style.display = 'none'; });
+        return;
       }
 
-      carousel.innerHTML = hierarchy.length
-        ? hierarchy.map((project, idx) => {
-            const totalZones = project.zones.length;
-            const totalSites = project.zones.reduce((sum, z) => sum + z.houses.length, 0);
-            const startDate = project.dateDebut ? new Date(project.dateDebut).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : '12 mai 2024';
-            const siteIds = new Set(project.zones.flatMap(zone => zone.houses.map(site => Number(site.id))));
-            const projectUpdates = (Array.isArray(projectProgressCache) ? projectProgressCache : []).filter(item => siteIds.has(Number(item.projectId || item.projetId || item.siteId)));
-            const progress = getAverageProgressForUpdates(projectUpdates);
-            
-            return `
-              <div class="pp-carousel-card" data-project-id="${project.id}">
-                <div class="pp-carousel-house" aria-hidden="true"><svg viewBox="0 0 170 118"><rect width="170" height="118" fill="#d7e7e2"/><circle cx="22" cy="22" r="13" fill="#f7cf5e"/><path d="M0 85h170v33H0z" fill="#4e9b89"/><path d="M32 87V43h74v44z" fill="#faf8ef"/><path d="M26 46 67 19h50l37 28z" fill="#2d201a"/><path d="M42 25h70v9H42z" fill="#4b3022"/><path d="M46 56h23v12H46zM82 56h26v20H82zM46 75h23v12H46zM116 69h17v18h-17z" fill="#28545b"/><path d="M112 51h24v36h-24z" fill="#d99c48"/></svg></div>
-                <div class="pp-carousel-content">
-                  <div class="pp-carousel-head">
-                    <div>
-                      <h3 class="pp-carousel-name">${escapeHtml(project.nomProjet || 'Projet')}</h3>
-                      <p class="pp-carousel-type">${escapeHtml(getProjectVillaTypeLabel(project) || 'Construction')}</p>
-                    </div>
-                    <span class="pp-carousel-badge">Projet actif</span>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div class="pp-carousel-meta">
-                      <span><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg>${totalZones} zone${totalZones > 1 ? 's' : ''}</span>
-                      <span><svg viewBox="0 0 24 24"><path d="M5 21V5l8-3 6 2v17M9 21v-4h3v4M9 8h1M9 12h1M15 8h1M15 12h1"/></svg>${totalSites} site${totalSites > 1 ? 's' : ''}</span>
-                      <span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Début : ${startDate}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="pp-carousel-progress" style="--project-progress:${progress}%;"><div class="pp-carousel-progress-core"><div><strong>${progress}%</strong><small>Avancement</small></div></div></div>
-                <button type="button" class="pp-carousel-action" data-project-id="${project.id}">Ouvrir le projet →</button>
-              </div>
-            `;
-          }).join('')
-        : '<div style="color: #94a3b8; padding: 40px 20px; text-align: center; font-size: 12px;">Aucun projet disponible</div>';
+      let selectedIndex = hierarchy.findIndex(project => Number(project.id) === Number(selectedProjectProgressProjectId));
+      if (selectedIndex < 0) selectedIndex = 0;
+      const project = hierarchy[selectedIndex];
+      selectedProjectProgressProjectId = Number(project.id);
+      const sites = project.zones.flatMap(zone => zone.houses || []);
+      const siteIds = new Set(sites.map(site => Number(site.id)).filter(Boolean));
+      const projectUpdates = (Array.isArray(projectProgressCache) ? projectProgressCache : []).filter(item => siteIds.has(Number(item.projectId || item.projetId || item.siteId)));
+      const progress = getAverageProgressForUpdates(projectUpdates);
+      const zonesLabel = project.zones.map(zone => String(zone.prefecture || '').trim()).filter(Boolean).slice(0, 2).join(', ') || 'Zone non renseignée';
+      const startDateRaw = project.dateDebut || sites.map(site => site.dateDebut).filter(Boolean).sort()[0] || '';
+      const startDate = startDateRaw ? formatDate(startDateRaw) : '12 mai 2024';
+      const projectType = project.typeProjet || getProjectVillaTypeLabel(project) || 'Construction résidentielle';
+      const projectIllustration = projectImage(project.nomProjet || 'Projet');
 
-      dots.innerHTML = hierarchy.length > 1
-        ? hierarchy.map((_, idx) => `<div class="pp-carousel-dot${idx === 0 ? ' active' : ''}" data-index="${idx}"></div>`).join('')
-        : '';
-
-      // Add carousel scroll sync
-      carousel.onscroll = () => {
-        const scrollLeft = carousel.scrollLeft;
-        const cardWidth = carousel.querySelector('.pp-carousel-card')?.offsetWidth || 0;
-        const currentIndex = Math.round(scrollLeft / (cardWidth + 12));
-        dots.querySelectorAll('.pp-carousel-dot').forEach((dot, idx) => {
-          dot.classList.toggle('active', idx === currentIndex);
-        });
-      };
-
-      dots.querySelectorAll('.pp-carousel-dot').forEach(dot => {
-        dot.addEventListener('click', () => {
-          const card = carousel.querySelectorAll('.pp-carousel-card')[Number(dot.dataset.index)];
-          if (!card) return;
-          carousel.scrollTo({ left: card.offsetLeft - carousel.offsetLeft, behavior: 'smooth' });
-          selectProjectProgressProject(card.dataset.projectId);
-          updateProjectProgressKPI();
-        });
+      carousel.innerHTML = `
+        <article class="ppx-project-hero" data-project-id="${Number(project.id)}">
+          <img class="ppx-hero-photo" src="${projectIllustration}" alt="Vue du chantier ${escapeHtml(project.nomProjet || 'projet')}">
+          <div class="ppx-hero-info">
+            <div class="ppx-hero-kicker">PROJET</div>
+            <div class="ppx-hero-title-row"><h1 class="ppx-hero-title">${escapeHtml(project.nomProjet || 'Projet')}</h1><span class="ppx-hero-status">Projet actif</span></div>
+            <p class="ppx-hero-type">${escapeHtml(projectType)}</p>
+            <div class="ppx-hero-meta">
+              <span><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg>${escapeHtml(zonesLabel)}</span>
+              <span><svg viewBox="0 0 24 24"><path d="M5 21V5l8-3 6 2v17M9 21v-4h3v4M9 8h1M9 12h1M15 8h1M15 12h1"/></svg>${sites.length} site${sites.length === 1 ? '' : 's'}</span>
+              <span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Début : ${escapeHtml(startDate)}</span>
+              <span><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6m1-11a3 3 0 0 1 0 6m2 0c2 .5 3 2 3 5"/></svg>Responsable : Équipe projet</span>
+            </div>
+          </div>
+          <div class="ppx-hero-progress" style="--ppx-progress:${progress}%;"><div class="ppx-hero-progress-core"><div><strong>${progress}%</strong><div class="ppx-hero-progress-label">Avancement global</div></div></div></div>
+          <div class="ppx-hero-actions"><button type="button" class="ppx-hero-action primary" data-ppx-project-action="open">Ouvrir le projet <span aria-hidden="true">→</span></button><button type="button" class="ppx-hero-action" data-ppx-project-action="edit"><span aria-hidden="true">✎</span> Modifier le projet</button></div>
+        </article>
+      `;
+      dots.innerHTML = '';
+      document.querySelectorAll('.ppx-hero-switch').forEach(button => {
+        button.style.display = hierarchy.length > 1 ? 'grid' : 'none';
       });
 
-      const scrollToProject = (direction) => {
-        const cards = Array.from(carousel.querySelectorAll('.pp-carousel-card'));
-        if (cards.length < 2) return;
-        const currentIndex = Math.max(0, cards.findIndex(card => Number(card.dataset.projectId) === Number(selectedProjectProgressProjectId)));
-        const nextIndex = (currentIndex + direction + cards.length) % cards.length;
-        carousel.scrollTo({ left: cards[nextIndex].offsetLeft - carousel.offsetLeft, behavior: 'smooth' });
-        selectProjectProgressProject(cards[nextIndex].dataset.projectId);
-        updateProjectProgressKPI();
+      const showProjectAt = index => {
+        const nextProject = hierarchy[(index + hierarchy.length) % hierarchy.length];
+        selectProjectProgressProject(nextProject.id);
+        renderProjectCarousel();
       };
       const previousButton = document.getElementById('pp-carousel-prev');
       const nextButton = document.getElementById('pp-carousel-next');
-      if (previousButton) previousButton.onclick = () => scrollToProject(-1);
-      if (nextButton) nextButton.onclick = () => scrollToProject(1);
+      if (previousButton) previousButton.onclick = () => showProjectAt(selectedIndex - 1);
+      if (nextButton) nextButton.onclick = () => showProjectAt(selectedIndex + 1);
+      carousel.querySelectorAll('[data-ppx-project-action]').forEach(button => {
+        button.addEventListener('click', () => openProjectProgressProject(button.dataset.ppxProjectAction === 'edit' ? 'settings' : 'summary'));
+      });
+    }
 
-      // Add carousel action buttons
-      carousel.querySelectorAll('.pp-carousel-action').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const projectId = btn.dataset.projectId;
-          selectProjectProgressProject(projectId);
-          updateProjectProgressKPI();
-          renderProjectProgressDashboard();
-        });
-      });
-      carousel.querySelectorAll('.pp-carousel-card').forEach(card => {
-        card.addEventListener('click', (event) => {
-          if (event.target.closest('.pp-carousel-action')) return;
-          selectProjectProgressProject(card.dataset.projectId);
-          updateProjectProgressKPI();
-          renderProjectProgressDashboard();
-        });
-      });
+    async function openProjectProgressProject(projectTab = 'summary') {
+      const { selectedProject } = getSelectedProjectProgressData();
+      if (!selectedProject) return;
+      showModule('projects');
+      await loadProjects();
+      const folders = buildProjectFolders(projectsCache, projectFoldersCache);
+      const selectedFolder = folders.find(folder => Number(folder.projectId) === Number(selectedProject.id))
+        || folders.find(folder => normalizeText(folder.nomProjet) === normalizeText(selectedProject.nomProjet));
+      if (selectedFolder) {
+        await selectProjectFolderAndOpen(selectedFolder.key);
+        document.querySelector(`#projects .project-tab[data-project-tab="${CSS.escape(projectTab)}"]`)?.click();
+      } else {
+        showProjectFolderChooser();
+        selectProjectForZoneCreation(selectedProject.id, { focus: false, scroll: false });
+      }
     }
 
     function getSelectedProjectProgressData() {
@@ -18238,6 +18775,7 @@
       const historyList = document.getElementById('project-progress-list');
       const pagination = document.getElementById('ppx-table-pagination');
       const progressChart = document.getElementById('ppx-progress-chart');
+      const datesList = document.getElementById('ppx-key-dates');
       if (!tableBody) return;
 
       const { selectedProject, sites, updates, stageNames } = getSelectedProjectProgressData();
@@ -18245,6 +18783,7 @@
         tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 30px; color: #94a3b8;">Aucun projet disponible</td></tr>';
         if (overviewGrid) overviewGrid.innerHTML = '';
         if (alertRow) alertRow.style.display = 'none';
+        if (datesList) datesList.innerHTML = '<div class="ppx-date-item muted"><strong>—</strong><small>Aucune date disponible</small></div>';
         return;
       }
 
@@ -18273,6 +18812,18 @@
       const waitingCount = rows.filter(row => row.latestPercent === 0).length;
       const overdueCount = 0;
 
+      if (datesList) {
+        const allDates = sites.flatMap(site => [site.dateDebut, site.dateFinPrevue, site.dateFinEstimee, site.dateFinReelle]).filter(Boolean).sort();
+        const startDate = selectedProject.dateDebut || sites.map(site => site.dateDebut).filter(Boolean).sort()[0] || (allDates.length ? allDates[0] : '2024-05-12');
+        const plannedEnd = sites.map(site => site.dateFinPrevue).filter(Boolean).sort()[0] || '';
+        const revisedEnd = sites.map(site => site.dateFinEstimee || site.dateFinReelle).filter(Boolean).sort()[0] || '';
+        datesList.innerHTML = [
+          { date: startDate, label: 'Date de début', active: true },
+          { date: plannedEnd, label: 'Date prévue de fin', active: Boolean(plannedEnd) },
+          { date: revisedEnd, label: 'Fin estimée (révisée)', active: Boolean(revisedEnd) },
+        ].map(item => `<div class="ppx-date-item ${item.active ? '' : 'muted'}"><strong>${item.date ? escapeHtml(formatDate(item.date)) : '—'}</strong><small>${item.label}</small></div>`).join('');
+      }
+
       if (overviewGrid) {
         overviewGrid.innerHTML = `
           <div class="ppx-overview-left"><div class="ppx-progress-donut" style="--ppx-progress:${averageProgress}%;"><div class="ppx-progress-donut-core"><div><strong>${averageProgress}%</strong><span>Global</span></div></div></div><div><b>Avancement global</b><small>${stageNames.length} étape${stageNames.length > 1 ? 's' : ''} suivie${stageNames.length > 1 ? 's' : ''}</small><a href="#">Voir le détail →</a></div></div>
@@ -18287,8 +18838,38 @@
         alertRow.innerHTML = `<span>⚠ ${overdueCount} étapes sont en retard</span><small>${stageNames.slice(0, 2).map(escapeHtml).join(' • ') || 'Aucune étape en retard'}</small><a class="project-summary-link" href="#">Voir les retards →</a>`;
       }
 
-      tableBody.innerHTML = rows.length
-        ? rows.map(row => `
+      let displayRows = rows;
+      if (projectProgressTableView === 'stages') {
+        displayRows = stageNames.map(stage => {
+          const relatedUpdates = updates.filter(item => normalizeStageKey(extractProgressMainStage(item.stage || item.etapeApprovisionnement || '')) === normalizeStageKey(stage));
+          const latest = relatedUpdates[0] || null;
+          const percent = relatedUpdates.length ? getAverageProgressForUpdates(relatedUpdates) : 0;
+          return { id: `stage-${normalizeStageKey(stage)}`, buildingLabel: stage, typeLabel: `${sites.length} site${sites.length === 1 ? '' : 's'}`, latestStage: stage, latestPercent: percent, latestChef: latest?.createdBy || '-', latestDate: latest?.createdAt || null, updatesCount: relatedUpdates.length, status: { label: percent >= 100 ? 'Terminé' : percent > 0 ? 'En construction' : 'À venir' } };
+        });
+      } else if (projectProgressTableView === 'zones') {
+        displayRows = selectedProject.zones.map(zone => {
+          const zoneSiteIds = new Set((zone.houses || []).map(site => Number(site.id)));
+          const relatedRows = rows.filter(row => zoneSiteIds.has(Number(row.id)));
+          const latest = relatedRows.reduce((candidate, row) => !candidate || toRecentTimestamp(row.latestDate) > toRecentTimestamp(candidate.latestDate) ? row : candidate, null);
+          const percent = relatedRows.length ? Math.round(relatedRows.reduce((sum, row) => sum + row.latestPercent, 0) / relatedRows.length) : 0;
+          return { id: `zone-${zone.key}`, buildingLabel: zone.prefecture || zone.nomProjet || 'Zone', typeLabel: `${relatedRows.length} site${relatedRows.length === 1 ? '' : 's'}`, latestStage: latest?.latestStage || '-', latestPercent: percent, latestChef: latest?.latestChef || '-', latestDate: latest?.latestDate || null, updatesCount: relatedRows.reduce((sum, row) => sum + row.updatesCount, 0), status: { label: percent >= 100 ? 'Terminé' : percent > 0 ? 'En construction' : 'À venir' } };
+        });
+      }
+
+      const progressQuery = normalizeText(projectProgressSearchTerm.trim());
+      if (progressQuery) {
+        displayRows = displayRows.filter(row => normalizeText([row.buildingLabel, row.typeLabel, row.latestStage, row.latestChef, row.status?.label].join(' ')).includes(progressQuery));
+      }
+      if (projectProgressStatusFilter !== 'all') {
+        displayRows = displayRows.filter(row => projectProgressStatusFilter === 'complete'
+          ? row.latestPercent >= 100
+          : projectProgressStatusFilter === 'in-progress'
+            ? row.latestPercent > 0 && row.latestPercent < 100
+            : row.latestPercent === 0);
+      }
+
+      tableBody.innerHTML = displayRows.length
+        ? displayRows.map(row => `
             <tr>
               <td><div class="ppx-site-cell"><span class="ppx-building-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V5l8-3 6 2v17M9 21v-4h3v4M9 8h1M9 12h1M15 8h1M15 12h1"/></svg></span><div>${escapeHtml(row.buildingLabel)}<small>${escapeHtml(row.typeLabel || 'Site')}</small></div></div></td>
               <td><span class="ppx-stage-name ${row.latestPercent < 30 && row.updatesCount ? 'warn' : ''}">${escapeHtml(row.latestStage)}</span><span class="ppx-sub">${row.updatesCount ? 'En cours' : 'À venir'}</span></td>
@@ -18299,9 +18880,9 @@
               <td>⋮</td>
             </tr>
           `).join('')
-        : '<tr><td colspan="7" style="text-align:center; padding: 30px; color: #94a3b8;">Aucun site dans ce projet</td></tr>';
+        : `<tr><td colspan="7" style="text-align:center; padding: 30px; color: #94a3b8;">${progressQuery ? 'Aucun résultat trouvé' : 'Aucun site dans ce projet'}</td></tr>`;
 
-      if (pagination) pagination.innerHTML = `<span>Affichage 1-${rows.length} sur ${rows.length} bâtiments</span><span>‹ &nbsp; 1 &nbsp; ›</span><span>10 / page</span>`;
+      if (pagination) pagination.innerHTML = `<span>Affichage ${displayRows.length ? 1 : 0}-${displayRows.length} sur ${displayRows.length} ${projectProgressTableView === 'zones' ? 'zones' : projectProgressTableView === 'stages' ? 'étapes' : 'bâtiments'}</span><span>‹ &nbsp; 1 &nbsp; ›</span><span>10 / page</span>`;
       if (stageFlow) {
         const flowStages = stageNames.length ? stageNames : ['Fondations', 'Élévation', 'Charpente', 'Électricité', 'Finitions'];
         stageFlow.innerHTML = flowStages.slice(0, 8).map((stage, index) => {
@@ -18312,21 +18893,25 @@
         }).join('');
       }
       if (progressChart) {
-        const chartValues = updates.length
-          ? updates.slice().reverse().map(item => Math.min(100, Math.max(0, Number(item.progressPercent || item.progress || 0))))
-          : [0];
+        const monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'short' });
+        const now = new Date();
+        const monthBuckets = Array.from({ length: 9 }, (_, index) => new Date(now.getFullYear(), now.getMonth() - 8 + index + 1, 0, 23, 59, 59, 999));
+        let lastMonthlyProgress = 0;
+        const chartValues = monthBuckets.map(monthEnd => {
+          const update = updates.find(item => toRecentTimestamp(item.createdAt || item.updatedAt) <= monthEnd.getTime());
+          if (update) lastMonthlyProgress = Math.min(100, Math.max(0, Number(update.progressPercent || update.progress || 0)));
+          return { value: lastMonthlyProgress, label: monthFormatter.format(new Date(monthEnd.getFullYear(), monthEnd.getMonth(), 1)) };
+        });
         const chartPoints = chartValues.map((percent, index) => {
           const x = chartValues.length === 1 ? 50 : 5 + (index * 90 / (chartValues.length - 1));
-          return { x, y: 96 - (percent * .88), percent };
+          return { x, y: 96 - (percent.value * .88), percent: percent.value, label: percent.label };
         });
         const linePoints = chartPoints.map(point => `${point.x},${point.y}`).join(' ');
         const areaPoints = `5,96 ${linePoints} 95,96`;
         const dots = chartPoints.map(point => `<circle cx="${point.x}" cy="${point.y}" r="2.5"/>`).join('');
         const lastPoint = chartPoints[chartPoints.length - 1];
         const yLabels = [100, 75, 50, 25, 0].map(value => `<span class="ppx-chart-label y" style="top:${100 - value}%;">${value}%</span>`).join('');
-        const xLabels = chartPoints.length > 1
-          ? chartPoints.map((point, index) => `<span class="ppx-chart-label x" style="left:${point.x}%;">${index + 1}</span>`).join('')
-          : '<span class="ppx-chart-label x" style="left:50%;">Aujourd\'hui</span>';
+        const xLabels = chartPoints.map(point => `<span class="ppx-chart-label x" style="left:${point.x}%">${escapeHtml(point.label)}</span>`).join('');
         progressChart.innerHTML = `${yLabels}${xLabels}<span class="ppx-chart-callout" style="left:${lastPoint.x}%;top:${lastPoint.y}%;">${lastPoint.percent}%</span><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="Courbe d'avancement"><polygon points="${areaPoints}"/><polyline points="${linePoints}"/>${dots}</svg>`;
       }
       if (historyList) {
@@ -22602,6 +23187,7 @@
         document.body.classList.remove('mobile-dock-open');
       }
       document.body.classList.toggle('mobile-module-topbar-visible', moduleName !== 'dashboard');
+      document.body.classList.toggle('project-progress-layout', moduleName === 'project-progress');
       document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
       const activeModuleEl = document.getElementById(moduleName);
       activeModuleEl?.classList.add('active');
@@ -25565,19 +26151,32 @@
             return getWarehouseIdForRequest({ id: requestId }) === selectedStockWarehouseId;
           })
         : stockIssuesCache;
-      const recentRows = sortRecent(rows, issue => issue?.issuedAt || issue?.createdAt || issue?.id);
+      const recentRows = sortRecent(rows, issue => issue?.issuedAt || issue?.createdAt || issue?.id).slice(0, 12);
+      const groupsBySite = new Map();
+      recentRows.forEach(issue => {
+        const projectName = String(issue?.nomProjet || issue?.projectName || '').trim() || 'Projet non renseigné';
+        const siteValue = String(issue?.numeroMaison || issue?.nomSite || issue?.siteName || '').trim();
+        const siteName = siteValue ? `Site ${siteValue}` : 'Site non renseigné';
+        const key = `${normalizeText(projectName)}::${normalizeText(siteValue)}`;
+        if (!groupsBySite.has(key)) groupsBySite.set(key, { projectName, siteName, issues: [] });
+        groupsBySite.get(key).issues.push(issue);
+      });
 
-      list.innerHTML = recentRows.length
-        ? recentRows.slice(0, 8).map(issue => `
-            <li class="list-item">
-              <div class="list-item-content">
-                <div class="list-item-title">${escapeHtml(issue.nomProjet || '-')} ${issue.numeroMaison ? `• Site ${escapeHtml(issue.numeroMaison)}` : ''} • ${escapeHtml(issue.itemName || '-')}</div>
-                <div class="list-item-meta">Sortie: ${Number(issue.quantiteSortie || 0).toFixed(2)} • ${formatDate(issue.issuedAt)}</div>
-                <div class="list-item-meta">Par: ${escapeHtml(issue.issuedBy || '-')}</div>
+      list.innerHTML = groupsBySite.size
+        ? Array.from(groupsBySite.values()).map(group => `
+            <section class="stock-history-site">
+              <div class="stock-history-site-heading"><strong>${escapeHtml(group.projectName)} · ${escapeHtml(group.siteName)}</strong><small>${group.issues.length} sortie${group.issues.length > 1 ? 's' : ''}</small></div>
+              <div class="stock-history-site-items">
+                ${group.issues.map(issue => `
+                  <article class="stock-history-movement">
+                    <div><strong>${escapeHtml(issue?.itemName || '-')}</strong><small>Sortie : ${Number(issue?.quantiteSortie || 0).toFixed(2)} · ${escapeHtml(formatDate(issue?.issuedAt || issue?.createdAt))}</small><small>Par : ${escapeHtml(issue?.issuedBy || '-')}</small></div>
+                    <span class="stock-history-movement-type">Sortie</span>
+                  </article>
+                `).join('')}
               </div>
-            </li>
+            </section>
           `).join('')
-        : '<div class="empty-state"><p>Aucune sortie enregistrée</p></div>';
+        : '<div class="empty-state"><p>Aucune sortie enregistrée pour cet entrepôt.</p></div>';
     }
 
     function renderStockManagementOverview() {
@@ -27521,54 +28120,145 @@
             : '<div class="empty-state"><p>Aucun véhicule enregistré</p></div>');
     }
 
+    function renderAutoMaintenanceDashboard() {
+      const tableBody = document.getElementById('auto-maintenance-table-body');
+      const vehicleSelect = document.getElementById('auto-maintenance-vehicle');
+      const vehicleFilter = document.getElementById('auto-maintenance-filter-vehicle');
+      const typeFilter = document.getElementById('auto-maintenance-filter-type');
+      const periodInput = document.getElementById('auto-maintenance-period');
+      if (!tableBody || !vehicleSelect || !vehicleFilter || !typeFilter || !periodInput) return;
+
+      const selectedVehicleId = vehicleSelect.value;
+      const selectedFilterVehicleId = vehicleFilter.value;
+      const selectedFilterType = typeFilter.value;
+      const vehicleOptions = autoVehiclesCache.map(vehicle =>
+        `<option value="${Number(vehicle.id)}">${escapeHtml(buildAutoVehicleLabel(vehicle))}</option>`
+      ).join('');
+      vehicleSelect.innerHTML = '<option value="">Sélectionner un véhicule</option>' + vehicleOptions;
+      vehicleFilter.innerHTML = '<option value="">Tous les véhicules</option>' + vehicleOptions;
+      if (selectedVehicleId && autoVehiclesCache.some(vehicle => String(vehicle.id) === selectedVehicleId)) vehicleSelect.value = selectedVehicleId;
+      if (selectedFilterVehicleId && autoVehiclesCache.some(vehicle => String(vehicle.id) === selectedFilterVehicleId)) vehicleFilter.value = selectedFilterVehicleId;
+
+      const uniqueTypes = [...new Set(autoMaintenanceCache.map(row => String(row.type || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+      typeFilter.innerHTML = '<option value="">Tous les types</option>' + uniqueTypes.map(type => `<option>${escapeHtml(type)}</option>`).join('');
+      if (selectedFilterType && uniqueTypes.includes(selectedFilterType)) typeFilter.value = selectedFilterType;
+
+      if (!periodInput.value) periodInput.value = new Date().toISOString().slice(0, 7);
+      const period = periodInput.value;
+      const periodRows = autoMaintenanceCache.filter(row => String(row.dateMaintenance || '').slice(0, 7) === period);
+      const totalCost = periodRows.reduce((sum, row) => sum + Number(row.cost || 0), 0);
+      const pendingCount = periodRows.filter(row => ['En attente', 'En cours'].includes(String(row.status || ''))).length;
+      const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      };
+      setText('auto-maintenance-kpi-cost', `${Math.round(totalCost).toLocaleString('fr-FR')} FCFA`);
+      setText('auto-maintenance-kpi-count', String(periodRows.length));
+      setText('auto-maintenance-kpi-pending', String(pendingCount));
+      setText('auto-maintenance-kpi-vehicles', String(autoVehiclesCache.length));
+
+      const searchValue = normalizeText(autoMaintenanceSearchTerm.trim());
+      const filteredRows = sortRecent(autoMaintenanceCache.filter(row => {
+        if (period && String(row.dateMaintenance || '').slice(0, 7) !== period) return false;
+        if (vehicleFilter.value && String(row.vehicleId) !== vehicleFilter.value) return false;
+        if (typeFilter.value && String(row.type || '') !== typeFilter.value) return false;
+        const statusFilter = document.getElementById('auto-maintenance-filter-status')?.value || '';
+        if (statusFilter && String(row.status || '') !== statusFilter) return false;
+        if (!searchValue) return true;
+        return normalizeText(`${row.nomVehicule || ''} ${row.marqueVehicule || ''} ${row.type || ''} ${row.supplier || ''} ${row.description || ''}`).includes(searchValue);
+      }), row => row?.dateMaintenance || row?.createdAt || row?.id);
+
+      tableBody.innerHTML = filteredRows.length
+        ? filteredRows.map(row => {
+            const status = String(row.status || 'Terminée');
+            const statusClass = status === 'En attente' ? 'pending' : status === 'En cours' ? 'progress' : status === 'Annulée' ? 'cancelled' : '';
+            const vehicleLabel = [row.nomVehicule, row.marqueVehicule].filter(Boolean).join(' ') || '-';
+            const nextDate = row.nextMaintenanceDate ? formatDate(row.nextMaintenanceDate) : '—';
+            return `<tr>
+              <td>${escapeHtml(formatDate(row.dateMaintenance))}</td>
+              <td><span class="auto-maintenance-vehicle">${escapeHtml(vehicleLabel)}<small>${escapeHtml(row.immatriculation || '')}</small></span></td>
+              <td>${escapeHtml(row.type || '-')}</td>
+              <td>${Number(row.mileage || 0) ? Number(row.mileage).toLocaleString('fr-FR') : '—'}</td>
+              <td>${Math.round(Number(row.cost || 0)).toLocaleString('fr-FR')}</td>
+              <td>${escapeHtml(row.supplier || '—')}</td>
+              <td><span class="auto-maintenance-status ${statusClass}">${escapeHtml(status)}</span></td>
+              <td>${escapeHtml(nextDate)}</td>
+              <td>${isAdmin() ? `<details class="auto-maintenance-actions"><summary aria-label="Actions maintenance">⋮</summary><button type="button" onclick="deleteAutoMaintenanceRecord(${Number(row.id)})">Supprimer</button></details>` : '—'}</td>
+            </tr>`;
+          }).join('')
+        : `<tr><td colspan="9"><div class="auto-maintenance-empty">${autoMaintenanceCache.length ? 'Aucune maintenance ne correspond à ces filtres.' : 'Aucune maintenance enregistrée pour cette période.'}</div></td></tr>`;
+    }
+
     function renderAutoTransportCostsList() {
-      const list = document.getElementById('auto-transports-list');
-      const listTitle = document.getElementById('auto-transports-list-title');
-      if (!list) return;
+      const tableBody = document.getElementById('auto-transports-table-body');
+      const periodInput = document.getElementById('auto-transport-period');
+      const vehicleSelect = document.getElementById('auto-transport-filter-vehicle');
+      const projectSelect = document.getElementById('auto-transport-filter-project');
+      const formProjectSelect = document.getElementById('auto-transport-project');
+      if (!tableBody || !periodInput || !vehicleSelect || !projectSelect || !formProjectSelect) return;
+
+      const selectedVehicle = vehicleSelect.value;
+      const selectedProject = projectSelect.value;
+      const selectedFormProject = formProjectSelect.value;
+      const vehicleOptions = autoVehiclesCache.map(vehicle => `<option value="${Number(vehicle.id)}">${escapeHtml(buildAutoVehicleLabel(vehicle))}</option>`).join('');
+      vehicleSelect.innerHTML = '<option value="">Tous les véhicules</option>' + vehicleOptions;
+      document.getElementById('auto-transport-vehicle').innerHTML = '<option value="">Sélectionner un véhicule</option>' + vehicleOptions;
+      if (selectedVehicle && autoVehiclesCache.some(vehicle => String(vehicle.id) === selectedVehicle)) vehicleSelect.value = selectedVehicle;
+      const projectOptions = autoTransportProjectsCache.map(project => `<option value="${Number(project.id)}">${escapeHtml(project.nomProjet || `Projet #${project.id}`)}</option>`).join('');
+      projectSelect.innerHTML = '<option value="">Tous les projets</option>' + projectOptions;
+      formProjectSelect.innerHTML = '<option value="">Tous les projets / non affecté</option>' + projectOptions;
+      if (selectedProject && autoTransportProjectsCache.some(project => String(project.id) === selectedProject)) projectSelect.value = selectedProject;
+      if (selectedFormProject && autoTransportProjectsCache.some(project => String(project.id) === selectedFormProject)) formProjectSelect.value = selectedFormProject;
+
+      if (!periodInput.value) periodInput.value = new Date().toISOString().slice(0, 7);
+      const period = periodInput.value;
+      const periodRows = autoTransportCostsCache.filter(cost => String(cost.dateTransport || '').slice(0, 7) === period);
+      const totalCost = periodRows.reduce((sum, cost) => sum + Number(cost.montantTotal || 0), 0);
+      const totalLiters = periodRows.reduce((sum, cost) => sum + Number(cost.quantiteConsommee || 0), 0);
+      const setText = (id, text) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = text;
+      };
+      setText('auto-transport-kpi-total', `${Math.round(totalCost).toLocaleString('fr-FR')} FCFA`);
+      setText('auto-transport-kpi-count', String(periodRows.length));
+      setText('auto-transport-kpi-liters', `${Math.round(totalLiters).toLocaleString('fr-FR')} L`);
+      setText('auto-transport-kpi-average', `${Math.round(periodRows.length ? totalCost / periodRows.length : 0).toLocaleString('fr-FR')} FCFA`);
 
       const searchValue = normalizeText(autoTransportSearchTerm.trim());
-      const isSearchActive = Boolean(searchValue);
-      const filteredCosts = searchValue
-        ? autoTransportCostsCache.filter(cost => {
-            const haystack = normalizeText(`${cost.nomVehicule || ''} ${cost.marqueVehicule || ''} ${cost.dateTransport || ''} ${cost.note || ''}`);
-            return haystack.includes(searchValue);
-          })
-        : autoTransportCostsCache.slice(0, 12);
+      const allPeriods = document.getElementById('auto-transport-filter-period')?.value === 'all';
+      const rows = sortRecent(autoTransportCostsCache.filter(cost => {
+        if (!allPeriods && period && String(cost.dateTransport || '').slice(0, 7) !== period) return false;
+        if (vehicleSelect.value && String(cost.vehicleId) !== vehicleSelect.value) return false;
+        if (projectSelect.value && String(cost.projectId || '') !== projectSelect.value) return false;
+        if (!searchValue) return true;
+        return normalizeText(`${cost.nomVehicule || ''} ${cost.marqueVehicule || ''} ${cost.projetNom || ''} ${cost.trajet || ''} ${cost.note || ''}`).includes(searchValue);
+      }), cost => cost?.dateTransport || cost?.createdAt || cost?.id);
 
-      if (listTitle) {
-        listTitle.textContent = isSearchActive ? 'Résultats de recherche' : 'Transports récents';
-      }
-
-      list.innerHTML = filteredCosts.length
-        ? filteredCosts.map(cost => `
-            <li class="list-item">
-              <div class="list-item-content">
-                <div class="list-item-title">${escapeHtml(cost.nomVehicule || '-')} • ${escapeHtml(cost.marqueVehicule || '-')}</div>
-                <div class="list-item-meta">Entrée: ${Number(cost.niveauEssenceEntree || 0).toFixed(2)}L • Sortie: ${Number(cost.niveauEssenceSortie || 0).toFixed(2)}L</div>
-                <div class="list-item-meta">Consommé: ${Number(cost.quantiteConsommee || 0).toFixed(2)}L • Prix local: ${Number(cost.prixLocalEssence || 0).toFixed(2)}FCFA/L</div>
-                <div class="list-item-meta">Date: ${formatDate(cost.dateTransport)}${cost.note ? ` • ${escapeHtml(cost.note)}` : ''}</div>
-              </div>
-              <div class="action-buttons">
-                <details class="actions-menu">
-                  <summary aria-label="Actions transport">&#8942;</summary>
-                  <div class="actions-dropdown">
-                    <button type="button" onclick="deleteAutoTransportCost(${cost.id})">Mettre en corbeille</button>
-                  </div>
-                </details>
-              </div>
-              <div style="font-weight: 600;">${Number(cost.montantTotal || 0).toFixed(2)} FCFA</div>
-            </li>
-          `).join('')
-        : (autoTransportCostsCache.length
-            ? '<div class="empty-state"><p>Aucun coût de transport ne correspond à la recherche</p></div>'
-            : '<div class="empty-state"><p>Aucun coût de transport enregistré</p></div>');
+      tableBody.innerHTML = rows.length
+        ? rows.map(cost => {
+            const vehicleName = [cost.nomVehicule, cost.marqueVehicule].filter(Boolean).join(' ') || '-';
+            const plate = cost.immatriculation || '';
+            return `<tr>
+              <td><input type="checkbox" aria-label="Sélectionner ce transport" disabled></td>
+              <td>${escapeHtml(formatDate(cost.dateTransport))}</td>
+              <td><span class="auto-transport-vehicle">${escapeHtml(vehicleName)}<small>${escapeHtml(plate)}</small></span></td>
+              <td><span class="auto-transport-project"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg><span>${escapeHtml(cost.trajet || 'Trajet non précisé')}<small>${escapeHtml(cost.projetNom || 'Projet non affecté')}</small></span></span></td>
+              <td>${Number(cost.quantiteConsommee || 0).toLocaleString('fr-FR')} L</td>
+              <td>${Number(cost.prixLocalEssence || 0).toLocaleString('fr-FR')}</td>
+              <td class="auto-transport-total">${Math.round(Number(cost.montantTotal || 0)).toLocaleString('fr-FR')} FCFA</td>
+              <td>${isAdmin() ? `<details class="auto-transport-actions"><summary aria-label="Actions transport">⋮</summary><button type="button" onclick="deleteAutoTransportCost(${Number(cost.id)})">Supprimer le transport</button></details>` : '—'}</td>
+            </tr>`;
+          }).join('')
+        : `<tr><td colspan="8"><div class="auto-transport-empty">${autoTransportCostsCache.length ? 'Aucun coût de transport ne correspond aux filtres.' : 'Aucun coût de transport enregistré pour cette période.'}</div></td></tr>`;
     }
 
     async function loadParcAuto(silentError = false) {
       try {
-        const [vehiclesWithLocations, costs] = await Promise.all([
+        const [vehiclesWithLocations, costs, maintenanceRecords, autoProjects] = await Promise.all([
           fetchJson('/api/auto-vehicle-locations'),
           fetchJson('/api/auto-transport-costs'),
+          fetchJson('/api/auto-maintenance-records'),
+          fetchJson('/api/projects').catch(() => []),
         ]);
 
         autoVehicleLocationsCache = Array.isArray(vehiclesWithLocations) ? vehiclesWithLocations : [];
@@ -27587,9 +28277,12 @@
           vehicle => vehicle?.createdAt || vehicle?.id
         );
         autoTransportCostsCache = sortRecent(costs, row => row?.dateTransport || row?.createdAt || row?.id);
+        autoTransportProjectsCache = Array.isArray(autoProjects) ? autoProjects : [];
+        autoMaintenanceCache = Array.isArray(maintenanceRecords) ? maintenanceRecords : [];
         populateAutoVehicleSelect();
         renderAutoVehiclesList();
         renderAutoTransportCostsList();
+        renderAutoMaintenanceDashboard();
         renderAutoMapSummary();
 
         const existingVehicle = autoVehiclesCache.find(vehicle => Number(vehicle.id) === Number(selectedAutoLocationVehicleId));
@@ -27642,6 +28335,19 @@
         loadDashboard();
       } catch (err) {
         showMessage('Erreur: ' + err.message, 'error');
+      }
+    };
+
+    window.deleteAutoMaintenanceRecord = async id => {
+      if (!isAdmin() || !confirm('Supprimer cette intervention de maintenance ?')) return;
+      try {
+        const record = autoMaintenanceCache.find(item => Number(item.id) === Number(id));
+        await fetchJson(`/api/auto-maintenance-records/${Number(id)}`, { method: 'DELETE' });
+        addTrashItem('parc-auto', 'Maintenance véhicule', record?.type || `Intervention #${id}`, record ? `${record.nomVehicule || '-'} • ${formatDate(record.dateMaintenance)}` : 'Suppression intervention');
+        showMessage('Intervention supprimée');
+        await loadParcAuto();
+      } catch (error) {
+        showMessage('Erreur: ' + error.message, 'error');
       }
     };
 
@@ -29468,6 +30174,36 @@
       }
     };
 
+    window.deleteProjectCatalog = async id => {
+      const projectId = Number(id);
+      const project = buildProjectHierarchy().find(item => Number(item.id) === projectId);
+      if (!Number.isInteger(projectId) || projectId <= 0 || !project) {
+        showMessage('Projet introuvable', 'error');
+        return;
+      }
+
+      const zoneCount = project.zones.length;
+      const siteCount = project.zones.reduce((total, zone) => total + (Array.isArray(zone.houses) ? zone.houses.length : 0), 0);
+      const warning = `Supprimer définitivement le projet « ${project.nomProjet} », ses ${zoneCount} zone${zoneCount === 1 ? '' : 's'} et ses ${siteCount} site${siteCount === 1 ? '' : 's'} ? Les données liées (demandes, achats, affectations, avancement, dépenses, revenus et sorties de stock) seront aussi supprimées.`;
+      if (!confirm(warning)) return;
+
+      try {
+        await fetchJson(`/api/project-catalog/${projectId}`, { method: 'DELETE' });
+        if (Number(selectedProjectCatalogId) === projectId) selectedProjectCatalogId = null;
+        selectedProjectGroupKey = null;
+        selectedProjectCreationFolderKey = '';
+        selectedProjectId = null;
+        showMessage(`Projet « ${project.nomProjet} » supprimé`);
+        await loadProjects();
+        loadAssignments();
+        loadMaterials();
+        loadProjectProgress();
+        loadDashboard();
+      } catch (err) {
+        showMessage('Erreur: ' + err.message, 'error');
+      }
+    };
+
     window.deleteProjectFolder = async (id, siteCount = 0) => {
       const totalSites = Number(siteCount || 0);
       const warning = totalSites > 0
@@ -29965,8 +30701,8 @@
         selectedProjectCatalogId = Number(createdProject.id) || null;
         e.target.reset();
         showMessage('Projet créé avec succès');
-        showProjectDetails();
-        loadProjects();
+        closeProjectCreationDialog();
+        await loadProjects();
         loadDashboard();
       } catch (err) {
         showMessage('Erreur: ' + err.message, 'error');
@@ -29998,9 +30734,9 @@
         selectedProjectCreationFolderKey = getProjectGroupKey(createdFolder);
         e.target.reset();
         showMessage('Zone créée avec succès');
-        showProjectDetails();
         await loadProjects();
         updateProjectCreationMode(selectedProjectCreationFolderKey, { focusHouseNumber: true, scrollToForm: true });
+        closeProjectCreationDialog();
       } catch (err) {
         showMessage('Erreur: ' + err.message, 'error');
       }
@@ -30087,6 +30823,7 @@
         showMessage(createdSites.length > 1
           ? `${createdSites.length} sites créés automatiquement avec succès`
           : 'Site ajouté au dossier projet avec succès');
+        closeProjectCreationDialog();
         loadProjects();
         loadDashboard();
       } catch (err) {
@@ -30885,6 +31622,37 @@
       }
     });
 
+    document.getElementById('auto-maintenance-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const payload = {
+        vehicleId: Number(document.getElementById('auto-maintenance-vehicle').value),
+        type: document.getElementById('auto-maintenance-type').value,
+        dateMaintenance: document.getElementById('auto-maintenance-date').value,
+        mileage: Number(document.getElementById('auto-maintenance-mileage').value || 0),
+        cost: Number(document.getElementById('auto-maintenance-cost').value || 0),
+        supplier: document.getElementById('auto-maintenance-supplier').value.trim(),
+        description: document.getElementById('auto-maintenance-description').value.trim(),
+        nextMaintenanceDate: document.getElementById('auto-maintenance-next-date').value,
+        partsReplaced: document.getElementById('auto-maintenance-parts').value.trim(),
+        status: document.getElementById('auto-maintenance-status').value,
+      };
+      if (!payload.vehicleId || !payload.type || !payload.dateMaintenance || !payload.description || !Number.isFinite(payload.cost)) {
+        showMessage('Véhicule, type, date, description et coût sont obligatoires', 'error');
+        return;
+      }
+      try {
+        await fetchJson('/api/auto-maintenance-records', { method: 'POST', body: JSON.stringify(payload) });
+        form.reset();
+        document.getElementById('auto-maintenance-date').value = formatDateForInput();
+        document.getElementById('auto-maintenance-status').value = 'Terminée';
+        showMessage('Maintenance enregistrée');
+        await loadParcAuto();
+      } catch (error) {
+        showMessage('Erreur: ' + error.message, 'error');
+      }
+    });
+
     document.getElementById('auto-transport-form').addEventListener('submit', async e => {
       e.preventDefault();
       try {
@@ -30893,10 +31661,12 @@
         const niveauEssenceSortie = Number(document.getElementById('auto-fuel-exit').value);
         const prixLocalEssence = Number(document.getElementById('auto-fuel-price').value);
         const dateTransport = document.getElementById('auto-transport-date').value;
+        const trajet = document.getElementById('auto-transport-trip').value.trim();
+        const projectId = document.getElementById('auto-transport-project').value || null;
         const note = document.getElementById('auto-transport-note').value.trim();
 
-        if (!vehicleId || Number.isNaN(niveauEssenceEntree) || Number.isNaN(niveauEssenceSortie) || Number.isNaN(prixLocalEssence) || !dateTransport) {
-          showMessage('Tous les champs transport obligatoires doivent être remplis', 'error');
+        if (!vehicleId || Number.isNaN(niveauEssenceEntree) || Number.isNaN(niveauEssenceSortie) || Number.isNaN(prixLocalEssence) || !dateTransport || !trajet) {
+          showMessage('Véhicule, niveaux d’essence, prix, trajet et date sont obligatoires', 'error');
           return;
         }
 
@@ -30908,14 +31678,17 @@
             niveauEssenceSortie,
             prixLocalEssence,
             dateTransport,
+            projectId,
+            trajet,
             note,
           }),
         });
 
         e.target.reset();
         document.getElementById('auto-transport-date').value = formatDateForInput();
+        renderAutoTransportCostsList();
         showMessage('Coût transport enregistré et ajouté dans Dépenses');
-        loadParcAuto();
+        await loadParcAuto();
         loadExpenses();
         loadDashboard();
       } catch (err) {
@@ -31186,12 +31959,7 @@
       selectedProjectId = null;
       selectedProjectCreationFolderKey = '';
       selectedProjectCatalogId = null;
-      showProjectDetails();
-      document.getElementById('project-create-form').reset();
-      document.getElementById('project-zone-form').reset();
-      document.getElementById('project-form').reset();
-      updateProjectCreationMode('', { focusHouseNumber: false, scrollToForm: true });
-      document.getElementById('project-create-name').focus();
+      openProjectCreationDialog('project');
     });
 
     const assignmentSearchInput = document.getElementById('assignment-search');
@@ -31311,7 +32079,69 @@
 
     document.getElementById('project-progress-search').addEventListener('input', e => {
       projectProgressSearchTerm = e.target.value;
+      renderProjectProgressDashboard();
       renderProjectProgressList();
+    });
+
+    [
+      ['ppx-view-buildings', 'buildings'],
+      ['ppx-view-stages', 'stages'],
+      ['ppx-view-zones', 'zones'],
+    ].forEach(([buttonId, view]) => {
+      document.getElementById(buttonId)?.addEventListener('click', () => {
+        projectProgressTableView = view;
+        document.querySelectorAll('#project-progress .ppx-tools .ppx-btn[id^="ppx-view-"]').forEach(button => {
+          button.classList.toggle('active', button.id === buttonId);
+        });
+        renderProjectProgressDashboard();
+      });
+    });
+
+    const progressFilterButton = document.getElementById('pp-filter-btn');
+    const progressFilterMenu = document.getElementById('ppx-filter-menu');
+    const progressStatusFilter = document.getElementById('ppx-status-filter');
+    progressFilterButton?.addEventListener('click', () => {
+      const isOpen = progressFilterMenu?.hidden;
+      if (progressFilterMenu) progressFilterMenu.hidden = !isOpen;
+      progressFilterButton.setAttribute('aria-expanded', String(Boolean(isOpen)));
+      if (isOpen) progressStatusFilter?.focus();
+    });
+    progressStatusFilter?.addEventListener('change', () => {
+      projectProgressStatusFilter = progressStatusFilter.value || 'all';
+      if (progressFilterMenu) progressFilterMenu.hidden = true;
+      progressFilterButton?.setAttribute('aria-expanded', 'false');
+      renderProjectProgressDashboard();
+    });
+
+    document.querySelectorAll('[data-project-progress-tab]').forEach(button => {
+      button.addEventListener('click', async () => {
+        const tab = button.dataset.projectProgressTab;
+        document.querySelectorAll('[data-project-progress-tab]').forEach(item => {
+          item.classList.toggle('active', item === button);
+          if (item === button) item.setAttribute('aria-current', 'page');
+          else item.removeAttribute('aria-current');
+        });
+
+        const localTargets = { overview: null, stages: 'ppx-stage-panel', buildings: 'ppx-buildings-panel' };
+        if (Object.prototype.hasOwnProperty.call(localTargets, tab)) {
+          if (currentModule !== 'project-progress') showModule('project-progress');
+          const target = localTargets[tab] ? document.getElementById(localTargets[tab]) : document.getElementById('project-progress');
+          target?.scrollIntoView({ behavior: 'smooth', block: tab === 'overview' ? 'start' : 'center' });
+          return;
+        }
+
+        const projectTabs = { zoning: 'zoning', sites: 'sites', documents: 'documents', team: 'team' };
+        if (projectTabs[tab]) {
+          await openProjectProgressProject(projectTabs[tab]);
+          return;
+        }
+        const targetModule = tab === 'costs' ? 'expenses' : 'purchase-orders';
+        document.querySelector(`.menu-item[data-module="${targetModule}"]`)?.click();
+      });
+    });
+
+    document.getElementById('ppx-history-all')?.addEventListener('click', () => {
+      document.querySelector('.menu-item[data-module="journal-chantier"]')?.click();
     });
 
     document.getElementById('journal-search').addEventListener('input', e => {
@@ -31449,6 +32279,33 @@
     document.getElementById('auto-transport-search').addEventListener('input', e => {
       autoTransportSearchTerm = e.target.value;
       renderAutoTransportCostsList();
+    });
+    ['auto-transport-period', 'auto-transport-filter-period', 'auto-transport-filter-vehicle', 'auto-transport-filter-project'].forEach(id => {
+      document.getElementById(id)?.addEventListener('change', () => renderAutoTransportCostsList());
+    });
+    document.getElementById('auto-transport-reset-filters')?.addEventListener('click', () => {
+      document.getElementById('auto-transport-filter-period').value = 'current';
+      document.getElementById('auto-transport-filter-vehicle').value = '';
+      document.getElementById('auto-transport-filter-project').value = '';
+      document.getElementById('auto-transport-search').value = '';
+      autoTransportSearchTerm = '';
+      renderAutoTransportCostsList();
+    });
+    document.getElementById('auto-transport-add-button')?.addEventListener('click', () => {
+      document.getElementById('auto-transport-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('auto-transport-vehicle')?.focus({ preventScroll: true });
+    });
+
+    document.getElementById('auto-maintenance-search')?.addEventListener('input', e => {
+      autoMaintenanceSearchTerm = e.target.value;
+      renderAutoMaintenanceDashboard();
+    });
+    ['auto-maintenance-period', 'auto-maintenance-filter-vehicle', 'auto-maintenance-filter-type', 'auto-maintenance-filter-status'].forEach(id => {
+      document.getElementById(id)?.addEventListener('change', () => renderAutoMaintenanceDashboard());
+    });
+    document.getElementById('auto-maintenance-add-button')?.addEventListener('click', () => {
+      document.getElementById('auto-maintenance-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('auto-maintenance-vehicle')?.focus({ preventScroll: true });
     });
 
     const autoLocationVehicle = document.getElementById('auto-location-vehicle');
@@ -32694,12 +33551,22 @@
         const isParcAutoSubmenu = module === 'parc-auto-maintenance' || module === 'parc-auto-transport';
         const resolvedModule = isParcAutoSubmenu ? 'parc-auto' : module;
 
+        document.body.classList.toggle('parc-auto-maintenance-view', module === 'parc-auto-maintenance');
+        document.body.classList.toggle('parc-auto-transport-view', module === 'parc-auto-transport');
+
         if (isRestrictedRole() && !getAllowedModules().has(module)) {
           showMessage('Acces refuse pour ce profil', 'error');
           return;
         }
 
         showModule(resolvedModule);
+        if (module === 'parc-auto-maintenance') {
+          document.getElementById('page-title').textContent = 'Maintenance et entretien';
+          document.getElementById('page-subtitle').textContent = 'Suivi des entretiens, réparations et prochaines échéances.';
+        } else if (module === 'parc-auto-transport') {
+          document.getElementById('page-title').textContent = 'Coûts des transports';
+          document.getElementById('page-subtitle').textContent = 'Suivi des consommations de carburant et des dépenses de transport.';
+        }
         item.classList.add('active');
 
         if (window.innerWidth <= 900) {
@@ -32786,7 +33653,7 @@
         if (module === 'parc-auto-maintenance' || module === 'parc-auto-transport') {
           setTimeout(() => {
             const sectionId = module === 'parc-auto-maintenance'
-              ? 'parc-auto-maintenance-section'
+              ? 'auto-maintenance-dashboard'
               : 'parc-auto-transport-section';
             document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 0);
@@ -33959,9 +34826,92 @@
       pollRealtimeNotifications();
     }
 
+    function setProjectCreateMenuOpen(isOpen) {
+      const dropdown = document.getElementById('project-create-dropdown');
+      const button = document.getElementById('project-new-project-button');
+      if (!dropdown || !button) return;
+      dropdown.classList.toggle('open', isOpen);
+      button.setAttribute('aria-expanded', String(isOpen));
+    }
+
+    function closeProjectCreationDialog() {
+      const dialog = document.getElementById('project-creation-dialog');
+      if (dialog?.open) dialog.close();
+      setProjectCreateMenuOpen(false);
+    }
+
+    function openProjectCreationDialog(action) {
+      const dialog = document.getElementById('project-creation-dialog');
+      const formCard = document.getElementById('project-creation-form-card');
+      const title = document.getElementById('project-creation-dialog-title');
+      if (!dialog || !formCard) return;
+
+      const actionTitles = { project: 'Créer un projet', zone: 'Ajouter une zone', site: 'Ajouter un site' };
+      if (!actionTitles[action]) return;
+      setProjectCreateMenuOpen(false);
+
+      document.querySelectorAll('[data-project-creation-section]').forEach(section => {
+        section.hidden = section.dataset.projectCreationSection !== action;
+      });
+      if (title) title.textContent = actionTitles[action];
+
+      if (action === 'project') {
+        selectedProjectCatalogId = null;
+        selectedProjectId = null;
+        selectedProjectGroupKey = null;
+        selectedProjectCreationFolderKey = '';
+        document.getElementById('project-create-form')?.reset();
+        updateProjectCreationMode('');
+      } else if (action === 'zone') {
+        document.getElementById('project-zone-form')?.reset();
+        populateProjectZoneProjectSelect();
+        const zoneSelect = document.getElementById('project-zone-project');
+        if (zoneSelect && selectedProjectCatalogId) zoneSelect.value = String(selectedProjectCatalogId);
+      } else {
+        populateProjectCreationFolders(projectsCache);
+        updateProjectCreationMode(selectedProjectCreationFolderKey);
+      }
+
+      if (!dialog.open) dialog.showModal();
+      window.requestAnimationFrame(() => {
+        const focusTarget = action === 'project'
+          ? document.getElementById('project-create-name')
+          : action === 'zone'
+            ? (document.getElementById('project-zone-project')?.value ? document.getElementById('project-zone-prefecture') : document.getElementById('project-zone-project'))
+            : (selectedProjectCreationFolderKey ? document.getElementById('project-site-number-start') : document.getElementById('project-existing-folder'));
+        focusTarget?.focus();
+      });
+    }
+
     function setupProjectModuleTabs() {
       const module = document.getElementById('projects');
       if (!module) return;
+
+      const creationFormCard = document.getElementById('project-creation-form-card');
+      const creationDialogBody = document.getElementById('project-create-dialog-body');
+      if (creationFormCard && creationDialogBody && !creationDialogBody.contains(creationFormCard)) {
+        creationDialogBody.appendChild(creationFormCard);
+      }
+
+      const creationDialog = document.getElementById('project-creation-dialog');
+      document.getElementById('project-creation-dialog-close')?.addEventListener('click', closeProjectCreationDialog);
+      creationDialog?.addEventListener('click', event => {
+        if (event.target === creationDialog) closeProjectCreationDialog();
+      });
+
+      const createDropdown = document.getElementById('project-create-dropdown');
+      document.getElementById('project-new-project-button')?.addEventListener('click', () => {
+        setProjectCreateMenuOpen(!createDropdown?.classList.contains('open'));
+      });
+      createDropdown?.querySelectorAll('[data-project-create-action]').forEach(item => {
+        item.addEventListener('click', () => openProjectCreationDialog(item.dataset.projectCreateAction));
+      });
+      document.addEventListener('click', event => {
+        if (createDropdown && !createDropdown.contains(event.target)) setProjectCreateMenuOpen(false);
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') setProjectCreateMenuOpen(false);
+      });
 
       const legacyContent = [
         module.querySelector('.page-header'),
@@ -33990,11 +34940,6 @@
       };
 
       tabs.forEach(tab => tab.addEventListener('click', () => activate(tab.dataset.projectTab)));
-      document.getElementById('project-new-project-button')?.addEventListener('click', () => {
-        activate('summary', true);
-        showProjectDetails();
-        document.getElementById('project-create-name')?.focus();
-      });
       document.getElementById('project-dashboard-button')?.addEventListener('click', () => {
         showModule('project-progress');
         loadProjectProgress();
@@ -34017,17 +34962,13 @@
       module.querySelectorAll('[data-project-action]').forEach(button => {
         button.addEventListener('click', event => {
           event.preventDefault();
-          activate('summary');
           const action = button.dataset.projectAction;
           if (action === 'create-zone') {
-            activate('summary', true);
-            showProjectDetails({ showManager: true });
-            document.getElementById('project-zone-prefecture')?.focus();
+            openProjectCreationDialog('zone');
           } else if (action === 'create-site') {
-            activate('summary', true);
-            showProjectDetails({ showManager: true });
-            document.getElementById('project-existing-folder')?.focus();
+            openProjectCreationDialog('site');
           } else if (action === 'open-sites') {
+            activate('summary');
             document.getElementById('project-search')?.focus();
           } else if (action === 'open-documents') {
             showModule('database');
