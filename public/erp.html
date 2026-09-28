@@ -12002,8 +12002,9 @@
             #expenses .expenses-breakdown-row { display:grid; grid-template-columns:minmax(150px,1.1fr) repeat(4,minmax(105px,1fr)) minmax(125px,1.1fr) 70px; gap:8px; align-items:center; min-height:50px; padding:9px 12px; border-bottom:1px solid #edf1f6; color:#526781; font-size:12px; }
             #expenses .expenses-breakdown-row.header { min-height:44px; background:#f4f7fb; color:#586b84; font-size:10px; font-weight:800; text-transform:uppercase; }
             #expenses .expenses-breakdown-row.total { background:#edf6ff; color:#1268cf; font-weight:700; }
-            #expenses .expenses-breakdown-row strong { color:#203755; font-weight:750; text-align:right; white-space:nowrap; }
-            #expenses .expenses-breakdown-row span:last-child { text-align:right; }
+            #expenses .expenses-breakdown-row > :not(:first-child) { text-align:center; }
+            #expenses .expenses-breakdown-row strong { color:#203755; font-weight:750; white-space:nowrap; }
+            #expenses .expenses-breakdown-row span:last-child { text-align:center; }
             #expenses .expenses-project-progress { height:6px; overflow:hidden; border-radius:999px; background:#e5edf6; }
             #expenses .expenses-project-progress i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#1677f2,#16b9de); }
             @media (max-width:1150px) {
@@ -12121,18 +12122,35 @@
             #revenues .revenue-form label { display:block; margin:0 0 5px; color:#536582; font-size:10px; font-weight:800; }
             #revenues .revenue-form input, #revenues .revenue-form select { width:100%; height:38px; padding:0 10px; border:1px solid #d4e0f2; border-radius:7px; color:#526887; background:#fff; font-size:11px; }
             #revenues .revenue-submit { width:100%; min-height:40px; border:0; border-radius:7px; background:linear-gradient(90deg,#5367f5,#12b8dc); color:#fff; font-size:11px; font-weight:800; cursor:pointer; }
+            #revenues .revenue-form textarea { width:100%; min-height:58px; padding:9px 10px; border:1px solid #d4e0f2; border-radius:7px; color:#526887; background:#fff; font:400 11px 'DM Sans','Segoe UI',sans-serif; resize:vertical; }
             #revenues .revenue-list-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
             #revenues .revenue-list-tools { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; gap:9px; margin-bottom:12px; }
             #revenues .revenue-list-tools select, #revenues .revenue-list-tools input, #revenues .revenue-list-tools button { width:100%; height:38px; padding:0 10px; border:1px solid #d4e0f2; border-radius:7px; background:#fff; color:#526887; font-size:11px; }
             #revenues .revenue-list-tools button { color:#266fd8; font-weight:700; cursor:pointer; }
             #revenues #revenues-list { display:grid; gap:0; margin:0; padding:0; border:1px solid #e5edf6; border-radius:8px; overflow:hidden; }
-            #revenues #revenues-list > li { display:grid; grid-template-columns:90px minmax(150px,1.1fr) minmax(180px,1.7fr) minmax(120px,1fr) 145px 38px; gap:10px; align-items:center; min-height:54px; padding:9px 12px; border:0; border-bottom:1px solid #edf1f6; border-radius:0; color:#52617b; font-size:12px; }
-            #revenues .revenue-table-head { display:grid; grid-template-columns:90px minmax(150px,1.1fr) minmax(180px,1.7fr) minmax(120px,1fr) 145px 38px; gap:10px; padding:10px 12px; background:#f5f8fd; color:#53627d; font-size:10px; font-weight:800; text-transform:uppercase; }
+            #revenues #revenues-list > li { display:grid; grid-template-columns:90px minmax(140px,1.05fr) minmax(125px,1fr) minmax(150px,1.2fr) minmax(180px,1.7fr) 145px 110px 38px; gap:10px; align-items:center; min-height:54px; padding:9px 12px; border:0; border-bottom:1px solid #edf1f6; border-radius:0; color:#52617b; font-size:12px; }
+            #revenues .revenue-table-head { display:grid; grid-template-columns:90px minmax(140px,1.05fr) minmax(125px,1fr) minmax(150px,1.2fr) minmax(180px,1.7fr) 145px 110px 38px; gap:10px; padding:10px 12px; background:#f5f8fd; color:#53627d; font-size:10px; font-weight:800; text-transform:uppercase; }
             #revenues .revenue-amount { color:#172c4c; font-size:13px; font-weight:800; white-space:nowrap; }
             #revenues .revenue-type { display:inline-flex; width:max-content; padding:5px 8px; border-radius:5px; background:#e4f8f3; color:#0c987e; font-size:10px; font-weight:800; }
             #revenues .revenue-action { display:grid; width:30px; height:30px; place-items:center; border:1px solid #d9e3f3; border-radius:6px; background:#fff; color:#55709e; cursor:pointer; }
+            #revenues .revenue-analysis { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(360px,.9fr); gap:14px; margin-top:14px; }
+            #revenues .revenue-analysis-card { min-width:0; padding:18px; border:1px solid #e1e9f7; border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
+            #revenues .revenue-analysis-card h2 { margin:0 0 14px; color:#162b4b; font:800 16px/1.25 'Manrope','DM Sans',sans-serif; }
+            #revenues .revenue-analysis-table { display:grid; border:1px solid #e5edf6; border-radius:8px; overflow:hidden; }
+            #revenues .revenue-analysis-row { display:grid; grid-template-columns:minmax(150px,1.5fr) minmax(130px,1fr) 80px 130px 80px; gap:8px; align-items:center; min-height:44px; padding:8px 10px; border-bottom:1px solid #edf1f6; color:#52617b; font-size:11px; }
+            #revenues .revenue-analysis-row.header { background:#f5f8fd; color:#53627d; font-size:9px; font-weight:800; text-transform:uppercase; }
+            #revenues .revenue-analysis-row.total { background:#eef6ff; color:#155cc0; font-weight:800; }
+            #revenues .revenue-analysis-row strong { color:#172c4c; text-align:right; white-space:nowrap; }
+            #revenues .revenue-progress { height:7px; overflow:hidden; border-radius:999px; background:#e4edf7; }
+            #revenues .revenue-progress i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#1677f2,#16b9de); }
+            #revenues .revenue-donut-wrap { display:grid; grid-template-columns:minmax(230px,1fr) minmax(170px,.8fr); align-items:center; gap:12px; min-height:330px; }
+            #revenues .revenue-donut-wrap svg { width:min(100%,330px); height:auto; }
+            #revenues .revenue-chart-legend { display:grid; gap:9px; }
+            #revenues .revenue-chart-legend-row { display:grid; grid-template-columns:11px minmax(0,1fr) auto; gap:7px; align-items:center; color:#536984; font-size:11px; }
+            #revenues .revenue-chart-legend-row i { width:11px; height:11px; border-radius:50%; }
             @media(max-width:1100px){#revenues .revenue-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
-            @media(max-width:760px){#revenues .revenue-layout{grid-template-columns:1fr}#revenues .revenue-list-tools{grid-template-columns:repeat(2,minmax(0,1fr))}#revenues .revenue-table-head,#revenues #revenues-list > li{min-width:820px}#revenues .revenue-list-wrap{overflow-x:auto}}
+            @media(max-width:1100px){#revenues .revenue-analysis{grid-template-columns:1fr}}
+            @media(max-width:760px){#revenues .revenue-layout{grid-template-columns:1fr}#revenues .revenue-list-tools{grid-template-columns:repeat(2,minmax(0,1fr))}#revenues .revenue-table-head,#revenues #revenues-list > li{min-width:1120px}#revenues .revenue-list-wrap{overflow-x:auto}#revenues .revenue-analysis-row{min-width:700px}#revenues .revenue-analysis-table{overflow-x:auto}#revenues .revenue-donut-wrap{grid-template-columns:1fr}}
             @media(max-width:460px){#revenues .revenue-kpis{grid-template-columns:1fr}#revenues .revenue-list-tools{grid-template-columns:1fr}}
           </style>
           <div class="page-header">
@@ -12152,17 +12170,26 @@
               <h2>Enregistrer un revenu</h2><p class="revenue-card-subtitle">Ajoutez un nouveau revenu dans vos projets.</p>
               <form id="revenue-form" class="revenue-form">
                 <div class="form-group"><label>Projet *</label><select id="revenue-project" required></select></div>
-                <div class="form-group"><label>Description *</label><input type="text" id="revenue-desc" placeholder="Ex: Paiement maçonnerie, subvention..." required /></div>
+                <div class="form-group"><label>Type de revenu *</label><select id="revenue-type" required><option value="">Choisir un type</option><option value="Paiement client">Paiement client</option><option value="Subvention">Subvention</option><option value="Remboursement">Remboursement</option><option value="Autre revenu">Autre revenu</option></select></div>
+                <div class="form-group"><label>Client / Organisme (optionnel)</label><input type="text" id="revenue-client" placeholder="Ex: Client privé, gouvernement..." /></div>
+                <div class="form-group"><label>Description *</label><textarea id="revenue-desc" placeholder="Ex: Paiement maçonnerie, subvention..." required></textarea></div>
                 <div class="form-group"><label>Montant (FCFA) *</label><input type="number" id="revenue-amount" step="0.01" placeholder="Ex: 500 000" required /></div>
                 <div class="form-group"><label>Date du revenu *</label><input type="date" id="revenue-date" required /></div>
+                <div class="form-group"><label>Référence (optionnelle)</label><input type="text" id="revenue-reference" placeholder="Ex: FAC-001, SUB-2026-01..." /></div>
+                <div class="form-group"><label>Pièce justificative (optionnelle)</label><input type="file" id="revenue-attachment" accept=".pdf,.jpg,.jpeg,.png" /></div>
+                <div class="form-group"><label>Note (optionnelle)</label><textarea id="revenue-note" placeholder="Détails supplémentaires..."></textarea></div>
                 <button type="submit" class="revenue-submit">Enregistrer un revenu</button>
               </form>
             </section>
             <section class="revenue-card">
               <div class="revenue-list-head"><div><h2 id="revenues-list-title">Revenus récents</h2><p class="revenue-card-subtitle">Liste des derniers revenus enregistrés.</p></div><button type="button" class="button button-secondary" onclick="exportTableToExcel('revenues-list','revenus')">⬆ Exporter (Excel)</button></div>
               <div class="revenue-list-tools"><select aria-label="Tous les projets"><option>Tous les projets</option></select><select aria-label="Tous les types"><option>Tous les types</option></select><input type="search" id="revenue-search" placeholder="Rechercher un revenu (description, projet...)" /><button type="button" onclick="document.getElementById('revenue-search').value=''; revenueSearchTerm=''; loadRevenues();">Réinitialiser</button></div>
-              <div class="revenue-list-wrap"><div class="revenue-table-head"><span>Date</span><span>Projet</span><span>Description</span><span>Type de revenu</span><span>Montant (FCFA)</span><span>Actions</span></div><ul id="revenues-list" class="list"></ul></div>
+              <div class="revenue-list-wrap"><div class="revenue-table-head"><span>Date</span><span>Projet</span><span>Type de revenu</span><span>Client / Organisme</span><span>Description</span><span>Montant (FCFA)</span><span>Référence</span><span>Actions</span></div><ul id="revenues-list" class="list"></ul></div>
             </section>
+          </div>
+          <div class="revenue-analysis">
+            <section class="revenue-analysis-card"><h2>Revenus par projet</h2><div id="revenues-by-project-analysis"></div></section>
+            <section class="revenue-analysis-card"><h2>Répartition des revenus</h2><div id="revenues-distribution-analysis"></div></section>
           </div>
         </div>
 
@@ -28872,6 +28899,46 @@
       setText('revenues-kpi-total-note', `${rows.length} revenu${rows.length === 1 ? '' : 's'} sur la période`);
     }
 
+    function renderRevenueAnalysis(revenues) {
+      const projectContainer = document.getElementById('revenues-by-project-analysis');
+      const distributionContainer = document.getElementById('revenues-distribution-analysis');
+      if (!projectContainer || !distributionContainer) return;
+
+      const byProject = {};
+      const byType = {};
+      (Array.isArray(revenues) ? revenues : []).forEach(revenue => {
+        const amountValue = Number(revenue?.amount || 0);
+        const amount = Number.isFinite(amountValue) ? amountValue : 0;
+        const project = String(revenue?.projetNom || 'Autre projet').trim() || 'Autre projet';
+        const type = getRevenueType(revenue);
+        byProject[project] = (byProject[project] || 0) + amount;
+        byType[type] = (byType[type] || 0) + amount;
+      });
+
+      const projectEntries = Object.entries(byProject).map(([label, total]) => ({ label, total })).sort((a, b) => b.total - a.total);
+      const grandTotal = projectEntries.reduce((sum, entry) => sum + entry.total, 0);
+      const formatMoney = amount => Math.round(amount).toLocaleString('fr-FR');
+      if (!projectEntries.length || grandTotal <= 0) {
+        projectContainer.innerHTML = '<p style="color:#64748b;">Aucun revenu enregistré.</p>';
+        distributionContainer.innerHTML = '<p style="color:#64748b;">Aucune donnée disponible.</p>';
+        return;
+      }
+
+      let projectHtml = '<div class="revenue-analysis-table"><div class="revenue-analysis-row header"><span>Projet</span><span>Montant (FCFA)</span><span>Part</span><span>Progression</span><span></span></div>';
+      projectEntries.forEach(entry => {
+        const share = entry.total / grandTotal * 100;
+        projectHtml += `<div class="revenue-analysis-row"><span>${escapeHtml(entry.label)}</span><strong>${formatMoney(entry.total)}</strong><span>${share.toFixed(1)}%</span><span class="revenue-progress"><i style="width:${share.toFixed(1)}%"></i></span><span>${share.toFixed(0)}%</span></div>`;
+      });
+      projectHtml += `<div class="revenue-analysis-row total"><span>TOTAL GÉNÉRAL</span><strong>${formatMoney(grandTotal)}</strong><span>100%</span><span class="revenue-progress"><i style="width:100%"></i></span><span>100%</span></div></div>`;
+      projectContainer.innerHTML = projectHtml;
+
+      const colors = { 'Paiement client': '#21bfae', Subvention: '#8358e8', Remboursement: '#f5ad21', 'Autre revenu': '#1677f2' };
+      const typeEntries = Object.entries(byType).map(([label, total]) => ({ label, total })).filter(entry => entry.total > 0);
+      const chart = buildPieChartHtml(typeEntries, 'Répartition des revenus');
+      const legend = typeEntries.map(entry => `<div class="revenue-chart-legend-row"><i style="background:${colors[entry.label] || '#1677f2'}"></i><span>${escapeHtml(entry.label)}</span><strong>${formatMoney(entry.total)} (${(entry.total / grandTotal * 100).toFixed(1)}%)</strong></div>`).join('');
+      distributionContainer.innerHTML = `<div class="revenue-donut-wrap"><div>${chart}</div><div class="revenue-chart-legend">${legend}</div></div>`;
+    }
+
     async function loadRevenues() {
       try {
         const [revenuesRaw, projects] = await Promise.all([
@@ -28879,7 +28946,9 @@
           fetchJson('/api/projects'),
         ]);
         const revenues = sortRecent(revenuesRaw, row => row?.dateRevenue || row?.createdAt || row?.id);
+        window._lastRevenues = revenues;
         renderRevenueKpis(revenues);
+        renderRevenueAnalysis(revenues);
 
         const list = document.getElementById('revenues-list');
         const listTitle = document.getElementById('revenues-list-title');
@@ -28887,7 +28956,7 @@
         const isSearchActive = Boolean(searchValue);
         const filteredRevenues = searchValue
           ? revenues.filter(r => {
-              const haystack = normalizeText(`${r.description || ''} ${r.projetNom || ''} ${r.dateRevenue || ''}`);
+              const haystack = normalizeText(`${r.description || ''} ${r.projetNom || ''} ${r.clientOrganisme || ''} ${r.reference || ''} ${r.type || ''} ${r.dateRevenue || ''}`);
               return haystack.includes(searchValue);
             })
           : revenues.slice(0, 12);
@@ -28903,9 +28972,11 @@
               return `<li class="list-item">
                 <span>${escapeHtml(formatDate(r.dateRevenue))}</span>
                 <span>${escapeHtml(r.projetNom || 'Aucun projet')}</span>
-                <span title="${escapeHtml(r.description || '')}">${escapeHtml(r.description || '-')}</span>
                 <span><span class="revenue-type">${escapeHtml(type)}</span></span>
+                <span title="${escapeHtml(r.clientOrganisme || '')}">${escapeHtml(r.clientOrganisme || '-')}</span>
+                <span title="${escapeHtml(r.description || '')}">${escapeHtml(r.description || '-')}</span>
                 <span class="revenue-amount">${Number.isFinite(amount) ? amount.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : '0'} FCFA</span>
+                <span>${escapeHtml(r.reference || '-')}</span>
                 <span>${isExecutive() ? '—' : `<button type="button" class="revenue-action" aria-label="Actions revenu" onclick="deleteRevenue(${Number(r.id)})">⋮</button>`}</span>
               </li>`;
             }).join('')
@@ -31930,9 +32001,14 @@
           method: 'POST',
           body: JSON.stringify({
             projetId: document.getElementById('revenue-project').value || null,
+            type: document.getElementById('revenue-type').value,
+            clientOrganisme: document.getElementById('revenue-client').value.trim(),
             description: document.getElementById('revenue-desc').value.trim(),
             amount: document.getElementById('revenue-amount').value,
             dateRevenue: document.getElementById('revenue-date').value,
+            reference: document.getElementById('revenue-reference').value.trim(),
+            attachmentName: document.getElementById('revenue-attachment').files?.[0]?.name || '',
+            note: document.getElementById('revenue-note').value.trim(),
           }),
         });
         e.target.reset();

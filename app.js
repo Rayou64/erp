@@ -2964,11 +2964,25 @@ async function initDb() {
     id INTEGER PRIMARY KEY,
     projetId INTEGER NOT NULL,
     description TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'Autre revenu',
+    clientOrganisme TEXT NOT NULL DEFAULT '',
     amount REAL NOT NULL,
     dateRevenue TEXT NOT NULL,
+    reference TEXT NOT NULL DEFAULT '',
+    attachmentName TEXT NOT NULL DEFAULT '',
+    note TEXT NOT NULL DEFAULT '',
     createdBy TEXT NOT NULL,
     FOREIGN KEY(projetId) REFERENCES projects(id) ON DELETE CASCADE
   )`);
+  for (const column of [
+    ['type', "TEXT NOT NULL DEFAULT 'Autre revenu'"],
+    ['clientOrganisme', "TEXT NOT NULL DEFAULT ''"],
+    ['reference', "TEXT NOT NULL DEFAULT ''"],
+    ['attachmentName', "TEXT NOT NULL DEFAULT ''"],
+    ['note', "TEXT NOT NULL DEFAULT ''"],
+  ]) {
+    try { await run(`ALTER TABLE revenues ADD COLUMN ${column[0]} ${column[1]}`); } catch (error) {}
+  }
 
   await run(`CREATE TABLE IF NOT EXISTS generated_documents (
     id INTEGER PRIMARY KEY,
@@ -7869,7 +7883,17 @@ app.patch('/api/expenses/:id/status', async (req, res) => {
 });
 
 app.post('/api/revenues', async (req, res) => {
-  const { projetId, description, amount, dateRevenue } = req.body;
+  const {
+    projetId,
+    type = 'Autre revenu',
+    clientOrganisme = '',
+    description,
+    amount,
+    dateRevenue,
+    reference = '',
+    attachmentName = '',
+    note = '',
+  } = req.body;
   if (!projetId || !description || !amount) {
     return res.status(400).json({ error: 'Champs obligatoires manquants' });
   }
@@ -7882,8 +7906,8 @@ app.post('/api/revenues', async (req, res) => {
 
   const nextRevenueId = await getNextTableId('revenues');
   const result = await run(
-    'INSERT INTO revenues (id, projetId, description, amount, dateRevenue, createdBy) VALUES (?, ?, ?, ?, ?, ?)',
-    [nextRevenueId, numericProjectId, String(description).trim(), numericAmount, dateRevenue ? new Date(dateRevenue).toISOString() : new Date().toISOString(), req.user.username]
+    'INSERT INTO revenues (id, projetId, description, type, clientOrganisme, amount, dateRevenue, reference, attachmentName, note, createdBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [nextRevenueId, numericProjectId, String(description).trim(), String(type || 'Autre revenu').trim(), String(clientOrganisme || '').trim(), numericAmount, dateRevenue ? new Date(dateRevenue).toISOString() : new Date().toISOString(), String(reference || '').trim(), String(attachmentName || '').trim(), String(note || '').trim(), req.user.username]
   );
 
   await archiveRevenueInvoicePdf(result.lastID || nextRevenueId);
