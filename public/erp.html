@@ -7719,6 +7719,145 @@
     [data-theme="dark"] .audit-title { color: #f1f5f9; }
     [data-theme="dark"] .audit-icon { background: rgba(99,102,241,0.2); }
 
+    .reports-page-header { display:flex; justify-content:space-between; align-items:flex-end; gap:18px; margin-bottom:20px; flex-wrap:wrap; }
+    .reports-page-header h1 { margin:3px 0 4px; color:#163b76; font-family:'Manrope','DM Sans',sans-serif; font-size:28px; }
+    .reports-page-header p { color:#6b7c99; font-size:13px; }
+    .reports-eyebrow,.reports-chart-kicker { color:#2784ec; font-size:9px; font-weight:800; letter-spacing:1px; }
+    .reports-generate-controls { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+    .reports-generate-controls select { min-height:40px; padding:0 10px; border:1px solid #cfdef4; border-radius:8px; background:#fff; color:#31496e; font-size:12px; }
+    .reports-generate-button { display:flex; align-items:center; gap:8px; min-height:40px; padding:0 14px; border:0; border-radius:8px; background:linear-gradient(105deg,#1688ef,#0874e4); color:#fff; font-size:12px; font-weight:700; cursor:pointer; box-shadow:0 5px 12px rgba(13,116,228,.2); }
+    .reports-generate-button:hover { background:#0869d2; }
+    .reports-layout { display:grid; grid-template-columns:minmax(240px,285px) minmax(0,1fr); gap:18px; align-items:start; }
+    .reports-quick-panel { padding:14px 12px 10px; border:1px solid #e2ebf8; border-radius:10px; background:linear-gradient(150deg,#f8fbff,#fff 65%); box-shadow:0 7px 20px rgba(40,92,157,.06); }
+    .reports-quick-heading { display:flex; align-items:center; gap:10px; padding:1px 3px 12px; }
+    .reports-heading-icon { display:grid; place-items:center; width:28px; height:28px; border-radius:8px; background:#e6f2ff; color:#1481ec; font-size:17px; }
+    .reports-quick-heading h2 { color:#1d3f70; font-size:13px; }
+    .reports-quick-heading p { margin-top:2px; color:#7a8ca8; font-size:10px; }
+    .reports-quick-item { display:grid; grid-template-columns:28px minmax(0,1fr) 12px; align-items:center; width:100%; gap:8px; min-height:49px; padding:6px 4px; border:0; border-top:1px solid #edf2f8; background:transparent; color:#23436e; text-align:left; cursor:pointer; }
+    .reports-quick-item:hover { background:#f1f7ff; }
+    .reports-quick-item strong { display:block; font-size:10px; line-height:1.35; }
+    .reports-quick-item small { display:block; margin-top:2px; color:#8291a8; font-size:9px; line-height:1.35; }
+    .reports-quick-icon { display:grid; place-items:center; width:24px; height:24px; border-radius:7px; font-size:14px; font-weight:700; }
+    .icon-blue { background:#e5f1ff; color:#2181ea; }.icon-green { background:#e5f8f1; color:#10a876; }.icon-orange { background:#fff2df; color:#ed9224; }.icon-violet { background:#f1eaff; color:#9363e8; }.icon-cyan { background:#e4f8fc; color:#0ea5bc; }
+    .reports-chevron { color:#87a0c0; font-size:21px; }
+    .reports-content { min-width:0; }
+    .reports-filter { display:flex; align-items:center; gap:12px; margin-bottom:12px; padding:10px 12px; border:1px solid #e2ebf8; border-radius:9px; background:#fff; }
+    .reports-filter label { flex:none; color:#49617f; font-size:11px; font-weight:700; }
+    .reports-filter input { min-width:0; width:100%; height:33px; padding:0 10px; border:1px solid #e1eaf5; border-radius:6px; font-size:12px; }
+    .reports-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:12px; }
+    .reports-kpi { min-width:0; padding:12px 13px; border:1px solid #e1eaf5; border-left:3px solid #2a84e9; border-radius:8px; background:#fff; }
+    .reports-kpi span,.reports-kpi small { display:block; color:#7486a1; font-size:10px; }
+    .reports-kpi strong { display:block; overflow-wrap:anywhere; margin:6px 0 3px; color:#1c3f70; font-size:17px; }
+    .kpi-expense { border-left-color:#ff9c45; }.kpi-net { border-left-color:#22b88a; }.kpi-activity { border-left-color:#9875ed; }
+    .reports-chart-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; }
+    .reports-chart-pair { display:grid; grid-template-columns:minmax(0,1fr) minmax(230px,270px); gap:12px; align-items:stretch; }
+    .reports-graph-explainer { display:flex; align-items:flex-start; gap:12px; min-width:0; min-height:100%; padding:19px 16px; border:1px solid transparent; border-radius:9px; }
+    .reports-graph-explainer>span { display:grid; place-items:center; width:32px; height:32px; flex:none; border-radius:9px; background:rgba(255,255,255,.82); font-size:12px; font-weight:800; }
+    .reports-graph-explainer h4 { margin:1px 0 7px; color:#29476f; font-size:13px; }
+    .reports-graph-explainer p { color:#62758f; font-size:11px; line-height:1.55; }
+    .reports-chart-pair:nth-child(1) .reports-graph-explainer { border-color:#cbdfff; background:#edf5ff; }.reports-chart-pair:nth-child(1) .reports-graph-explainer>span { color:#2780df; }
+    .reports-chart-pair:nth-child(2) .reports-graph-explainer { border-color:#c6efdf; background:#edf9f3; }.reports-chart-pair:nth-child(2) .reports-graph-explainer>span { color:#15976e; }
+    .reports-chart-pair:nth-child(3) .reports-graph-explainer { border-color:#f8dfb9; background:#fff7e9; }.reports-chart-pair:nth-child(3) .reports-graph-explainer>span { color:#ca8425; }
+    .reports-chart-pair:nth-child(4) .reports-graph-explainer { border-color:#f6d1d8; background:#fff1f3; }.reports-chart-pair:nth-child(4) .reports-graph-explainer>span { color:#d44863; }
+    .reports-chart-pair:nth-child(5) .reports-graph-explainer { border-color:#ddd0fb; background:#f5f0ff; }.reports-chart-pair:nth-child(5) .reports-graph-explainer>span { color:#805bcc; }
+    .reports-chart-pair:nth-child(6) .reports-graph-explainer { border-color:#c8eaf1; background:#eaf8fb; }.reports-chart-pair:nth-child(6) .reports-graph-explainer>span { color:#138ca4; }
+    .reports-chart-card { min-width:0; padding:14px; border:1px solid #e3ebf6; border-radius:9px; background:#fff; box-shadow:0 4px 14px rgba(34,75,128,.045); }
+    .reports-chart-wide { grid-column:span 2; }
+    .reports-chart-title { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
+    .reports-chart-title h3 { margin-top:2px; color:#26466f; font-size:13px; }
+    .reports-icon-button { display:grid; place-items:center; width:29px; height:29px; flex:none; border:1px solid #dce8f6; border-radius:7px; background:#f7fbff; color:#3482d8; font-size:16px; cursor:pointer; }
+    .reports-icon-button:hover { background:#e9f3ff; }
+    .reports-chart-note { margin-top:6px; color:#8694a8; font-size:10px; line-height:1.4; }
+    .reports-table-card { margin-top:12px; }
+    .reports-subchart-title { margin-top:14px; padding-top:11px; border-top:1px solid #edf2f7; }
+    .reports-subchart-title h4 { margin-bottom:8px; color:#536981; font-size:11px; }
+    .reports-hidden-chart { display:none; }
+    .reports-secondary-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px; }
+    .reports-select-label { display:block; margin-bottom:4px; color:#6f829a; font-size:10px; }
+    #reports-zone-project-select { max-width:100%; min-width:180px; margin-bottom:10px; padding:7px 9px; border:1px solid #dce7f3; border-radius:6px; background:#fff; color:#385270; font-size:11px; }
+    .reports-revenue-legacy { display:none; }
+    .reports-chart-card svg { display:block; max-width:100%; height:auto; }
+    .users-page-header { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+    .users-page-title { display:flex; align-items:center; gap:12px; }
+    .users-title-icon { display:grid; place-items:center; width:46px; height:46px; border-radius:12px; background:#e6f1ff; color:#1978e7; font-size:24px; }
+    .users-page-title h1 { color:#173c78; font-family:'Manrope','DM Sans',sans-serif; font-size:23px; }
+    .users-page-title p { margin-top:3px; color:#7688a3; font-size:11px; }
+    .users-toolbar { display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+    .users-toolbar-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:38px; padding:0 12px; border:1px solid #d8e5f5; border-radius:7px; background:#fff; color:#31547e; font-size:12px; font-weight:700; cursor:pointer; box-shadow:0 3px 8px rgba(30,73,130,.06); }
+    .users-toolbar-button:hover { filter:brightness(.97); transform:translateY(-1px); }
+    .users-toolbar-button span { font-size:14px; }
+    .users-toolbar .users-refresh { border-color:#1681eb; background:linear-gradient(110deg,#1d7ce7,#11abe3); color:#fff; }
+    .users-toolbar .users-sync { border-color:#cfe0f8; background:#f6faff; color:#2d67ae; }
+    .users-toolbar .users-reset { border-color:#dbe7f7; background:#f8fbff; color:#35699f; }
+    .users-toolbar .users-purge { border-color:#d5294b; background:linear-gradient(110deg,#dc3454,#c51239); color:#fff; }
+    .users-metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; margin-bottom:10px; }
+    .users-metric { display:flex; align-items:center; gap:10px; min-width:0; min-height:76px; padding:10px; border:1px solid #e4edf8; border-radius:9px; background:linear-gradient(145deg,#fff,#fafdff); box-shadow:0 5px 14px rgba(28,77,141,.06); }
+    .users-metric-icon { display:grid; place-items:center; width:39px; height:39px; flex:none; border-radius:11px; font-size:18px; }
+    .metric-blue { color:#1377ed; background:#e5f0ff; }.metric-green { color:#06a77b; background:#e4f8f1; }.metric-rose { color:#ef4768; background:#fff0f2; }.metric-violet { color:#9361ed; background:#f2eaff; }.metric-cyan { color:#079cc3; background:#e5f8fc; }
+    .users-metric div { min-width:0; }
+    .users-metric small,.users-metric div>span { display:block; overflow:hidden; color:#7c8da7; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+    .users-metric strong { display:block; margin:5px 0 4px; color:#183d77; font-size:20px; line-height:1; }
+    .users-list-panel { padding:12px; border:1px solid #e3ebf5; border-radius:9px; background:#fff; box-shadow:0 5px 18px rgba(31,77,135,.05); }
+    .users-filter-header { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+    .users-filter-title { display:flex; align-items:center; gap:8px; color:#176fe0; }
+    .users-filter-title>span { display:grid; place-items:center; width:25px; height:25px; border-radius:7px; background:#e8f1ff; font-size:14px; }
+    .users-filter-title h2,.users-list-heading h2 { color:#1d427a; font-size:15px; }
+    .users-reset-filters { padding:7px 11px; border:1px solid #dce8f8; border-radius:6px; background:#f8fbff; color:#3c6eaa; font-size:11px; cursor:pointer; }
+    .users-filters { display:grid; grid-template-columns:minmax(130px,180px) minmax(140px,180px) minmax(200px,1fr); gap:10px; padding-bottom:12px; border-bottom:1px solid #edf2f7; }
+    .users-filters label { display:grid; gap:5px; color:#7586a0; font-size:11px; }
+    .users-filters select,.users-filters input { width:100%; min-width:0; height:36px; padding:0 10px; border:1px solid #e0e8f3; border-radius:6px; background:#fff; color:#365273; font-size:12px; }
+    .users-list-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:11px 1px 8px; }
+    .users-list-heading p { margin-top:4px; color:#8090a7; font-size:11px; }
+    .users-count-badge { padding:6px 9px; border-radius:12px; background:#eff6ff; color:#3977bd; font-size:11px; font-weight:700; }
+    .users-table-wrap { overflow:auto; border:1px solid #e4edf7; border-radius:7px; }
+    .users-table { width:100%; min-width:850px; border-collapse:separate; border-spacing:0; font-size:12px; }
+    .users-table thead { color:#fff; background:linear-gradient(100deg,#175dea,#05c5dc); }
+    .users-table th { height:39px; padding:8px 10px; text-align:left; font-size:10px; font-weight:800; white-space:nowrap; }
+    .users-table th:first-child { border-radius:6px 0 0 0; }.users-table th:last-child { border-radius:0 6px 0 0; }
+    .users-table td { height:48px; padding:8px 10px; border-bottom:1px solid #edf2f7; color:#526781; font-size:12px; vertical-align:middle; }
+    .users-table tbody tr:hover { background:#f7fbff; }
+    .users-table tbody tr:last-child td { border-bottom:0; }
+    .users-table .users-profile-name { color:#31517e; font-weight:700; }
+    .users-table .users-profile-meta { display:block; margin-top:3px; color:#95a1b2; font-size:10px; font-weight:400; }
+    .users-role-badge { display:inline-flex; padding:5px 8px; border-radius:6px; background:#e8f1ff; color:#3171c2; font-size:10px; white-space:nowrap; }
+    .users-status-pill { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border-radius:12px; font-size:10px; white-space:nowrap; }
+    .users-status-pill::before { width:6px; height:6px; border-radius:50%; background:currentColor; content:''; }
+    .users-status-connected,.users-status-account { background:#e5f8f2; color:#119c7d; }.users-status-first { background:#fff0f1; color:#dc3c5d; }.users-status-missing { background:#fff6e7; color:#b67821; }
+    .users-row-action { width:27px; height:26px; border:1px solid #dce8f6; border-radius:6px; background:#fff; color:#3378cb; cursor:pointer; }
+    .users-empty-row { height:60px!important; color:#8292a8!important; text-align:center; }
+    .users-purge-overlay[hidden] { display:none!important; }
+    .users-purge-overlay { position:fixed; inset:0; z-index:11000; display:grid; place-items:center; padding:15px; background:rgba(19,39,74,.36); backdrop-filter:blur(3px); }
+    .users-purge-dialog { width:min(100%,470px); max-height:min(94vh,760px); overflow:auto; padding:16px; border:1px solid #e4ebf4; border-radius:12px; background:linear-gradient(155deg,#fff,#f9fbff); box-shadow:0 24px 64px rgba(14,39,78,.28); }
+    .users-purge-dialog-header { display:grid; grid-template-columns:36px minmax(0,1fr) 24px; align-items:start; gap:10px; margin-bottom:12px; }
+    .users-purge-dialog-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:9px; background:#fff0f2; color:#e33c5d; font-size:19px; }
+    .users-purge-dialog-header h2 { margin-top:2px; color:#183c78; font-size:14px; }
+    .users-purge-dialog-header p { margin-top:4px; color:#798ba6; font-size:9px; line-height:1.4; }
+    .users-dialog-close { border:0; background:transparent; color:#8492a6; font-size:19px; cursor:pointer; }
+    .users-purge-options { display:grid; gap:5px; }
+    .users-purge-option { display:grid; grid-template-columns:15px 28px minmax(0,1fr); align-items:center; gap:8px; min-height:43px; padding:6px 8px; border:1px solid transparent; border-radius:8px; cursor:pointer; }
+    .users-purge-option input { width:13px; height:13px; accent-color:#1679e6; }
+    .purge-option-icon { display:grid; place-items:center; width:25px; height:25px; border-radius:7px; font-size:13px; }
+    .users-purge-option strong,.users-purge-option small { display:block; }
+    .users-purge-option strong { color:#244775; font-size:9px; line-height:1.3; }
+    .users-purge-option small { margin-top:2px; color:#7e8da4; font-size:8px; line-height:1.3; }
+    .option-blue { background:#eff6ff; }.option-blue .purge-option-icon { background:#e1edff; color:#1676e7; }
+    .option-green { background:#eefaf5; }.option-green .purge-option-icon { background:#dbf5e9; color:#13a77b; }
+    .option-orange { background:#fff8eb; }.option-orange .purge-option-icon { background:#ffefd7; color:#e79630; }
+    .option-violet { background:#f6f1ff; }.option-violet .purge-option-icon { background:#eee5ff; color:#8d5be2; }
+    .option-rose { background:#fff1f3; }.option-rose .purge-option-icon { background:#ffe3e8; color:#e43c5d; }
+    .option-danger { border-color:#ffd5dc; background:#fff1f3; }.option-danger .purge-option-icon { background:#ffe1e7; color:#dc3152; }
+    .users-purge-additional { padding:6px 0 2px; border-top:1px solid #ebeff5; color:#7385a0; font-size:9px; }
+    .users-purge-confirm-label { display:block; margin-top:10px; color:#657b97; font-size:9px; font-weight:700; }
+    .users-purge-confirm-input { width:100%; height:32px; margin-top:5px; padding:0 9px; border:1px solid #dce6f2; border-radius:6px; font-size:10px; }
+    .users-purge-dialog-footer { display:flex; justify-content:flex-end; gap:8px; margin-top:13px; }
+    .users-purge-dialog-footer button { min-height:32px; padding:0 12px; border-radius:7px; font-size:9px; font-weight:700; cursor:pointer; }
+    .users-dialog-cancel { border:1px solid #dce6f2; background:#fff; color:#456483; }
+    .users-dialog-confirm { border:1px solid #c91f42; background:linear-gradient(110deg,#dc3454,#c51239); color:#fff; }
+    @media(max-width:1050px) { .reports-layout { grid-template-columns:1fr; }.reports-quick-panel { order:0; }.reports-quick-item { min-height:45px; }.reports-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media(max-width:760px) { .users-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }.users-metric:last-child { grid-column:span 2; }.users-filters { grid-template-columns:repeat(2,minmax(0,1fr)); }.users-search { grid-column:span 2; }.users-toolbar { justify-content:flex-start; }.users-page-header { align-items:flex-start; } }
+    @media(max-width:760px) { .reports-chart-pair { grid-template-columns:minmax(0,1fr); }.reports-graph-explainer { min-height:0; padding:14px; } }
+    @media(max-width:640px) { .reports-page-header { align-items:flex-start; }.reports-page-header h1 { font-size:23px; }.reports-generate-controls { width:100%; }.reports-generate-controls select:first-child { flex:1; }.reports-generate-controls select:nth-child(2) { width:100px; }.reports-generate-button { flex:1; justify-content:center; }.reports-filter { display:block; }.reports-filter label { display:block; margin-bottom:6px; }.reports-chart-grid,.reports-secondary-grid { grid-template-columns:1fr; }.reports-chart-wide { grid-column:auto; }.reports-kpis { gap:7px; }.reports-kpi { padding:10px; }.reports-kpi strong { font-size:15px; }.users-page-title h1 { font-size:18px; }.users-toolbar-button { flex:1; min-width:130px; }.users-filters { grid-template-columns:1fr; }.users-search { grid-column:auto; }.users-metric { min-height:70px; padding:8px; }.users-metric-icon { width:31px; height:31px; }.users-metric strong { font-size:14px; }.users-list-panel { padding:9px; }.users-purge-dialog { padding:12px; } }
+
   </style>
 </head>
 <body>
@@ -11893,7 +12032,7 @@
         <div id="expenses" class="module">
           <style>
             #expenses { --exp-ink:#142947; --exp-muted:#647892; --exp-line:#dfe8f5; --exp-blue:#1677f2; --exp-green:#0ea77d; --exp-orange:#e99a22; --exp-purple:#7658df; background:#f4f8fd; color:var(--exp-ink); }
-            #expenses > .page-header { display:none; }
+            #expenses > .page-header { display:none !important; }
             #expenses .expenses-page-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:12px; }
             #expenses .expenses-page-title h1 { margin:0; color:#142947; font:750 22px/1.1 'Manrope','DM Sans',sans-serif; }
             #expenses .expenses-page-title p { margin:4px 0 0; color:#647892; font-size:10px; }
@@ -12097,31 +12236,31 @@
         <div id="revenues" class="module">
           <style>
             #revenues { background:#f4f8fd; color:#142947; }
-            #revenues > .page-header { display:none; }
+            #revenues > .page-header { display:none !important; }
             #revenues .revenue-page-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:12px; }
             #revenues .revenue-page-title h1 { margin:0; color:#142947; font:800 22px/1.1 'Manrope','DM Sans',sans-serif; }
-            #revenues .revenue-page-title p { margin:4px 0 0; color:#647892; font-size:11px; }
-            #revenues .revenue-period-control { display:flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid #dce6f2; border-radius:7px; background:#fff; color:#5c718d; font-size:11px; }
-            #revenues .revenue-period-control input { height:28px; border:0; background:transparent; color:#253b5a; font:700 11px 'DM Sans','Segoe UI',sans-serif; }
-            #revenues .revenue-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
-            #revenues .revenue-kpi { display:grid; min-width:0; min-height:80px; grid-template-columns:46px minmax(0,1fr); align-items:center; gap:10px; padding:13px; border:1px solid #e2eaf7; border-radius:12px; background:#fff; box-shadow:0 8px 20px rgba(74,103,160,.08); }
-            #revenues .revenue-kpi-icon { display:grid; width:46px; height:46px; place-items:center; border-radius:50%; background:#eaf0ff; color:#4167df; font-size:20px; font-weight:800; }
+            #revenues .revenue-page-title p { margin:4px 0 0; color:#647892; font-size:10px; }
+            #revenues .revenue-period-control { display:flex; align-items:center; gap:8px; padding:5px 9px; border:1px solid #dce6f2; border-radius:7px; background:#fff; color:#5c718d; font-size:9px; }
+            #revenues .revenue-period-control input { height:26px; border:0; background:transparent; color:#253b5a; font:600 10px 'DM Sans','Segoe UI',sans-serif; }
+            #revenues .revenue-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; margin-bottom:12px; }
+            #revenues .revenue-kpi { display:grid; min-width:0; min-height:74px; grid-template-columns:38px minmax(0,1fr); align-items:center; gap:9px; padding:10px 11px; border:1px solid #e0e9f5; border-radius:8px; background:linear-gradient(180deg,#fff 0%,#f9fbff 100%); box-shadow:0 6px 16px rgba(31,55,99,.045); }
+            #revenues .revenue-kpi-icon { display:grid; width:38px; height:38px; place-items:center; border-radius:50%; background:#eaf0ff; color:#4167df; font-size:18px; font-weight:800; }
             #revenues .revenue-kpi:nth-child(2) .revenue-kpi-icon { background:#e9f9ef; color:#24a158; }
             #revenues .revenue-kpi:nth-child(3) .revenue-kpi-icon { background:#eeeaff; color:#7455d8; }
             #revenues .revenue-kpi:nth-child(4) .revenue-kpi-icon { background:#fff3df; color:#ef9d25; }
             #revenues .revenue-kpi:nth-child(5) .revenue-kpi-icon { background:#eaf0ff; color:#4167df; }
             #revenues .revenue-kpi small { display:block; color:#4f6285; font-size:11px; font-weight:700; }
-            #revenues .revenue-kpi strong { display:block; margin-top:5px; color:#29416c; font-size:20px; line-height:1; font-weight:800; white-space:nowrap; }
-            #revenues .revenue-kpi em { display:block; margin-top:4px; color:#7b8cac; font-size:10px; font-style:normal; }
-            #revenues .revenue-layout { display:grid; grid-template-columns:minmax(280px,.82fr) minmax(0,2fr); gap:14px; align-items:start; }
-            #revenues .revenue-card { min-width:0; padding:18px; border:1px solid #e1e9f7; border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(74,103,160,.08); }
+            #revenues .revenue-kpi strong { display:block; margin-top:4px; color:#29416c; font-size:20px; line-height:1.05; font-weight:800; white-space:nowrap; }
+            #revenues .revenue-kpi em { display:block; margin-top:5px; color:#7b8cac; font-size:10px; font-style:normal; }
+            #revenues .revenue-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; align-items:start; }
+            #revenues .revenue-card { min-width:0; padding:18px; border:1px solid #dfe8f5; border-radius:12px; background:#fff; box-shadow:0 8px 22px rgba(31,55,99,.06); }
             #revenues .revenue-card h2 { margin:0; color:#162b4b; font:800 16px/1.25 'Manrope','DM Sans',sans-serif; }
             #revenues .revenue-card-subtitle { margin:5px 0 15px; color:#6a7d96; font-size:11px; line-height:1.4; }
-            #revenues .revenue-form { display:grid; gap:11px; }
+            #revenues .revenue-form { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px 12px; }
             #revenues .revenue-form .form-group { min-width:0; margin:0; }
             #revenues .revenue-form label { display:block; margin:0 0 5px; color:#536582; font-size:10px; font-weight:800; }
-            #revenues .revenue-form input, #revenues .revenue-form select { width:100%; height:38px; padding:0 10px; border:1px solid #d4e0f2; border-radius:7px; color:#526887; background:#fff; font-size:11px; }
-            #revenues .revenue-submit { width:100%; min-height:40px; border:0; border-radius:7px; background:linear-gradient(90deg,#5367f5,#12b8dc); color:#fff; font-size:11px; font-weight:800; cursor:pointer; }
+            #revenues .revenue-form input, #revenues .revenue-form select { width:100%; height:36px; padding:0 10px; border:1px solid #d4e0f2; border-radius:7px; color:#526887; background:#fff; font-size:11px; }
+            #revenues .revenue-submit { width:100%; min-height:38px; grid-column:1; border:0; border-radius:7px; background:linear-gradient(90deg,#5367f5,#12b8dc); color:#fff; font-size:11px; font-weight:800; cursor:pointer; }
             #revenues .revenue-form textarea { width:100%; min-height:58px; padding:9px 10px; border:1px solid #d4e0f2; border-radius:7px; color:#526887; background:#fff; font:400 11px 'DM Sans','Segoe UI',sans-serif; resize:vertical; }
             #revenues .revenue-list-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
             #revenues .revenue-list-tools { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; gap:9px; margin-bottom:12px; }
@@ -12150,8 +12289,8 @@
             #revenues .revenue-chart-legend-row i { width:11px; height:11px; border-radius:50%; }
             @media(max-width:1100px){#revenues .revenue-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
             @media(max-width:1100px){#revenues .revenue-analysis{grid-template-columns:1fr}}
-            @media(max-width:760px){#revenues .revenue-layout{grid-template-columns:1fr}#revenues .revenue-list-tools{grid-template-columns:repeat(2,minmax(0,1fr))}#revenues .revenue-table-head,#revenues #revenues-list > li{min-width:1120px}#revenues .revenue-list-wrap{overflow-x:auto}#revenues .revenue-analysis-row{min-width:700px}#revenues .revenue-analysis-table{overflow-x:auto}#revenues .revenue-donut-wrap{grid-template-columns:1fr}}
-            @media(max-width:460px){#revenues .revenue-kpis{grid-template-columns:1fr}#revenues .revenue-list-tools{grid-template-columns:1fr}}
+            @media(max-width:760px){#revenues .revenue-form{grid-template-columns:repeat(2,minmax(0,1fr))}#revenues .revenue-layout{grid-template-columns:1fr}#revenues .revenue-list-tools{grid-template-columns:repeat(2,minmax(0,1fr))}#revenues .revenue-table-head,#revenues #revenues-list > li{min-width:1120px}#revenues .revenue-list-wrap{overflow-x:auto}#revenues .revenue-analysis-row{min-width:700px}#revenues .revenue-analysis-table{overflow-x:auto}#revenues .revenue-donut-wrap{grid-template-columns:1fr}}
+            @media(max-width:460px){#revenues .revenue-kpis{grid-template-columns:1fr}#revenues .revenue-form{grid-template-columns:1fr}#revenues .revenue-submit{grid-column:auto}#revenues .revenue-list-tools{grid-template-columns:1fr}}
           </style>
           <div class="page-header">
             <h1>Revenus</h1>
@@ -12195,105 +12334,97 @@
 
         <!-- Reports Module -->
         <div id="reports" class="module">
-          <div class="page-header">
-            <h1>Rapports financiers</h1>
-            <p>Analyse des performances et suivi des dépenses par projet</p>
-          </div>
-          <div class="card" style="margin-bottom: 20px;">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>Recherche dans les rapports</label>
-              <input type="text" id="reports-search" placeholder="Ex: chiffre d'affaire" />
+          <div class="reports-page-header">
+            <div><span class="reports-eyebrow">PILOTAGE & ANALYSE</span><h1>Rapports</h1><p>Des données réelles pour suivre la performance de vos projets.</p></div>
+            <div class="reports-generate-controls">
+              <select id="reports-report-type" aria-label="Type de rapport">
+                <option value="financial">Rapport financier global</option>
+                <option value="project">Rapport par projet</option>
+                <option value="costs">Rapport des coûts</option>
+                <option value="activities">Rapport d’activités</option>
+                <option value="export">Exporter les données</option>
+              </select>
+              <select id="reports-output-format" aria-label="Format du rapport"><option value="pdf">PDF</option><option value="excel">Excel (.xlsx)</option><option value="csv">CSV</option></select>
+              <button type="button" class="reports-generate-button" onclick="generateSelectedReport()"><span aria-hidden="true">⇩</span> Générer un rapport <span aria-hidden="true">⌄</span></button>
             </div>
           </div>
-          <div class="card" style="margin-bottom: 20px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:15px;">
-              <h3 style="margin:0;">Tableau des dépenses par projet</h3>
-              <button type="button" class="button button-secondary" style="font-size:12px;padding:5px 12px;" onclick="downloadTableCsv('expenses-report-table', 'depenses-par-projet.csv')">⬇ Télécharger CSV</button>
-            </div>
-            <div id="expenses-report-table" style="overflow-x: auto;">
-            </div>
-          </div>
-          <div class="card" style="margin-bottom: 20px;">
-            <h3 style="margin-bottom: 8px;">Diagramme en bandes des dépenses par projet</h3>
-            <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Chaque bande représente le total des dépenses rattachées à un projet.</p>
-            <div id="reports-expenses-bar"></div>
-          </div>
-          <!-- Pie: depenses par projet -->
-          <div class="card" style="margin-bottom: 20px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-              <h3 style="margin:0;">Diagramme circulaire des dépenses par projet</h3>
-              <button type="button" class="button button-secondary" style="font-size:12px;padding:5px 12px;" onclick="downloadChartSvg('reports-pie-projects', 'depenses-par-projet.svg')">⬇ Télécharger</button>
-            </div>
-            <div id="reports-pie-projects" style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;"></div>
-          </div>
-          <!-- Pie: par zone pour un projet -->
-          <div class="card" style="margin-bottom: 20px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-              <h3 style="margin:0;">Diagramme circulaire par zone (projet multi-zones)</h3>
-              <button type="button" class="button button-secondary" style="font-size:12px;padding:5px 12px;" onclick="downloadChartSvg('reports-pie-zones', 'depenses-par-zone.svg')">⬇ Télécharger</button>
-            </div>
-            <div class="form-group" style="max-width:320px;margin-bottom:14px;">
-              <label style="font-size:13px;">Sélectionner un projet</label>
-              <select id="reports-zone-project-select" style="margin-top:4px;"></select>
-            </div>
-            <div id="reports-pie-zones"></div>
-          </div>
-          <!-- Global pie + revenue chart -->
-          <div class="grid-2">
-            <div class="card">
-              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-                <h3 style="margin:0;">Diagramme global — Projets / Salaires / Transport</h3>
-                <button type="button" class="button button-secondary" style="font-size:12px;padding:5px 12px;" onclick="downloadChartSvg('reports-expenses-pie', 'global-depenses.svg')">⬇ Télécharger</button>
+          <div class="reports-layout">
+            <aside class="reports-quick-panel">
+              <div class="reports-quick-heading"><span class="reports-heading-icon">▦</span><div><h2>Rapports rapides</h2><p>Générez des rapports détaillés en un clic.</p></div></div>
+              <button type="button" class="reports-quick-item" onclick="generateReport('financial')"><span class="reports-quick-icon icon-blue">▤</span><span><strong>Rapport financier global</strong><small>Revenus, dépenses, bénéfice net et marges</small></span><span class="reports-chevron">›</span></button>
+              <button type="button" class="reports-quick-item" onclick="generateReport('project')"><span class="reports-quick-icon icon-green">▧</span><span><strong>Rapport par projet</strong><small>Analyse détaillée de chaque projet</small></span><span class="reports-chevron">›</span></button>
+              <button type="button" class="reports-quick-item" onclick="generateReport('costs')"><span class="reports-quick-icon icon-orange">◉</span><span><strong>Rapport des coûts</strong><small>Coûts marginaux, point mort, analyse des coûts</small></span><span class="reports-chevron">›</span></button>
+              <button type="button" class="reports-quick-item" onclick="generateReport('activities')"><span class="reports-quick-icon icon-violet">⌁</span><span><strong>Rapport d’activités</strong><small>Avancement, productivité et indicateurs</small></span><span class="reports-chevron">›</span></button>
+              <button type="button" class="reports-quick-item" onclick="generateReport('export')"><span class="reports-quick-icon icon-cyan">⇩</span><span><strong>Exporter les données</strong><small>Export des données en PDF, Excel ou CSV</small></span><span class="reports-chevron">›</span></button>
+            </aside>
+            <div class="reports-content">
+              <div class="reports-filter card"><label for="reports-search">Recherche dans les rapports</label><input type="search" id="reports-search" placeholder="Ex. chiffre d'affaires, projet, catégorie" /></div>
+              <div class="reports-kpis">
+                <article class="reports-kpi kpi-revenue"><span>Revenus enregistrés</span><strong id="reports-kpi-revenue">—</strong><small>Données cumulées</small></article>
+                <article class="reports-kpi kpi-expense"><span>Dépenses enregistrées</span><strong id="reports-kpi-expense">—</strong><small>Données cumulées</small></article>
+                <article class="reports-kpi kpi-net"><span>Solde observé</span><strong id="reports-kpi-net">—</strong><small>Revenus moins dépenses</small></article>
+                <article class="reports-kpi kpi-activity"><span>Activités suivies</span><strong id="reports-kpi-activities">—</strong><small id="reports-kpi-project-count">Projets actifs</small></article>
               </div>
-              <div id="reports-expenses-pie"></div>
-            </div>
-            <div class="card">
-              <h3 id="reports-revenue-chart-title" style="margin-bottom: 8px;">Courbes des recettes</h3>
-              <p id="reports-revenue-chart-helper" style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Affichage par défaut: recette totale et recette marginale. Recherche "chiffre d'affaire" pour afficher cette courbe uniquement.</p>
-              <div id="reports-revenue-line"></div>
+              <div class="reports-chart-grid">
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TENDANCE</span><h3>Évolution financière</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-financial-trend', 'evolution-financiere.svg')">⇩</button></div><div id="reports-financial-trend"></div></section><aside class="reports-graph-explainer"><span>01</span><div><h4>Évolution financière</h4><p>Compare les revenus, les dépenses et le solde mois après mois pour suivre la trajectoire financière.</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RÉPARTITION</span><h3>Revenus & dépenses</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-income-expense-pie', 'revenus-depenses.svg')">⇩</button></div><div id="reports-income-expense-pie"></div></section><aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RENTABILITÉ</span><h3>Coûts marginaux & point mort</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-breakeven-chart', 'couts-point-mort.svg')">⇩</button></div><div id="reports-breakeven-chart"></div><p class="reports-chart-note">Point mort observé lorsque les revenus cumulés couvrent les dépenses cumulées.</p></section><aside class="reports-graph-explainer"><span>03</span><div><h4>Coûts marginaux & point mort</h4><p>Suit les dépenses mensuelles et repère le moment où les revenus cumulés couvrent les coûts observés.</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">DÉPENSES</span><h3>Par catégorie</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-expense-categories', 'depenses-par-categorie.svg')">⇩</button></div><div id="reports-expense-categories"></div></section><aside class="reports-graph-explainer"><span>04</span><div><h4>Dépenses par catégorie</h4><p>Fait ressortir les postes qui consomment le plus de budget et aide à comparer leur poids.</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">PROJETS</span><h3>Dépenses par projet et catégorie</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-project-category', 'depenses-projet-categorie.svg')">⇩</button></div><div id="reports-project-category"></div></section><aside class="reports-graph-explainer"><span>05</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TERRAIN</span><h3>Répartition des activités</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-activity-distribution', 'repartition-activites.svg')">⇩</button></div><div id="reports-activity-distribution"></div></section><aside class="reports-graph-explainer"><span>06</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p></div></aside></div>
+              </div>
+              <div class="reports-revenue-legacy"><h3 id="reports-revenue-chart-title">Courbes des recettes</h3><p id="reports-revenue-chart-helper"></p><div id="reports-revenue-line"></div></div>
             </div>
           </div>
         </div>
 
         <div id="users" class="module">
-          <div class="page-header">
-            <h1>Utilisateurs</h1>
-            <p>Profils, liaison employe et statut de premiere connexion</p>
-          </div>
-          <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-              <div>
-                <h3 style="margin:0;">Liste des profils</h3>
-                <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Vue admin des comptes lies aux employes RH.</p>
-              </div>
-              <div class="action-buttons" style="gap:8px;">
-                <button type="button" class="button button-small users-btn-refresh" onclick="loadUsersModule()">Actualiser</button>
-                <button type="button" class="button button-small users-btn-sync" onclick="reconcileHrUsersFromEmployees()">Synchroniser RH vers utilisateurs</button>
-                <button type="button" id="users-reset-all-login-state" class="button button-small users-btn-reset" onclick="resetAllUsersLoginState()">Reinitialiser tous les profils</button>
-                <button type="button" id="users-purge-business-data" class="button button-small users-btn-purge" onclick="purgeErpBusinessData()">Purger les données métier</button>
-              </div>
+          <header class="users-page-header">
+            <div class="users-page-title"><span class="users-title-icon" aria-hidden="true">♟</span><div><h1>Gestion des profils</h1><p>Administration des comptes utilisateurs et de leurs données.</p></div></div>
+            <div class="users-toolbar">
+              <button type="button" class="users-toolbar-button users-refresh" onclick="loadUsersModule()"><span aria-hidden="true">↻</span> Actualiser</button>
+              <button type="button" class="users-toolbar-button users-sync" onclick="reconcileHrUsersFromEmployees()"><span aria-hidden="true">⟳</span> Synchroniser RH</button>
+              <button type="button" id="users-reset-all-login-state" class="users-toolbar-button users-reset" onclick="resetAllUsersLoginState()"><span aria-hidden="true">⟳</span> Réinitialiser tous les profils</button>
+              <button type="button" id="users-purge-business-data" class="users-toolbar-button users-purge" onclick="purgeErpBusinessData()"><span aria-hidden="true">▤</span> Purge des données</button>
             </div>
-            <p id="users-summary" style="font-size:12px; color:#475569; margin-bottom:10px;">Chargement...</p>
-            <div style="overflow-x:auto;">
-              <table class="table" style="min-width:980px;">
-                <thead>
-                  <tr>
-                    <th>Profil</th>
-                    <th>Role</th>
-                    <th>Employe lie</th>
-                    <th>Mot de passe initial</th>
-                    <th>Premiere connexion</th>
-                    <th>Derniere connexion</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="users-table-body">
-                  <tr>
-                    <td colspan="7" style="text-align:center; color:#64748b;">Aucune donnee</td>
-                  </tr>
-                </tbody>
+          </header>
+          <div class="users-metrics" aria-label="Résumé des profils">
+            <article class="users-metric"><span class="users-metric-icon metric-blue">♟</span><div><small>Total des profils</small><strong id="users-metric-total">—</strong><span id="users-metric-total-detail">Chargement des comptes</span></div></article>
+            <article class="users-metric"><span class="users-metric-icon metric-green">◉</span><div><small>Profils liés RH</small><strong id="users-metric-linked">—</strong><span id="users-metric-linked-detail">Comptes associés aux employés</span></div></article>
+            <article class="users-metric"><span class="users-metric-icon metric-rose">⌁</span><div><small>Comptes à créer</small><strong id="users-metric-no-account">—</strong><span id="users-metric-no-account-detail">Profils RH sans compte utilisateur</span></div></article>
+            <article class="users-metric"><span class="users-metric-icon metric-violet">⬡</span><div><small>Rôles différents</small><strong id="users-metric-roles">—</strong><span id="users-metric-role-detail">Rôles présents dans les profils</span></div></article>
+            <article class="users-metric"><span class="users-metric-icon metric-cyan">▣</span><div><small>Dernière actualisation</small><strong id="users-metric-updated">—</strong><span id="users-metric-updated-detail">Lecture des comptes ERP</span></div></article>
+          </div>
+          <section class="users-list-panel">
+            <div class="users-filter-header"><div class="users-filter-title"><span aria-hidden="true">▽</span><h2>Filtres</h2></div><button type="button" id="users-reset-filters" class="users-reset-filters">Réinitialiser les filtres</button></div>
+            <div class="users-filters">
+              <label>Rôle<select id="users-role-filter"><option value="">Tous les rôles</option></select></label>
+              <label>Statut<select id="users-status-filter"><option value="">Tous les profils</option><option value="linked">Employé RH lié</option><option value="unlinked">Compte autonome</option><option value="account">Compte créé</option><option value="missing-account">Compte à créer</option></select></label>
+              <label class="users-search">Recherche<input type="search" id="users-search" placeholder="Rechercher un profil, nom, email…" /></label>
+            </div>
+            <div class="users-list-heading"><div><h2>Profils utilisateurs</h2><p id="users-summary">Chargement des profils…</p></div><span class="users-count-badge" id="users-visible-count">0 profil</span></div>
+            <div class="users-table-wrap">
+              <table class="users-table">
+                <thead><tr><th>Profil</th><th>Nom complet</th><th>Rôle</th><th>Employé lié</th><th>Première connexion</th><th>Dernière connexion</th><th>Statut</th><th>Actions</th></tr></thead>
+                <tbody id="users-table-body"><tr><td colspan="8" class="users-empty-row">Chargement…</td></tr></tbody>
               </table>
             </div>
+          </section>
+          <div id="users-purge-modal" class="users-purge-overlay" hidden>
+            <section class="users-purge-dialog" role="dialog" aria-modal="true" aria-labelledby="users-purge-title">
+              <header class="users-purge-dialog-header"><span class="users-purge-dialog-icon" aria-hidden="true">▤</span><div><h2 id="users-purge-title">Purge des données du système</h2><p>Sélectionnez les données à supprimer. Les éléments peuvent être choisis séparément.</p></div><button type="button" class="users-dialog-close" aria-label="Fermer" onclick="closeUsersPurgeDialog()">×</button></header>
+              <div class="users-purge-options">
+                <label class="users-purge-option option-blue"><input type="checkbox" value="activities" data-purge-option><span class="purge-option-icon">▤</span><span><strong>Journal de chantier et assignations de projet</strong><small>Supprimer les entrées de suivi et les assignations liées aux projets.</small></span></label>
+                <label class="users-purge-option option-green"><input type="checkbox" value="procurement" data-purge-option><span class="purge-option-icon">▣</span><span><strong>Demandes d’approvisionnement et bons de commande</strong><small>Supprimer les demandes et leurs bons de commande.</small></span></label>
+                <label class="users-purge-option option-orange"><input type="checkbox" value="finance" data-purge-option><span class="purge-option-icon">◉</span><span><strong>Dépenses, revenus et sorties de stock</strong><small>Supprimer les transactions financières et les mouvements de stock.</small></span></label>
+                <label class="users-purge-option option-violet"><input type="checkbox" value="documents" data-purge-option><span class="purge-option-icon">▧</span><span><strong>Documents liés aux demandes et bons de commande</strong><small>Supprimer les documents générés associés aux transactions choisies.</small></span></label>
+                <div class="users-purge-additional"><span>Options supplémentaires</span></div>
+                <label class="users-purge-option option-rose"><input type="checkbox" value="profiles" data-purge-option><span class="purge-option-icon">♟</span><span><strong>Utilisateurs et profils RH</strong><small>Supprimer les profils et comptes non administrateurs. Le compte actuel est conservé.</small></span></label>
+                <label class="users-purge-option option-danger"><input type="checkbox" id="users-purge-all"><span class="purge-option-icon">▤</span><span><strong>Tout supprimer</strong><small>Supprimer toutes les catégories ci-dessus, sauf le compte administrateur utilisé.</small></span></label>
+              </div>
+              <label class="users-purge-confirm-label" for="users-purge-confirmation">Pour confirmer, saisissez PURGER</label><input id="users-purge-confirmation" class="users-purge-confirm-input" type="text" autocomplete="off" placeholder="PURGER" />
+              <footer class="users-purge-dialog-footer"><button type="button" class="users-dialog-cancel" onclick="closeUsersPurgeDialog()">Annuler</button><button type="button" class="users-dialog-confirm" onclick="confirmUsersDataPurge()">Confirmer la suppression</button></footer>
+            </section>
           </div>
         </div>
 
@@ -12972,6 +13103,9 @@
     let hrLeaveRequestsCache = [];
     let hrSignatureRequestsCache = [];
     let usersAdminCache = [];
+    let usersCurrentPage = 1;
+    let usersPageSize = Number.MAX_SAFE_INTEGER;
+    let usersLastLoadedAt = null;
     let accessProfilesCache = [];
     let selectedAccessProfileUsername = '';
     let accessProfileModuleCatalog = [];
@@ -14727,39 +14861,93 @@
 
       const rows = Array.isArray(usersAdminCache) ? usersAdminCache.slice() : [];
       rows.sort((a, b) => String(a?.username || '').localeCompare(String(b?.username || ''), 'fr', { sensitivity: 'base' }));
+      const roleFilter = document.getElementById('users-role-filter');
+      const statusFilter = document.getElementById('users-status-filter');
+      const searchInput = document.getElementById('users-search');
+      const currentRole = roleFilter?.value || '';
+      const roles = Array.from(new Set(rows.map(row => String(row?.role || '').trim()).filter(Boolean)))
+        .sort((a, b) => getRoleDisplayLabel(a).localeCompare(getRoleDisplayLabel(b), 'fr'));
+      if (roleFilter) {
+        roleFilter.innerHTML = '<option value="">Tous les rôles</option>' + roles.map(role => `<option value="${escapeHtml(role)}">${escapeHtml(getRoleDisplayLabel(role))}</option>`).join('');
+        roleFilter.value = roles.includes(currentRole) ? currentRole : '';
+      }
+      const normalizedSearch = normalizeText(searchInput?.value || '');
+      const filteredRows = rows.filter(row => {
+        const linked = Boolean(String(row?.linkedEmployeeName || '').trim());
+        const hasLoggedIn = Boolean(row?.hasLoggedIn);
+        const hasAccount = Boolean(Number(row?.hasUserAccount));
+        const matchesRole = !roleFilter?.value || String(row?.role || '') === roleFilter.value;
+        const matchesStatus = !statusFilter?.value
+          || (statusFilter.value === 'linked' && linked)
+          || (statusFilter.value === 'unlinked' && !linked)
+          || (statusFilter.value === 'account' && hasAccount)
+          || (statusFilter.value === 'missing-account' && !hasAccount);
+        const searchable = normalizeText(`${row?.username || ''} ${row?.linkedEmployeeName || ''} ${getRoleDisplayLabel(row?.role || '')}`);
+        return matchesRole && matchesStatus && (!normalizedSearch || searchable.includes(normalizedSearch));
+      });
 
       const linkedCount = rows.filter(row => String(row?.linkedEmployeeName || '').trim()).length;
-      const firstLoginDoneCount = rows.filter(row => Boolean(row?.hasLoggedIn)).length;
-      if (summary) {
-        summary.textContent = `${rows.length} profil(s) | ${linkedCount} lie(s) RH | ${firstLoginDoneCount} premiere(s) connexion(s) detectee(s)`;
-      }
+      const missingAccountCount = rows.filter(row => !Boolean(Number(row?.hasUserAccount))).length;
+      const metricValues = {
+        'users-metric-total': rows.length,
+        'users-metric-linked': linkedCount,
+        'users-metric-no-account': missingAccountCount,
+        'users-metric-roles': roles.length,
+        'users-metric-updated': usersLastLoadedAt ? usersLastLoadedAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—',
+      };
+      Object.entries(metricValues).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = String(value);
+      });
+      const linkedDetail = document.getElementById('users-metric-linked-detail');
+      if (linkedDetail) linkedDetail.textContent = `${rows.length ? Math.round(linkedCount / rows.length * 100) : 0}% des profils`;
+      const missingAccountDetail = document.getElementById('users-metric-no-account-detail');
+      if (missingAccountDetail) missingAccountDetail.textContent = `${rows.length ? Math.round(missingAccountCount / rows.length * 100) : 0}% des profils`;
+      const rolesDetail = document.getElementById('users-metric-role-detail');
+      if (rolesDetail) rolesDetail.textContent = roles.map(getRoleDisplayLabel).slice(0, 3).join(', ') || 'Aucun rôle renseigné';
+      const updatedDetail = document.getElementById('users-metric-updated-detail');
+      if (updatedDetail) updatedDetail.textContent = usersLastLoadedAt ? usersLastLoadedAt.toLocaleDateString('fr-FR') : 'Lecture des comptes ERP';
+      if (summary) summary.textContent = `${rows.length} profil(s) au total · ${linkedCount} lié(s) à un employé RH · ${missingAccountCount} compte(s) utilisateur à créer`;
 
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">Aucun utilisateur</td></tr>';
+      const countBadge = document.getElementById('users-visible-count');
+      if (countBadge) countBadge.textContent = `${filteredRows.length} profil${filteredRows.length === 1 ? '' : 's'}`;
+      const totalPages = Math.max(1, Math.ceil(filteredRows.length / usersPageSize));
+      usersCurrentPage = Math.min(Math.max(1, usersCurrentPage), totalPages);
+      const start = (usersCurrentPage - 1) * usersPageSize;
+      const pageRows = filteredRows.slice(start, start + usersPageSize);
+      const paginationInfo = document.getElementById('users-pagination-info');
+      if (paginationInfo) paginationInfo.textContent = filteredRows.length ? `Affichage de ${start + 1} à ${Math.min(start + usersPageSize, filteredRows.length)} sur ${filteredRows.length} profils` : 'Affichage de 0 profil';
+      const pageNumber = document.getElementById('users-page-number');
+      if (pageNumber) pageNumber.textContent = `${usersCurrentPage} / ${totalPages}`;
+      const previousButton = document.getElementById('users-page-prev');
+      const nextButton = document.getElementById('users-page-next');
+      if (previousButton) previousButton.disabled = usersCurrentPage <= 1;
+      if (nextButton) nextButton.disabled = usersCurrentPage >= totalPages;
+
+      if (!pageRows.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="users-empty-row">Aucun profil ne correspond aux filtres.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = rows.map(row => {
-        const hasLoggedIn = Boolean(row?.hasLoggedIn);
+      tbody.innerHTML = pageRows.map(row => {
         const firstLoginAt = String(row?.firstLoginAt || '').trim();
         const lastLoginAt = String(row?.lastLoginAt || '').trim();
-        const loginLabel = hasLoggedIn
-          ? `➤ <span style="color:#16a34a; font-weight:700;">Connecte</span>${firstLoginAt ? ` (${escapeHtml(formatDateWithTime(firstLoginAt))})` : ''}`
-          : '➤ <span style="color:#94a3b8; font-weight:700;">Jamais connecte</span>';
+        const username = String(row?.username || '-').trim() || '-';
+        const hasAccount = Boolean(Number(row?.hasUserAccount));
+        const statusClass = hasAccount ? 'users-status-account' : 'users-status-missing';
+        const statusLabel = hasAccount ? 'Compte créé' : 'Compte à créer';
+        const employeeName = String(row?.linkedEmployeeName || '').trim();
 
         return `
           <tr>
-            <td>${escapeHtml(String(row?.username || '-'))}</td>
-            <td>${escapeHtml(getRoleDisplayLabel(row?.role || ''))}</td>
-            <td>${escapeHtml(String(row?.linkedEmployeeName || '').trim() || 'Non lie')}</td>
-            <td>${escapeHtml(String(row?.initialPasswordHint || '').trim() || '-')}</td>
-            <td>${loginLabel}</td>
-            <td>${lastLoginAt ? escapeHtml(formatDateWithTime(lastLoginAt)) : '-'}</td>
-            <td>
-              <div class="action-buttons" style="justify-content:flex-end;">
-                ${isAdmin() ? `<button type="button" class="button button-small button-secondary" onclick="resetUserLoginState(${Number(row?.id || 0)})">Reinitialiser</button>` : ''}
-              </div>
-            </td>
+            <td><span class="users-profile-name">${escapeHtml(username)}</span><small class="users-profile-meta">Mot de passe initial : ${escapeHtml(String(row?.initialPasswordHint || '').trim() || '-')}</small></td>
+            <td>${escapeHtml(employeeName || 'Compte autonome')}</td>
+            <td><span class="users-role-badge">${escapeHtml(getRoleDisplayLabel(row?.role || ''))}</span></td>
+            <td>${employeeName ? '<span class="users-status-pill users-status-connected">Lié RH</span>' : '<span class="users-status-pill users-status-missing">Autonome</span>'}</td>
+            <td>${firstLoginAt ? escapeHtml(formatDateWithTime(firstLoginAt)) : 'Non suivi'}</td>
+            <td>${lastLoginAt ? escapeHtml(formatDateWithTime(lastLoginAt)) : 'Non suivi'}</td>
+            <td><span class="users-status-pill ${statusClass}">${statusLabel}</span></td>
+            <td>${isAdmin() ? `<button type="button" class="users-row-action" aria-label="Réinitialiser le profil ${escapeHtml(username)}" title="Réinitialiser la première connexion" onclick="resetUserLoginState(${Number(row?.id || 0)})">↻</button>` : '—'}</td>
           </tr>
         `;
       }).join('');
@@ -14776,17 +14964,35 @@
         purgeButton.style.display = isAdmin() ? 'inline-flex' : 'none';
       }
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">Chargement...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="users-empty-row">Chargement des profils…</td></tr>';
       }
 
       try {
         const users = await fetchJson('/api/users');
         usersAdminCache = Array.isArray(users) ? users : [];
+        usersLastLoadedAt = new Date();
+        usersCurrentPage = 1;
+        const filterPanel = document.getElementById('users');
+        if (filterPanel && !filterPanel.dataset.listenersReady) {
+          filterPanel.dataset.listenersReady = '1';
+          ['users-role-filter', 'users-status-filter'].forEach(id => document.getElementById(id)?.addEventListener('change', () => { usersCurrentPage = 1; renderUsersModuleTable(); }));
+          document.getElementById('users-search')?.addEventListener('input', () => { usersCurrentPage = 1; renderUsersModuleTable(); });
+          document.getElementById('users-reset-filters')?.addEventListener('click', () => {
+            document.getElementById('users-role-filter').value = '';
+            document.getElementById('users-status-filter').value = '';
+            document.getElementById('users-search').value = '';
+            usersCurrentPage = 1;
+            renderUsersModuleTable();
+          });
+          document.getElementById('users-page-prev')?.addEventListener('click', () => { usersCurrentPage -= 1; renderUsersModuleTable(); });
+          document.getElementById('users-page-next')?.addEventListener('click', () => { usersCurrentPage += 1; renderUsersModuleTable(); });
+          document.getElementById('users-page-size')?.addEventListener('change', event => { usersPageSize = Math.max(1, Number(event.target.value) || 10); usersCurrentPage = 1; renderUsersModuleTable(); });
+        }
         renderUsersModuleTable();
       } catch (err) {
         usersAdminCache = [];
         if (tbody) {
-          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#b91c1c;">Erreur de chargement des utilisateurs</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" class="users-empty-row">Erreur de chargement des utilisateurs.</td></tr>';
         }
       }
     }
@@ -15157,32 +15363,64 @@
       }
     };
 
-    window.purgeErpBusinessData = async function purgeErpBusinessData() {
+    window.closeUsersPurgeDialog = function closeUsersPurgeDialog() {
+      const dialog = document.getElementById('users-purge-modal');
+      if (dialog) dialog.hidden = true;
+    };
+
+    window.purgeErpBusinessData = function purgeErpBusinessData() {
       if (!isAdmin()) {
         showMessage('Acces refuse: admin uniquement', 'error');
         return;
       }
+      const dialog = document.getElementById('users-purge-modal');
+      if (!dialog) return;
+      dialog.hidden = false;
+      dialog.querySelectorAll('[data-purge-option]').forEach(input => { input.checked = false; });
+      const allOption = document.getElementById('users-purge-all');
+      if (allOption) allOption.checked = false;
+      const confirmation = document.getElementById('users-purge-confirmation');
+      if (confirmation) confirmation.value = '';
+      const allCheckbox = document.getElementById('users-purge-all');
+      if (!dialog.dataset.listenersReady) {
+        dialog.dataset.listenersReady = '1';
+        allCheckbox?.addEventListener('change', () => {
+          dialog.querySelectorAll('[data-purge-option]').forEach(input => { input.checked = allCheckbox.checked; });
+        });
+        dialog.querySelectorAll('[data-purge-option]').forEach(input => input.addEventListener('change', () => {
+          if (!input.checked && allCheckbox) allCheckbox.checked = false;
+          if (allCheckbox) allCheckbox.checked = Array.from(dialog.querySelectorAll('[data-purge-option]')).every(option => option.checked);
+        }));
+        dialog.addEventListener('click', event => { if (event.target === dialog) window.closeUsersPurgeDialog(); });
+        dialog.addEventListener('keydown', event => { if (event.key === 'Escape') window.closeUsersPurgeDialog(); });
+      }
+      confirmation?.focus();
+    };
 
-      const confirmed = window.confirm([
-        'Supprimer définitivement les données transactionnelles suivantes ?',
-        '',
-        '- Journal de chantier et assignations de projet',
-        '- Demandes d’approvisionnement et bons de commande',
-        '- Dépenses, revenus, sorties et autorisations de stock liés',
-        '- Documents liés aux demandes et bons de commande',
-        '',
-        'Les projets, zones, sites, catalogue de matériaux, utilisateurs, employés et dossiers profils seront conservés.'
-      ].join('\n'));
-      if (!confirmed) {
-        showMessage('Purge annulée', 'error');
+    window.confirmUsersDataPurge = async function confirmUsersDataPurge() {
+      if (!isAdmin()) {
+        showMessage('Acces refuse: admin uniquement', 'error');
+        return;
+      }
+      const dialog = document.getElementById('users-purge-modal');
+      const confirmation = document.getElementById('users-purge-confirmation');
+      const selectedGroups = Array.from(dialog?.querySelectorAll('[data-purge-option]:checked') || []).map(input => input.value);
+      if (!selectedGroups.length) {
+        showMessage('Sélectionnez au moins une catégorie à purger', 'warning');
+        return;
+      }
+      if (String(confirmation?.value || '').trim().toUpperCase() !== 'PURGER') {
+        showMessage('Saisissez PURGER pour confirmer la suppression', 'warning');
+        confirmation?.focus();
         return;
       }
 
       try {
         const response = await fetchJson('/api/admin/purge-selected-business-data', {
           method: 'POST',
-          body: JSON.stringify({ confirm: 'PURGE_SELECTED_BUSINESS_DATA' }),
+          body: JSON.stringify({ confirm: 'PURGE_SELECTED_BUSINESS_DATA', groups: selectedGroups }),
         });
+        window.closeUsersPurgeDialog();
 
         trashItems = [];
         saveTrashItemsToStorage();
@@ -15217,6 +15455,7 @@
           loadExpenses(),
           loadRevenues(),
         ]);
+        await loadUsersModule();
 
         if (currentModule === 'trash') {
           renderTrashModule();
@@ -33860,15 +34099,328 @@
       });
     });
 
+    function getReportMonth(value) {
+      const match = String(value || '').match(/^(\d{4})[-/](\d{1,2})/);
+      return match ? `${match[1]}-${String(match[2]).padStart(2, '0')}` : '';
+    }
+
+    function getReportMonthlyTotals(expenses, revenues) {
+      const monthly = new Map();
+      const ensure = month => {
+        if (!monthly.has(month)) monthly.set(month, { month, revenue: 0, expense: 0 });
+        return monthly.get(month);
+      };
+      (Array.isArray(revenues) ? revenues : []).forEach(row => {
+        const month = getReportMonth(row.dateRevenue);
+        if (month) ensure(month).revenue += Number(row.amount || 0);
+      });
+      (Array.isArray(expenses) ? expenses : []).forEach(row => {
+        const month = getReportMonth(row.dateExpense || row.date);
+        if (month) ensure(month).expense += Number(row.montantTotal || row.totalPrice || 0);
+      });
+      return Array.from(monthly.values()).sort((a, b) => a.month.localeCompare(b.month));
+    }
+
+    function reportSvgLineChart(series, ariaLabel) {
+      const width = 620;
+      const height = 250;
+      const padding = { top: 20, right: 18, bottom: 42, left: 66 };
+      const allValues = series.flatMap(item => item.values.map(point => Number(point.value || 0)));
+      if (!allValues.length) return '<p class="reports-chart-note">Aucune donnée disponible pour cette période.</p>';
+      const max = Math.max(...allValues, 1);
+      const min = Math.min(...allValues, 0);
+      const plotWidth = width - padding.left - padding.right;
+      const plotHeight = height - padding.top - padding.bottom;
+      const monthCount = Math.max(...series.map(item => item.values.length), 1);
+      const xAt = index => padding.left + (monthCount > 1 ? (index / (monthCount - 1)) * plotWidth : plotWidth / 2);
+      const yAt = value => padding.top + plotHeight - ((value - min) / (max - min || 1)) * plotHeight;
+      const grid = Array.from({ length: 5 }, (_, index) => {
+        const value = min + ((max - min) * index) / 4;
+        const y = yAt(value);
+        return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e7eef7"/><text x="${padding.left - 8}" y="${y + 3}" text-anchor="end" fill="#8493a8" font-size="9">${Math.round(value).toLocaleString('fr-FR')}</text>`;
+      }).join('');
+      const lines = series.map(item => {
+        const path = item.values.map((point, index) => `${index ? 'L' : 'M'} ${xAt(index)} ${yAt(point.value)}`).join(' ');
+        const dots = item.values.map((point, index) => `<circle cx="${xAt(index)}" cy="${yAt(point.value)}" r="3.5" fill="${item.color}"><title>${escapeHtml(point.label)}: ${Number(point.value).toLocaleString('fr-FR')} FCFA</title></circle>`).join('');
+        return `<path d="${path}" fill="none" stroke="${item.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+      }).join('');
+      const labels = series[0].values.map((point, index) => `<text x="${xAt(index)}" y="${height - 15}" text-anchor="middle" fill="#8493a8" font-size="9">${escapeHtml(point.label.slice(2))}</text>`).join('');
+      const legend = series.map(item => `<span style="display:inline-flex;align-items:center;gap:5px;margin:8px 12px 0 0;color:#64748b;font-size:10px"><i style="width:9px;height:9px;border-radius:50%;background:${item.color}"></i>${escapeHtml(item.label)}</span>`).join('');
+      return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(ariaLabel)}" width="100%" height="250">${grid}${lines}${labels}</svg><div>${legend}</div>`;
+    }
+
+    function renderReportsFinancialChart(expenses, revenues) {
+      const target = document.getElementById('reports-financial-trend');
+      if (!target) return;
+      const monthly = getReportMonthlyTotals(expenses, revenues);
+      target.innerHTML = reportSvgLineChart([
+        { label: 'Revenus', color: '#1788ed', values: monthly.map(item => ({ label: item.month, value: item.revenue })) },
+        { label: 'Dépenses', color: '#f39a3d', values: monthly.map(item => ({ label: item.month, value: item.expense })) },
+        { label: 'Solde mensuel', color: '#1bb487', values: monthly.map(item => ({ label: item.month, value: item.revenue - item.expense })) },
+      ], 'Évolution mensuelle des revenus, dépenses et solde');
+    }
+
+    function renderReportsBreakEvenChart(expenses, revenues) {
+      const target = document.getElementById('reports-breakeven-chart');
+      if (!target) return;
+      const monthly = getReportMonthlyTotals(expenses, revenues);
+      if (!monthly.length) {
+        target.innerHTML = '<p class="reports-chart-note">Aucun flux financier daté disponible.</p>';
+        return;
+      }
+      let cumulativeRevenue = 0;
+      let cumulativeExpense = 0;
+      target.innerHTML = reportSvgLineChart([
+        { label: 'Revenus cumulés', color: '#1788ed', values: monthly.map(item => ({ label: item.month, value: cumulativeRevenue += item.revenue })) },
+        { label: 'Dépenses cumulées', color: '#f39a3d', values: monthly.map(item => ({ label: item.month, value: cumulativeExpense += item.expense })) },
+        { label: 'Coût marginal mensuel', color: '#9b78e8', values: monthly.map(item => ({ label: item.month, value: item.expense })) },
+      ], 'Coûts mensuels et flux cumulés pour observer le point mort');
+      const crossing = monthly.findIndex((item, index) => {
+        const income = monthly.slice(0, index + 1).reduce((sum, row) => sum + row.revenue, 0);
+        const cost = monthly.slice(0, index + 1).reduce((sum, row) => sum + row.expense, 0);
+        return income > 0 && income >= cost;
+      });
+      const status = crossing >= 0 ? `Point mort observé : ${monthly[crossing].month}.` : 'Point mort non atteint sur les flux enregistrés.';
+      target.insertAdjacentHTML('beforeend', `<p class="reports-chart-note">${status}</p>`);
+    }
+
+    function renderReportsExpenseCategories(expenses) {
+      const target = document.getElementById('reports-expense-categories');
+      if (!target) return;
+      const totals = new Map();
+      (Array.isArray(expenses) ? expenses : []).forEach(row => {
+        const category = String(row.categorie || 'Autres').trim() || 'Autres';
+        totals.set(category, (totals.get(category) || 0) + Number(row.montantTotal || row.totalPrice || 0));
+      });
+      const entries = Array.from(totals, ([label, total]) => ({ label, total })).sort((a, b) => b.total - a.total);
+      target.innerHTML = buildPieChartHtml(entries, 'Répartition des dépenses par catégorie');
+    }
+
+    function renderReportsIncomeExpensePie(expenses, revenues) {
+      const target = document.getElementById('reports-income-expense-pie');
+      if (!target) return;
+      const expenseTotal = (expenses || []).reduce((sum, row) => sum + Number(row.montantTotal || row.totalPrice || 0), 0);
+      const revenueTotal = (revenues || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+      target.innerHTML = buildPieChartHtml([
+        { label: 'Revenus', total: revenueTotal },
+        { label: 'Dépenses', total: expenseTotal },
+      ].filter(row => row.total > 0), 'Répartition globale des revenus et dépenses');
+    }
+
+    function renderReportsActivityDistribution(activities) {
+      const target = document.getElementById('reports-activity-distribution');
+      if (!target) return;
+      const totals = new Map();
+      (Array.isArray(activities) ? activities : []).forEach(row => {
+        const stage = String(row.stage || row.title || 'Autre').trim() || 'Autre';
+        totals.set(stage, (totals.get(stage) || 0) + 1);
+      });
+      const entries = Array.from(totals, ([label, total]) => ({ label, total })).sort((a, b) => b.total - a.total);
+      const max = Math.max(...entries.map(item => item.total), 1);
+      const colors = ['#1c86ed', '#16b88b', '#f5a142', '#9b78e8', '#18a9bd', '#eb6d87'];
+      if (!entries.length) {
+        target.innerHTML = '<p class="reports-chart-note">Aucune activité enregistrée.</p>';
+        return;
+      }
+      target.innerHTML = `<div style="display:grid;gap:10px">${entries.map((item, index) => `<div><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;color:#58708c;font-size:10px"><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></div><div style="height:8px;border-radius:6px;background:#edf2f8;overflow:hidden"><div style="width:${Math.max(item.total / max * 100, 2)}%;height:100%;background:${colors[index % colors.length]};border-radius:6px"></div></div></div>`).join('')}</div>`;
+    }
+
+    function renderReportsProjectCategoryChart(expenses) {
+      const target = document.getElementById('reports-project-category');
+      if (!target) return;
+      const projects = new Map();
+      const categoryTotals = new Map();
+      (Array.isArray(expenses) ? expenses : []).forEach(expense => {
+        const project = getExpenseProjectBucket(expense).label || 'Autre';
+        const category = String(expense.categorie || 'Autres').trim() || 'Autres';
+        const amount = Number(expense.montantTotal || expense.totalPrice || 0);
+        if (!projects.has(project)) projects.set(project, new Map());
+        const projectCategories = projects.get(project);
+        projectCategories.set(category, (projectCategories.get(category) || 0) + amount);
+        categoryTotals.set(category, (categoryTotals.get(category) || 0) + amount);
+      });
+      const topCategories = Array.from(categoryTotals.entries()).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([label]) => label);
+      const entries = Array.from(projects.entries()).map(([label, values]) => {
+        const grouped = new Map();
+        values.forEach((amount, category) => {
+          const key = topCategories.includes(category) ? category : 'Autres';
+          grouped.set(key, (grouped.get(key) || 0) + amount);
+        });
+        return { label, values: grouped, total: Array.from(grouped.values()).reduce((sum, amount) => sum + amount, 0) };
+      }).sort((a, b) => b.total - a.total).slice(0, 8);
+      if (!entries.length) {
+        target.innerHTML = '<p class="reports-chart-note">Aucune dépense à comparer par projet et catégorie.</p>';
+        return;
+      }
+      const categories = [...topCategories, ...(Array.from(categoryTotals.keys()).some(category => !topCategories.includes(category)) ? ['Autres'] : [])];
+      const colors = ['#2488e8', '#18b78c', '#f2a044', '#9b78e8', '#16a6ba'];
+      const maxTotal = Math.max(...entries.map(entry => entry.total), 1);
+      const width = 650;
+      const labelWidth = 142;
+      const plotWidth = 438;
+      const rowHeight = 31;
+      const chartHeight = 26 + entries.length * rowHeight + 28;
+      const grid = Array.from({ length: 5 }, (_, index) => {
+        const x = labelWidth + (plotWidth * index) / 4;
+        const value = (maxTotal * index) / 4;
+        return `<line x1="${x}" y1="18" x2="${x}" y2="${chartHeight - 27}" stroke="#e8eef6"/><text x="${x}" y="${chartHeight - 8}" text-anchor="middle" fill="#8292a8" font-size="9">${Math.round(value).toLocaleString('fr-FR')}</text>`;
+      }).join('');
+      const rows = entries.map((entry, index) => {
+        let offset = 0;
+        const bars = categories.map((category, categoryIndex) => {
+          const amount = entry.values.get(category) || 0;
+          const barWidth = (amount / maxTotal) * plotWidth;
+          const x = labelWidth + offset;
+          offset += barWidth;
+          return amount > 0 ? `<rect x="${x}" y="${24 + index * rowHeight}" width="${barWidth}" height="14" rx="3" fill="${colors[categoryIndex % colors.length]}"><title>${escapeHtml(category)}: ${Math.round(amount).toLocaleString('fr-FR')} FCFA</title></rect>` : '';
+        }).join('');
+        return `<text x="${labelWidth - 10}" y="${35 + index * rowHeight}" text-anchor="end" fill="#526a86" font-size="10">${escapeHtml(entry.label.slice(0, 24))}</text>${bars}`;
+      }).join('');
+      const legend = categories.map((category, index) => `<span style="display:inline-flex;align-items:center;gap:5px;margin:7px 12px 0 0;color:#64748b;font-size:10px"><i style="width:9px;height:9px;border-radius:3px;background:${colors[index % colors.length]}"></i>${escapeHtml(category)}</span>`).join('');
+      target.innerHTML = `<svg viewBox="0 0 ${width} ${chartHeight}" role="img" aria-label="Dépenses par projet et catégorie" width="100%" height="${chartHeight}">${grid}${rows}</svg><div>${legend}</div>`;
+    }
+
+    function updateReportsKpis(expenses, revenues, activities, projects) {
+      const expenseTotal = (expenses || []).reduce((sum, row) => sum + Number(row.montantTotal || row.totalPrice || 0), 0);
+      const revenueTotal = (revenues || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+      const money = amount => `${Math.round(amount).toLocaleString('fr-FR')} FCFA`;
+      document.getElementById('reports-kpi-revenue').textContent = money(revenueTotal);
+      document.getElementById('reports-kpi-expense').textContent = money(expenseTotal);
+      const net = document.getElementById('reports-kpi-net');
+      net.textContent = money(revenueTotal - expenseTotal);
+      net.style.color = revenueTotal >= expenseTotal ? '#129b73' : '#d66c48';
+      document.getElementById('reports-kpi-activities').textContent = String((activities || []).length);
+      document.getElementById('reports-kpi-project-count').textContent = `${(projects || []).length} projet${(projects || []).length === 1 ? '' : 's'} suivi${(projects || []).length === 1 ? '' : 's'}`;
+    }
+
+    function escapeCsvCell(value) {
+      return `"${String(value ?? '').replace(/"/g, '""').replace(/[\r\n]+/g, ' ')}"`;
+    }
+
+    function getReportRows(type) {
+      const expenses = window._reportExpenses || [];
+      const revenues = window._reportRevenues || [];
+      const activities = window._reportActivities || [];
+      const projects = window._reportProjects || [];
+      const projectNames = new Map(projects.map(project => [String(project.id), project.nomProjet || `Projet ${project.id}`]));
+      const header = ['Type', 'Date', 'Projet', 'Catégorie / étape', 'Description', 'Montant (FCFA)', 'Avancement (%)'];
+      let rows = [];
+      if (type === 'activities') {
+        rows = activities.map(row => ['Activité', row.createdAt, row.nomProjet, row.stage, row.title || row.note, '', row.progressPercent]);
+      } else if (type === 'costs') {
+        rows = expenses.map(row => ['Dépense', row.dateExpense, row.projetNom || projectNames.get(String(row.projetId)), row.categorie, row.description, row.montantTotal, '']);
+      } else if (type === 'project') {
+        rows = [
+          ...expenses.map(row => ['Dépense', row.dateExpense, row.projetNom || projectNames.get(String(row.projetId)), row.categorie, row.description, row.montantTotal, '']),
+          ...revenues.map(row => ['Revenu', row.dateRevenue, row.projetNom || projectNames.get(String(row.projetId)), row.type, row.description, row.amount, '']),
+        ];
+      } else if (type === 'financial') {
+        rows = [
+          ...revenues.map(row => ['Revenu', row.dateRevenue, row.projetNom || projectNames.get(String(row.projetId)), row.type, row.description, row.amount, '']),
+          ...expenses.map(row => ['Dépense', row.dateExpense, row.projetNom || projectNames.get(String(row.projetId)), row.categorie, row.description, row.montantTotal, '']),
+        ];
+      } else {
+        rows = [
+          ...revenues.map(row => ['Revenu', row.dateRevenue, row.projetNom || projectNames.get(String(row.projetId)), row.type, row.description, row.amount, '']),
+          ...expenses.map(row => ['Dépense', row.dateExpense, row.projetNom || projectNames.get(String(row.projetId)), row.categorie, row.description, row.montantTotal, '']),
+          ...activities.map(row => ['Activité', row.createdAt, row.nomProjet, row.stage, row.title || row.note, '', row.progressPercent]),
+        ];
+      }
+      return [header, ...rows];
+    }
+
+    function downloadReportCsv(type) {
+      const csv = getReportRows(type).map(row => row.map(escapeCsvCell).join(';')).join('\r\n');
+      const blob = new Blob(['\ufeff', csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `rapport-${type}-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadReportExcel(type) {
+      const xmlEscape = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+      const rows = getReportRows(type).map(row => `<Row>${row.map(value => `<Cell><Data ss:Type="String">${xmlEscape(value)}</Data></Cell>`).join('')}</Row>`).join('');
+      const workbook = `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Rapport"><Table>${rows}</Table></Worksheet></Workbook>`;
+      const blob = new Blob([workbook], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `rapport-${type}-${new Date().toISOString().slice(0, 10)}.xls`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    window.generateReport = async function(type) {
+      const allowedTypes = ['financial', 'project', 'costs', 'activities', 'export'];
+      if (!allowedTypes.includes(type)) return;
+      const format = document.getElementById('reports-output-format')?.value || 'pdf';
+      const resolvedType = type === 'export' ? 'export' : type;
+      const typeSelect = document.getElementById('reports-report-type');
+      if (typeSelect) typeSelect.value = resolvedType;
+      if (format === 'csv') {
+        downloadReportCsv(resolvedType);
+        showMessage('Export CSV téléchargé');
+        return;
+      }
+      try {
+        const reportFormat = format === 'excel' ? 'xlsx' : 'pdf';
+        const reportToken = localStorage.getItem('erp_token');
+        const response = await fetch(`/api/reports/${resolvedType}.${reportFormat}`, {
+          credentials: 'same-origin',
+          headers: reportToken ? { Authorization: `Bearer ${reportToken}` } : {},
+        });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || `Erreur ${response.status}`);
+        }
+        const blob = await response.blob();
+        const contentDisposition = response.headers.get('Content-Disposition') || '';
+        const fileName = contentDisposition.match(/filename="?([^";]+)"?/i)?.[1] || `rapport-${resolvedType}.${reportFormat}`;
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = fileName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+        showMessage(reportFormat === 'xlsx' ? 'Classeur Excel téléchargé' : 'Rapport PDF téléchargé');
+      } catch (error) {
+        showMessage(`Téléchargement impossible : ${error.message}`, 'error');
+      }
+    };
+
+    window.generateSelectedReport = function() {
+      window.generateReport(document.getElementById('reports-report-type')?.value || 'financial');
+    };
+
     async function loadReports() {
       try {
-        const [projects, expenses, purchaseOrders, revenues] = await Promise.all([
+        const [projects, expenses, purchaseOrders, revenues, activities] = await Promise.all([
           fetchJson('/api/projects'),
           fetchJson('/api/expenses'),
           fetchJson('/api/purchase-orders').catch(() => []),
           fetchJson('/api/revenues'),
+          fetchJson('/api/project-progress').catch(() => []),
         ]);
         const financialExpenses = buildFinancialExpenses(expenses, purchaseOrders);
+        window._reportProjects = projects;
+        window._reportExpenses = financialExpenses;
+        window._reportRevenues = revenues;
+        window._reportActivities = activities;
+        updateReportsKpis(financialExpenses, revenues, activities, projects);
+        renderReportsFinancialChart(financialExpenses, revenues);
+        renderReportsIncomeExpensePie(financialExpenses, revenues);
+        renderReportsBreakEvenChart(financialExpenses, revenues);
+        renderReportsExpenseCategories(financialExpenses);
+        renderReportsActivityDistribution(activities);
 
         const projectData = {};
         projectsCache = projects;
@@ -33974,7 +34526,7 @@
           projectData[projectBucket.key].totaux.total += expense.montantTotal || 0;
         });
 
-        generateExpensesTable(projectData);
+        renderReportsProjectCategoryChart(financialExpenses);
         renderReportsExpensesBar(projectData);
         renderReportsExpensesPie(financialExpenses);
         renderPieChartByProjects(financialExpenses);

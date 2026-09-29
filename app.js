@@ -13,6 +13,7 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const PDFDocument = require('pdfkit');
+const ExcelJS = require('exceljs');
 const { PDFDocument: PdfLibDocument, StandardFonts: PdfLibStandardFonts, rgb: pdfRgb } = require('pdf-lib');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -293,48 +294,106 @@ async function purgeBusinessData() {
   };
 }
 
-const SELECTIVE_DATA_PURGE_TABLES = [
-  'stock_issue_authorization_items',
-  'stock_issues',
-  'stock_issue_authorizations',
-  'purchase_order_items',
-  'purchase_orders',
-  'material_requests',
-  'project_progress_updates',
-  'project_assignments',
-  'expenses',
-  'revenues',
-];
+const SELECTIVE_DATA_PURGE_GROUPS = {
+  activities: ['project_progress_updates', 'project_assignments'],
+  procurement: ['stock_issue_authorization_items', 'stock_issues', 'stock_issue_authorizations', 'purchase_order_items', 'purchase_orders', 'material_requests'],
+  finance: ['expenses', 'revenues'],
+};
+const SELECTIVE_DATA_PURGE_DOCUMENT_TYPES = ['material_request_authorization', 'purchase_order'];
 
-async function purgeSelectedBusinessData() {
+async function removeArchivedFiles(relativePaths) {
+  const archiveRoot = path.resolve(ARCHIVE_ROOT);
+  for (const relativePath of relativePaths || []) {
+    const candidate = path.resolve(archiveRoot, String(relativePath || ''));
+    const relative = path.relative(archiveRoot, candidate);
+    if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) continue;
+    try { await fs.promises.rm(candidate, { force: true }); } catch (_error) {}
+  }
+}
+
+async function purgeSelectedBusinessData(groups, actorUsername) {
   const deletedRows = {};
-
-  for (const tableName of SELECTIVE_DATA_PURGE_TABLES) {
-    const result = await run(`DELETE FROM ${tableName}`);
-    deletedRows[tableName] = Number(result?.changes || result?.rowCount || 0);
+  const selectedGroups = new Set(Array.isArray(groups) ? groups : []);
+  const allowedGroups = new Set([...Object.keys(SELECTIVE_DATA_PURGE_GROUPS), 'documents', 'profiles']);
+  for (const group of selectedGroups) {
+    if (!allowedGroups.has(group)) {
+      const error = new Error('Categorie de purge invalide');
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+  if (!selectedGroups.size) {
+    const error = new Error('Selectionnez au moins une categorie');
+    error.statusCode = 400;
+    throw error;
   }
 
-  const transactionDocumentTypes = ['material_request_authorization', 'purchase_order'];
-  const documentPlaceholders = transactionDocumentTypes.map(() => '?').join(', ');
-  const documentsResult = await run(
-    `DELETE FROM generated_documents WHERE entityType IN (${documentPlaceholders})`,
-    transactionDocumentTypes
-  );
-  deletedRows.generated_documents = Number(documentsResult?.changes || documentsResult?.rowCount || 0);
+  const addDeletedCount = (name, result) => {
+    deletedRows[name] = Number(result?.changes || result?.rowCount || 0);
+  };
+  for (const group of selectedGroups) {
+    for (const tableName of SELECTIVE_DATA_PURGE_GROUPS[group] || []) {
+      const result = await run(`DELETE FROM ${tableName}`);
+      addDeletedCount(tableName, result);
+    }
+  }
 
-  if (!process.env.DATABASE_URL) {
-    const sequenceTables = [...SELECTIVE_DATA_PURGE_TABLES, 'generated_documents'];
-    try {
-      await run(
-        `DELETE FROM sqlite_sequence WHERE name IN (${sequenceTables.map(() => '?').join(', ')})`,
-        sequenceTables
-      );
-    } catch (_error) {}
+  if (selectedGroups.has('documents')) {
+    const placeholders = SELECTIVE_DATA_PURGE_DOCUMENT_TYPES.map(() => '?').join(', ');
+    const documents = await all(
+      `SELECT relativePath FROM generated_documents WHERE entityType IN (${placeholders})`,
+      SELECTIVE_DATA_PURGE_DOCUMENT_TYPES
+    );
+    await removeArchivedFiles((documents || []).map(row => row.relativePath));
+    const result = await run(
+      `DELETE FROM generated_documents WHERE entityType IN (${placeholders})`,
+      SELECTIVE_DATA_PURGE_DOCUMENT_TYPES
+    );
+    addDeletedCount('generated_documents', result);
+  }
+
+  if (selectedGroups.has('profiles')) {
+    const actor = String(actorUsername || '').trim();
+    const removableEmployees = await all(
+      `SELECT id FROM hr_employees WHERE LOWER(TRIM(COALESCE(username, ''))) <> LOWER(TRIM(?))`,
+      [actor]
+    );
+    const employeeIds = (removableEmployees || []).map(row => Number(row.id)).filter(id => Number.isInteger(id) && id > 0);
+    if (employeeIds.length) {
+      const employeePlaceholders = employeeIds.map(() => '?').join(', ');
+      const employeeDocuments = await all(`SELECT relativePath FROM hr_employee_documents WHERE employeeId IN (${employeePlaceholders})`, employeeIds);
+      await removeArchivedFiles((employeeDocuments || []).map(row => row.relativePath));
+      for (const tableName of ['hr_document_signatures', 'hr_leave_requests', 'hr_attendance', 'hr_employee_documents']) {
+        const result = await run(`DELETE FROM ${tableName} WHERE employeeId IN (${employeePlaceholders})`, employeeIds);
+        addDeletedCount(tableName, result);
+      }
+      const assignmentResult = await run(`DELETE FROM project_assignments WHERE employeeId IN (${employeePlaceholders})`, employeeIds);
+      addDeletedCount('project_assignments_profiles', assignmentResult);
+    }
+    const removableUsers = await all(
+      `SELECT id FROM users WHERE LOWER(TRIM(username)) <> LOWER(TRIM(?))`,
+      [actor]
+    );
+    const userIds = (removableUsers || []).map(row => Number(row.id)).filter(id => Number.isInteger(id) && id > 0);
+    if (userIds.length) {
+      const userPlaceholders = userIds.map(() => '?').join(', ');
+      const assignmentResult = await run(`DELETE FROM project_assignments WHERE userId IN (${userPlaceholders})`, userIds);
+      addDeletedCount('project_assignments_users', assignmentResult);
+    }
+    for (const tableName of ['user_access_profile_audit', 'user_access_profiles']) {
+      const result = await run(`DELETE FROM ${tableName} WHERE LOWER(TRIM(username)) <> LOWER(TRIM(?))`, [actor]);
+      addDeletedCount(tableName, result);
+    }
+    const userResult = await run(`DELETE FROM users WHERE LOWER(TRIM(username)) <> LOWER(TRIM(?))`, [actor]);
+    addDeletedCount('users', userResult);
+    const employeeResult = await run(`DELETE FROM hr_employees WHERE LOWER(TRIM(COALESCE(username, ''))) <> LOWER(TRIM(?))`, [actor]);
+    addDeletedCount('hr_employees', employeeResult);
   }
 
   return {
     purgedAt: new Date().toISOString(),
-    tables: [...SELECTIVE_DATA_PURGE_TABLES, 'generated_documents'],
+    groups: Array.from(selectedGroups),
+    preservedUsername: String(actorUsername || '').trim(),
     deletedRows,
   };
 }
@@ -370,10 +429,11 @@ app.post('/api/admin/purge-selected-business-data', authenticateToken, async (re
       return res.status(400).json({ error: 'Confirmation manquante', details: 'Envoyer confirm=PURGE_SELECTED_BUSINESS_DATA' });
     }
 
-    const result = await purgeSelectedBusinessData();
+    const result = await purgeSelectedBusinessData(req.body?.groups, req.user?.username);
     res.json({ ok: true, ...result });
   } catch (error) {
-    res.status(500).json({ error: 'Erreur purge selective des donnees metier', details: String(error) });
+    const statusCode = Number(error?.statusCode || 500);
+    res.status(statusCode).json({ error: statusCode < 500 ? String(error.message || 'Selection invalide') : 'Erreur purge selective des donnees metier', details: statusCode < 500 ? undefined : String(error) });
   }
 });
 
@@ -3893,6 +3953,7 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
     { method: 'GET', pattern: /^\/expenses$/ },
     { method: 'GET', pattern: /^\/revenues$/ },
+    { method: 'GET', pattern: /^\/reports\/(financial|project|costs|activities|export)\.(pdf|xlsx)$/ },
     { method: 'GET', pattern: /^\/vehicles$/ },
     { method: 'GET', pattern: /^\/vehicles\/\d+\/locations$/ },
     { method: 'GET', pattern: /^\/vehicles\/\d+$/ },
@@ -7924,6 +7985,323 @@ app.get('/api/revenues', async (_req, res) => {
     ORDER BY r.dateRevenue DESC
   `);
   res.json(rows);
+});
+
+app.get('/api/reports/:reportType.:format', async (req, res) => {
+  const reportType = String(req.params.reportType || '').trim();
+  const reportFormat = String(req.params.format || '').trim().toLowerCase();
+  const titles = {
+    financial: 'Rapport financier global',
+    project: 'Rapport par projet',
+    costs: 'Rapport des couts',
+    activities: "Rapport d'activites",
+    export: 'Export des donnees ERP',
+  };
+  if (!Object.prototype.hasOwnProperty.call(titles, reportType)) {
+    return res.status(404).json({ error: 'Type de rapport inconnu' });
+  }
+  if (!['pdf', 'xlsx'].includes(reportFormat)) {
+    return res.status(404).json({ error: 'Format de rapport inconnu' });
+  }
+
+  try {
+    const [projects, expenses, revenues, activities] = await Promise.all([
+      all('SELECT * FROM projects ORDER BY nomProjet ASC, id ASC'),
+      all(`SELECT e.*, p.nomProjet as projetNom FROM expenses e LEFT JOIN projects p ON p.id = e.projetId ORDER BY e.dateExpense ASC, e.id ASC`),
+      all(`SELECT r.*, p.nomProjet as projetNom FROM revenues r LEFT JOIN projects p ON p.id = r.projetId ORDER BY r.dateRevenue ASC, r.id ASC`),
+      all(`SELECT ppu.*, p.nomProjet, p.nomSite FROM project_progress_updates ppu JOIN projects p ON p.id = ppu.projectId ORDER BY ppu.createdAt ASC, ppu.id ASC`),
+    ]);
+    const isScopedRole = ['chef_chantier_site', 'gestionnaire_stock_songon'].includes(String(req.user?.role || '').trim());
+    const visibleProjects = projects.filter(project => !isScopedRole || isInUserProjectScope(req.user, project));
+    const visibleProjectIds = new Set(visibleProjects.map(project => String(project.id)));
+    const visibleExpenses = expenses.filter(row => !isScopedRole || (row.projetId && visibleProjectIds.has(String(row.projetId))));
+    const visibleRevenues = revenues.filter(row => !isScopedRole || (row.projetId && visibleProjectIds.has(String(row.projetId))));
+    const visibleActivities = activities.filter(row => !isScopedRole || isInUserProjectScope(req.user, row));
+    const projectTotals = new Map();
+    const categoryTotals = new Map();
+    const monthlyTotals = new Map();
+    const activityTotals = new Map();
+    const ensureProject = (id, label) => {
+      const key = String(id || `manual:${label || 'Autre'}`);
+      if (!projectTotals.has(key)) projectTotals.set(key, { label: label || `Projet ${id || 'Autre'}`, expense: 0, revenue: 0 });
+      return projectTotals.get(key);
+    };
+    const ensureMonth = date => {
+      const match = String(date || '').match(/^(\d{4}-\d{2})/);
+      if (!match) return null;
+      if (!monthlyTotals.has(match[1])) monthlyTotals.set(match[1], { month: match[1], expense: 0, revenue: 0 });
+      return monthlyTotals.get(match[1]);
+    };
+    visibleExpenses.forEach(row => {
+      const amount = Number(row.montantTotal || row.totalPrice || 0);
+      const category = String(row.categorie || 'Autres').trim() || 'Autres';
+      const project = ensureProject(row.projetId, row.projetNom);
+      project.expense += amount;
+      categoryTotals.set(category, (categoryTotals.get(category) || 0) + amount);
+      const month = ensureMonth(row.dateExpense);
+      if (month) month.expense += amount;
+    });
+    visibleRevenues.forEach(row => {
+      const amount = Number(row.amount || 0);
+      ensureProject(row.projetId, row.projetNom).revenue += amount;
+      const month = ensureMonth(row.dateRevenue);
+      if (month) month.revenue += amount;
+    });
+    visibleProjects.forEach(project => ensureProject(project.id, project.nomProjet));
+    visibleActivities.forEach(row => {
+      const stage = String(row.stage || row.title || 'Autre').trim() || 'Autre';
+      activityTotals.set(stage, (activityTotals.get(stage) || 0) + 1);
+    });
+
+    const monthly = Array.from(monthlyTotals.values()).sort((a, b) => a.month.localeCompare(b.month));
+    const projectRows = Array.from(projectTotals.values()).sort((a, b) => b.expense - a.expense);
+    const expenseTotal = visibleExpenses.reduce((sum, row) => sum + Number(row.montantTotal || row.totalPrice || 0), 0);
+    const revenueTotal = visibleRevenues.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const netTotal = revenueTotal - expenseTotal;
+    let runningRevenue = 0;
+    let runningExpense = 0;
+    const cumulative = monthly.map(row => {
+      runningRevenue += row.revenue;
+      runningExpense += row.expense;
+      return { ...row, cumulativeRevenue: runningRevenue, cumulativeExpense: runningExpense };
+    });
+    const breakEven = cumulative.find(row => row.cumulativeRevenue > 0 && row.cumulativeRevenue >= row.cumulativeExpense);
+    const progressValues = visibleActivities.map(row => Number(row.progressPercent)).filter(Number.isFinite);
+    const averageProgress = progressValues.length ? progressValues.reduce((sum, value) => sum + value, 0) / progressValues.length : null;
+    const pdfText = value => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\xFF]/g, ' ').replace(/\s+/g, ' ').trim();
+    const money = value => `${Math.round(Number(value || 0)).toLocaleString('fr-FR')} FCFA`;
+    if (reportFormat === 'xlsx') {
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'RyanERP';
+      workbook.created = new Date();
+      workbook.modified = new Date();
+      const titleStyle = { font: { bold: true, color: { argb: 'FFFFFFFF' }, size: 15 }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D69D8' } }, alignment: { vertical: 'middle' } };
+      const headerStyle = { font: { bold: true, color: { argb: 'FF24466F' } }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F2FF' } } };
+      const addDataSheet = (name, headers, rows) => {
+        const sheet = workbook.addWorksheet(name);
+        sheet.addRow(headers);
+        sheet.getRow(1).eachCell(cell => { cell.style = headerStyle; });
+        rows.forEach(row => sheet.addRow(row));
+        sheet.views = [{ state: 'frozen', ySplit: 1 }];
+        if (rows.length) sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
+        sheet.columns.forEach((column, index) => {
+          const maxLength = Math.max(String(headers[index] || '').length, ...rows.slice(0, 250).map(row => String(row[index] ?? '').length));
+          column.width = Math.min(Math.max(maxLength + 2, 12), 38);
+        });
+        return sheet;
+      };
+      if (['financial', 'export'].includes(reportType)) {
+        const summary = workbook.addWorksheet('Synthèse');
+        summary.mergeCells('A1:D1');
+        summary.getCell('A1').value = titles[reportType];
+        summary.getCell('A1').style = titleStyle;
+        summary.getRow(1).height = 28;
+        summary.addRow(['Généré le', new Date().toLocaleString('fr-FR')]);
+        summary.addRow(['Revenus enregistrés', revenueTotal]);
+        summary.addRow(['Dépenses enregistrées', expenseTotal]);
+        summary.addRow(['Solde observé', netTotal]);
+        summary.addRow(['Projets suivis', visibleProjects.length]);
+        summary.addRow(['Activités enregistrées', visibleActivities.length]);
+        summary.getColumn(1).width = 27;
+        summary.getColumn(2).width = 32;
+        [3, 4].forEach(column => { summary.getColumn(column).width = 18; });
+        summary.getCell('B3').numFmt = '#,##0 "FCFA"';
+        summary.getCell('B4').numFmt = '#,##0 "FCFA"';
+        summary.getCell('B5').numFmt = '#,##0 "FCFA"';
+        addDataSheet('Flux financiers', ['Type', 'Date', 'Projet', 'Catégorie', 'Description', 'Montant (FCFA)'], [
+          ...visibleRevenues.map(row => ['Revenu', row.dateRevenue, row.projetNom || '', row.type || '', row.description || '', Number(row.amount || 0)]),
+          ...visibleExpenses.map(row => ['Dépense', row.dateExpense, row.projetNom || '', row.categorie || '', row.description || '', Number(row.montantTotal || row.totalPrice || 0)]),
+        ]);
+        addDataSheet('Évolution mensuelle', ['Mois', 'Revenus (FCFA)', 'Dépenses (FCFA)', 'Solde (FCFA)'], monthly.map(row => [row.month, row.revenue, row.expense, row.revenue - row.expense]));
+      }
+      if (['project', 'export'].includes(reportType)) {
+        addDataSheet('Projets', ['Projet', 'Revenus (FCFA)', 'Dépenses (FCFA)', 'Solde (FCFA)'], projectRows.map(row => [row.label, row.revenue, row.expense, row.revenue - row.expense]));
+        addDataSheet('Dépenses catégories', ['Catégorie', 'Montant (FCFA)'], Array.from(categoryTotals, ([label, amount]) => [label, amount]).sort((a, b) => b[1] - a[1]));
+      }
+      if (['costs', 'export'].includes(reportType)) {
+        addDataSheet('Coûts et point mort', ['Mois', 'Revenus cumulés (FCFA)', 'Dépenses cumulées (FCFA)', 'Coût marginal (FCFA)', 'Solde cumulé (FCFA)'], cumulative.map(row => [row.month, row.cumulativeRevenue, row.cumulativeExpense, row.expense, row.cumulativeRevenue - row.cumulativeExpense]));
+      }
+      if (['activities', 'export'].includes(reportType)) {
+        addDataSheet('Activités', ['Date', 'Projet', 'Étape', 'Activité', 'Avancement (%)'], visibleActivities.map(row => [row.createdAt || '', row.nomProjet || '', row.stage || '', row.title || row.note || '', Number.isFinite(Number(row.progressPercent)) ? Number(row.progressPercent) : '']));
+        addDataSheet('Activités par étape', ['Étape', 'Nombre'], Array.from(activityTotals, ([stage, count]) => [stage, count]).sort((a, b) => b[1] - a[1]));
+      }
+      const workbookBuffer = await workbook.xlsx.writeBuffer();
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="rapport-${reportType}-${dateStamp}.xlsx"`);
+      return res.send(Buffer.from(workbookBuffer));
+    }
+    const pdfBuffer = await new Promise((resolve, reject) => {
+      const chunks = [];
+      const doc = new PDFDocument({ size: 'A4', margin: 42, bufferPages: true });
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const pageWidth = 511;
+      const ensureRoom = height => {
+        if (doc.y + height > 755) doc.addPage();
+      };
+      const writeSectionTitle = label => {
+        ensureRoom(34);
+        doc.moveDown(0.8).font('Helvetica-Bold').fontSize(12).fillColor('#1e477f').text(pdfText(label), { width: pageWidth });
+        doc.moveDown(0.35);
+      };
+      const drawTable = (headers, rows) => {
+        const widths = headers.map(() => pageWidth / headers.length);
+        const rowHeight = headers.length > 4 ? 28 : 25;
+        ensureRoom(rowHeight * Math.min(rows.length + 1, 6) + 12);
+        let y = doc.y;
+        doc.rect(42, y, pageWidth, rowHeight).fill('#e8f2ff');
+        let x = 42;
+        headers.forEach((header, index) => {
+          doc.font('Helvetica-Bold').fontSize(8).fillColor('#254a78').text(pdfText(header).slice(0, 30), x + 5, y + 8, { width: widths[index] - 10, height: 14 });
+          x += widths[index];
+        });
+        y += rowHeight;
+        rows.forEach((row, rowIndex) => {
+          if (y + rowHeight > 755) {
+            doc.addPage();
+            y = doc.y;
+          }
+          if (rowIndex % 2 === 0) doc.rect(42, y, pageWidth, rowHeight).fill('#f8fbff');
+          x = 42;
+          row.forEach((value, index) => {
+            doc.font('Helvetica').fontSize(8).fillColor('#334155').text(pdfText(value).slice(0, headers.length > 4 ? 34 : 52), x + 5, y + 8, { width: widths[index] - 10, height: 14 });
+            x += widths[index];
+          });
+          y += rowHeight;
+        });
+        doc.y = y + 5;
+      };
+      const drawLineChart = (label, series) => {
+        if (!monthly.length) return;
+        ensureRoom(205);
+        writeSectionTitle(label);
+        const x = 65;
+        const y = doc.y + 8;
+        const width = 455;
+        const height = 128;
+        const values = series.flatMap(item => item.values);
+        const max = Math.max(...values, 1);
+        [0, 0.5, 1].forEach(ratio => {
+          const gy = y + height - ratio * height;
+          doc.moveTo(x, gy).lineTo(x + width, gy).lineWidth(0.5).strokeColor('#dce6f2').stroke();
+        });
+        series.forEach(item => {
+          const points = item.values.map((value, index) => ({
+            x: x + (monthly.length > 1 ? index / (monthly.length - 1) * width : width / 2),
+            y: y + height - value / max * height,
+          }));
+          doc.save().lineWidth(2).strokeColor(item.color);
+          points.forEach((point, index) => {
+            if (index === 0) doc.moveTo(point.x, point.y);
+            else doc.lineTo(point.x, point.y);
+          });
+          doc.stroke().restore();
+          points.forEach(point => doc.circle(point.x, point.y, 2.5).fill(item.color));
+        });
+        monthly.forEach((row, index) => {
+          if (monthly.length <= 10 || index % Math.ceil(monthly.length / 10) === 0) {
+            const px = x + (monthly.length > 1 ? index / (monthly.length - 1) * width : width / 2);
+            doc.font('Helvetica').fontSize(7).fillColor('#718096').text(row.month.slice(2), px - 12, y + height + 5, { width: 25, align: 'center' });
+          }
+        });
+        doc.y = y + height + 24;
+      };
+      const drawBars = (label, entries) => {
+        if (!entries.length) return;
+        ensureRoom(40 + Math.min(entries.length, 10) * 25);
+        writeSectionTitle(label);
+        const max = Math.max(...entries.map(item => item.value), 1);
+        entries.slice(0, 10).forEach((item, index) => {
+          const y = doc.y + index * 24;
+          const barWidth = Math.max(2, Math.min(290, item.value / max * 290));
+          doc.font('Helvetica').fontSize(8).fillColor('#475569').text(pdfText(item.label).slice(0, 26), 44, y + 5, { width: 135, height: 13 });
+          doc.roundedRect(184, y + 3, barWidth, 12, 3).fill(['#2587e8', '#16b88b', '#f2a044', '#9672df', '#19a4b8'][index % 5]);
+          doc.font('Helvetica').fontSize(8).fillColor('#475569').text(String(item.value), 484, y + 5, { width: 65, height: 13, align: 'right' });
+        });
+        doc.y += Math.min(entries.length, 10) * 24 + 5;
+      };
+
+      doc.rect(0, 0, 595, 102).fill('#eaf4ff');
+      doc.rect(0, 98, 595, 4).fill('#1684e8');
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#1880dc').text('RYANERP  /  ANALYSE', 42, 26);
+      doc.font('Helvetica-Bold').fontSize(22).fillColor('#183b6d').text(pdfText(titles[reportType]), 42, 46, { width: 500 });
+      doc.font('Helvetica').fontSize(9).fillColor('#60748e').text(`Genere le ${new Date().toLocaleDateString('fr-FR')}  |  Source : donnees ERP`, 42, 78);
+      doc.y = 122;
+
+      const tiles = [
+        ['REVENUS', money(revenueTotal), '#2087e8'],
+        ['DEPENSES', money(expenseTotal), '#ec9841'],
+        ['SOLDE OBSERVE', money(netTotal), '#1cac83'],
+      ];
+      const tileWidth = 159;
+      tiles.forEach((tile, index) => {
+        const x = 42 + index * (tileWidth + 10);
+        doc.roundedRect(x, doc.y, tileWidth, 54, 7).fill('#f5f9ff');
+        doc.rect(x, doc.y, 3, 54).fill(tile[2]);
+        doc.font('Helvetica-Bold').fontSize(7).fillColor('#708198').text(tile[0], x + 10, doc.y + 9);
+        doc.font('Helvetica-Bold').fontSize(11).fillColor('#24466f').text(tile[1], x + 10, doc.y + 25, { width: tileWidth - 18 });
+      });
+      doc.y += 70;
+
+      if (reportType === 'financial') {
+        writeSectionTitle('Synthese mensuelle des flux financiers');
+        drawTable(['Mois', 'Revenus', 'Depenses', 'Solde'], monthly.map(row => [row.month, money(row.revenue), money(row.expense), money(row.revenue - row.expense)]));
+        drawLineChart('Evolution des revenus et depenses', [
+          { values: monthly.map(row => row.revenue), color: '#1684e8' },
+          { values: monthly.map(row => row.expense), color: '#ec9841' },
+        ]);
+      } else if (reportType === 'project') {
+        writeSectionTitle('Revenus et depenses par projet');
+        drawTable(['Projet', 'Revenus', 'Depenses', 'Solde'], projectRows.map(row => [row.label, money(row.revenue), money(row.expense), money(row.revenue - row.expense)]));
+        drawBars('Depenses par projet', projectRows.map(row => ({ label: row.label, value: row.expense })).filter(row => row.value > 0));
+        writeSectionTitle('Depenses par categorie');
+        drawTable(['Categorie', 'Montant'], Array.from(categoryTotals, ([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).map(row => [row.label, money(row.value)]));
+      } else if (reportType === 'costs') {
+        writeSectionTitle('Couts marginaux et point mort observe');
+        drawTable(['Mois', 'Revenus cumules', 'Depenses cumulees', 'Solde cumule'], cumulative.map(row => [row.month, money(row.cumulativeRevenue), money(row.cumulativeExpense), money(row.cumulativeRevenue - row.cumulativeExpense)]));
+        drawLineChart('Revenus et depenses cumules', [
+          { values: cumulative.map(row => row.cumulativeRevenue), color: '#1684e8' },
+          { values: cumulative.map(row => row.cumulativeExpense), color: '#ec9841' },
+        ]);
+        doc.font('Helvetica-Bold').fontSize(9).fillColor('#334155').text(breakEven ? `Point mort observe : ${breakEven.month}` : 'Point mort non atteint sur les flux dates disponibles.', 42, doc.y + 4, { width: pageWidth });
+      } else if (reportType === 'activities') {
+        writeSectionTitle('Indicateurs de suivi');
+        doc.font('Helvetica').fontSize(10).fillColor('#334155').text(`Activites enregistrees : ${visibleActivities.length}   |   Projets suivis : ${visibleProjects.length}   |   Progression moyenne renseignee : ${averageProgress === null ? 'non disponible' : `${averageProgress.toFixed(1)} %`}`, { width: pageWidth });
+        doc.moveDown();
+        drawBars('Repartition des activites par etape', Array.from(activityTotals, ([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value));
+        writeSectionTitle('Activites recentes');
+        drawTable(['Date', 'Projet', 'Etape', 'Activite', 'Progression'], visibleActivities.slice(-35).reverse().map(row => [String(row.createdAt || '').slice(0, 10), row.nomProjet, row.stage, row.title || row.note, Number.isFinite(Number(row.progressPercent)) ? `${Number(row.progressPercent)} %` : '']));
+      } else {
+        writeSectionTitle('Export des donnees financieres');
+        drawTable(['Type', 'Date', 'Projet', 'Categorie', 'Description', 'Montant'], [
+          ...visibleRevenues.map(row => ['Revenu', String(row.dateRevenue || '').slice(0, 10), row.projetNom, row.type, row.description, money(row.amount)]),
+          ...visibleExpenses.map(row => ['Depense', String(row.dateExpense || '').slice(0, 10), row.projetNom, row.categorie, row.description, money(row.montantTotal)]),
+        ]);
+        writeSectionTitle('Activites enregistrees');
+        drawTable(['Date', 'Projet', 'Etape', 'Activite', 'Progression'], visibleActivities.map(row => [String(row.createdAt || '').slice(0, 10), row.nomProjet, row.stage, row.title || row.note, Number.isFinite(Number(row.progressPercent)) ? `${Number(row.progressPercent)} %` : '']));
+      }
+
+      const range = doc.bufferedPageRange();
+      for (let index = range.start; index < range.start + range.count; index += 1) {
+        doc.switchToPage(index);
+        doc.moveTo(42, 790).lineTo(553, 790).lineWidth(0.5).strokeColor('#dce6f2').stroke();
+        doc.font('Helvetica').fontSize(8).fillColor('#8291a5').text('RyanERP  •  Rapport genere a partir des donnees enregistrees', 42, 799, { width: 400 });
+        doc.text(`${index + 1} / ${range.count}`, 490, 799, { width: 63, align: 'right' });
+      }
+      doc.end();
+    });
+
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="rapport-${reportType}-${dateStamp}.pdf"`);
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Erreur lors de la generation du rapport PDF:', error?.message || error);
+    res.status(500).json({ error: 'Impossible de generer ce rapport' });
+  }
 });
 
 app.get('/api/auto-vehicles', async (_req, res) => {

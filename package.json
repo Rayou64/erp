@@ -34,6 +34,7 @@
     "@fontsource/great-vibes": "^5.2.8",
     "archiver": "^8.0.0",
     "bcryptjs": "^2.4.3",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.2",
     "helmet": "^8.1.0",
