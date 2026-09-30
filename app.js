@@ -767,6 +767,7 @@ async function insertExpenseRecord({
   prixUnitaire,
   fournisseur = '',
   note = '',
+  zoneName = '',
   categorie,
   statut = 'EN_ATTENTE',
   createdBy = 'system',
@@ -818,6 +819,7 @@ async function insertExpenseRecord({
   pushColumnIfExists('fournisseur', fournisseur);
   pushColumnIfExists('supplier', fournisseur);
   pushColumnIfExists('note', String(note || '').trim());
+  pushColumnIfExists('zoneName', String(zoneName || '').trim());
   pushColumnIfExists('categorie', expenseCategory);
   pushColumnIfExists('category', expenseCategory);
   pushColumnIfExists('statut', statut);
@@ -2899,6 +2901,7 @@ async function initDb() {
   )`);
 
   try { await run("ALTER TABLE expenses ADD COLUMN note TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE expenses ADD COLUMN zoneName TEXT NOT NULL DEFAULT ''"); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_vehicles (
     id INTEGER PRIMARY KEY,
@@ -7879,6 +7882,7 @@ app.post('/api/expenses', async (req, res) => {
     note = '',
     dateExpense = '',
     categorie,
+    zoneName = '',
     item,
     category,
     quantity,
@@ -7908,6 +7912,7 @@ app.post('/api/expenses', async (req, res) => {
     fournisseur,
     note,
     categorie: expenseCategory,
+    zoneName: String(zoneName || '').trim(),
     createdBy: req.user.username,
     dateExpense: dateExpense ? new Date(`${dateExpense}T12:00:00`).toISOString() : new Date().toISOString(),
   });
@@ -10571,8 +10576,9 @@ app.post('/api/project-assignments', async (req, res) => {
   });
 
   const result = await run(
-    'INSERT INTO project_assignments (projectId, userId, employeeId, assigneeName, phoneNumber, email, department, status, parentAssignmentId, role, assignedAt, endAt, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO project_assignments (id, projectId, userId, employeeId, assigneeName, phoneNumber, email, department, status, parentAssignmentId, role, assignedAt, endAt, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
+      await getNextTableId('project_assignments'),
       assignmentProjectId,
       effectiveUserId,
       linkedEmployeeId,

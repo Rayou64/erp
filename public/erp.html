@@ -9141,6 +9141,9 @@
             body.project-progress-layout .content-area { padding:20px; background:#f1f5fb; }
             @media (max-width:760px) { body.project-progress-layout .content-area { padding:12px; } }
             #project-progress .ppx-shell { display:grid; gap:12px; padding:0 0 20px; color:#183153; font-family:'DM Sans','Segoe UI',sans-serif; }
+            #project-progress .ppx-project-quick-filter { display:flex; align-items:center; gap:9px; max-width:460px; padding:10px 12px; border:1px solid #dfe8f3; border-radius:7px; background:#fff; }
+            #project-progress .ppx-project-quick-filter label { color:#536582; font-size:10px; font-weight:800; white-space:nowrap; }
+            #project-progress .ppx-project-quick-filter select { width:100%; min-width:0; height:32px; border:1px solid #d4e0f2; border-radius:6px; padding:0 9px; color:#183153; background:#fff; font-size:11px; }
             #project-progress .ppx-project-hero-shell #project-carousel { display:block; padding:0; overflow:visible; scroll-snap-type:none; }
             #project-progress .ppx-project-hero { position:relative; display:grid; width:100%; box-sizing:border-box; grid-template-columns:192px minmax(0,1fr) 112px 212px; align-items:center; gap:24px; min-height:164px; padding:18px; overflow:hidden; border:1px solid rgba(255,255,255,.16); border-radius:9px; color:#fff; background:linear-gradient(90deg,rgba(9,31,69,.92),rgba(10,37,80,.82)),url('/15.04.2026_13.02.19_REC.png') center 48%/cover; box-shadow:0 8px 22px rgba(14,38,74,.16); }
             #project-progress .ppx-project-hero::after { position:absolute; inset:0; z-index:0; content:''; pointer-events:none; background:linear-gradient(90deg,transparent 35%,rgba(8,28,63,.23)); }
@@ -9278,6 +9281,7 @@
           </style>
 
           <div class="ppx-shell">
+            <div class="ppx-project-quick-filter"><label for="progress-project-quick-filter">Choix rapide du projet</label><select id="progress-project-quick-filter"><option value="">Chargement des projets…</option></select></div>
             <section class="ppx-project-hero-shell" aria-label="Projet sélectionné">
               <div class="pp-carousel" id="project-carousel"></div>
               <button type="button" class="ppx-hero-switch" id="pp-carousel-prev" aria-label="Projet précédent">‹</button>
@@ -10208,9 +10212,10 @@
           </style>
           <div class="inv-shell">
             <div class="inv-kpis"><div class="inv-kpi"><div class="inv-icon blue">▦</div><div><div class="inv-value" id="inv-kpi-products">0</div><div class="inv-label">Total matériaux</div><div class="inv-note">Références</div></div></div><div class="inv-kpi"><div class="inv-icon green">▣</div><div><div class="inv-value" id="inv-kpi-stock">0</div><div class="inv-label">Stock total</div><div class="inv-note">Quantité totale</div></div></div><div class="inv-kpi"><div class="inv-icon orange">▥</div><div><div class="inv-value" id="inv-kpi-value">0</div><div class="inv-label">Valeur totale</div><div class="inv-note">FCFA</div></div></div><div class="inv-kpi"><div class="inv-icon red">⚠</div><div><div class="inv-value" id="inv-kpi-low">0</div><div class="inv-label">Stocks faibles</div><div class="inv-note">Références</div></div></div><div class="inv-kpi"><div class="inv-icon purple">▱</div><div><div class="inv-value" id="inv-kpi-transit">0</div><div class="inv-label">En transit</div><div class="inv-note">Références</div></div></div></div>
-            <div class="card inv-filter-card"><div class="inv-filter-title"><span>⚱ Filtres de recherche</span><span style="color:#5a70ed;font-size:10px;">× Filtres avancés　⌃</span></div><div class="inv-filter-grid"><div class="inv-field"><label>Projet</label><select id="inventory-project-quick-filter"></select></div><div class="inv-field"><label>Zone</label><select id="inventory-project-filter"></select></div><div class="inv-field"><label>Site / Lot</label><select id="inventory-house-filter"></select></div><div class="inv-field"><label>Entrepôt</label><select id="inventory-warehouse-filter"></select></div><div class="inv-field"><label>Catégorie</label><select id="inventory-filter-category"><option value="">Toutes les catégories</option></select></div><div class="inv-field"><label>Famille</label><select id="inventory-filter-family"><option value="">Toutes les familles</option></select></div><div class="inv-field"><label>Statut</label><select id="inventory-filter-status"><option value="">Tous</option></select></div><div class="inv-field"><label>Stock</label><select id="inventory-filter-stock"><option value="">Tous</option><option value="available">Disponible</option><option value="low">Faible</option><option value="empty">Épuisé</option></select></div><div class="inv-field"><label>Recherche par mot clé</label><input id="inventory-filter-search" type="search" placeholder="Rechercher par mot clé..." /></div><div class="inv-actions"><button type="button" id="inventory-filter-reset">↻ Réinitialiser</button><button type="button" id="inventory-filter-apply" class="primary">⌕ Rechercher</button></div></div></div>
-            <div class="card inv-table-card"><div class="inv-tabs"><button type="button" class="active" data-inventory-tab="product">Stock par produit</button><button type="button" data-inventory-tab="warehouse">Stock par entrepôt</button><button type="button" data-inventory-tab="movements">Mouvements récents</button><button type="button" data-inventory-tab="low">Alerte stock faible</button></div><div id="inventory-project-view-card" style="margin-top:12px;"><div class="inv-table-wrap"><table class="inv-table"><thead><tr><th>Produit</th><th>Catégorie</th><th>Entrepôt</th><th>Projet / Site</th><th>Unité</th><th>Stock total</th><th>Stock disponible</th><th>Stock réservé</th><th>Valeur totale</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="inventory-list"></tbody></table></div><div class="inv-pagination"><span id="inventory-pagination-meta">Affichage des données réelles</span><div class="inv-page-controls"><button type="button">Précédent</button><button type="button" class="selected">1</button><button type="button">Suivant</button></div></div></div></div>
-            <div id="inventory-movements-view" style="display:none;margin-top:12px;"><div class="inv-table-wrap"><table class="inv-table"><thead><tr><th>Date / heure</th><th>Matériau</th><th>Quantité</th><th>Entrepôt source</th><th>Site destinataire</th><th>Sortie par</th><th>Statut</th></tr></thead><tbody id="inventory-movements-list"></tbody></table></div></div>
+            <div class="card inv-filter-card"><div class="inv-filter-title"><span>⚱ Filtres de recherche</span><span style="color:#5a70ed;font-size:10px;">× Filtres avancés　⌃</span></div><div class="inv-filter-grid"><div class="inv-field" id="inventory-project-filter-field"><label>Projet</label><select id="inventory-project-quick-filter"></select></div><div class="inv-field" id="inventory-zone-filter-field"><label>Zone</label><select id="inventory-project-filter"></select></div><div class="inv-field" id="inventory-lot-filter-field"><label>Lot</label><select id="inventory-house-filter"></select></div><div class="inv-field" id="inventory-warehouse-filter-field"><label>Entrepôt</label><select id="inventory-warehouse-filter"></select></div><div class="inv-field"><label>Catégorie</label><select id="inventory-filter-category"><option value="">Toutes les catégories</option></select></div><div class="inv-field"><label>Famille</label><select id="inventory-filter-family"><option value="">Toutes les familles</option></select></div><div class="inv-field"><label>Statut</label><select id="inventory-filter-status"><option value="">Tous</option></select></div><div class="inv-field"><label>Stock</label><select id="inventory-filter-stock"><option value="">Tous</option><option value="available">Disponible</option><option value="low">Faible</option><option value="empty">Épuisé</option></select></div><div class="inv-field"><label>Recherche par mot clé</label><input id="inventory-filter-search" type="search" placeholder="Rechercher par mot clé..." /></div><div class="inv-actions"><button type="button" id="inventory-filter-reset">↻ Réinitialiser</button><button type="button" id="inventory-filter-apply" class="primary">⌕ Rechercher</button></div></div></div>
+            <div class="card inv-table-card"><div class="inv-tabs"><button type="button" class="active" data-inventory-tab="product">Stock par produit total</button><button type="button" data-inventory-tab="warehouse">Stock par entrepôt</button><button type="button" data-inventory-tab="site">Stock par lot</button><button type="button" data-inventory-tab="movements">Mouvements récents</button><button type="button" data-inventory-tab="low">Alerte stock faible</button></div><div id="inventory-project-view-card" style="margin-top:12px;"><div class="inv-table-wrap"><table class="inv-table"><thead id="inventory-main-table-head"><tr><th>Produit</th><th>Catégorie</th><th>Entrepôt</th><th>Projet / Lot</th><th>Unité</th><th>Stock total</th><th>EN STOCK</th><th>Stock réservé</th><th>Valeur totale</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="inventory-list"></tbody></table></div><div class="inv-pagination"><span id="inventory-pagination-meta">Affichage des données réelles</span><div class="inv-page-controls"><button type="button">Précédent</button><button type="button" class="selected">1</button><button type="button">Suivant</button></div></div></div>
+            <div id="inventory-site-view" style="display:none;margin-top:12px;"><h3 id="inventory-site-view-title">Stock par lot</h3><div class="inv-table-wrap"><table class="inv-table"><thead><tr><th>Produit</th><th>Commandé</th><th>Sorti vers le lot</th><th>Restant entrepôt</th><th>Restant sur le lot</th><th>Statut entrepôt</th><th>Statut lot</th><th>Alerte</th></tr></thead><tbody id="inventory-site-list"></tbody></table></div></div></div>
+            <div id="inventory-movements-view" style="display:none;margin-top:12px;"><div class="inv-table-wrap"><table class="inv-table"><thead><tr><th>Date / heure</th><th>Matériau</th><th>Quantité</th><th>Entrepôt source</th><th>Lot destinataire</th><th>Sortie par</th><th>Statut</th></tr></thead><tbody id="inventory-movements-list"></tbody></table></div></div>
             <div id="inventory-global-view-card" style="display:none;"><h3 id="inventory-global-view-title">Inventaire total</h3><tbody id="inventory-summary-list"></tbody></div>
             <div id="inventory-legacy-controls" style="display:none"><button id="inventory-mode-warehouse"></button><button id="inventory-mode-site"></button><div id="inventory-focus-banner"><span id="inventory-focus-title"></span><span id="inventory-focus-subtitle"></span><span id="inventory-kpi-products"></span><span id="inventory-kpi-remaining"></span><span id="inventory-kpi-used"></span></div><select id="inventory-view-search"><option value="product_warehouse">Entrepôt précis</option><option value="building">Site précis</option></select><label id="inventory-warehouse-label"></label><label id="inventory-project-label"></label><label id="inventory-house-label"></label><th id="inventory-col-stage"></th><th id="inventory-col-used"></th></div>
           </div>
@@ -12186,7 +12191,9 @@
             <div class="expenses-panel-heading"><span class="expenses-heading-icon"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><h2>Enregistrer une dépense</h2></div>
             <p class="expenses-panel-subtitle">Ajoutez une nouvelle dépense dans vos projets (dépense manuelle).</p>
             <form id="expense-form" class="expenses-form-grid">
-              <div class="form-group"><label for="expense-project">Projet *</label><select id="expense-project"><option value="">Sélectionner un projet</option></select></div>
+              <div class="form-group"><label for="expense-project">Projet</label><select id="expense-project"><option value="">Sans projet</option></select></div>
+              <div class="form-group"><label for="expense-lot">Lot</label><select id="expense-lot" disabled><option value="">Choisir d'abord un projet</option></select></div>
+              <div class="form-group"><label for="expense-zone">Zone</label><input id="expense-zone" type="text" placeholder="Saisir une zone (facultatif)"></div>
               <div class="form-group"><label for="expense-category">Catégorie *</label><select id="expense-category" required><option value="">Choisir une catégorie</option><option value="fournitures">Matériaux</option><option value="transport">Transports</option><option value="mainOeuvre">Main d'œuvre</option><option value="salaires">Salaires</option><option value="autres">Autres</option></select></div>
               <div class="form-group"><label for="expense-date">Date de la dépense *</label><input id="expense-date" type="date" required></div>
               <div class="form-group description-field"><label for="expense-desc">Description *</label><input id="expense-desc" type="text" placeholder="Ex: Ciment, transport, main d'œuvre, location..." required></div>
@@ -24550,6 +24557,152 @@
       }
     }
 
+    function populateInventoryLocationFilters(projects, materials) {
+      const scopedProjects = getScopedProjects(projects);
+      const scopedFolders = getScopedProjectFolders(projectFoldersCache, scopedProjects);
+      const scopedCatalog = getScopedProjectCatalog(projectCatalogCache, scopedProjects);
+      const hierarchy = buildProjectHierarchy(scopedProjects, scopedFolders, scopedCatalog);
+      const projectSelect = document.getElementById('inventory-project-quick-filter');
+      const zoneSelect = document.getElementById('inventory-project-filter');
+      const lotSelect = document.getElementById('inventory-house-filter');
+      const warehouseSelect = document.getElementById('inventory-warehouse-filter');
+      const activeTab = inventoryActiveTab;
+      const needsZone = ['warehouse', 'site', 'low', 'movements'].includes(activeTab);
+      const needsLot = ['site', 'low', 'movements'].includes(activeTab);
+      const needsWarehouse = ['warehouse', 'movements'].includes(activeTab);
+      const setFilterVisible = (id, visible) => {
+        const field = document.getElementById(id);
+        if (field) field.style.display = visible ? '' : 'none';
+      };
+
+      setFilterVisible('inventory-project-filter-field', true);
+      setFilterVisible('inventory-zone-filter-field', needsZone);
+      setFilterVisible('inventory-lot-filter-field', needsLot);
+      setFilterVisible('inventory-warehouse-filter-field', needsWarehouse);
+
+      if (projectSelect) {
+        const previousProjectId = selectedInventoryQuickProjectId || projectSelect.value;
+        projectSelect.innerHTML = '<option value="">Tous les projets</option>' + hierarchy
+          .map(project => `<option value="${Number(project.id)}">${escapeHtml(project.nomProjet || 'Projet')}</option>`)
+          .join('');
+        if (previousProjectId && hierarchy.some(project => String(project.id) === String(previousProjectId))) {
+          projectSelect.value = String(previousProjectId);
+        } else {
+          projectSelect.value = '';
+        }
+        selectedInventoryQuickProjectId = projectSelect.value;
+      }
+
+      const selectedProject = hierarchy.find(project => String(project.id) === String(selectedInventoryQuickProjectId || '')) || null;
+      const allZones = hierarchy.flatMap(project => (project.zones || []).map(zone => ({
+        project,
+        zone,
+        value: `${Number(project.id)}::${zone.key}`,
+      })));
+      const availableZones = selectedProject
+        ? allZones.filter(entry => Number(entry.project.id) === Number(selectedProject.id))
+        : allZones;
+      if (zoneSelect) {
+        const previousZone = selectedInventoryProjectFolderKey || zoneSelect.value;
+        zoneSelect.innerHTML = '<option value="">Toutes les zones</option>' + availableZones
+          .map(entry => `<option value="${escapeHtml(entry.value)}">${selectedProject ? '' : `${escapeHtml(entry.project.nomProjet)} • `}${escapeHtml(entry.zone.prefecture || entry.zone.nomProjet || 'Zone')}</option>`)
+          .join('');
+        selectedInventoryProjectFolderKey = needsZone && previousZone && availableZones.some(entry => entry.value === previousZone) ? previousZone : '';
+        zoneSelect.value = selectedInventoryProjectFolderKey;
+      }
+
+      const selectedZoneEntry = availableZones.find(entry => entry.value === selectedInventoryProjectFolderKey) || null;
+      const availableLots = selectedZoneEntry
+        ? (selectedZoneEntry.zone.houses || []).map(house => ({ house, zone: selectedZoneEntry.zone }))
+        : selectedProject
+          ? selectedProject.zones.flatMap(zone => (zone.houses || []).map(house => ({ house, zone })))
+          : [];
+      if (lotSelect) {
+        const previousLotId = needsLot ? selectedInventoryHouseId || lotSelect.value : '';
+        const placeholder = selectedZoneEntry || selectedProject ? 'Tous les lots' : 'Sélectionnez un projet et une zone';
+        lotSelect.innerHTML = `<option value="">${placeholder}</option>` + availableLots
+          .map(({ house, zone }) => `<option value="${Number(house.id)}">${escapeHtml(getProjectSiteLabel(house))} • ${escapeHtml(zone.prefecture || 'Zone')}</option>`)
+          .join('');
+        if (previousLotId && availableLots.some(({ house }) => String(house.id) === String(previousLotId))) {
+          lotSelect.value = String(previousLotId);
+        } else {
+          lotSelect.value = '';
+        }
+        selectedInventoryHouseId = lotSelect.value;
+
+        if (isSiteChief()) {
+          const scopedSiteNumber = getSiteChiefScopeSiteNumber();
+          const scopedSiteNumeric = Number.parseInt(String(scopedSiteNumber || '').replace(/[^0-9]/g, ''), 10);
+          const scopedLot = Number.isInteger(scopedSiteNumeric)
+            ? availableLots.find(({ house }) => Number.parseInt(String(house.numeroMaison || '').replace(/[^0-9]/g, ''), 10) === scopedSiteNumeric)
+            : null;
+          if (scopedLot) {
+            lotSelect.value = String(scopedLot.house.id);
+            selectedInventoryHouseId = lotSelect.value;
+          }
+          lotSelect.disabled = true;
+        } else {
+          lotSelect.disabled = false;
+        }
+      }
+
+      const projectLotIds = selectedProject
+        ? new Set(selectedProject.zones.flatMap(zone => (zone.houses || []).map(house => Number(house.id))))
+        : null;
+      const zoneLotIds = selectedZoneEntry
+        ? new Set((selectedZoneEntry.zone.houses || []).map(house => Number(house.id)))
+        : null;
+      let scopedMaterials = (Array.isArray(materials) ? materials : []).filter(item => {
+        const lotId = Number(item.projetId || 0);
+        if (selectedInventoryHouseId && lotId !== Number(selectedInventoryHouseId)) return false;
+        if (zoneLotIds && !zoneLotIds.has(lotId)) return false;
+        if (projectLotIds && !projectLotIds.has(lotId)) return false;
+        return true;
+      });
+
+      const actualWarehouseIds = new Set(scopedMaterials
+        .map(item => String(item.warehouseId || '').trim())
+        .filter(Boolean));
+      const scopedWarehouseId = isWarehouseScopedRole() ? getScopedWarehouseId() : '';
+      const availableWarehouses = getVisibleStockWarehouses().filter(warehouse =>
+        actualWarehouseIds.has(String(warehouse.id)) && (!scopedWarehouseId || String(warehouse.id) === String(scopedWarehouseId))
+      );
+      if (warehouseSelect) {
+        const previousWarehouseId = selectedInventoryWarehouseId || warehouseSelect.value;
+        if (!needsWarehouse) {
+          selectedInventoryWarehouseId = '';
+          warehouseSelect.innerHTML = '<option value="">Tous les entrepôts</option>';
+          warehouseSelect.value = '';
+        } else {
+          warehouseSelect.innerHTML = '<option value="">Sélectionner un entrepôt</option>' + availableWarehouses
+            .map(warehouse => `<option value="${escapeHtml(warehouse.id)}">${escapeHtml(warehouse.name)}</option>`)
+            .join('');
+          selectedInventoryWarehouseId = previousWarehouseId && availableWarehouses.some(warehouse => String(warehouse.id) === String(previousWarehouseId))
+            ? String(previousWarehouseId)
+            : '';
+          if (scopedWarehouseId && availableWarehouses.some(warehouse => String(warehouse.id) === String(scopedWarehouseId))) {
+            selectedInventoryWarehouseId = String(scopedWarehouseId);
+          }
+          warehouseSelect.value = selectedInventoryWarehouseId;
+        }
+        warehouseSelect.disabled = Boolean(needsWarehouse && scopedWarehouseId);
+      }
+
+      if (needsWarehouse) {
+        scopedMaterials = selectedInventoryWarehouseId
+          ? scopedMaterials.filter(item => String(item.warehouseId || '').trim() === selectedInventoryWarehouseId)
+          : [];
+      }
+
+      const selectedHouse = selectedInventoryHouseId ? getProjectById(selectedInventoryHouseId) : null;
+      return {
+        scopedMaterials,
+        selectedFolder: selectedZoneEntry?.zone || null,
+        selectedHouse,
+        warehouseLabel: selectedInventoryWarehouseId ? getWarehouseNameById(selectedInventoryWarehouseId) : 'Tous les entrepôts',
+      };
+    }
+
     function renderInventoryMovements(stockIssues, materials) {
       const list = document.getElementById('inventory-movements-list');
       if (!list) return;
@@ -24592,6 +24745,7 @@
         }
 
         const initialPoStageByRequestId = new Map();
+        const orderedQtyByRequestId = new Map();
         const ascendingPurchaseOrders = (Array.isArray(purchaseOrders) ? purchaseOrders : [])
           .slice()
           .sort((a, b) => Number(a?.id || 0) - Number(b?.id || 0));
@@ -24606,6 +24760,12 @@
             if (stageLabel) {
               initialPoStageByRequestId.set(requestId, stageLabel);
             }
+          });
+          items.forEach(item => {
+            const requestId = Number(item?.materialRequestId || 0);
+            const orderedQty = Number(item?.quantite || 0);
+            if (!requestId || !Number.isFinite(orderedQty) || orderedQty <= 0) return;
+            orderedQtyByRequestId.set(requestId, Number(orderedQtyByRequestId.get(requestId) || 0) + orderedQty);
           });
         });
 
@@ -24671,159 +24831,42 @@
         const inventoryMaterials = materials.filter(m => m.statut !== 'REJETEE');
         const materialCatalogByName = new Map((Array.isArray(materialCatalog) ? materialCatalog : []).map(item => [normalizeText(item.nom || item.name), item]));
         ensureWarehouseAssignmentsForRows(inventoryMaterials);
+        const locationFilters = populateInventoryLocationFilters(projectsCache, inventoryMaterials);
 
         const list = document.getElementById('inventory-list');
         const summaryList = document.getElementById('inventory-summary-list');
         const projectView = document.getElementById('inventory-project-view-card');
+        const siteView = document.getElementById('inventory-site-view');
         const movementsView = document.getElementById('inventory-movements-view');
-        const houseFilter = document.getElementById('inventory-house-filter');
         const detailTitle = document.getElementById('inventory-project-view-title');
         const globalTitle = document.getElementById('inventory-global-view-title');
 
-        selectedInventoryWarehouseId = populateWarehouseSelect('inventory-warehouse-filter', selectedInventoryWarehouseId, {
-          includeAllOption: true,
-          allOptionLabel: 'Tous les entrepôts',
-        });
-        const warehouseFilteredMaterials = getRowsByWarehouse(inventoryMaterials, selectedInventoryWarehouseId || '');
-        const warehouseLabel = getWarehouseNameById(selectedInventoryWarehouseId);
+        const { scopedMaterials: locationScopedMaterials, selectedFolder, selectedHouse, warehouseLabel } = locationFilters;
         if (globalTitle) {
           globalTitle.textContent = `Inventaire total (${warehouseLabel})`;
         }
 
-        const stockedProjectIds = new Set(warehouseFilteredMaterials.map(item => Number(item.projetId)).filter(id => Number.isInteger(id) && id > 0));
-        const folders = buildProjectFolders(projectsCache).filter(folder => folder.houses.some(house => stockedProjectIds.has(Number(house.id))));
-        
-        // Remplir le sélecteur rapide de projet (par nom)
-        const inventoryProjectQuickFilter = document.getElementById('inventory-project-quick-filter');
-        if (inventoryProjectQuickFilter) {
-          const uniqueProjects = new Map();
-          warehouseFilteredMaterials.forEach(item => {
-            if (item.projetId) {
-              const project = getProjectById(item.projetId);
-              if (project && project.nomProjet) {
-                uniqueProjects.set(Number(item.projetId), project.nomProjet);
-              }
-            }
-          });
-          const projectOptions = Array.from(uniqueProjects.entries())
-            .sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'fr'))
-            .map(([id, name]) => `<option value="${id}">${escapeHtml(name)}</option>`)
-            .join('');
-          
-          const previousQuickProjectId = inventoryProjectQuickFilter.value || selectedInventoryQuickProjectId;
-          inventoryProjectQuickFilter.innerHTML = '<option value="">Tous les projets</option>' + projectOptions;
-          
-          if (previousQuickProjectId && uniqueProjects.has(Number(previousQuickProjectId))) {
-            inventoryProjectQuickFilter.value = String(previousQuickProjectId);
-          } else {
-            inventoryProjectQuickFilter.value = '';
-          }
-          
-          selectedInventoryQuickProjectId = inventoryProjectQuickFilter.value;
-          
-          inventoryProjectQuickFilter.addEventListener('change', () => {
-            selectedInventoryQuickProjectId = inventoryProjectQuickFilter.value;
-            loadInventory();
-          });
-        }
-        
-        const inventoryProjectFilter = document.getElementById('inventory-project-filter');
-        if (inventoryProjectFilter) {
-          const previousFolderKey = inventoryProjectFilter.value || selectedInventoryProjectFolderKey;
-          inventoryProjectFilter.innerHTML = '<option value="">Tous les dossiers projet</option>' +
-            folders.map(folder => `<option value="${folder.key}">${escapeHtml(getProjectFolderLabel(folder))}</option>`).join('');
-
-          if (previousFolderKey && folders.some(folder => folder.key === previousFolderKey)) {
-            inventoryProjectFilter.value = previousFolderKey;
-          } else {
-            inventoryProjectFilter.value = '';
-          }
-
-          selectedInventoryProjectFolderKey = inventoryProjectFilter.value;
-        }
-
         const inventoryViewInput = document.getElementById('inventory-view-search');
-        if (inventoryViewInput && !inventoryViewInput.value) {
-          inventoryViewInput.value = inventoryViewSearchTerm;
-        }
-        const resolvedViewMode = isSiteChief()
+        inventoryViewMode = ['site', 'low'].includes(inventoryActiveTab) ? 'building' : 'product_warehouse';
+        inventoryViewSearchTerm = inventoryViewMode;
+        const resolvedViewMode = isSiteChief() && inventoryActiveTab !== 'site' && inventoryActiveTab !== 'low'
           ? 'building'
-          : resolveInventoryViewMode(inventoryViewInput ? inventoryViewInput.value : inventoryViewSearchTerm);
-        if (isSiteChief()) {
-          inventoryViewSearchTerm = 'building';
-        }
+          : inventoryViewMode;
         applyInventoryViewMode(resolvedViewMode);
         if (inventoryViewInput) {
-          inventoryViewInput.value = inventoryViewMode;
+          inventoryViewInput.value = resolvedViewMode;
         }
         document.querySelectorAll('#inventory [data-inventory-tab]').forEach(button => {
           button.classList.toggle('active', button.dataset.inventoryTab === inventoryActiveTab);
         });
         const isMovementTab = inventoryActiveTab === 'movements';
-        if (projectView) projectView.style.display = isMovementTab ? 'none' : '';
+        const isSiteTab = inventoryActiveTab === 'site' || inventoryActiveTab === 'low';
+        if (projectView) projectView.style.display = isMovementTab || isSiteTab ? 'none' : '';
+        if (siteView) siteView.style.display = isSiteTab ? '' : 'none';
         if (movementsView) movementsView.style.display = isMovementTab ? '' : 'none';
         if (isMovementTab) renderInventoryMovements(stockIssues, inventoryMaterials);
 
-        const selectedFolder = folders.find(folder => folder.key === selectedInventoryProjectFolderKey) || null;
-        const selectedProjectIds = selectedFolder
-          ? new Set(
-            (selectedFolder.houses || [])
-              .map(house => Number(house.id))
-              .filter(projectId => stockedProjectIds.has(projectId))
-          )
-          : stockedProjectIds;
-
-        if (houseFilter) {
-          const previousHouseId = houseFilter.value || selectedInventoryHouseId;
-          const availableHouses = selectedFolder
-            ? (selectedFolder.houses || []).filter(house => selectedProjectIds.has(Number(house.id)))
-            : projectsCache.filter(house => selectedProjectIds.has(Number(house.id)));
-
-          houseFilter.innerHTML = '<option value="">Tous les sites</option>' +
-            availableHouses.map((house, index) => `<option value="${house.id}">Site N°${escapeHtml(house.numeroMaison || index + 1)} - ${escapeHtml(house.typeMaison || 'Type libre')}</option>`).join('');
-
-          const scopedSiteNumber = getSiteChiefScopeSiteNumber();
-          const scopedSiteNumeric = Number.parseInt(String(scopedSiteNumber || '').replace(/[^0-9]/g, ''), 10);
-          const scopedHouse = isSiteChief() && Number.isInteger(scopedSiteNumeric)
-            ? availableHouses.find(house => {
-                const houseNumeric = Number.parseInt(String(house.numeroMaison || '').replace(/[^0-9]/g, ''), 10);
-                return Number.isInteger(houseNumeric) && houseNumeric === scopedSiteNumeric;
-              })
-            : null;
-
-          if (scopedHouse) {
-            houseFilter.value = String(scopedHouse.id);
-          } else if (previousHouseId && availableHouses.some(house => String(house.id) === String(previousHouseId))) {
-            houseFilter.value = String(previousHouseId);
-          } else {
-            houseFilter.value = '';
-          }
-
-          selectedInventoryHouseId = houseFilter.value;
-          if (isSiteChief()) {
-            houseFilter.disabled = true;
-            houseFilter.style.opacity = '1';
-          }
-        }
-
-        let scopedMaterials = warehouseFilteredMaterials
-          .filter(item => {
-            // Filtre par projet rapide s'il est sélectionné
-            if (selectedInventoryQuickProjectId && String(item.projetId) !== String(selectedInventoryQuickProjectId)) {
-              return false;
-            }
-            const projectId = Number(item.projetId || 0);
-            if (selectedInventoryHouseId) {
-              return String(projectId) === String(selectedInventoryHouseId);
-            }
-            if (selectedFolder) {
-              return selectedProjectIds.has(projectId);
-            }
-            if (!projectId) {
-              return true;
-            }
-            return selectedProjectIds.size ? selectedProjectIds.has(projectId) : true;
-          });
+        let scopedMaterials = locationScopedMaterials.slice();
         const filterValues = id => String(document.getElementById(id)?.value || '').trim();
         const categoryFilter = filterValues('inventory-filter-category');
         const familyFilter = filterValues('inventory-filter-family');
@@ -24856,22 +24899,13 @@
           if (keywordFilter && !keyword.includes(keywordFilter)) return false;
           return true;
         });
-        const hasSiteInventoryPresence = item => {
-          const issueTotals = issueTotalsByRequestId[Number(item.id)] || { transferredQty: 0, consumedQty: 0 };
-          const transferredQty = Number(issueTotals.transferredQty || 0);
-          const consumedQty = Number(issueTotals.consumedQty || 0);
-          const usedFromRequest = Math.max(Number(item.quantiteDemandee || 0) - Number(item.quantiteRestante || 0), 0);
-          const status = String(item.statut || '').trim().toUpperCase();
-          const hasStockOnHand = ['EN_STOCK', 'LIVREE', 'EPUISE'].includes(status)
-            || Number(item.quantiteDemandee || 0) > 0
-            || Number(item.quantiteRestante || 0) > 0;
-          return transferredQty > 0 || consumedQty > 0 || usedFromRequest > 0 || hasStockOnHand;
-        };
-        const siteScopedMaterials = scopedMaterials.filter(item => {
-          return hasSiteInventoryPresence(item);
-        });
-        const selectedHouse = selectedInventoryHouseId ? getProjectById(selectedInventoryHouseId) : null;
-
+        const getIssueTotalsForRequest = item => issueTotalsByRequestId[Number(item?.id)] || { transferredQty: 0, consumedQty: 0 };
+        const hasSiteInventoryPresence = item => Number(getIssueTotalsForRequest(item).transferredQty || 0) > 0;
+        const siteScopedMaterials = scopedMaterials.filter(hasSiteInventoryPresence);
+        const warehouseStockMaterials = scopedMaterials.filter(item =>
+          String(item.statut || '').trim().toUpperCase() === 'EN_STOCK'
+          && Number(item.quantiteRestante || 0) > 0
+        );
         function aggregateRows(rows, groupKeyBuilder, labelBuilder, quantityResolver = null) {
           const grouped = {};
           rows.forEach(item => {
@@ -32888,21 +32922,29 @@
       loadInventory();
     });
 
+    document.getElementById('inventory-project-quick-filter').addEventListener('change', e => {
+      selectedInventoryQuickProjectId = e.target.value;
+      selectedInventoryProjectFolderKey = '';
+      selectedInventoryHouseId = '';
+      selectedInventoryWarehouseId = '';
+      loadInventory();
+    });
+
     document.getElementById('inventory-project-filter').addEventListener('change', e => {
       selectedInventoryProjectFolderKey = e.target.value;
       selectedInventoryHouseId = '';
+      selectedInventoryWarehouseId = '';
       loadInventory();
     });
 
     document.getElementById('inventory-warehouse-filter').addEventListener('change', e => {
       selectedInventoryWarehouseId = e.target.value;
-      selectedInventoryProjectFolderKey = '';
-      selectedInventoryHouseId = '';
       loadInventory();
     });
 
     document.getElementById('inventory-house-filter').addEventListener('change', e => {
       selectedInventoryHouseId = e.target.value;
+      selectedInventoryWarehouseId = '';
       loadInventory();
     });
 
