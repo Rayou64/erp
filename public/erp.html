@@ -27894,7 +27894,7 @@
           .filter(Boolean)
       )].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
 
-      if (!sites.length) {
+      if (!siteTypes.length) {
         const catalog = (projectCatalogCache || []).find(item => Number(item.id) === Number(catalogId));
         const projectName = String(catalog?.nomProjet || '').trim();
         if (projectName) {
@@ -28493,8 +28493,14 @@
 
     async function loadMaterialCatalog() {
       try {
-        const catalogData = await fetchJson('/api/material-catalog');
+        const [catalogData, projectCatalog] = await Promise.all([
+          fetchJson('/api/material-catalog'),
+          fetchJson('/api/project-catalog').catch(() => projectCatalogCache),
+        ]);
         setMaterialCatalogCache(catalogData);
+        if (Array.isArray(projectCatalog)) {
+          projectCatalogCache = projectCatalog;
+        }
         renderMcProjectQuickList();
         // Restore panel state if a project was already selected
         if (mcSelectedProjectId) {
