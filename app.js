@@ -2352,6 +2352,65 @@ async function initDb() {
   )`);
   console.log('[initDb] Table users créée');
 
+  await run(`CREATE TABLE IF NOT EXISTS internal_mail_conversations (
+    id INTEGER PRIMARY KEY,
+    subject TEXT NOT NULL DEFAULT '',
+    category TEXT NOT NULL DEFAULT 'general',
+    priority TEXT NOT NULL DEFAULT 'normal',
+    status TEXT NOT NULL DEFAULT 'sent',
+    projectId INTEGER,
+    incidentZone TEXT NOT NULL DEFAULT '',
+    incidentSite TEXT NOT NULL DEFAULT '',
+    incidentLevel TEXT NOT NULL DEFAULT '',
+    createdBy INTEGER NOT NULL,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    deletedAt TEXT NOT NULL DEFAULT ''
+  )`);
+  await run(`CREATE TABLE IF NOT EXISTS internal_mail_messages (
+    id INTEGER PRIMARY KEY,
+    conversationId INTEGER NOT NULL,
+    senderId INTEGER NOT NULL,
+    body TEXT NOT NULL DEFAULT '',
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY(conversationId) REFERENCES internal_mail_conversations(id) ON DELETE CASCADE
+  )`);
+  await run(`CREATE TABLE IF NOT EXISTS internal_mail_recipients (
+    id INTEGER PRIMARY KEY,
+    conversationId INTEGER NOT NULL,
+    messageId INTEGER NOT NULL,
+    userId INTEGER NOT NULL,
+    recipientType TEXT NOT NULL DEFAULT 'to',
+    isRead INTEGER NOT NULL DEFAULT 0,
+    isStarred INTEGER NOT NULL DEFAULT 0,
+    isImportant INTEGER NOT NULL DEFAULT 0,
+    deletedAt TEXT NOT NULL DEFAULT '',
+    FOREIGN KEY(conversationId) REFERENCES internal_mail_conversations(id) ON DELETE CASCADE,
+    FOREIGN KEY(messageId) REFERENCES internal_mail_messages(id) ON DELETE CASCADE
+  )`);
+  await run(`CREATE TABLE IF NOT EXISTS internal_mail_user_organization (
+    userId INTEGER NOT NULL,
+    conversationId INTEGER NOT NULL,
+    isStarred INTEGER NOT NULL DEFAULT 0,
+    folderCategory TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY(userId, conversationId),
+    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(conversationId) REFERENCES internal_mail_conversations(id) ON DELETE CASCADE
+  )`);
+  await run(`CREATE TABLE IF NOT EXISTS internal_mail_attachments (
+    id INTEGER PRIMARY KEY,
+    messageId INTEGER NOT NULL,
+    fileName TEXT NOT NULL,
+    mimeType TEXT NOT NULL DEFAULT 'application/octet-stream',
+    fileSize INTEGER NOT NULL DEFAULT 0,
+    contentBase64 TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY(messageId) REFERENCES internal_mail_messages(id) ON DELETE CASCADE
+  )`);
+  await run('CREATE INDEX IF NOT EXISTS idx_internal_mail_recipient_user ON internal_mail_recipients(userId, deletedAt)');
+  await run('CREATE INDEX IF NOT EXISTS idx_internal_mail_message_conversation ON internal_mail_messages(conversationId, createdAt)');
+  try { await run("ALTER TABLE internal_mail_conversations ADD COLUMN status TEXT NOT NULL DEFAULT 'sent'"); } catch (e) {}
+
   await run(`CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY,
     nomProjet TEXT NOT NULL,
@@ -3788,6 +3847,10 @@ function authorizeRoleAccess(req, res, next) {
     return res.status(403).json({ error: 'Acces refuse pour ce role' });
   }
 
+  if (/^\/internal-mail(?:\/|$)/.test(pathName)) {
+    return next();
+  }
+
   const commisRules = [
     { method: 'GET', pattern: /^\/projects$/ },
     { method: 'GET', pattern: /^\/hr\/employees$/ },
@@ -4535,6 +4598,370 @@ app.post('/api/gps/ingest', async (req, res) => {
 });
 
 app.use('/api', authenticateToken, authorizeRoleAccess);
+
+function normalizeInternalMailList(value) {
+  if (!Array.isArray(value)) return [];
+  return Array.from(new Set(value.map(item => Number(item)).filter(id => Number.isInteger(id) && id > 0)));
+}
+
+async function getInternalMailUser(userId) {
+  return get(`
+    SELECT u.id, u.username, u.role,
+           COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS fullName,
+           COALESCE(NULLIF(TRIM(he.jobTitle), ''), u.role) AS department
+    FROM users u
+    LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
+    WHERE u.id = ?
+    LIMIT 1
+  `, [Number(userId)]);
+}
+
+async function getInternalMailAccess(conversationId, userId) {
+  return get(`
+    SELECT c.*
+    FROM internal_mail_conversations c
+    WHERE c.id = ? AND (
+      c.createdBy = ? OR EXISTS (
+        SELECT 1 FROM internal_mail_recipients r
+        WHERE r.conversationId = c.id AND r.userId = ?
+      )
+    )
+    LIMIT 1
+  `, [Number(conversationId), Number(userId), Number(userId)]);
+}
+
+async function getInternalMailRecipients(conversationId, messageId, excludeUserId = 0) {
+  const rows = await all(
+    "SELECT userId FROM internal_mail_recipients WHERE conversationId = ? AND messageId = ? AND userId <> ? AND LOWER(COALESCE(recipientType, 'to')) <> 'bcc'",
+    [Number(conversationId), Number(messageId), Number(excludeUserId)]
+  );
+  return normalizeInternalMailList((rows || []).map(row => row.userId));
+}
+
+app.get('/api/internal-mail/users', async (req, res) => {
+  try {
+    const rows = await all(`
+      SELECT u.id, u.username, u.role,
+             COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS fullName,
+             COALESCE(NULLIF(TRIM(he.jobTitle), ''), u.role) AS department
+      FROM users u
+      LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
+      ORDER BY fullName ASC, u.id ASC
+    `);
+    return res.json((rows || []).map(row => ({
+      id: Number(row.id),
+      username: String(row.username || '').trim(),
+      fullName: String(row.fullName || row.username || '').trim(),
+      role: String(row.role || '').trim(),
+      department: String(row.department || '').trim(),
+    })));
+  } catch (error) {
+    return res.status(500).json({ error: 'Impossible de charger les profils de messagerie', details: String(error?.message || error) });
+  }
+});
+
+app.get('/api/internal-mail/projects', async (_req, res) => {
+  try {
+    const rows = await all('SELECT id, nomProjet, nomSite FROM projects ORDER BY nomProjet ASC, id ASC');
+    return res.json((rows || []).map(row => ({ id: Number(row.id), name: String(row.nomProjet || '').trim(), site: String(row.nomSite || '').trim() })));
+  } catch (error) {
+    return res.status(500).json({ error: 'Impossible de charger les projets pour la messagerie', details: String(error?.message || error) });
+  }
+});
+
+app.get('/api/internal-mail/conversations', async (req, res) => {
+  try {
+    const currentUserId = Number(req.user?.id || 0);
+    const folder = String(req.query.folder || 'inbox').trim().toLowerCase();
+    const category = String(req.query.category || '').trim().toLowerCase();
+    const query = String(req.query.q || '').trim().toLowerCase();
+    const baseRows = await all(`
+      SELECT c.id, c.subject, c.category, c.priority, c.status, c.projectId, c.updatedAt,
+             m.id AS messageId, m.body, m.senderId, m.createdAt,
+             su.username AS senderUsername,
+             COALESCE(NULLIF(TRIM(se.fullName), ''), su.username) AS senderName,
+             p.nomProjet AS projectName,
+             COALESCE(r.isRead, 1) AS isRead,
+             COALESCE(org.isStarred, r.isStarred, 0) AS isStarred,
+             COALESCE(r.isImportant, 0) AS isImportant,
+             COALESCE(NULLIF(r.deletedAt, ''), c.deletedAt, '') AS deletedAt,
+             COALESCE(org.folderCategory, '') AS userFolder,
+             (SELECT COUNT(*) FROM internal_mail_attachments a WHERE a.messageId = m.id) AS attachmentCount,
+             (SELECT COUNT(*) FROM internal_mail_messages cm WHERE cm.conversationId = c.id) AS messageCount
+      FROM internal_mail_conversations c
+      JOIN internal_mail_messages m ON m.id = (
+        SELECT cm.id FROM internal_mail_messages cm
+        WHERE cm.conversationId = c.id ORDER BY cm.createdAt DESC, cm.id DESC LIMIT 1
+      )
+      LEFT JOIN internal_mail_recipients r ON r.messageId = m.id AND r.userId = ?
+      LEFT JOIN internal_mail_user_organization org ON org.conversationId = c.id AND org.userId = ?
+      LEFT JOIN users su ON su.id = m.senderId
+      LEFT JOIN hr_employees se ON LOWER(TRIM(se.username)) = LOWER(TRIM(su.username))
+      LEFT JOIN projects p ON p.id = c.projectId
+      WHERE (
+        (? = 'sent' AND (c.createdBy = ? OR m.senderId = ?)) OR
+        (? = 'drafts' AND c.createdBy = ?) OR
+        (? NOT IN ('sent', 'drafts', 'starred') AND r.userId = ?) OR
+        (? = 'starred' AND (r.userId = ? OR c.createdBy = ?)) OR
+        (? <> '' AND (c.createdBy = ? OR r.userId = ?))
+      )
+      ORDER BY c.updatedAt DESC, c.id DESC
+    `, [currentUserId, currentUserId, folder, currentUserId, currentUserId, folder, currentUserId, folder, currentUserId, folder, currentUserId, currentUserId, category, currentUserId, currentUserId]);
+
+    const rows = (baseRows || []).filter(row => {
+      const deleted = String(row.deletedAt || '').trim();
+      if (category && row.category !== category && row.userFolder !== category) return false;
+      if (folder === 'trash') return Boolean(deleted);
+      if (folder === 'drafts') return row.status === 'draft';
+      if (folder === 'starred') return Number(row.isStarred) === 1;
+      if (folder === 'important') return Number(row.isImportant) === 1;
+      if (folder === 'unread') return Number(row.isRead) === 0;
+      return !deleted;
+    }).filter(row => {
+      if (!query) return true;
+      return [row.subject, row.body, row.senderName, row.senderUsername, row.projectName, row.category]
+        .some(value => String(value || '').toLowerCase().includes(query));
+    });
+    return res.json(rows);
+  } catch (error) {
+    return res.status(500).json({ error: 'Impossible de charger la messagerie', details: String(error?.message || error) });
+  }
+});
+
+app.get('/api/internal-mail/unread-count', async (req, res) => {
+  try {
+    const userId = Number(req.user?.id || 0);
+    const row = await get(`SELECT COUNT(*) AS count FROM internal_mail_recipients WHERE userId = ? AND isRead = 0 AND deletedAt = ''`, [userId]);
+    const items = await all(`
+      SELECT r.messageId, r.conversationId, c.subject, m.body, m.createdAt,
+             su.username AS senderUsername,
+             COALESCE(NULLIF(TRIM(he.fullName), ''), su.username) AS senderName
+      FROM internal_mail_recipients r
+      JOIN internal_mail_messages m ON m.id = r.messageId
+      JOIN internal_mail_conversations c ON c.id = r.conversationId
+      LEFT JOIN users su ON su.id = m.senderId
+      LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(su.username))
+      WHERE r.userId = ? AND r.isRead = 0 AND r.deletedAt = ''
+      ORDER BY m.createdAt DESC, r.id DESC LIMIT 10
+    `, [userId]);
+    return res.json({ count: Number(row?.count || 0), items: (items || []).map(item => ({ messageId: Number(item.messageId), conversationId: Number(item.conversationId), subject: String(item.subject || ''), body: String(item.body || ''), createdAt: String(item.createdAt || ''), senderUsername: String(item.senderUsername || ''), senderName: String(item.senderName || item.senderUsername || 'Utilisateur') })) });
+  } catch (error) {
+    return res.status(500).json({ error: 'Impossible de charger le compteur de messages', details: String(error?.message || error) });
+  }
+});
+
+app.get('/api/internal-mail/conversations/:id', async (req, res) => {
+  try {
+    const conversationId = Number(req.params.id);
+    const currentUserId = Number(req.user?.id || 0);
+    const conversation = await getInternalMailAccess(conversationId, currentUserId);
+    if (!conversation) return res.status(404).json({ error: 'Conversation introuvable ou inaccessible' });
+
+    const messages = await all(`
+      SELECT m.id, m.body, m.senderId, m.createdAt, su.username AS senderUsername,
+             COALESCE(NULLIF(TRIM(se.fullName), ''), su.username) AS senderName,
+             COALESCE(NULLIF(TRIM(se.jobTitle), ''), su.role) AS senderDepartment
+      FROM internal_mail_messages m
+      LEFT JOIN users su ON su.id = m.senderId
+      LEFT JOIN hr_employees se ON LOWER(TRIM(se.username)) = LOWER(TRIM(su.username))
+      WHERE m.conversationId = ? ORDER BY m.createdAt ASC, m.id ASC
+    `, [conversationId]);
+    const hydrated = [];
+    for (const message of messages || []) {
+      const attachments = await all('SELECT id, fileName, mimeType, fileSize FROM internal_mail_attachments WHERE messageId = ? ORDER BY id ASC', [Number(message.id)]);
+      const recipients = await all(`
+        SELECT u.id, u.username, r.recipientType,
+               COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS fullName
+        FROM internal_mail_recipients r
+        JOIN users u ON u.id = r.userId
+        LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
+        JOIN internal_mail_conversations c ON c.id = r.conversationId
+        WHERE r.messageId = ? AND (r.recipientType <> 'bcc' OR r.userId = ? OR c.createdBy = ?)
+        ORDER BY fullName ASC
+      `, [Number(message.id), currentUserId, currentUserId]);
+      hydrated.push({ ...message, attachments: attachments || [], recipients: recipients || [] });
+    }
+    const organization = await get('SELECT isStarred FROM internal_mail_user_organization WHERE userId = ? AND conversationId = ?', [currentUserId, conversationId]);
+    const recipientStar = await get('SELECT isStarred FROM internal_mail_recipients WHERE userId = ? AND conversationId = ? ORDER BY messageId DESC LIMIT 1', [currentUserId, conversationId]);
+    conversation.isStarred = Number(organization?.isStarred ?? recipientStar?.isStarred ?? 0);
+    await run('UPDATE internal_mail_recipients SET isRead = 1 WHERE conversationId = ? AND userId = ?', [conversationId, currentUserId]);
+    return res.json({ conversation, messages: hydrated });
+  } catch (error) {
+    return res.status(500).json({ error: 'Impossible de charger la conversation', details: String(error?.message || error) });
+  }
+});
+
+app.post('/api/internal-mail/conversations', async (req, res) => {
+  try {
+    const sender = await getInternalMailUser(req.user?.id);
+    if (!sender) return res.status(401).json({ error: 'Profil expéditeur introuvable' });
+    const payload = req.body || {};
+    const subject = String(payload.subject || '').trim();
+    const body = String(payload.body || '').trim();
+    const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
+    const status = String(payload.status || 'sent').trim().toLowerCase() === 'draft' ? 'draft' : 'sent';
+    const recipients = normalizeInternalMailList(payload.recipientIds);
+    const ccRecipients = normalizeInternalMailList(payload.ccRecipientIds);
+    const bccRecipients = normalizeInternalMailList(payload.bccRecipientIds);
+    if (!subject && status === 'sent') return res.status(400).json({ error: 'Le sujet est obligatoire' });
+    if (!body && !attachments.length && status === 'sent') return res.status(400).json({ error: 'Écrivez un texte ou ajoutez une pièce jointe.' });
+    if (status === 'sent' && !recipients.length && !ccRecipients.length && !bccRecipients.length && !payload.sendToAll) return res.status(400).json({ error: 'Sélectionne au moins un destinataire' });
+
+    let finalRecipients = recipients;
+    if (payload.sendToAll && (sender.role === 'admin' || sender.role === 'dirigeant')) {
+      const allUsers = await all('SELECT id FROM users WHERE id <> ?', [Number(sender.id)]);
+      finalRecipients = normalizeInternalMailList((allUsers || []).map(row => row.id));
+    }
+    const recipientTypes = new Map(finalRecipients.map(userId => [userId, 'to']));
+    for (const userId of ccRecipients) if (!recipientTypes.has(userId)) recipientTypes.set(userId, 'cc');
+    for (const userId of bccRecipients) if (!recipientTypes.has(userId)) recipientTypes.set(userId, 'bcc');
+    if (status === 'sent' && !recipientTypes.size) return res.status(400).json({ error: 'Aucun profil destinataire disponible' });
+
+    const projectId = Number(payload.projectId || 0) || null;
+    if (projectId && !(await get('SELECT id FROM projects WHERE id = ?', [projectId]))) {
+      return res.status(400).json({ error: 'Projet associé introuvable' });
+    }
+    const now = new Date().toISOString();
+    const conversationId = await getNextTableId('internal_mail_conversations');
+    const messageId = await getNextTableId('internal_mail_messages');
+    await run(`INSERT INTO internal_mail_conversations (id, subject, category, priority, status, projectId, incidentZone, incidentSite, incidentLevel, createdBy, createdAt, updatedAt, deletedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '')`, [
+      conversationId, subject, String(payload.category || 'general'), String(payload.priority || 'normal'), status,
+      projectId, String(payload.incidentZone || ''), String(payload.incidentSite || ''), String(payload.incidentLevel || ''),
+      Number(sender.id), now, now,
+    ]);
+    await run('INSERT INTO internal_mail_messages (id, conversationId, senderId, body, createdAt) VALUES (?, ?, ?, ?, ?)', [messageId, conversationId, Number(sender.id), body, now]);
+    for (const [userId, recipientType] of recipientTypes) {
+      if (userId === Number(sender.id)) continue;
+      await run('INSERT INTO internal_mail_recipients (id, conversationId, messageId, userId, recipientType, isRead, isStarred, isImportant, deletedAt) VALUES (?, ?, ?, ?, ?, 0, 0, 0, ?)', [await getNextTableId('internal_mail_recipients'), conversationId, messageId, userId, recipientType, '']);
+    }
+    for (const attachment of attachments) {
+      const content = String(attachment.contentBase64 || '').replace(/^data:[^;]+;base64,/, '');
+      if (!content) continue;
+      await run('INSERT INTO internal_mail_attachments (id, messageId, fileName, mimeType, fileSize, contentBase64, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)', [await getNextTableId('internal_mail_attachments'), messageId, String(attachment.fileName || 'document'), String(attachment.mimeType || 'application/octet-stream'), Number(attachment.fileSize || 0), content, now]);
+    }
+    return res.status(201).json({ id: conversationId, message: status === 'draft' ? 'Brouillon enregistré' : 'Message envoyé' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erreur lors de l’enregistrement du message', details: String(error?.message || error) });
+  }
+});
+
+app.post('/api/internal-mail/conversations/:id/replies', async (req, res) => {
+  try {
+    const conversationId = Number(req.params.id);
+    const senderId = Number(req.user?.id || 0);
+    const conversation = await getInternalMailAccess(conversationId, senderId);
+    if (!conversation) return res.status(404).json({ error: 'Conversation introuvable ou inaccessible' });
+    const body = String(req.body?.body || '').trim();
+    const attachments = Array.isArray(req.body?.attachments) ? req.body.attachments : [];
+    if (!body && !attachments.length) return res.status(400).json({ error: 'Le message ou une pièce jointe est obligatoire' });
+    const mode = String(req.body?.mode || 'reply-all').trim().toLowerCase() === 'reply' ? 'reply' : 'reply-all';
+    const latest = await get('SELECT id, senderId FROM internal_mail_messages WHERE conversationId = ? ORDER BY createdAt DESC, id DESC LIMIT 1', [conversationId]);
+    const recipients = await getInternalMailRecipients(conversationId, Number(latest?.id || 0), senderId);
+    const participants = await all('SELECT DISTINCT senderId AS userId FROM internal_mail_messages WHERE conversationId = ?', [conversationId]);
+    let finalRecipients;
+    if (mode === 'reply') {
+      const directRecipient = Number(latest?.senderId || 0) !== senderId ? Number(latest?.senderId || 0) : Number(recipients[0] || 0);
+      finalRecipients = normalizeInternalMailList([directRecipient]).filter(id => id !== senderId);
+    } else {
+      finalRecipients = normalizeInternalMailList(recipients.concat((participants || []).map(row => row.userId))).filter(id => id !== senderId);
+    }
+    const now = new Date().toISOString();
+    const messageId = await getNextTableId('internal_mail_messages');
+    await run('INSERT INTO internal_mail_messages (id, conversationId, senderId, body, createdAt) VALUES (?, ?, ?, ?, ?)', [messageId, conversationId, senderId, body, now]);
+    for (const userId of finalRecipients) {
+      await run('INSERT INTO internal_mail_recipients (id, conversationId, messageId, userId, recipientType, isRead, isStarred, isImportant, deletedAt) VALUES (?, ?, ?, ?, ?, 0, 0, 0, ?)', [await getNextTableId('internal_mail_recipients'), conversationId, messageId, userId, 'to', '']);
+    }
+    for (const attachment of attachments) {
+      const content = String(attachment.contentBase64 || '').replace(/^data:[^;]+;base64,/, '');
+      if (!content) continue;
+      await run('INSERT INTO internal_mail_attachments (id, messageId, fileName, mimeType, fileSize, contentBase64, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)', [await getNextTableId('internal_mail_attachments'), messageId, String(attachment.fileName || 'document'), String(attachment.mimeType || 'application/octet-stream'), Number(attachment.fileSize || 0), content, now]);
+    }
+    await run('UPDATE internal_mail_conversations SET updatedAt = ? WHERE id = ?', [now, conversationId]);
+    return res.status(201).json({ message: 'Réponse envoyée' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erreur lors de l’envoi de la réponse', details: String(error?.message || error) });
+  }
+});
+
+app.patch('/api/internal-mail/conversations/:id', async (req, res) => {
+  try {
+    const conversationId = Number(req.params.id);
+    const userId = Number(req.user?.id || 0);
+    const conversation = await getInternalMailAccess(conversationId, userId);
+    if (!conversation) return res.status(404).json({ error: 'Conversation introuvable ou inaccessible' });
+    const action = String(req.body?.action || '').trim().toLowerCase();
+    if (action === 'read') await run('UPDATE internal_mail_recipients SET isRead = 1 WHERE conversationId = ? AND userId = ?', [conversationId, userId]);
+    else if (action === 'unread') await run('UPDATE internal_mail_recipients SET isRead = 0 WHERE conversationId = ? AND userId = ?', [conversationId, userId]);
+    else if (action === 'star' || action === 'unstar') {
+      await run(`INSERT INTO internal_mail_user_organization (userId, conversationId, isStarred)
+        VALUES (?, ?, ?)
+        ON CONFLICT(userId, conversationId) DO UPDATE SET isStarred = excluded.isStarred`, [userId, conversationId, action === 'star' ? 1 : 0]);
+    }
+    else if (action === 'copy-to-folder') {
+      const folderCategory = String(req.body?.category || '').trim().toLowerCase();
+      if (!['incident', 'general', 'project', 'meeting', 'administration'].includes(folderCategory)) {
+        return res.status(400).json({ error: 'Dossier de classement invalide' });
+      }
+      await run(`INSERT INTO internal_mail_user_organization (userId, conversationId, folderCategory)
+        VALUES (?, ?, ?)
+        ON CONFLICT(userId, conversationId) DO UPDATE SET folderCategory = excluded.folderCategory`, [userId, conversationId, folderCategory]);
+    }
+    else if (action === 'remove-from-folder') await run('UPDATE internal_mail_user_organization SET folderCategory = ? WHERE userId = ? AND conversationId = ?', ['', userId, conversationId]);
+    else if (action === 'important' || action === 'unimportant') await run('UPDATE internal_mail_recipients SET isImportant = ? WHERE conversationId = ? AND userId = ?', [action === 'important' ? 1 : 0, conversationId, userId]);
+    else if (action === 'trash' || action === 'restore') {
+      const deletedAt = action === 'trash' ? new Date().toISOString() : '';
+      if (Number(conversation.createdBy) === userId) await run('UPDATE internal_mail_conversations SET deletedAt = ? WHERE id = ?', [deletedAt, conversationId]);
+      else await run('UPDATE internal_mail_recipients SET deletedAt = ? WHERE conversationId = ? AND userId = ?', [deletedAt, conversationId, userId]);
+    }
+    else return res.status(400).json({ error: 'Action de messagerie inconnue' });
+    return res.json({ message: 'Conversation mise à jour' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erreur lors de la mise à jour de la conversation', details: String(error?.message || error) });
+  }
+});
+
+app.get('/api/internal-mail/attachments/:id/download', async (req, res) => {
+  try {
+    const attachmentId = Number(req.params.id);
+    const row = await get(`SELECT a.* FROM internal_mail_attachments a JOIN internal_mail_messages m ON m.id = a.messageId JOIN internal_mail_conversations c ON c.id = m.conversationId WHERE a.id = ? AND (c.createdBy = ? OR EXISTS (SELECT 1 FROM internal_mail_recipients r WHERE r.conversationId = c.id AND r.userId = ?))`, [attachmentId, Number(req.user?.id || 0), Number(req.user?.id || 0)]);
+    if (!row) return res.status(404).json({ error: 'Pièce jointe introuvable' });
+    res.setHeader('Content-Type', String(row.mimeType || 'application/octet-stream'));
+    res.setHeader('Content-Disposition', `attachment; filename="${String(row.fileName || 'document').replace(/["\\\r\n]/g, '_')}"`);
+    return res.send(Buffer.from(String(row.contentBase64 || ''), 'base64'));
+  } catch (error) {
+    return res.status(500).json({ error: 'Erreur téléchargement pièce jointe', details: String(error?.message || error) });
+  }
+});
+
+app.get('/api/internal-mail/conversations/:id/attachments/download-all', async (req, res) => {
+  try {
+    const conversationId = Number(req.params.id);
+    const userId = Number(req.user?.id || 0);
+    const conversation = await getInternalMailAccess(conversationId, userId);
+    if (!conversation) return res.status(404).json({ error: 'Conversation introuvable ou inaccessible' });
+    const attachments = await all(`
+      SELECT a.fileName, a.contentBase64
+      FROM internal_mail_attachments a
+      JOIN internal_mail_messages m ON m.id = a.messageId
+      WHERE m.conversationId = ? ORDER BY m.createdAt ASC, a.id ASC
+    `, [conversationId]);
+    if (!attachments?.length) return res.status(404).json({ error: 'Aucune pièce jointe à télécharger' });
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="conversation-${conversationId}-pieces-jointes.zip"`);
+    const archive = archiver('zip', { zlib: { level: 6 } });
+    archive.on('error', error => res.destroy(error));
+    archive.pipe(res);
+    for (const attachment of attachments) {
+      const fileName = String(attachment.fileName || 'document').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+      archive.append(Buffer.from(String(attachment.contentBase64 || ''), 'base64'), { name: fileName });
+    }
+    await archive.finalize();
+  } catch (error) {
+    if (!res.headersSent) return res.status(500).json({ error: 'Erreur lors de la préparation du téléchargement', details: String(error?.message || error) });
+    res.destroy(error);
+  }
+});
 
 app.post('/api/material-requests/auto-stage', async (req, res) => {
   const {

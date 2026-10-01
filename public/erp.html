@@ -7143,6 +7143,75 @@
     .notif-empty { padding: 24px 16px; text-align: center; color: #475569; font-size: 13px; }
     [data-theme="dark"] #notif-bell-btn { background: #1e293b; border-color: #334155; color: #94a3b8; }
 
+    .internal-mail-launch { position:relative; width:38px; height:38px; border:1px solid #d8e3f4; border-radius:50%; background:#fff; color:#1769e0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 12px rgba(37,99,235,.1); }
+    .internal-mail-launch:hover { border-color:#14b8a6; color:#0f766e; transform:translateY(-1px); }
+    .internal-mail-launch img { width:31px; height:31px; object-fit:contain; }
+    .internal-mail-shell { display:grid; grid-template-columns:190px minmax(300px, .85fr) minmax(390px, 1.25fr); min-height:650px; gap:0; overflow:hidden; border:1px solid #e1e9f7; border-radius:16px; background:#f6f9fe; box-shadow:0 12px 30px rgba(57,87,145,.08); }
+    .internal-mail-logo { width:72px; height:72px; margin-bottom:10px; border-radius:14px; object-fit:cover; box-shadow:0 8px 18px rgba(37,99,235,.16); }
+    .internal-mail-nav { padding:18px 12px; background:#fbfdff; border-right:1px solid #e3eaf5; }
+    .internal-mail-nav .mail-compose-button { width:100%; margin-bottom:18px; border:0; border-radius:9px; padding:11px 10px; font-weight:800; color:#fff; background:linear-gradient(115deg,#2867ee,#13b9b2); box-shadow:0 6px 14px rgba(37,99,235,.2); cursor:pointer; }
+    .internal-mail-nav h4 { margin:18px 8px 7px; color:#8391a9; font-size:10px; text-transform:uppercase; letter-spacing:.08em; }
+    .internal-mail-nav button[data-mail-folder] { width:100%; display:flex; align-items:center; justify-content:space-between; gap:7px; padding:9px 9px; border:0; border-radius:7px; background:transparent; color:#4d607e; text-align:left; font-size:12px; cursor:pointer; }
+    .internal-mail-nav button[data-mail-folder]:hover, .internal-mail-nav button[data-mail-folder].active { background:#eaf2ff; color:#1d5fd1; font-weight:800; }
+    .mail-count { min-width:19px; padding:2px 5px; border-radius:10px; background:#e3edff; color:#2361d2; font-size:10px; text-align:center; }
+    .internal-mail-list-panel { min-width:0; background:#fff; border-right:1px solid #e3eaf5; }
+    .internal-mail-list-head { padding:18px 16px 10px; border-bottom:1px solid #e9eef7; }
+    .internal-mail-list-head h2 { margin:0; color:#182b4e; font-size:18px; }
+    .internal-mail-search { width:100%; box-sizing:border-box; margin-top:13px; padding:9px 11px; border:1px solid #dbe5f4; border-radius:8px; background:#f8fbff; color:#344866; }
+    .internal-mail-tabs { display:flex; gap:15px; margin-top:13px; overflow:auto; }
+    .internal-mail-tabs button { border:0; border-bottom:2px solid transparent; padding:7px 2px; background:none; color:#7787a3; font-size:11px; white-space:nowrap; cursor:pointer; }
+    .internal-mail-tabs button.active { border-bottom-color:#2867ee; color:#1e5ed2; font-weight:800; }
+    .internal-mail-list { max-height:570px; overflow:auto; }
+    .internal-mail-row { display:grid; grid-template-columns:35px minmax(0,1fr) auto; gap:9px; padding:13px 14px; border-bottom:1px solid #edf1f7; cursor:pointer; }
+    .internal-mail-row:hover, .internal-mail-row.active { background:#f0f6ff; }
+    .internal-mail-row.unread { background:#f7fbff; border-left:3px solid #2867ee; padding-left:11px; }
+    .mail-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#dceaff; color:#2361d2; font-size:11px; font-weight:800; }
+    .mail-row-main { min-width:0; }
+    .mail-row-sender, .mail-row-subject { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mail-row-sender { color:#233758; font-size:12px; font-weight:800; }
+    .mail-row-subject { margin-top:3px; color:#314766; font-size:11px; font-weight:700; }
+    .mail-row-preview { margin-top:4px; overflow:hidden; color:#8491a7; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+    .mail-row-meta { color:#8491a7; font-size:10px; text-align:right; white-space:nowrap; }
+    .mail-row-icons { margin-top:8px; color:#2867ee; font-size:11px; }
+    .internal-mail-reading { min-width:0; background:#fff; }
+    .internal-mail-reading.empty { display:flex; align-items:center; justify-content:center; padding:30px; color:#91a0b8; text-align:center; }
+    .mail-reading-head { padding:20px 22px 13px; border-bottom:1px solid #e8eef7; }
+    .mail-reading-title { margin:0; color:#172b4b; font-size:20px; }
+    .mail-reading-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+    .mail-tag { padding:4px 8px; border-radius:10px; background:#e8f1ff; color:#2864d7; font-size:10px; font-weight:800; }
+    .mail-tag.priority-urgent { background:#ffe5e5; color:#c62828; }
+    .mail-reading-actions { display:flex; gap:6px; flex-wrap:wrap; padding:12px 22px; border-bottom:1px solid #edf1f7; }
+    .mail-reading-actions button, .mail-attachment-download { border:1px solid #d9e4f3; border-radius:7px; padding:7px 9px; background:#fff; color:#406085; font-size:11px; cursor:pointer; }
+    .mail-reading-actions button:hover, .mail-attachment-download:hover { border-color:#2867ee; color:#2867ee; }
+    .mail-thread { padding:17px 22px; max-height:425px; overflow:auto; }
+    .mail-message { padding:14px 0; border-bottom:1px solid #eef2f7; }
+    .mail-message:last-child { border-bottom:0; }
+    .mail-message-meta { display:flex; justify-content:space-between; gap:10px; color:#7889a5; font-size:11px; }
+    .mail-message-meta strong { color:#2d4262; }
+    .mail-message-body { margin-top:10px; white-space:pre-wrap; color:#3c4e6b; font-size:12px; line-height:1.65; }
+    .mail-attachments { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .mail-attachment { display:flex; align-items:center; gap:8px; min-width:150px; padding:8px; border:1px solid #dfe8f5; border-radius:8px; background:#f8fbff; }
+    .mail-attachment strong { display:block; max-width:130px; overflow:hidden; color:#3b5274; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+    .mail-attachment small { color:#91a0b6; font-size:9px; }
+    .mail-compose-overlay { position:fixed; inset:0; z-index:700; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,31,61,.36); }
+    .mail-compose-overlay.open { display:flex; }
+    .mail-compose-dialog { width:min(720px,100%); max-height:92vh; overflow:auto; border:1px solid #dbe5f3; border-radius:14px; background:#fff; box-shadow:0 24px 60px rgba(15,31,61,.28); }
+    .mail-compose-head { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #e7edf6; }
+    .mail-compose-head h2 { margin:0; color:#1c3154; font-size:18px; }
+    .mail-compose-close { border:0; background:none; color:#70819c; font-size:22px; cursor:pointer; }
+    .mail-compose-form { display:grid; gap:11px; padding:18px 20px 20px; }
+    .mail-compose-form label { display:grid; gap:5px; color:#536987; font-size:11px; font-weight:800; }
+    .mail-compose-form input, .mail-compose-form select, .mail-compose-form textarea { width:100%; box-sizing:border-box; border:1px solid #dbe5f2; border-radius:7px; padding:9px 10px; background:#fbfdff; color:#344b6c; font:inherit; font-size:12px; }
+    .mail-compose-form textarea { min-height:150px; resize:vertical; }
+    .mail-compose-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .mail-compose-actions { display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; margin-top:3px; }
+    .mail-compose-actions button { border:1px solid #d8e4f2; border-radius:7px; padding:9px 13px; cursor:pointer; font-weight:800; }
+    .mail-compose-actions .primary { color:#fff; border-color:#2867ee; background:linear-gradient(115deg,#2867ee,#13b9b2); }
+    .mail-attachments-preview { display:flex; flex-wrap:wrap; gap:7px; }
+    .mail-attachment-chip { padding:6px 8px; border-radius:7px; background:#eef5ff; color:#315983; font-size:10px; }
+    @media (max-width: 1050px) { .internal-mail-shell { grid-template-columns:170px minmax(270px, .8fr) minmax(320px, 1.2fr); } }
+    @media (max-width: 820px) { .internal-mail-shell { grid-template-columns:1fr; } .internal-mail-nav { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; border-right:0; border-bottom:1px solid #e3eaf5; } .internal-mail-nav .mail-compose-button { grid-column:1/-1; margin-bottom:4px; } .internal-mail-nav h4 { display:none; } .internal-mail-nav button[data-mail-folder] { padding:7px; } .internal-mail-list-panel { border-right:0; border-bottom:1px solid #e3eaf5; } .internal-mail-list { max-height:340px; } .mail-compose-grid { grid-template-columns:1fr; } }
+
     /* ═══════════════════════════════════════════════════
        TOPBAR SEARCH + NOTIF LAYOUT
     ═══════════════════════════════════════════════════ */
@@ -7944,7 +8013,7 @@
           <div class="menu-item" data-module="database">🗂️ Base de donnée</div>
           <div class="menu-item" data-module="guide-erp">📘 Guide ERP</div>
           <div class="menu-item" data-module="access-profiles">🗃️ Dossiers profils</div>
-          <div class="menu-item" data-module="admin-mail">✉️ Courriels</div>
+          <div class="menu-item" data-module="admin-mail">✉️ Messagerie interne</div>
           <div class="menu-item" data-module="trash">🗑️ Corbeille</div>
           <div class="menu-item" data-module="users">🔑 Utilisateurs</div>
           <div class="menu-item" data-module="settings">⚙️ Paramètres</div>
@@ -7978,6 +8047,9 @@
             </select>
           </div>
           <div class="notif-btn-wrap">
+            <button id="internal-mail-launch" class="internal-mail-launch" type="button" title="Ouvrir la messagerie interne" aria-label="Ouvrir la messagerie interne">
+              <img src="/assets/Messagerie%20interne.png" alt="Messagerie interne" />
+            </button>
             <button id="notif-bell-btn" title="Notifications">
               🔔
               <span id="notif-badge" class="notif-badge">0</span>
@@ -12518,51 +12590,48 @@
 
         <div id="admin-mail" class="module">
           <div class="page-header">
-            <h1>Courriels utilisateurs</h1>
-            <p>Envoi automatique de messages aux utilisateurs selon le champ Courriel RH</p>
+            <img class="internal-mail-logo" src="/assets/Messagerie%20interne.png" alt="Messagerie interne" />
+            <h1>Messagerie interne</h1>
+            <p>Échangez des informations, rapports et documents avec les utilisateurs de Ryan ERP</p>
           </div>
-          <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-              <div>
-                <h3 style="margin:0;">Destinataires</h3>
-                <p id="admin-mail-summary" style="font-size:12px; color:#64748b; margin:4px 0 0;">Chargement...</p>
+          <div class="internal-mail-shell">
+            <aside class="internal-mail-nav" aria-label="Navigation de la messagerie">
+              <button type="button" class="mail-compose-button" id="internal-mail-compose">＋ Nouveau message</button>
+              <button type="button" data-mail-folder="inbox" class="active"><span>Boîte de réception</span><span class="mail-count" id="internal-mail-unread-count">0</span></button>
+              <button type="button" data-mail-folder="sent"><span>Messages envoyés</span></button>
+              <button type="button" data-mail-folder="drafts"><span>Brouillons</span></button>
+              <button type="button" data-mail-folder="starred"><span>Éléments suivis</span></button>
+              <button type="button" data-mail-folder="important"><span>Important</span></button>
+              <button type="button" data-mail-folder="trash"><span>Corbeille</span></button>
+              <h4>Dossiers</h4>
+              <button type="button" data-mail-folder="incidents"><span>Rapports d'incidents</span></button>
+              <button type="button" data-mail-folder="general"><span>Informations générales</span></button>
+              <button type="button" data-mail-folder="projects"><span>Documents projets</span></button>
+              <button type="button" data-mail-folder="meetings"><span>Réunions</span></button>
+              <button type="button" data-mail-folder="administration"><span>Administration</span></button>
+            </aside>
+            <section class="internal-mail-list-panel" aria-label="Liste des messages">
+              <div class="internal-mail-list-head">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><h2 id="internal-mail-folder-title">Boîte de réception</h2><button type="button" class="button button-small button-secondary" id="internal-mail-refresh">Actualiser</button></div>
+                <input class="internal-mail-search" id="internal-mail-search" type="search" placeholder="Rechercher dans vos messages…" aria-label="Rechercher dans vos messages" />
+                <div class="internal-mail-tabs" role="tablist"><button type="button" data-mail-filter="all" class="active">Tous</button><button type="button" data-mail-filter="unread">Non lus</button><button type="button" data-mail-filter="groups">Groupes</button><button type="button" data-mail-filter="starred">Favoris</button></div>
               </div>
-              <div class="action-buttons" style="gap:8px;">
-                <button type="button" class="button button-small button-secondary" onclick="loadAdminMailModule()">Actualiser</button>
-              </div>
-            </div>
-
-            <div class="form-group" style="margin-bottom:10px;">
-              <label style="display:flex; align-items:center; gap:8px;">
-                <input type="checkbox" id="admin-mail-send-all" checked />
-                <span>Envoyer à tous les utilisateurs avec une adresse courriel valide</span>
-              </label>
-            </div>
-
-            <div class="form-group" id="admin-mail-recipient-group" style="margin-bottom:12px; display:none;">
-              <label>Choisir les destinataires</label>
-              <select id="admin-mail-recipient-select" multiple size="10"></select>
-              <p style="font-size:12px; color:#64748b; margin-top:6px;">Maintiens Ctrl (Windows) pour sélectionner plusieurs profils.</p>
-            </div>
-
-            <form id="admin-mail-form">
-              <div class="form-group" style="margin-bottom:10px;">
-                <label for="admin-mail-subject">Sujet</label>
-                <input type="text" id="admin-mail-subject" placeholder="Ex: Information importante ERP" required />
-              </div>
-              <div class="form-group" style="margin-bottom:10px;">
-                <label for="admin-mail-message">Message</label>
-                <textarea id="admin-mail-message" rows="7" placeholder="Rédige ton message ici..." required></textarea>
-              </div>
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button type="submit" class="button button-primary">Envoyer les courriels</button>
-              </div>
-            </form>
-
-            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
-            <div>
-              <h3 style="margin:0 0 8px;">Résultats d'envoi</h3>
-              <div id="admin-mail-results" style="font-size:13px; color:#475569;">Aucun envoi pour le moment.</div>
+              <div id="internal-mail-list" class="internal-mail-list"><div class="notif-empty">Chargement de la messagerie…</div></div>
+            </section>
+            <section id="internal-mail-reading" class="internal-mail-reading empty" aria-label="Lecture du message"><div>Sélectionnez une conversation pour afficher son contenu.</div></section>
+          </div>
+          <div id="internal-mail-compose-overlay" class="mail-compose-overlay" aria-hidden="true">
+            <div class="mail-compose-dialog" role="dialog" aria-modal="true" aria-labelledby="internal-mail-compose-title">
+              <div class="mail-compose-head"><h2 id="internal-mail-compose-title">Nouveau message</h2><button type="button" class="mail-compose-close" id="internal-mail-compose-close" aria-label="Fermer">×</button></div>
+              <form id="internal-mail-compose-form" class="mail-compose-form">
+                <label>À : <select id="internal-mail-recipient" multiple size="4" required></select></label>
+                <label style="display:flex;grid-template-columns:auto 1fr;align-items:center;gap:8px;"><span style="display:flex;gap:7px;align-items:center;"><input type="checkbox" id="internal-mail-send-all" /> Envoyer à tous les utilisateurs RyanERP</span></label>
+                <div class="mail-compose-grid"><label>Sujet <input id="internal-mail-subject" required placeholder="Information importante ERP" /></label><label>Catégorie <select id="internal-mail-category"><option value="general">Général</option><option value="incident">Rapport d'incident</option><option value="project">Projet</option><option value="logistics">Logistique</option><option value="finance">Finance</option><option value="administration">Administration</option><option value="meeting">Réunion</option><option value="other">Autre</option></select></label></div>
+                <div class="mail-compose-grid"><label>Priorité <select id="internal-mail-priority"><option value="normal">Normale</option><option value="important">Importante</option><option value="urgent">Urgente</option></select></label><label>Projet associé <select id="internal-mail-project"><option value="">Aucun projet</option></select></label></div>
+                <label>Message <textarea id="internal-mail-body" required placeholder="Rédigez votre message ici…"></textarea></label>
+                <label>Pièces jointes <input type="file" id="internal-mail-files" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.webp,.txt" /><span id="internal-mail-attachments-preview" class="mail-attachments-preview"></span></label>
+                <div class="mail-compose-actions"><button type="button" id="internal-mail-save-draft">Enregistrer comme brouillon</button><button type="submit" class="primary">Envoyer</button></div>
+              </form>
             </div>
           </div>
         </div>
@@ -13034,6 +13103,7 @@
     };
 
     let currentModule = 'dashboard';
+    const internalMailState = { folder: 'inbox', filter: 'all', query: '', rows: [], selectedId: null, users: [], projects: [], attachments: [] };
     let selectedProjectId = null;
     let selectedProjectGroupKey = null;
     let expandedProjectTreeProjectId = null;
@@ -23579,6 +23649,158 @@
       showMessage(`Import terminé: ${imported} ajoutée(s), ${skipped} ignorée(s)`);
     }
 
+    function internalMailInitials(name) {
+      return String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || '?';
+    }
+
+    function internalMailDate(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    }
+
+    function internalMailCategoryLabel(value) {
+      return ({ general: 'Général', incident: 'Rapport d’incident', project: 'Projet', logistics: 'Logistique', finance: 'Finance', administration: 'Administration', meeting: 'Réunion', other: 'Autre' })[String(value || '').toLowerCase()] || 'Général';
+    }
+
+    function internalMailReadFolder() {
+      const categoryFolders = new Set(['incidents', 'general', 'projects', 'meetings', 'administration']);
+      return categoryFolders.has(internalMailState.folder) ? 'inbox' : internalMailState.folder;
+    }
+
+    function renderInternalMailRows() {
+      const list = document.getElementById('internal-mail-list');
+      if (!list) return;
+      let rows = internalMailState.rows.slice();
+      if (internalMailState.filter === 'unread') rows = rows.filter(row => Number(row.isRead) === 0);
+      if (internalMailState.filter === 'starred') rows = rows.filter(row => Number(row.isStarred) === 1);
+      if (internalMailState.filter === 'groups') rows = rows.filter(row => String(row.senderName || '').toLowerCase().includes('groupe'));
+      if (['incidents', 'general', 'projects', 'meetings', 'administration'].includes(internalMailState.folder)) {
+        const category = { incidents: 'incident', general: 'general', projects: 'project', meetings: 'meeting', administration: 'administration' }[internalMailState.folder];
+        rows = rows.filter(row => String(row.category || '').toLowerCase() === category);
+      }
+      if (!rows.length) {
+        list.innerHTML = '<div class="notif-empty">Aucun message dans cette vue.</div>';
+        return;
+      }
+      list.innerHTML = rows.map(row => `<article class="internal-mail-row ${Number(row.isRead) === 0 ? 'unread' : ''} ${Number(row.id) === Number(internalMailState.selectedId) ? 'active' : ''}" data-mail-conversation-id="${Number(row.id)}">
+        <span class="mail-avatar">${escapeHtml(internalMailInitials(row.senderName))}</span>
+        <div class="mail-row-main"><div class="mail-row-sender">${escapeHtml(row.senderName || row.senderUsername || 'Utilisateur')}</div><div class="mail-row-subject">${escapeHtml(row.subject || '(Sans sujet)')}</div><div class="mail-row-preview">${escapeHtml(String(row.body || '').replace(/\s+/g, ' ').slice(0, 120))}</div><div class="mail-row-icons">${Number(row.attachmentCount) ? '📎 ' : ''}${Number(row.messageCount) > 1 ? `▣ ${Number(row.messageCount)}` : ''}${Number(row.isImportant) ? ' · Important' : ''}</div></div>
+        <time class="mail-row-meta">${escapeHtml(internalMailDate(row.createdAt || row.updatedAt))}${Number(row.isStarred) ? '<br>★' : ''}</time>
+      </article>`).join('');
+      list.querySelectorAll('[data-mail-conversation-id]').forEach(row => row.addEventListener('click', () => openInternalMailConversation(row.dataset.mailConversationId)));
+    }
+
+    async function loadInternalMailModule() {
+      const title = document.getElementById('internal-mail-folder-title');
+      const titles = { inbox: 'Boîte de réception', sent: 'Messages envoyés', drafts: 'Brouillons', starred: 'Éléments suivis', important: 'Important', trash: 'Corbeille', incidents: "Rapports d'incidents", general: 'Informations générales', projects: 'Documents projets', meetings: 'Réunions', administration: 'Administration' };
+      if (title) title.textContent = titles[internalMailState.folder] || 'Messagerie interne';
+      try {
+        const [rows, users, projects] = await Promise.all([
+          fetchJson(`/api/internal-mail/conversations?folder=${encodeURIComponent(internalMailReadFolder())}&q=${encodeURIComponent(internalMailState.query)}`),
+          internalMailState.users.length ? Promise.resolve(internalMailState.users) : fetchJson('/api/internal-mail/users'),
+          internalMailState.projects.length ? Promise.resolve(internalMailState.projects) : fetchJson('/api/internal-mail/projects'),
+        ]);
+        internalMailState.rows = Array.isArray(rows) ? rows : [];
+        internalMailState.users = Array.isArray(users) ? users : [];
+        internalMailState.projects = Array.isArray(projects) ? projects : [];
+        renderInternalMailRows();
+        populateInternalMailComposer();
+        const unread = await fetchJson('/api/internal-mail/unread-count');
+        const badge = document.getElementById('internal-mail-unread-count');
+        if (badge) badge.textContent = String(Number(unread?.count || 0));
+      } catch (error) {
+        const list = document.getElementById('internal-mail-list');
+        if (list) list.innerHTML = `<div class="notif-empty">${escapeHtml(error.message || 'Messagerie indisponible')}</div>`;
+      }
+    }
+
+    function populateInternalMailComposer() {
+      const recipient = document.getElementById('internal-mail-recipient');
+      const project = document.getElementById('internal-mail-project');
+      if (recipient && !recipient.options.length) recipient.innerHTML = internalMailState.users.map(user => `<option value="${Number(user.id)}">${escapeHtml(user.fullName)} · ${escapeHtml(user.department || user.role)}</option>`).join('');
+      if (project && project.options.length <= 1) project.innerHTML = '<option value="">Aucun projet</option>' + internalMailState.projects.map(item => `<option value="${Number(item.id)}">${escapeHtml(item.name)}${item.site ? ` · ${escapeHtml(item.site)}` : ''}</option>`).join('');
+    }
+
+    async function openInternalMailConversation(id) {
+      internalMailState.selectedId = Number(id);
+      renderInternalMailRows();
+      const reading = document.getElementById('internal-mail-reading');
+      if (!reading) return;
+      try {
+        const payload = await fetchJson(`/api/internal-mail/conversations/${Number(id)}`);
+        const conversation = payload.conversation || {};
+        reading.classList.remove('empty');
+        reading.innerHTML = `<div class="mail-reading-head"><h2 class="mail-reading-title">${escapeHtml(conversation.subject || '(Sans sujet)')}</h2><div class="mail-reading-tags"><span class="mail-tag">${escapeHtml(internalMailCategoryLabel(conversation.category))}</span><span class="mail-tag ${conversation.priority === 'urgent' ? 'priority-urgent' : ''}">${escapeHtml(conversation.priority === 'urgent' ? 'Urgente' : conversation.priority === 'important' ? 'Importante' : 'Normale')}</span></div></div><div class="mail-reading-actions"><button type="button" data-mail-action="reply">Répondre</button><button type="button" data-mail-action="reply-all">Répondre à tous</button><button type="button" data-mail-action="star">☆ Favori</button><button type="button" data-mail-action="important">⚑ Important</button><button type="button" data-mail-action="trash">Supprimer</button><button type="button" data-mail-action="more">…</button></div><div class="mail-thread">${(payload.messages || []).map(message => `<article class="mail-message"><div class="mail-message-meta"><span><strong>${escapeHtml(message.senderName || message.senderUsername || 'Utilisateur')}</strong> · ${escapeHtml(message.senderDepartment || '')}</span><time>${escapeHtml(new Date(message.createdAt).toLocaleString('fr-FR'))}</time></div><div class="mail-message-body">${escapeHtml(message.body || '')}</div>${(message.attachments || []).length ? `<div class="mail-attachments">${message.attachments.map(file => `<div class="mail-attachment"><span>📄</span><div><strong>${escapeHtml(file.fileName)}</strong><small>${Math.max(1, Math.round(Number(file.fileSize || 0) / 1024))} Ko</small></div><a class="mail-attachment-download" href="/api/internal-mail/attachments/${Number(file.id)}/download" target="_blank" rel="noopener">Ouvrir</a></div>`).join('')}</div>` : ''}</article>`).join('')}</div>`;
+        reading.querySelectorAll('[data-mail-action]').forEach(button => button.addEventListener('click', () => handleInternalMailAction(button.dataset.mailAction, Number(id))));
+      } catch (error) {
+        reading.classList.add('empty');
+        reading.textContent = error.message || 'Impossible de charger cette conversation.';
+      }
+    }
+
+    async function handleInternalMailAction(action, conversationId) {
+      if (action === 'reply' || action === 'reply-all') {
+        const body = window.prompt('Votre réponse');
+        if (!body || !body.trim()) return;
+        try { await fetchJson(`/api/internal-mail/conversations/${conversationId}/replies`, { method: 'POST', body: JSON.stringify({ body: body.trim() }) }); showMessage('Réponse envoyée'); await loadInternalMailModule(); await openInternalMailConversation(conversationId); } catch (error) { showMessage(error.message, 'error'); }
+        return;
+      }
+      if (action === 'more') { showMessage('Utilisez les actions disponibles pour gérer cette conversation', 'info'); return; }
+      const normalized = action === 'star' ? 'star' : action === 'important' ? 'important' : action === 'trash' ? 'trash' : 'read';
+      try { await fetchJson(`/api/internal-mail/conversations/${conversationId}`, { method: 'PATCH', body: JSON.stringify({ action: normalized }) }); await loadInternalMailModule(); await openInternalMailConversation(conversationId); } catch (error) { showMessage(error.message, 'error'); }
+    }
+
+    function openInternalMailComposer() {
+      populateInternalMailComposer();
+      document.getElementById('internal-mail-compose-overlay')?.classList.add('open');
+      document.getElementById('internal-mail-compose-overlay')?.setAttribute('aria-hidden', 'false');
+      document.getElementById('internal-mail-subject')?.focus();
+    }
+
+    function closeInternalMailComposer() {
+      document.getElementById('internal-mail-compose-overlay')?.classList.remove('open');
+      document.getElementById('internal-mail-compose-overlay')?.setAttribute('aria-hidden', 'true');
+    }
+
+    async function readInternalMailFiles(files) {
+      return Promise.all(Array.from(files || []).map(file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ fileName: file.name, mimeType: file.type || 'application/octet-stream', fileSize: file.size, contentBase64: String(reader.result || '').split(',')[1] || '' });
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      })));
+    }
+
+    async function submitInternalMail(status) {
+      const recipients = Array.from(document.getElementById('internal-mail-recipient')?.selectedOptions || []).map(option => Number(option.value));
+      const sendToAll = Boolean(document.getElementById('internal-mail-send-all')?.checked);
+      const files = internalMailState.attachments;
+      const payload = { status, recipientIds: recipients, sendToAll, subject: document.getElementById('internal-mail-subject')?.value || '', category: document.getElementById('internal-mail-category')?.value || 'general', priority: document.getElementById('internal-mail-priority')?.value || 'normal', projectId: document.getElementById('internal-mail-project')?.value || '', body: document.getElementById('internal-mail-body')?.value || '', attachments: files };
+      try { await fetchJson('/api/internal-mail/conversations', { method: 'POST', body: JSON.stringify(payload) }); showMessage(status === 'draft' ? 'Brouillon enregistré' : 'Message envoyé'); document.getElementById('internal-mail-compose-form')?.reset(); internalMailState.attachments = []; closeInternalMailComposer(); await loadInternalMailModule(); } catch (error) { showMessage(error.message, 'error'); }
+    }
+
+    function openInternalMailApp() {
+      const mailWindow = window.open('/messaging.html', '_blank');
+      if (!mailWindow) {
+        showMessage('Autorisez les fenêtres ouvertes par RyanERP pour accéder à la messagerie', 'warning');
+      }
+    }
+
+    function setupInternalMailModule() {
+      document.getElementById('internal-mail-launch')?.addEventListener('click', openInternalMailApp);
+      document.getElementById('internal-mail-compose')?.addEventListener('click', openInternalMailComposer);
+      document.getElementById('internal-mail-compose-close')?.addEventListener('click', closeInternalMailComposer);
+      document.getElementById('internal-mail-refresh')?.addEventListener('click', loadInternalMailModule);
+      document.getElementById('internal-mail-search')?.addEventListener('input', event => { internalMailState.query = event.target.value; loadInternalMailModule(); });
+      document.querySelectorAll('[data-mail-folder]').forEach(button => button.addEventListener('click', () => { internalMailState.folder = button.dataset.mailFolder; internalMailState.filter = 'all'; document.querySelectorAll('[data-mail-folder]').forEach(item => item.classList.toggle('active', item === button)); loadInternalMailModule(); }));
+      document.querySelectorAll('[data-mail-filter]').forEach(button => button.addEventListener('click', () => { internalMailState.filter = button.dataset.mailFilter; document.querySelectorAll('[data-mail-filter]').forEach(item => item.classList.toggle('active', item === button)); renderInternalMailRows(); }));
+      document.getElementById('internal-mail-files')?.addEventListener('change', async event => { try { internalMailState.attachments = await readInternalMailFiles(event.target.files); const preview = document.getElementById('internal-mail-attachments-preview'); if (preview) preview.innerHTML = internalMailState.attachments.map(file => `<span class="mail-attachment-chip">📎 ${escapeHtml(file.fileName)}</span>`).join(''); } catch (error) { showMessage('Impossible de lire la pièce jointe', 'error'); } });
+      document.getElementById('internal-mail-compose-form')?.addEventListener('submit', event => { event.preventDefault(); submitInternalMail('sent'); });
+      document.getElementById('internal-mail-save-draft')?.addEventListener('click', () => submitInternalMail('draft'));
+      document.getElementById('internal-mail-send-all')?.addEventListener('change', event => { const select = document.getElementById('internal-mail-recipient'); if (select) select.disabled = event.target.checked; });
+    }
+
     function showModule(moduleName) {
       if (moduleName !== 'dashboard') {
         document.body.classList.remove('mobile-search-open');
@@ -23608,6 +23830,9 @@
       }
       if (moduleName === 'hr-employee-search') {
         loadHrEmployeeSearchModule();
+      }
+      if (moduleName === 'admin-mail') {
+        loadInternalMailModule();
       }
       syncAutoMapLiveRefresh();
       syncAutoDashboardRefresh();
@@ -34026,8 +34251,17 @@
     }
 
     document.querySelectorAll('.menu-item').forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', event => {
         const module = item.dataset.module;
+        if (module === 'admin-mail') {
+          event.preventDefault();
+          if (isRestrictedRole() && !getAllowedModules().has(module)) {
+            showMessage('Acces refuse pour ce profil', 'error');
+            return;
+          }
+          openInternalMailApp();
+          return;
+        }
         const isParcAutoSubmenu = module === 'parc-auto-maintenance' || module === 'parc-auto-transport';
         const resolvedModule = isParcAutoSubmenu ? 'parc-auto' : module;
 
@@ -35196,7 +35430,7 @@
           await registration.showNotification(payload.title || 'Notification ERP', {
             body: payload.message || '',
             data: {
-              url: payload.module ? `/erp.html?openModule=${encodeURIComponent(payload.module)}` : '/erp.html',
+              url: payload.url || (payload.module ? `/erp.html?openModule=${encodeURIComponent(payload.module)}` : '/erp.html'),
               module: payload.module || 'dashboard',
             },
             tag: payload.id || payload.module || 'erp-notification',
@@ -35217,13 +35451,17 @@
       localStorage.setItem(ERP_NOTIF_KEY, JSON.stringify(notifications.slice(0, 120)));
     }
 
-    function pushNotification(title, message, module = 'dashboard') {
+    function pushNotification(title, message, module = 'dashboard', options = {}) {
+      if (options.sourceKey && notifications.some(item => item.sourceKey === options.sourceKey)) return;
       const id = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-      notifications.unshift({ id, title, message, module, unread: true, time: new Date().toISOString() });
+      const notification = { id, title, message, module, unread: true, time: new Date().toISOString() };
+      if (options.url) notification.url = options.url;
+      if (options.sourceKey) notification.sourceKey = options.sourceKey;
+      notifications.unshift(notification);
       if (notifications.length > 120) notifications = notifications.slice(0, 120);
       saveNotificationsToStorage();
       updateNotificationsUI();
-      dispatchSystemNotification({ id, title, message, module });
+      dispatchSystemNotification({ id, title, message, module, url: options.url });
     }
 
     function updateNotificationsUI() {
@@ -35242,8 +35480,8 @@
 
       list.innerHTML = notifications.slice(0, 30).map(n => `
         <div class="notif-item ${n.unread ? 'unread' : ''}" data-id="${n.id}" data-module="${n.module}">
-          <div class="notif-item-title">${n.title}</div>
-          <div class="notif-item-msg">${n.message}</div>
+          <div class="notif-item-title">${escapeHtml(n.title)}</div>
+          <div class="notif-item-msg">${escapeHtml(n.message)}</div>
           <div class="notif-item-time">${new Date(n.time).toLocaleString('fr-FR')}</div>
         </div>
       `).join('');
@@ -35251,12 +35489,15 @@
       list.querySelectorAll('.notif-item').forEach(item => {
         item.addEventListener('click', () => {
           const id = item.dataset.id;
+          const notification = notifications.find(n => n.id === id);
           const module = item.dataset.module;
           notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
           saveNotificationsToStorage();
           updateNotificationsUI();
           closeNotificationsPanel();
-          if (module) {
+          if (notification?.url) {
+            window.location.href = notification.url;
+          } else if (module) {
             showModule(module);
           }
         });
@@ -35265,14 +35506,33 @@
 
     async function pollRealtimeNotifications() {
       try {
-        const [orders, auths, pendingSignatures] = await Promise.all([
+        const [orders, auths, pendingSignatures, unreadMail] = await Promise.all([
           fetchJson('/api/purchase-orders').catch(() => []),
           fetchJson('/api/stock-issue-authorizations').catch(() => []),
           fetchJson('/api/hr/employee-profile/pending-signatures').catch(() => []),
+          fetchJson('/api/internal-mail/unread-count').catch(() => ({ items: [] })),
         ]);
         const poPending = Array.isArray(orders) ? orders.filter(o => String(o?.statut || '').toLowerCase().includes('attente')).length : 0;
         const authPending = Array.isArray(auths) ? auths.filter(a => String(a?.status || a?.statut || '').toLowerCase().includes('pending') || String(a?.status || a?.statut || '').toLowerCase().includes('attente')).length : 0;
         const signaturePending = Array.isArray(pendingSignatures) ? pendingSignatures.length : 0;
+        const mailItems = Array.isArray(unreadMail?.items) ? unreadMail.items : [];
+        const mailSeenKey = `erp_internal_mail_notified_${String(currentUserUsername || 'user').trim().toLowerCase()}`;
+        const mailSeen = new Set(safeParseArray(localStorage.getItem(mailSeenKey)).map(String));
+        const newMailItems = mailItems.filter(item => item?.messageId && !mailSeen.has(String(item.messageId)));
+        newMailItems.slice().reverse().forEach(item => {
+          const sender = String(item.senderName || item.senderUsername || 'Utilisateur').trim();
+          const subject = String(item.subject || '').trim();
+          const preview = String(item.body || '').replace(/\s+/g, ' ').trim().slice(0, 140);
+          pushNotification(`Nouveau message de ${sender}`, subject || preview || 'Vous avez reçu un message.', 'internal-mail', {
+            sourceKey: `internal-mail:${item.messageId}`,
+            url: `/messaging.html?conversation=${encodeURIComponent(Number(item.conversationId))}`,
+          });
+          mailSeen.add(String(item.messageId));
+        });
+        if (mailItems.length) {
+          mailItems.forEach(item => mailSeen.add(String(item.messageId)));
+          localStorage.setItem(mailSeenKey, JSON.stringify(Array.from(mailSeen).slice(-200)));
+        }
 
         const lastPoCount = Number(sessionStorage.getItem('erp_last_po_pending') || '0');
         const lastAuthCount = Number(sessionStorage.getItem('erp_last_auth_pending') || '0');
@@ -35829,6 +36089,7 @@
     }
 
     setupProjectModuleTabs();
+    setupInternalMailModule();
 
     (async () => {
       await loadUserInfo();
