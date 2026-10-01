@@ -7819,7 +7819,20 @@
     .reports-kpi strong { display:block; overflow-wrap:anywhere; margin:6px 0 3px; color:#1c3f70; font-size:17px; }
     .kpi-expense { border-left-color:#ff9c45; }.kpi-net { border-left-color:#22b88a; }.kpi-activity { border-left-color:#9875ed; }
     .reports-chart-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; }
-    .reports-chart-pair { display:grid; grid-template-columns:minmax(0,1fr) minmax(230px,270px); gap:12px; align-items:stretch; }
+    .reports-chart-pair { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; align-items:stretch; }
+    .reports-chart-pair > .reports-graph-explainer { display:none; }
+    .reports-explainer-list { display:grid; gap:7px; margin-top:14px; padding-top:12px; border-top:1px solid #e4edf7; }
+    .reports-explainer-heading { margin:0 3px 2px; color:#526a88; font-size:10px; font-weight:800; }
+    .reports-explainer-list .reports-graph-explainer { min-height:0; gap:9px; padding:10px 9px; border:1px solid #cbdfff; border-radius:8px; background:#edf5ff; }
+    .reports-explainer-list .reports-graph-explainer>span { width:27px; height:27px; border-radius:7px; font-size:10px; }
+    .reports-explainer-list .reports-graph-explainer h4 { margin:0 0 3px; font-size:11px; }
+    .reports-explainer-list .reports-graph-explainer p { font-size:9px; line-height:1.4; }
+    .reports-explainer-list .reports-graph-explainer:nth-of-type(1) { border-color:#cbdfff; background:#edf5ff; }.reports-explainer-list .reports-graph-explainer:nth-of-type(1)>span { color:#2780df; }
+    .reports-explainer-list .reports-graph-explainer:nth-of-type(2) { border-color:#c6efdf; background:#edf9f3; }.reports-explainer-list .reports-graph-explainer:nth-of-type(2)>span { color:#15976e; }
+    .reports-explainer-list .reports-graph-explainer:nth-of-type(3) { border-color:#f8dfb9; background:#fff7e9; }.reports-explainer-list .reports-graph-explainer:nth-of-type(3)>span { color:#ca8425; }
+    .reports-explainer-list .reports-graph-explainer:nth-of-type(4) { border-color:#f6d1d8; background:#fff1f3; }.reports-explainer-list .reports-graph-explainer:nth-of-type(4)>span { color:#d44863; }
+    .reports-explainer-list .reports-graph-explainer:nth-of-type(5) { border-color:#ddd0fb; background:#f5f0ff; }.reports-explainer-list .reports-graph-explainer:nth-of-type(5)>span { color:#805bcc; }
+    .reports-explainer-list .reports-graph-explainer:nth-of-type(6) { border-color:#c8eaf1; background:#eaf8fb; }.reports-explainer-list .reports-graph-explainer:nth-of-type(6)>span { color:#138ca4; }
     .reports-graph-explainer { display:flex; align-items:flex-start; gap:12px; min-width:0; min-height:100%; padding:19px 16px; border:1px solid transparent; border-radius:9px; }
     .reports-graph-explainer>span { display:grid; place-items:center; width:32px; height:32px; flex:none; border-radius:9px; background:rgba(255,255,255,.82); font-size:12px; font-weight:800; }
     .reports-graph-explainer h4 { margin:1px 0 7px; color:#29476f; font-size:13px; }
@@ -8732,6 +8745,14 @@
             #projects .project-create-dialog-body { padding: 18px; }
             #projects .project-create-dialog .project-creation-card { display: block; margin: 0; padding: 18px; }
             #projects .project-creation-section[hidden] { display: none !important; }
+            #projects .project-material-template-field { margin: 0 0 14px; padding: 0; border: 0; }
+            #projects .project-material-template-label { display: block; margin-bottom: 7px; color: #30496b; font-size: 12px; font-weight: 800; }
+            #projects .project-material-template-help { margin: 6px 0 0; color: #8092aa; font-size: 10px; line-height: 1.45; }
+            #projects .project-material-template-options { display: flex; flex-wrap: wrap; gap: 7px; }
+            #projects .project-material-template-option { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 6px 10px; border: 1px solid #dce7f5; border-radius: 7px; background: #fff; color: #3d587a; font-size: 11px; font-weight: 700; cursor: pointer; }
+            #projects .project-material-template-option:has(input:checked) { border-color: #80b4f0; background: #edf5ff; color: #1767d8; }
+            #projects .project-material-template-option input { width: 14px; height: 14px; margin: 0; accent-color: #1674ed; }
+            #projects .project-material-template-option small { color: #8497b0; font-size: 9px; font-weight: 600; }
             #projects .project-open-shell { border: 1px solid var(--project-line); border-radius: 14px !important; background: rgba(255,255,255,.88); box-shadow: 0 12px 30px rgba(31, 57, 75, .08); overflow: hidden; }
             #projects .project-open-head { padding: 20px 24px; border-bottom: 1px solid #e7eef2; background: linear-gradient(90deg, #ffffff, #f4fbfa); }
             #projects .project-open-title { color: var(--project-ink); font-size: 16px; }
@@ -8841,6 +8862,11 @@
                   <label>Description du projet</label>
                   <textarea id="project-create-desc"></textarea>
                 </div>
+                <fieldset class="project-material-template-field">
+                  <legend class="project-material-template-label">Copier des catalogues matériaux existants (facultatif)</legend>
+                  <div id="project-create-material-catalog-templates" class="project-material-template-options"><span class="project-material-template-help">Chargement des modèles disponibles…</span></div>
+                  <p class="project-material-template-help">Chaque modèle sera copié dans le nouveau projet pour ses sites du même type de villa.</p>
+                </fieldset>
                 <button type="submit" class="button button-primary" style="width: 100%;">Créer le projet</button>
               </form>
 
@@ -12435,6 +12461,15 @@
               <button type="button" class="reports-quick-item" onclick="generateReport('costs')"><span class="reports-quick-icon icon-orange">◉</span><span><strong>Rapport des coûts</strong><small>Coûts marginaux, point mort, analyse des coûts</small></span><span class="reports-chevron">›</span></button>
               <button type="button" class="reports-quick-item" onclick="generateReport('activities')"><span class="reports-quick-icon icon-violet">⌁</span><span><strong>Rapport d’activités</strong><small>Avancement, productivité et indicateurs</small></span><span class="reports-chevron">›</span></button>
               <button type="button" class="reports-quick-item" onclick="generateReport('export')"><span class="reports-quick-icon icon-cyan">⇩</span><span><strong>Exporter les données</strong><small>Export des données en PDF, Excel ou CSV</small></span><span class="reports-chevron">›</span></button>
+              <div class="reports-explainer-list" aria-label="Explications des graphiques">
+                <h3 class="reports-explainer-heading">À propos des graphiques</h3>
+                <aside class="reports-graph-explainer"><span>01</span><div><h4>Évolution financière</h4><p>Compare les revenus, les dépenses et le solde mois après mois pour suivre la trajectoire financière.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>03</span><div><h4>Coûts marginaux & point mort</h4><p>Suit les dépenses mensuelles et repère le moment où les revenus cumulés couvrent les coûts observés.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>04</span><div><h4>Dépenses par catégorie</h4><p>Fait ressortir les postes qui consomment le plus de budget et aide à comparer leur poids.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>05</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>06</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p></div></aside>
+              </div>
             </aside>
             <div class="reports-content">
               <div class="reports-filter card"><label for="reports-search">Recherche dans les rapports</label><input type="search" id="reports-search" placeholder="Ex. chiffre d'affaires, projet, catégorie" /></div>
@@ -27859,6 +27894,21 @@
           .filter(Boolean)
       )].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
 
+      if (!sites.length) {
+        const catalog = (projectCatalogCache || []).find(item => Number(item.id) === Number(catalogId));
+        const projectName = String(catalog?.nomProjet || '').trim();
+        if (projectName) {
+          const prefix = normalizeText(projectName);
+          const catalogTypes = [...new Set((materialCatalogCache || []).map(entry => {
+            const folder = normalizeText(canonicalizeMcProjectFolderLabel(entry?.projectFolder || ''));
+            if (!folder.startsWith(`${prefix} - `)) return '';
+            const match = folder.slice(prefix.length + 3).match(/^t\d+$/i);
+            return match ? normalizeMcVillaType(match[0]) : '';
+          }).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
+          if (catalogTypes.length) return catalogTypes;
+        }
+      }
+
       const configuredTypes = getConfiguredMcVillaTypes();
       const hasVillaProjectContext = sites.some(site => {
         const merged = `${String(site.typeMaison || '')} ${String(site.nomProjet || '')}`;
@@ -31385,11 +31435,15 @@
             nomProjet: projectName,
             typeProjet: projectType,
             description: document.getElementById('project-create-desc').value.trim(),
+            catalogTemplateTypes: Array.from(document.querySelectorAll('input[name="project-catalog-template"]:checked')).map(input => input.value),
           }),
         });
         selectedProjectCatalogId = Number(createdProject.id) || null;
         e.target.reset();
-        showMessage('Projet créé avec succès');
+        const copiedCatalogs = Array.isArray(createdProject.copiedMaterialCatalogs) ? createdProject.copiedMaterialCatalogs : [];
+        showMessage(copiedCatalogs.length
+          ? `Projet créé ; catalogues copiés : ${copiedCatalogs.map(item => `${item.type} (${item.itemCount})`).join(', ')}`
+          : 'Projet créé avec succès');
         closeProjectCreationDialog();
         await loadProjects();
         loadDashboard();
@@ -35950,6 +36004,23 @@
       setProjectCreateMenuOpen(false);
     }
 
+    async function loadProjectMaterialCatalogTemplates() {
+      const container = document.getElementById('project-create-material-catalog-templates');
+      if (!container) return;
+      container.innerHTML = '<span class="project-material-template-help">Chargement des modèles disponibles…</span>';
+      try {
+        const templates = await fetchJson('/api/material-catalog/templates');
+        const available = Array.isArray(templates) ? templates : [];
+        if (!available.length) {
+          container.innerHTML = '<span class="project-material-template-help">Aucun modèle T1/T2/T3 disponible. Le projet sera créé sans copie.</span>';
+          return;
+        }
+        container.innerHTML = available.map(template => `<label class="project-material-template-option"><input type="checkbox" name="project-catalog-template" value="${escapeHtml(template.type)}"><span>${escapeHtml(template.type)}</span><small>${Number(template.itemCount) || 0} article(s)</small></label>`).join('');
+      } catch (error) {
+        container.innerHTML = `<span class="project-material-template-help">Modèles indisponibles : ${escapeHtml(error.message || 'erreur de chargement')}</span>`;
+      }
+    }
+
     function openProjectCreationDialog(action) {
       const dialog = document.getElementById('project-creation-dialog');
       const formCard = document.getElementById('project-creation-form-card');
@@ -35971,6 +36042,7 @@
         selectedProjectGroupKey = null;
         selectedProjectCreationFolderKey = '';
         document.getElementById('project-create-form')?.reset();
+        loadProjectMaterialCatalogTemplates();
         updateProjectCreationMode('');
       } else if (action === 'zone') {
         document.getElementById('project-zone-form')?.reset();

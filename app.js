@@ -5301,11 +5301,61 @@ app.get('/api/users', async (req, res) => {
   res.json(rows);
 });
 
+async function getMaterialCatalogTemplates() {
+  const rows = await all(`
+    SELECT projectFolder, COUNT(*) AS itemCount
+    FROM building_material_catalog
+    WHERE TRIM(projectFolder) <> ''
+    GROUP BY projectFolder
+    ORDER BY projectFolder ASC
+  `);
+  const templates = new Map();
+  for (const row of rows || []) {
+    const sourceFolder = String(row.projectFolder || '').trim();
+    const match = sourceFolder.match(/\s-\s*(T\d+)$/i);
+    if (!match) continue;
+    const type = match[1].toUpperCase();
+    const itemCount = Number(row.itemCount || 0);
+    const current = templates.get(type);
+    if (!current || itemCount > current.itemCount) templates.set(type, { type, sourceFolder, itemCount });
+  }
+  return Array.from(templates.values()).sort((a, b) => a.type.localeCompare(b.type, 'fr', { numeric: true }));
+}
+
+app.get('/api/material-catalog/templates', async (_req, res) => {
+  try {
+    return res.json(await getMaterialCatalogTemplates());
+  } catch (error) {
+    return res.status(500).json({ error: 'Impossible de charger les modèles de catalogue', details: String(error?.message || error) });
+  }
+});
+
 app.post('/api/project-catalog', async (req, res) => {
-  const { nomProjet, typeProjet = '', description = '' } = req.body;
+  const { nomProjet, typeProjet = '', description = '', catalogTemplateTypes = [] } = req.body || {};
   const projectName = String(nomProjet || '').trim();
   if (!projectName) {
     return res.status(400).json({ error: 'Le nom du projet est obligatoire' });
+  }
+
+  const selectedTemplateTypes = Array.from(new Set((Array.isArray(catalogTemplateTypes) ? catalogTemplateTypes : [])
+    .map(type => String(type || '').trim().toUpperCase())
+    .filter(type => /^T\d+$/.test(type))));
+  const availableTemplates = await getMaterialCatalogTemplates();
+  const templateByType = new Map(availableTemplates.map(template => [template.type, template]));
+  const selectedTemplates = selectedTemplateTypes.map(type => templateByType.get(type));
+  if (selectedTemplates.some(template => !template)) {
+    return res.status(400).json({ error: 'Un des modèles de catalogue sélectionnés n’existe plus' });
+  }
+  const destinationFolders = selectedTemplates.map(template => `${projectName} - ${template.type}`);
+  for (const folder of destinationFolders) {
+    const existingCatalog = await get('SELECT id FROM building_material_catalog WHERE LOWER(projectFolder) = LOWER(?) LIMIT 1', [folder]);
+    if (existingCatalog) return res.status(409).json({ error: `Le catalogue ${folder} existe déjà` });
+  }
+  const templateRows = [];
+  for (const template of selectedTemplates) {
+    const rows = await all('SELECT materialName, unite, quantiteParBatiment, prixUnitaire, stageOrder, notes FROM building_material_catalog WHERE projectFolder = ? ORDER BY stageOrder ASC, materialName ASC', [template.sourceFolder]);
+    if (!rows?.length) return res.status(400).json({ error: `Le modèle ${template.type} ne contient aucun article à copier` });
+    templateRows.push({ ...template, rows });
   }
 
   const duplicate = await get(
@@ -5317,14 +5367,31 @@ app.post('/api/project-catalog', async (req, res) => {
   }
 
   const nextCatalogId = await getNextTableId('project_catalog');
-
+  const now = new Date().toISOString();
   const result = await run(
     'INSERT INTO project_catalog (id, nomProjet, typeProjet, description, createdAt) VALUES (?, ?, ?, ?, ?)',
-    [nextCatalogId, projectName, String(typeProjet || '').trim(), String(description || '').trim(), new Date().toISOString()]
+    [nextCatalogId, projectName, String(typeProjet || '').trim(), String(description || '').trim(), now]
   );
-
-  const created = await get('SELECT * FROM project_catalog WHERE id = ?', [nextCatalogId || result.lastID]);
-  res.status(201).json(created);
+  const projectId = Number(nextCatalogId || result.lastID);
+  try {
+    for (const template of templateRows) {
+      const destinationFolder = `${projectName} - ${template.type}`;
+      for (const row of template.rows) {
+        await run(`INSERT INTO building_material_catalog
+          (id, projectFolder, materialName, unite, quantiteParBatiment, prixUnitaire, stageOrder, notes, createdAt, updatedAt)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+          await getNextTableId('building_material_catalog'), destinationFolder, row.materialName, row.unite,
+          row.quantiteParBatiment, row.prixUnitaire, row.stageOrder, row.notes, now, now,
+        ]);
+      }
+    }
+  } catch (error) {
+    for (const folder of destinationFolders) await run('DELETE FROM building_material_catalog WHERE projectFolder = ?', [folder]).catch(() => {});
+    await run('DELETE FROM project_catalog WHERE id = ?', [projectId]).catch(() => {});
+    throw error;
+  }
+  const created = await get('SELECT * FROM project_catalog WHERE id = ?', [projectId]);
+  res.status(201).json({ ...created, copiedMaterialCatalogs: templateRows.map(template => ({ type: template.type, itemCount: template.rows.length })) });
 });
 
 app.get('/api/project-catalog', async (_req, res) => {
