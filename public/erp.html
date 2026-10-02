@@ -7796,13 +7796,14 @@
     .reports-generate-controls select { min-height:40px; padding:0 10px; border:1px solid #cfdef4; border-radius:8px; background:#fff; color:#31496e; font-size:12px; }
     .reports-generate-button { display:flex; align-items:center; gap:8px; min-height:40px; padding:0 14px; border:0; border-radius:8px; background:linear-gradient(105deg,#1688ef,#0874e4); color:#fff; font-size:12px; font-weight:700; cursor:pointer; box-shadow:0 5px 12px rgba(13,116,228,.2); }
     .reports-generate-button:hover { background:#0869d2; }
-    .reports-layout { display:grid; grid-template-columns:minmax(240px,285px) minmax(0,1fr); gap:18px; align-items:start; }
-    .reports-quick-panel { padding:14px 12px 10px; border:1px solid #e2ebf8; border-radius:10px; background:linear-gradient(150deg,#f8fbff,#fff 65%); box-shadow:0 7px 20px rgba(40,92,157,.06); }
+    .reports-layout { display:block; }
+    .reports-quick-panel { margin-top:18px; padding:14px 12px 10px; border:1px solid #e2ebf8; border-radius:10px; background:linear-gradient(150deg,#f8fbff,#fff 65%); box-shadow:0 7px 20px rgba(40,92,157,.06); }
     .reports-quick-heading { display:flex; align-items:center; gap:10px; padding:1px 3px 12px; }
     .reports-heading-icon { display:grid; place-items:center; width:28px; height:28px; border-radius:8px; background:#e6f2ff; color:#1481ec; font-size:17px; }
     .reports-quick-heading h2 { color:#1d3f70; font-size:13px; }
     .reports-quick-heading p { margin-top:2px; color:#7a8ca8; font-size:10px; }
-    .reports-quick-item { display:grid; grid-template-columns:28px minmax(0,1fr) 12px; align-items:center; width:100%; gap:8px; min-height:49px; padding:6px 4px; border:0; border-top:1px solid #edf2f8; background:transparent; color:#23436e; text-align:left; cursor:pointer; }
+    .reports-quick-items-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:8px; }
+    .reports-quick-item { display:grid; grid-template-columns:28px minmax(0,1fr) 12px; align-items:center; width:100%; gap:8px; min-height:49px; padding:6px 8px; border:1px solid #edf2f8; border-radius:8px; background:transparent; color:#23436e; text-align:left; cursor:pointer; }
     .reports-quick-item:hover { background:#f1f7ff; }
     .reports-quick-item strong { display:block; font-size:10px; line-height:1.35; }
     .reports-quick-item small { display:block; margin-top:2px; color:#8291a8; font-size:9px; line-height:1.35; }
@@ -7821,7 +7822,7 @@
     .reports-chart-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; }
     .reports-chart-pair { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; align-items:stretch; }
     .reports-chart-pair > .reports-graph-explainer { display:none; }
-    .reports-explainer-list { display:grid; gap:7px; margin-top:14px; padding-top:12px; border-top:1px solid #e4edf7; }
+    .reports-explainer-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:7px; margin-top:14px; padding-top:12px; border-top:1px solid #e4edf7; }
     .reports-explainer-heading { margin:0 3px 2px; color:#526a88; font-size:10px; font-weight:800; }
     .reports-explainer-list .reports-graph-explainer { min-height:0; gap:9px; padding:10px 9px; border:1px solid #cbdfff; border-radius:8px; background:#edf5ff; }
     .reports-explainer-list .reports-graph-explainer>span { width:27px; height:27px; border-radius:7px; font-size:10px; }
@@ -7935,7 +7936,7 @@
     .users-purge-dialog-footer button { min-height:32px; padding:0 12px; border-radius:7px; font-size:9px; font-weight:700; cursor:pointer; }
     .users-dialog-cancel { border:1px solid #dce6f2; background:#fff; color:#456483; }
     .users-dialog-confirm { border:1px solid #c91f42; background:linear-gradient(110deg,#dc3454,#c51239); color:#fff; }
-    @media(max-width:1050px) { .reports-layout { grid-template-columns:1fr; }.reports-quick-panel { order:0; }.reports-quick-item { min-height:45px; }.reports-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media(max-width:1050px) { .reports-quick-item { min-height:45px; }.reports-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
     @media(max-width:760px) { .users-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }.users-metric:last-child { grid-column:span 2; }.users-filters { grid-template-columns:repeat(2,minmax(0,1fr)); }.users-search { grid-column:span 2; }.users-toolbar { justify-content:flex-start; }.users-page-header { align-items:flex-start; } }
     @media(max-width:760px) { .reports-chart-pair { grid-template-columns:minmax(0,1fr); }.reports-graph-explainer { min-height:0; padding:14px; } }
     @media(max-width:640px) { .reports-page-header { align-items:flex-start; }.reports-page-header h1 { font-size:23px; }.reports-generate-controls { width:100%; }.reports-generate-controls select:first-child { flex:1; }.reports-generate-controls select:nth-child(2) { width:100px; }.reports-generate-button { flex:1; justify-content:center; }.reports-filter { display:block; }.reports-filter label { display:block; margin-bottom:6px; }.reports-chart-grid,.reports-secondary-grid { grid-template-columns:1fr; }.reports-chart-wide { grid-column:auto; }.reports-kpis { gap:7px; }.reports-kpi { padding:10px; }.reports-kpi strong { font-size:15px; }.users-page-title h1 { font-size:18px; }.users-toolbar-button { flex:1; min-width:130px; }.users-filters { grid-template-columns:1fr; }.users-search { grid-column:auto; }.users-metric { min-height:70px; padding:8px; }.users-metric-icon { width:31px; height:31px; }.users-metric strong { font-size:14px; }.users-list-panel { padding:9px; }.users-purge-dialog { padding:12px; } }
@@ -12465,31 +12466,14 @@
             </div>
           </div>
           <div class="reports-layout">
-            <aside class="reports-quick-panel">
-              <div class="reports-quick-heading"><span class="reports-heading-icon">▦</span><div><h2>Rapports rapides</h2><p>Générez des rapports détaillés en un clic.</p></div></div>
-              <button type="button" class="reports-quick-item" onclick="generateReport('financial')"><span class="reports-quick-icon icon-blue">▤</span><span><strong>Rapport financier global</strong><small>Revenus, dépenses, bénéfice net et marges</small></span><span class="reports-chevron">›</span></button>
-              <button type="button" class="reports-quick-item" onclick="generateReport('project')"><span class="reports-quick-icon icon-green">▧</span><span><strong>Rapport par projet</strong><small>Analyse détaillée de chaque projet</small></span><span class="reports-chevron">›</span></button>
-              <button type="button" class="reports-quick-item" onclick="generateReport('costs')"><span class="reports-quick-icon icon-orange">◉</span><span><strong>Rapport des coûts</strong><small>Coûts marginaux, point mort, analyse des coûts</small></span><span class="reports-chevron">›</span></button>
-              <button type="button" class="reports-quick-item" onclick="generateReport('activities')"><span class="reports-quick-icon icon-violet">⌁</span><span><strong>Rapport d’activités</strong><small>Avancement, productivité et indicateurs</small></span><span class="reports-chevron">›</span></button>
-              <button type="button" class="reports-quick-item" onclick="generateReport('export')"><span class="reports-quick-icon icon-cyan">⇩</span><span><strong>Exporter les données</strong><small>Export des données en PDF, Excel ou CSV</small></span><span class="reports-chevron">›</span></button>
-              <div class="reports-explainer-list" aria-label="Explications des graphiques">
-                <h3 class="reports-explainer-heading">À propos des graphiques</h3>
-                <aside class="reports-graph-explainer"><span>01</span><div><h4>Évolution financière</h4><p>Compare les revenus, les dépenses et le solde mois après mois pour suivre la trajectoire financière.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>03</span><div><h4>Coûts marginaux & point mort</h4><p>Suit les dépenses mensuelles et repère le moment où les revenus cumulés couvrent les coûts observés.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>04</span><div><h4>Dépenses par catégorie</h4><p>Fait ressortir les postes qui consomment le plus de budget et aide à comparer leur poids.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>05</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>06</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p></div></aside>
-              </div>
-            </aside>
             <div class="reports-content">
-              <div class="reports-filter card"><label for="reports-search">Recherche dans les rapports</label><input type="search" id="reports-search" placeholder="Ex. chiffre d'affaires, projet, catégorie" /></div>
               <div class="reports-kpis">
                 <article class="reports-kpi kpi-revenue"><span>Revenus enregistrés</span><strong id="reports-kpi-revenue">—</strong><small>Données cumulées</small></article>
                 <article class="reports-kpi kpi-expense"><span>Dépenses enregistrées</span><strong id="reports-kpi-expense">—</strong><small>Données cumulées</small></article>
                 <article class="reports-kpi kpi-net"><span>Solde observé</span><strong id="reports-kpi-net">—</strong><small>Revenus moins dépenses</small></article>
                 <article class="reports-kpi kpi-activity"><span>Activités suivies</span><strong id="reports-kpi-activities">—</strong><small id="reports-kpi-project-count">Projets actifs</small></article>
               </div>
+              <div class="reports-filter card"><label for="reports-search">Recherche dans les rapports</label><input type="search" id="reports-search" placeholder="Ex. chiffre d'affaires, projet, catégorie" /></div>
               <div class="reports-chart-grid">
                 <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TENDANCE</span><h3>Évolution financière</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-financial-trend', 'evolution-financiere.svg')">⇩</button></div><div id="reports-financial-trend"></div></section><aside class="reports-graph-explainer"><span>01</span><div><h4>Évolution financière</h4><p>Compare les revenus, les dépenses et le solde mois après mois pour suivre la trajectoire financière.</p></div></aside></div>
                 <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RÉPARTITION</span><h3>Revenus & dépenses</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-income-expense-pie', 'revenus-depenses.svg')">⇩</button></div><div id="reports-income-expense-pie"></div></section><aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p></div></aside></div>
@@ -12500,6 +12484,25 @@
               </div>
               <div class="reports-revenue-legacy"><h3 id="reports-revenue-chart-title">Courbes des recettes</h3><p id="reports-revenue-chart-helper"></p><div id="reports-revenue-line"></div></div>
             </div>
+            <aside class="reports-quick-panel">
+              <div class="reports-quick-heading"><span class="reports-heading-icon">▦</span><div><h2>Rapports rapides</h2><p>Générez des rapports détaillés en un clic.</p></div></div>
+              <div class="reports-quick-items-grid">
+                <button type="button" class="reports-quick-item" onclick="generateReport('financial')"><span class="reports-quick-icon icon-blue">▤</span><span><strong>Rapport financier global</strong><small>Revenus, dépenses, bénéfice net et marges</small></span><span class="reports-chevron">›</span></button>
+                <button type="button" class="reports-quick-item" onclick="generateReport('project')"><span class="reports-quick-icon icon-green">▧</span><span><strong>Rapport par projet</strong><small>Analyse détaillée de chaque projet</small></span><span class="reports-chevron">›</span></button>
+                <button type="button" class="reports-quick-item" onclick="generateReport('costs')"><span class="reports-quick-icon icon-orange">◉</span><span><strong>Rapport des coûts</strong><small>Coûts marginaux, point mort, analyse des coûts</small></span><span class="reports-chevron">›</span></button>
+                <button type="button" class="reports-quick-item" onclick="generateReport('activities')"><span class="reports-quick-icon icon-violet">⌁</span><span><strong>Rapport d’activités</strong><small>Avancement, productivité et indicateurs</small></span><span class="reports-chevron">›</span></button>
+                <button type="button" class="reports-quick-item" onclick="generateReport('export')"><span class="reports-quick-icon icon-cyan">⇩</span><span><strong>Exporter les données</strong><small>Export des données en PDF, Excel ou CSV</small></span><span class="reports-chevron">›</span></button>
+              </div>
+              <div class="reports-explainer-list" aria-label="Explications des graphiques">
+                <h3 class="reports-explainer-heading">À propos des graphiques</h3>
+                <aside class="reports-graph-explainer"><span>01</span><div><h4>Évolution financière</h4><p>Compare les revenus, les dépenses et le solde mois après mois pour suivre la trajectoire financière.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>03</span><div><h4>Coûts marginaux & point mort</h4><p>Suit les dépenses mensuelles et repère le moment où les revenus cumulés couvrent les coûts observés.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>04</span><div><h4>Dépenses par catégorie</h4><p>Fait ressortir les postes qui consomment le plus de budget et aide à comparer leur poids.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>05</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>06</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p></div></aside>
+              </div>
+            </aside>
           </div>
         </div>
 
