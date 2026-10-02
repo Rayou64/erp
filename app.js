@@ -5069,7 +5069,7 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
 
   pushCandidateFolder(requestedCatalogFolder);
   pushCandidateFolder(projectFolder);
-  (discoveredFolders || []).forEach(row => pushCandidateFolder(row?.projectFolder || ''));
+  (discoveredFolders || []).forEach(folderName => pushCandidateFolder(folderName));
 
   let resolvedProjectFolder = projectFolder;
   let stageCatalogRows = [];
