@@ -17096,6 +17096,51 @@
       return projectDisplayNameById[project.id] || project.nomProjet || `Projet ${project.id}`;
     }
 
+    function getProjectLotLabel(project) {
+      return `Lot ${getProjectSiteLabel(project)}`;
+    }
+
+    let expenseProjectGroups = new Map();
+    let expenseProjectGroupKeyById = {};
+
+    function rebuildExpenseProjectGroups(projects) {
+      expenseProjectGroups = new Map();
+      expenseProjectGroupKeyById = {};
+      (Array.isArray(projects) ? projects : []).forEach(project => {
+        const key = getCanonicalProjectName(project?.nomProjet || '') || project?.nomProjet || `Projet ${project?.id || ''}`.trim();
+        if (!expenseProjectGroups.has(key)) expenseProjectGroups.set(key, []);
+        expenseProjectGroups.get(key).push(project);
+        expenseProjectGroupKeyById[project.id] = key;
+      });
+    }
+
+    function buildExpenseProjectOptionsHtml() {
+      return [...expenseProjectGroups.entries()].map(([key, groupProjects]) => {
+        const count = groupProjects.length;
+        const label = `${key} (${count} lot${count > 1 ? 's' : ''})`;
+        return `<option value="${escapeHtml(key)}">${escapeHtml(label)}</option>`;
+      }).join('');
+    }
+
+    function populateExpenseLotOptions(groupKey, selectedLotId = '') {
+      const lotSelect = document.getElementById('expense-lot');
+      if (!lotSelect) return;
+      const groupProjects = expenseProjectGroups.get(groupKey) || [];
+      if (!groupKey || !groupProjects.length) {
+        lotSelect.innerHTML = '<option value="">Choisir d\'abord un projet</option>';
+        lotSelect.disabled = true;
+        return;
+      }
+      const options = groupProjects
+        .map(project => `<option value="${project.id}">${escapeHtml(getProjectLotLabel(project))}</option>`)
+        .join('');
+      lotSelect.innerHTML = '<option value="">Sélectionner un lot</option>' + options;
+      lotSelect.disabled = false;
+      if (selectedLotId && groupProjects.some(project => String(project.id) === String(selectedLotId))) {
+        lotSelect.value = selectedLotId;
+      }
+    }
+
     function buildProjectFolders(projects, foldersRegistry = projectFoldersCache) {
       const folders = new Map();
 
@@ -29394,15 +29439,19 @@
               ? '<li class="list-item expense-empty-row"><span>Aucune dépense ne correspond aux filtres.</span></li>'
               : '<li class="list-item expense-empty-row"><span>Aucune dépense enregistrée.</span></li>');
 
+        rebuildExpenseProjectGroups(projects);
+
         const select = document.getElementById('expense-project');
         const selectedProject = select.value;
-        const projectOptions = projects.map(project => `<option value="${project.id}">${escapeHtml(getProjectDisplayName(project))}</option>`).join('');
+        const selectedLot = document.getElementById('expense-lot')?.value || '';
+        const projectOptions = buildExpenseProjectOptionsHtml();
         select.innerHTML = '<option value="">Sélectionner un projet</option>' + projectOptions;
-        if (selectedProject && projects.some(project => String(project.id) === selectedProject)) select.value = selectedProject;
+        if (selectedProject && expenseProjectGroups.has(selectedProject)) select.value = selectedProject;
+        populateExpenseLotOptions(select.value, selectedLot);
         const projectFilter = document.getElementById('expenses-filter-project');
         const selectedFilterProject = projectFilter.value;
         projectFilter.innerHTML = '<option value="">Tous les projets</option>' + projectOptions;
-        if (selectedFilterProject && projects.some(project => String(project.id) === selectedFilterProject)) projectFilter.value = selectedFilterProject;
+        if (selectedFilterProject && expenseProjectGroups.has(selectedFilterProject)) projectFilter.value = selectedFilterProject;
         const expenseDateInput = document.getElementById('expense-date');
         if (expenseDateInput && !expenseDateInput.value) expenseDateInput.value = formatDateForInput();
         const periodInput = document.getElementById('expenses-period');
@@ -32526,13 +32575,23 @@
       }
     });
 
+    document.getElementById('expense-project')?.addEventListener('change', e => {
+      populateExpenseLotOptions(e.target.value);
+    });
+
     document.getElementById('expense-form').addEventListener('submit', async e => {
       e.preventDefault();
       try {
+        const projectGroupValue = document.getElementById('expense-project').value;
+        const lotValue = document.getElementById('expense-lot').value;
+        if (projectGroupValue && !lotValue) {
+          showMessage('Sélectionne un lot pour ce projet', 'error');
+          return;
+        }
         await fetchJson('/api/expenses', {
           method: 'POST',
           body: JSON.stringify({
-            projetId: document.getElementById('expense-project').value || null,
+            projetId: lotValue || null,
             categorie: document.getElementById('expense-category').value,
             dateExpense: document.getElementById('expense-date').value,
             description: document.getElementById('expense-desc').value,
@@ -32543,6 +32602,7 @@
           }),
         });
         e.target.reset();
+        populateExpenseLotOptions('');
         document.getElementById('expense-date').value = formatDateForInput();
         showMessage('Dépense enregistrée');
         loadExpenses();
@@ -35193,8 +35253,9 @@
         const itemDate = parseDateFromText(text);
         const rowCategory = String(li.dataset.expenseCategory || '').toLowerCase();
         const rowProject = String(li.dataset.projectId || '');
+        const rowProjectGroupKey = String(expenseProjectGroupKeyById[rowProject] || '').toLowerCase();
         const categoryOk = !category || rowCategory === category;
-        const projectOk = !projectSearch || rowProject === projectSearch;
+        const projectOk = !projectSearch || rowProjectGroupKey === projectSearch;
         return categoryOk && projectOk && applyDateFilter(itemDate, fromDate, toDate);
       });
 
