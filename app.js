@@ -5090,8 +5090,39 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
     }
   }
 
+  // Fallback 1: ignore the sub-stage and match on the main stage only. Some catalog
+  // entries are tagged with a sub-stage label that does not exactly match what the
+  // request form sent (e.g. free-text group names), which must not block the request.
+  if (!stageCatalogRows.length) {
+    const mainOnlyStage = parseCatalogStageLabels(stageRaw)[0] || stageRaw;
+    for (const folderName of candidateFolders) {
+      const folderKey = normalizeFolderKey(folderName);
+      const rows = (allCatalogRows || []).filter(entry => normalizeFolderKey(entry?.projectFolder || '') === folderKey);
+      if (!rows.length) continue;
+      const mainStageRows = rows.filter(entry => isCatalogStageMatching(entry.notes, mainOnlyStage));
+      if (mainStageRows.length) {
+        resolvedProjectFolder = folderName;
+        stageCatalogRows = mainStageRows;
+        break;
+      }
+    }
+  }
+
+  // Fallback 2: if the catalog exists for this project but nothing matches the stage
+  // at all, use every catalog row of the project rather than blocking the request.
+  if (!stageCatalogRows.length) {
+    for (const folderName of candidateFolders) {
+      const folderKey = normalizeFolderKey(folderName);
+      const rows = (allCatalogRows || []).filter(entry => normalizeFolderKey(entry?.projectFolder || '') === folderKey);
+      if (rows.length) {
+        resolvedProjectFolder = folderName;
+        stageCatalogRows = rows;
+        break;
+      }
+    }
+  }
+
   const stageCatalog = (stageCatalogRows || [])
-    .filter(entry => isCatalogStageMatching(entry.notes, stageRaw))
     .map(entry => ({
       materialName: String(entry.materialName || '').trim(),
       quantiteParBatiment: Number(entry.quantiteParBatiment || 0),
