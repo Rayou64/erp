@@ -7821,7 +7821,7 @@
     .kpi-expense { border-left-color:#ff9c45; }.kpi-net { border-left-color:#22b88a; }.kpi-activity { border-left-color:#9875ed; }
     .reports-chart-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; }
     .reports-chart-pair { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; align-items:stretch; }
-    .reports-chart-pair > .reports-graph-explainer { display:none; }
+    .reports-explainer-summary { margin-top:8px; padding-top:8px; border-top:1px dashed rgba(15,23,42,.12); color:#1c3f70; font-size:11px; font-weight:700; line-height:1.5; }
     .reports-explainer-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:7px; margin-top:14px; padding-top:12px; border-top:1px solid #e4edf7; }
     .reports-explainer-heading { margin:0 3px 2px; color:#526a88; font-size:10px; font-weight:800; }
     .reports-explainer-list .reports-graph-explainer { min-height:0; gap:9px; padding:10px 9px; border:1px solid #cbdfff; border-radius:8px; background:#edf5ff; }
@@ -7832,8 +7832,9 @@
     .reports-explainer-list .reports-graph-explainer:nth-of-type(2) { border-color:#c6efdf; background:#edf9f3; }.reports-explainer-list .reports-graph-explainer:nth-of-type(2)>span { color:#15976e; }
     .reports-explainer-list .reports-graph-explainer:nth-of-type(3) { border-color:#f8dfb9; background:#fff7e9; }.reports-explainer-list .reports-graph-explainer:nth-of-type(3)>span { color:#ca8425; }
     .reports-explainer-list .reports-graph-explainer:nth-of-type(4) { border-color:#f6d1d8; background:#fff1f3; }.reports-explainer-list .reports-graph-explainer:nth-of-type(4)>span { color:#d44863; }
-    .reports-explainer-list .reports-graph-explainer:nth-of-type(5) { border-color:#ddd0fb; background:#f5f0ff; }.reports-explainer-list .reports-graph-explainer:nth-of-type(5)>span { color:#805bcc; }
-    .reports-explainer-list .reports-graph-explainer:nth-of-type(6) { border-color:#c8eaf1; background:#eaf8fb; }.reports-explainer-list .reports-graph-explainer:nth-of-type(6)>span { color:#138ca4; }
+    .reports-explainer-list .reports-graph-explainer:nth-of-type(5) { border-color:#c3d8fb; background:#eef3ff; }.reports-explainer-list .reports-graph-explainer:nth-of-type(5)>span { color:#4f46e5; }
+    .reports-explainer-list .reports-graph-explainer:nth-of-type(6) { border-color:#ddd0fb; background:#f5f0ff; }.reports-explainer-list .reports-graph-explainer:nth-of-type(6)>span { color:#805bcc; }
+    .reports-explainer-list .reports-graph-explainer:nth-of-type(7) { border-color:#c8eaf1; background:#eaf8fb; }.reports-explainer-list .reports-graph-explainer:nth-of-type(7)>span { color:#138ca4; }
     .reports-graph-explainer { display:flex; align-items:flex-start; gap:12px; min-width:0; min-height:100%; padding:19px 16px; border:1px solid transparent; border-radius:9px; }
     .reports-graph-explainer>span { display:grid; place-items:center; width:32px; height:32px; flex:none; border-radius:9px; background:rgba(255,255,255,.82); font-size:12px; font-weight:800; }
     .reports-graph-explainer h4 { margin:1px 0 7px; color:#29476f; font-size:13px; }
@@ -7842,12 +7843,15 @@
     .reports-chart-pair:nth-child(2) .reports-graph-explainer { border-color:#c6efdf; background:#edf9f3; }.reports-chart-pair:nth-child(2) .reports-graph-explainer>span { color:#15976e; }
     .reports-chart-pair:nth-child(3) .reports-graph-explainer { border-color:#f8dfb9; background:#fff7e9; }.reports-chart-pair:nth-child(3) .reports-graph-explainer>span { color:#ca8425; }
     .reports-chart-pair:nth-child(4) .reports-graph-explainer { border-color:#f6d1d8; background:#fff1f3; }.reports-chart-pair:nth-child(4) .reports-graph-explainer>span { color:#d44863; }
-    .reports-chart-pair:nth-child(5) .reports-graph-explainer { border-color:#ddd0fb; background:#f5f0ff; }.reports-chart-pair:nth-child(5) .reports-graph-explainer>span { color:#805bcc; }
-    .reports-chart-pair:nth-child(6) .reports-graph-explainer { border-color:#c8eaf1; background:#eaf8fb; }.reports-chart-pair:nth-child(6) .reports-graph-explainer>span { color:#138ca4; }
+    .reports-chart-pair:nth-child(5) .reports-graph-explainer { border-color:#c3d8fb; background:#eef3ff; }.reports-chart-pair:nth-child(5) .reports-graph-explainer>span { color:#4f46e5; }
+    .reports-chart-pair:nth-child(6) .reports-graph-explainer { border-color:#ddd0fb; background:#f5f0ff; }.reports-chart-pair:nth-child(6) .reports-graph-explainer>span { color:#805bcc; }
+    .reports-chart-pair:nth-child(7) .reports-graph-explainer { border-color:#c8eaf1; background:#eaf8fb; }.reports-chart-pair:nth-child(7) .reports-graph-explainer>span { color:#138ca4; }
     .reports-chart-card { min-width:0; padding:14px; border:1px solid #e3ebf6; border-radius:9px; background:#fff; box-shadow:0 4px 14px rgba(34,75,128,.045); }
     .reports-chart-wide { grid-column:span 2; }
     .reports-chart-title { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
     .reports-chart-title h3 { margin-top:2px; color:#26466f; font-size:13px; }
+    .reports-chart-actions { display:flex; align-items:center; gap:8px; }
+    .reports-chart-period-badge { display:inline-flex; align-items:center; gap:5px; height:29px; padding:0 10px; border:1px solid #dce8f6; border-radius:7px; background:#f7fbff; color:#3b587c; font-size:11px; font-weight:700; }
     .reports-icon-button { display:grid; place-items:center; width:29px; height:29px; flex:none; border:1px solid #dce8f6; border-radius:7px; background:#f7fbff; color:#3482d8; font-size:16px; cursor:pointer; }
     .reports-icon-button:hover { background:#e9f3ff; }
     .reports-chart-note { margin-top:6px; color:#8694a8; font-size:10px; line-height:1.4; }
@@ -12475,12 +12479,13 @@
               </div>
               <div class="reports-filter card"><label for="reports-search">Recherche dans les rapports</label><input type="search" id="reports-search" placeholder="Ex. chiffre d'affaires, projet, catégorie" /></div>
               <div class="reports-chart-grid">
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TENDANCE</span><h3>Évolution financière</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-financial-trend', 'evolution-financiere.svg')">⇩</button></div><div id="reports-financial-trend"></div></section><aside class="reports-graph-explainer"><span>01</span><div><h4>Évolution financière</h4><p>Compare les revenus, les dépenses et le solde mois après mois pour suivre la trajectoire financière.</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RÉPARTITION</span><h3>Revenus & dépenses</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-income-expense-pie', 'revenus-depenses.svg')">⇩</button></div><div id="reports-income-expense-pie"></div></section><aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RENTABILITÉ</span><h3>Coûts marginaux & point mort</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-breakeven-chart', 'couts-point-mort.svg')">⇩</button></div><div id="reports-breakeven-chart"></div><p class="reports-chart-note">Point mort observé lorsque les revenus cumulés couvrent les dépenses cumulées.</p></section><aside class="reports-graph-explainer"><span>03</span><div><h4>Coûts marginaux & point mort</h4><p>Suit les dépenses mensuelles et repère le moment où les revenus cumulés couvrent les coûts observés.</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">DÉPENSES</span><h3>Par catégorie</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-expense-categories', 'depenses-par-categorie.svg')">⇩</button></div><div id="reports-expense-categories"></div></section><aside class="reports-graph-explainer"><span>04</span><div><h4>Dépenses par catégorie</h4><p>Fait ressortir les postes qui consomment le plus de budget et aide à comparer leur poids.</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">PROJETS</span><h3>Dépenses par projet et catégorie</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-project-category', 'depenses-projet-categorie.svg')">⇩</button></div><div id="reports-project-category"></div></section><aside class="reports-graph-explainer"><span>05</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TERRAIN</span><h3>Répartition des activités</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-activity-distribution', 'repartition-activites.svg')">⇩</button></div><div id="reports-activity-distribution"></div></section><aside class="reports-graph-explainer"><span>06</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TENDANCE</span><h3>Évolution financière</h3></div><div class="reports-chart-actions"><span class="reports-chart-period-badge">Par mois</span><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-financial-trend', 'evolution-financiere.svg')">⇩</button></div></div><div id="reports-financial-trend"></div></section><aside class="reports-graph-explainer"><span>01</span><div><h4>Évolution financière</h4><p>Compare les revenus, les dépenses et le solde mois après mois pour suivre la trajectoire financière.</p><p class="reports-explainer-summary" id="reports-explain-financial">Chargement des données…</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RÉPARTITION</span><h3>Revenus et dépenses</h3></div><div class="reports-chart-actions"><span class="reports-chart-period-badge">Cette année</span><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-income-expense-pie', 'revenus-depenses.svg')">⇩</button></div></div><div id="reports-income-expense-pie"></div></section><aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p><p class="reports-explainer-summary" id="reports-explain-income-expense">Chargement des données…</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RENTABILITÉ</span><h3>Coûts marginaux et point mort</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-breakeven-chart', 'couts-point-mort.svg')">⇩</button></div><div id="reports-breakeven-chart"></div></section><aside class="reports-graph-explainer"><span>03</span><div><h4>Coûts marginaux & point mort</h4><p>Suit les dépenses mensuelles et repère le moment où les revenus cumulés couvrent les coûts observés.</p><p class="reports-explainer-summary" id="reports-explain-breakeven">Chargement des données…</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">DÉPENSES</span><h3>Dépenses par catégorie</h3></div><div class="reports-chart-actions"><span class="reports-chart-period-badge">Cette année</span><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-expense-categories', 'depenses-par-categorie.svg')">⇩</button></div></div><div id="reports-expense-categories"></div></section><aside class="reports-graph-explainer"><span>04</span><div><h4>Dépenses par catégorie</h4><p>Fait ressortir les postes qui consomment le plus de budget et aide à comparer leur poids.</p><p class="reports-explainer-summary" id="reports-explain-categories">Chargement des données…</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">PROJETS</span><h3>Dépenses par projet</h3></div><div class="reports-chart-actions"><span class="reports-chart-period-badge">Cette année</span><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-expense-by-project', 'depenses-par-projet.svg')">⇩</button></div></div><div id="reports-expense-by-project"></div></section><aside class="reports-graph-explainer"><span>05</span><div><h4>Dépenses par projet</h4><p>Classe les projets du plus coûteux au moins coûteux pour prioriser le suivi budgétaire.</p><p class="reports-explainer-summary" id="reports-explain-project-ranking">Chargement des données…</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">PROJETS</span><h3>Dépenses par projet et catégorie</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-project-category', 'depenses-projet-categorie.svg')">⇩</button></div><div id="reports-project-category"></div></section><aside class="reports-graph-explainer"><span>06</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p><p class="reports-explainer-summary" id="reports-explain-project-category">Chargement des données…</p></div></aside></div>
+                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TERRAIN</span><h3>Répartition des activités</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-activity-distribution', 'repartition-activites.svg')">⇩</button></div><div id="reports-activity-distribution"></div></section><aside class="reports-graph-explainer"><span>07</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p><p class="reports-explainer-summary" id="reports-explain-activities">Chargement des données…</p></div></aside></div>
               </div>
               <div class="reports-revenue-legacy"><h3 id="reports-revenue-chart-title">Courbes des recettes</h3><p id="reports-revenue-chart-helper"></p><div id="reports-revenue-line"></div></div>
             </div>
@@ -12499,8 +12504,9 @@
                 <aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p></div></aside>
                 <aside class="reports-graph-explainer"><span>03</span><div><h4>Coûts marginaux & point mort</h4><p>Suit les dépenses mensuelles et repère le moment où les revenus cumulés couvrent les coûts observés.</p></div></aside>
                 <aside class="reports-graph-explainer"><span>04</span><div><h4>Dépenses par catégorie</h4><p>Fait ressortir les postes qui consomment le plus de budget et aide à comparer leur poids.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>05</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>06</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>05</span><div><h4>Dépenses par projet</h4><p>Classe les projets du plus coûteux au moins coûteux pour prioriser le suivi budgétaire.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>06</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p></div></aside>
+                <aside class="reports-graph-explainer"><span>07</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p></div></aside>
               </div>
             </aside>
           </div>
@@ -34572,43 +34578,119 @@
       return Array.from(monthly.values()).sort((a, b) => a.month.localeCompare(b.month));
     }
 
-    function reportSvgLineChart(series, ariaLabel) {
-      const width = 620;
-      const height = 250;
-      const padding = { top: 20, right: 18, bottom: 42, left: 66 };
-      const allValues = series.flatMap(item => item.values.map(point => Number(point.value || 0)));
-      if (!allValues.length) return '<p class="reports-chart-note">Aucune donnée disponible pour cette période.</p>';
-      const max = Math.max(...allValues, 1);
-      const min = Math.min(...allValues, 0);
-      const plotWidth = width - padding.left - padding.right;
-      const plotHeight = height - padding.top - padding.bottom;
-      const monthCount = Math.max(...series.map(item => item.values.length), 1);
-      const xAt = index => padding.left + (monthCount > 1 ? (index / (monthCount - 1)) * plotWidth : plotWidth / 2);
-      const yAt = value => padding.top + plotHeight - ((value - min) / (max - min || 1)) * plotHeight;
-      const grid = Array.from({ length: 5 }, (_, index) => {
-        const value = min + ((max - min) * index) / 4;
-        const y = yAt(value);
-        return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e7eef7"/><text x="${padding.left - 8}" y="${y + 3}" text-anchor="end" fill="#8493a8" font-size="9">${Math.round(value).toLocaleString('fr-FR')}</text>`;
+    function formatCompactFcfa(value) {
+      const amount = Number(value) || 0;
+      const sign = amount < 0 ? '-' : '';
+      const abs = Math.abs(amount);
+      if (abs >= 1000000) return `${sign}${(abs / 1000000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}M`;
+      if (abs >= 1000) return `${sign}${(abs / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 0 })}k`;
+      return `${sign}${Math.round(abs).toLocaleString('fr-FR')}`;
+    }
+
+    const REPORT_EXPENSE_CATEGORIES = [
+      { key: 'materials', label: 'Matériaux', color: '#2563eb' },
+      { key: 'labor', label: "Main d'œuvre", color: '#f59e0b' },
+      { key: 'transport', label: 'Transports', color: '#8b5cf6' },
+      { key: 'other', label: 'Autres', color: '#94a3b8' },
+    ];
+
+    function getReportExpenseCategoryInfo(expense) {
+      const key = getExpensesDashboardCategory(expense);
+      return REPORT_EXPENSE_CATEGORIES.find(item => item.key === key) || REPORT_EXPENSE_CATEGORIES[REPORT_EXPENSE_CATEGORIES.length - 1];
+    }
+
+    function buildPercentDonutHtml(entries, centerValue, centerCaption, ariaLabel) {
+      if (!entries.length) return '<p class="reports-chart-note">Aucune donnée disponible.</p>';
+      const total = entries.reduce((s, e) => s + e.total, 0);
+      if (total <= 0) return '<p class="reports-chart-note">Aucune donnée disponible.</p>';
+      const FALLBACK_COLORS = ['#2563eb', '#f59e0b', '#10b981', '#8b5cf6', '#06b6d4', '#ef4444', '#94a3b8'];
+      let angle = 0;
+      const slices = entries.map((e, i) => {
+        const color = e.color || FALLBACK_COLORS[i % FALLBACK_COLORS.length];
+        const a = (e.total / total) * 360;
+        const p = describeArc(110, 110, 88, angle, angle + a);
+        angle += a;
+        return `<path d="${p}" fill="${color}"></path>`;
       }).join('');
-      const lines = series.map(item => {
-        const path = item.values.map((point, index) => `${index ? 'L' : 'M'} ${xAt(index)} ${yAt(point.value)}`).join(' ');
-        const dots = item.values.map((point, index) => `<circle cx="${xAt(index)}" cy="${yAt(point.value)}" r="3.5" fill="${item.color}"><title>${escapeHtml(point.label)}: ${Number(point.value).toLocaleString('fr-FR')} FCFA</title></circle>`).join('');
-        return `<path d="${path}" fill="none" stroke="${item.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+      const legend = entries.map((e, i) => {
+        const color = e.color || FALLBACK_COLORS[i % FALLBACK_COLORS.length];
+        const pct = total ? ((e.total / total) * 100).toFixed(0) : '0';
+        return `<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:5px 0;font-size:12px;color:#1f2d3d;">
+          <span style="display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span>${escapeHtml(e.label)}</span>
+          <strong>${pct}%</strong>
+        </div>`;
       }).join('');
-      const labels = series[0].values.map((point, index) => `<text x="${xAt(index)}" y="${height - 15}" text-anchor="middle" fill="#8493a8" font-size="9">${escapeHtml(point.label.slice(2))}</text>`).join('');
-      const legend = series.map(item => `<span style="display:inline-flex;align-items:center;gap:5px;margin:8px 12px 0 0;color:#64748b;font-size:10px"><i style="width:9px;height:9px;border-radius:50%;background:${item.color}"></i>${escapeHtml(item.label)}</span>`).join('');
-      return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(ariaLabel)}" width="100%" height="250">${grid}${lines}${labels}</svg><div>${legend}</div>`;
+      return `<div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+        <svg width="190" height="190" viewBox="0 0 220 220" role="img" aria-label="${escapeHtml(ariaLabel)}">
+          ${slices}
+          <circle cx="110" cy="110" r="48" fill="#ffffff"></circle>
+          <text x="110" y="104" text-anchor="middle" style="font-size:16px;font-weight:800;fill:#0f172a;">${escapeHtml(centerValue)}</text>
+          <text x="110" y="124" text-anchor="middle" style="font-size:10px;fill:#64748b;">${escapeHtml(centerCaption)}</text>
+        </svg>
+        <div style="min-width:170px;flex:1;">${legend}</div>
+      </div>`;
     }
 
     function renderReportsFinancialChart(expenses, revenues) {
       const target = document.getElementById('reports-financial-trend');
       if (!target) return;
       const monthly = getReportMonthlyTotals(expenses, revenues);
-      target.innerHTML = reportSvgLineChart([
-        { label: 'Revenus', color: '#1788ed', values: monthly.map(item => ({ label: item.month, value: item.revenue })) },
-        { label: 'Dépenses', color: '#f39a3d', values: monthly.map(item => ({ label: item.month, value: item.expense })) },
-        { label: 'Solde mensuel', color: '#1bb487', values: monthly.map(item => ({ label: item.month, value: item.revenue - item.expense })) },
-      ], 'Évolution mensuelle des revenus, dépenses et solde');
+      if (!monthly.length) {
+        target.innerHTML = '<p class="reports-chart-note">Aucune donnée disponible pour cette période.</p>';
+        return;
+      }
+      const width = 680;
+      const height = 300;
+      const padding = { top: 20, right: 16, bottom: 36, left: 56 };
+      const plotW = width - padding.left - padding.right;
+      const plotH = height - padding.top - padding.bottom;
+      const monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'short' });
+      const maxVal = Math.max(...monthly.map(m => Math.max(m.revenue, m.expense)), 1);
+      const xAt = i => padding.left + (monthly.length > 1 ? (i / (monthly.length - 1)) * plotW : plotW / 2);
+      const yAt = v => padding.top + plotH - (v / maxVal) * plotH;
+      const baseline = padding.top + plotH;
+      const grid = Array.from({ length: 5 }, (_, i) => {
+        const value = (maxVal * i) / 4;
+        const y = yAt(value);
+        return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#eef2f8"/><text x="${padding.left - 8}" y="${y + 3}" text-anchor="end" fill="#8493a8" font-size="9">${formatCompactFcfa(value)}</text>`;
+      }).join('');
+      const revenueValues = monthly.map(m => m.revenue);
+      const expenseValues = monthly.map(m => m.expense);
+      const netValues = monthly.map(m => m.revenue - m.expense);
+      const buildAreaPath = values => {
+        const top = values.map((v, i) => `${i ? 'L' : 'M'} ${xAt(i)} ${yAt(v)}`).join(' ');
+        return `${top} L ${xAt(values.length - 1)} ${baseline} L ${xAt(0)} ${baseline} Z`;
+      };
+      const buildLinePath = values => values.map((v, i) => `${i ? 'L' : 'M'} ${xAt(i)} ${yAt(v)}`).join(' ');
+      const monthLabels = monthly.map(m => monthFormatter.format(new Date(`${m.month}-01T12:00:00`)).replace('.', ''));
+      const revenueDots = monthly.map((m, i) => `<circle cx="${xAt(i)}" cy="${yAt(m.revenue)}" r="3.2" fill="#2563eb"><title>Revenus ${monthLabels[i]}: ${Math.round(m.revenue).toLocaleString('fr-FR')} FCFA</title></circle>`).join('');
+      const expenseDots = monthly.map((m, i) => `<circle cx="${xAt(i)}" cy="${yAt(m.expense)}" r="3.2" fill="#ef4444"><title>Dépenses ${monthLabels[i]}: ${Math.round(m.expense).toLocaleString('fr-FR')} FCFA</title></circle>`).join('');
+      const netMax = Math.max(...netValues.map(v => Math.abs(v)), 1);
+      const barZoneHeight = plotH * 0.22;
+      const barWidth = Math.min(22, (plotW / monthly.length) * 0.5);
+      const netBars = monthly.map((m, i) => {
+        const value = netValues[i];
+        const barHeight = Math.max((Math.abs(value) / netMax) * barZoneHeight, value !== 0 ? 2 : 0);
+        const x = xAt(i) - barWidth / 2;
+        const y = baseline - barHeight;
+        return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="2" fill="#16a34a"><title>Résultat net ${monthLabels[i]}: ${Math.round(value).toLocaleString('fr-FR')} FCFA</title></rect>`;
+      }).join('');
+      const labels = monthly.map((m, i) => `<text x="${xAt(i)}" y="${height - 12}" text-anchor="middle" fill="#8493a8" font-size="9">${escapeHtml(monthLabels[i])}</text>`).join('');
+      const legend = `<span style="display:inline-flex;align-items:center;gap:5px;margin:8px 14px 0 0;color:#475569;font-size:11px;font-weight:600"><i style="width:9px;height:9px;border-radius:50%;background:#2563eb;display:inline-block;"></i>Revenus</span><span style="display:inline-flex;align-items:center;gap:5px;margin:8px 14px 0 0;color:#475569;font-size:11px;font-weight:600"><i style="width:9px;height:9px;border-radius:50%;background:#ef4444;display:inline-block;"></i>Dépenses</span><span style="display:inline-flex;align-items:center;gap:5px;margin:8px 0 0 0;color:#475569;font-size:11px;font-weight:600"><i style="width:9px;height:9px;border-radius:2px;background:#16a34a;display:inline-block;"></i>Résultat net</span>`;
+      target.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Évolution mensuelle des revenus, dépenses et solde" width="100%" height="280">
+        <defs>
+          <linearGradient id="reportsRevenueGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb" stop-opacity="0.35"/><stop offset="100%" stop-color="#2563eb" stop-opacity="0"/></linearGradient>
+          <linearGradient id="reportsExpenseGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444" stop-opacity="0.25"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></linearGradient>
+        </defs>
+        ${grid}
+        ${netBars}
+        <path d="${buildAreaPath(expenseValues)}" fill="url(#reportsExpenseGradient)"/>
+        <path d="${buildAreaPath(revenueValues)}" fill="url(#reportsRevenueGradient)"/>
+        <path d="${buildLinePath(expenseValues)}" fill="none" stroke="#ef4444" stroke-width="2.5"/>
+        <path d="${buildLinePath(revenueValues)}" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+        ${expenseDots}${revenueDots}
+        ${labels}
+      </svg><div>${legend}</div>`;
     }
 
     function renderReportsBreakEvenChart(expenses, revenues) {
@@ -34619,43 +34701,120 @@
         target.innerHTML = '<p class="reports-chart-note">Aucun flux financier daté disponible.</p>';
         return;
       }
-      let cumulativeRevenue = 0;
-      let cumulativeExpense = 0;
-      target.innerHTML = reportSvgLineChart([
-        { label: 'Revenus cumulés', color: '#1788ed', values: monthly.map(item => ({ label: item.month, value: cumulativeRevenue += item.revenue })) },
-        { label: 'Dépenses cumulées', color: '#f39a3d', values: monthly.map(item => ({ label: item.month, value: cumulativeExpense += item.expense })) },
-        { label: 'Coût marginal mensuel', color: '#9b78e8', values: monthly.map(item => ({ label: item.month, value: item.expense })) },
-      ], 'Coûts mensuels et flux cumulés pour observer le point mort');
-      const crossing = monthly.findIndex((item, index) => {
-        const income = monthly.slice(0, index + 1).reduce((sum, row) => sum + row.revenue, 0);
-        const cost = monthly.slice(0, index + 1).reduce((sum, row) => sum + row.expense, 0);
-        return income > 0 && income >= cost;
+      let cumRevenue = 0;
+      let cumExpense = 0;
+      const points = monthly.map(m => {
+        cumRevenue += m.revenue;
+        cumExpense += m.expense;
+        return { total: cumExpense, marginal: m.expense, cumRevenue };
       });
-      const status = crossing >= 0 ? `Point mort observé : ${monthly[crossing].month}.` : 'Point mort non atteint sur les flux enregistrés.';
-      target.insertAdjacentHTML('beforeend', `<p class="reports-chart-note">${status}</p>`);
+      let crossingIndex = points.findIndex(p => p.cumRevenue > 0 && p.cumRevenue >= p.total);
+      if (crossingIndex < 0) crossingIndex = points.length - 1;
+      const breakEvenValue = points[crossingIndex].total;
+      const width = 680;
+      const height = 300;
+      const padding = { top: 26, right: 20, bottom: 50, left: 60 };
+      const plotW = width - padding.left - padding.right;
+      const plotH = height - padding.top - padding.bottom;
+      const maxVal = Math.max(...points.map(p => p.total), breakEvenValue, 1);
+      const xAt = i => padding.left + (points.length > 1 ? (i / (points.length - 1)) * plotW : plotW / 2);
+      const yAt = v => padding.top + plotH - (v / maxVal) * plotH;
+      const grid = Array.from({ length: 5 }, (_, i) => {
+        const value = (maxVal * i) / 4;
+        const y = yAt(value);
+        return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#eef2f8"/><text x="${padding.left - 8}" y="${y + 3}" text-anchor="end" fill="#8493a8" font-size="9">${formatCompactFcfa(value)}</text>`;
+      }).join('');
+      const pctLabels = Array.from({ length: 6 }, (_, i) => {
+        const pct = i * 20;
+        const x = padding.left + (plotW * i) / 5;
+        return `<text x="${x}" y="${height - padding.bottom + 18}" text-anchor="middle" fill="#8493a8" font-size="9">${pct}%</text>`;
+      }).join('');
+      const totalLine = points.map((p, i) => `${i ? 'L' : 'M'} ${xAt(i)} ${yAt(p.total)}`).join(' ');
+      const marginalLine = points.map((p, i) => `${i ? 'L' : 'M'} ${xAt(i)} ${yAt(p.marginal)}`).join(' ');
+      const areaPath = `${totalLine} L ${xAt(points.length - 1)} ${padding.top + plotH} L ${xAt(0)} ${padding.top + plotH} Z`;
+      const breakEvenY = yAt(breakEvenValue);
+      const breakEvenLine = `<line x1="${padding.left}" y1="${breakEvenY}" x2="${width - padding.right}" y2="${breakEvenY}" stroke="#ef4444" stroke-width="2" stroke-dasharray="6 5"/>`;
+      const labelBoxWidth = 160;
+      const labelBoxHeight = 38;
+      const labelBoxX = Math.min(Math.max(xAt(crossingIndex) - labelBoxWidth / 2, padding.left), width - padding.right - labelBoxWidth);
+      const labelBoxY = Math.max(breakEvenY - labelBoxHeight - 10, padding.top);
+      const breakEvenLabel = `<g>
+        <rect x="${labelBoxX}" y="${labelBoxY}" width="${labelBoxWidth}" height="${labelBoxHeight}" rx="8" fill="#0f172a"/>
+        <text x="${labelBoxX + labelBoxWidth / 2}" y="${labelBoxY + 16}" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">Point mort</text>
+        <text x="${labelBoxX + labelBoxWidth / 2}" y="${labelBoxY + 30}" text-anchor="middle" fill="#fff" font-size="11" font-weight="800">${Math.round(breakEvenValue).toLocaleString('fr-FR')} FCFA</text>
+      </g>`;
+      const legend = `<span style="display:inline-flex;align-items:center;gap:5px;margin:8px 14px 0 0;color:#475569;font-size:11px;font-weight:600"><i style="width:9px;height:9px;border-radius:50%;background:#2563eb;display:inline-block;"></i>Coût total</span><span style="display:inline-flex;align-items:center;gap:5px;margin:8px 14px 0 0;color:#475569;font-size:11px;font-weight:600"><i style="width:9px;height:9px;border-radius:50%;background:#f59e0b;display:inline-block;"></i>Coût marginal</span><span style="display:inline-flex;align-items:center;gap:5px;margin:8px 0 0 0;color:#475569;font-size:11px;font-weight:600"><i style="width:14px;height:0;border-top:2px dashed #ef4444;display:inline-block;"></i>Point mort</span>`;
+      target.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Coûts marginaux et point mort" width="100%" height="280">
+        <defs><linearGradient id="reportsCostGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb" stop-opacity="0.25"/><stop offset="100%" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>
+        ${grid}
+        <path d="${areaPath}" fill="url(#reportsCostGradient)"/>
+        <path d="${totalLine}" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+        <path d="${marginalLine}" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+        ${breakEvenLine}
+        ${breakEvenLabel}
+        ${pctLabels}
+      </svg>
+      <div>${legend}</div>
+      <p class="reports-chart-note">Taux d'activité / Volume de production</p>`;
     }
 
     function renderReportsExpenseCategories(expenses) {
       const target = document.getElementById('reports-expense-categories');
       if (!target) return;
       const totals = new Map();
-      (Array.isArray(expenses) ? expenses : []).forEach(row => {
-        const category = String(row.categorie || 'Autres').trim() || 'Autres';
-        totals.set(category, (totals.get(category) || 0) + Number(row.montantTotal || row.totalPrice || 0));
+      (Array.isArray(expenses) ? expenses : []).forEach(expense => {
+        const info = getReportExpenseCategoryInfo(expense);
+        const amount = Number(expense.montantTotal || expense.totalPrice || 0);
+        if (!totals.has(info.key)) totals.set(info.key, { label: info.label, color: info.color, total: 0 });
+        totals.get(info.key).total += amount;
       });
-      const entries = Array.from(totals, ([label, total]) => ({ label, total })).sort((a, b) => b.total - a.total);
-      target.innerHTML = buildPieChartHtml(entries, 'Répartition des dépenses par catégorie');
+      const entries = Array.from(totals.values()).filter(e => e.total > 0).sort((a, b) => b.total - a.total);
+      if (!entries.length) {
+        target.innerHTML = '<p class="reports-chart-note">Aucune donnée disponible.</p>';
+        return;
+      }
+      const grandTotal = entries.reduce((sum, e) => sum + e.total, 0);
+      target.innerHTML = buildPercentDonutHtml(entries, `${formatCompactFcfa(grandTotal)} FCFA`, `${entries.length} poste${entries.length > 1 ? 's' : ''}`, 'Répartition des dépenses par catégorie');
     }
 
     function renderReportsIncomeExpensePie(expenses, revenues) {
       const target = document.getElementById('reports-income-expense-pie');
       if (!target) return;
-      const expenseTotal = (expenses || []).reduce((sum, row) => sum + Number(row.montantTotal || row.totalPrice || 0), 0);
-      const revenueTotal = (revenues || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
-      target.innerHTML = buildPieChartHtml([
-        { label: 'Revenus', total: revenueTotal },
-        { label: 'Dépenses', total: expenseTotal },
-      ].filter(row => row.total > 0), 'Répartition globale des revenus et dépenses');
+      const monthly = getReportMonthlyTotals(expenses, revenues);
+      if (!monthly.length) {
+        target.innerHTML = '<p class="reports-chart-note">Aucune donnée disponible.</p>';
+        return;
+      }
+      const width = 680;
+      const height = 280;
+      const padding = { top: 20, right: 16, bottom: 34, left: 56 };
+      const plotW = width - padding.left - padding.right;
+      const plotH = height - padding.top - padding.bottom;
+      const monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'short' });
+      const maxVal = Math.max(...monthly.map(m => Math.max(m.revenue, m.expense)), 1);
+      const baseline = padding.top + plotH;
+      const yAt = v => padding.top + plotH - (v / maxVal) * plotH;
+      const grid = Array.from({ length: 5 }, (_, i) => {
+        const value = (maxVal * i) / 4;
+        const y = yAt(value);
+        return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#eef2f8"/><text x="${padding.left - 8}" y="${y + 3}" text-anchor="end" fill="#8493a8" font-size="9">${formatCompactFcfa(value)}</text>`;
+      }).join('');
+      const groupWidth = plotW / monthly.length;
+      const barWidth = Math.min(16, groupWidth * 0.32);
+      const bars = monthly.map((m, i) => {
+        const monthLabel = monthFormatter.format(new Date(`${m.month}-01T12:00:00`)).replace('.', '');
+        const groupX = padding.left + i * groupWidth + groupWidth / 2;
+        const revH = (m.revenue / maxVal) * plotH;
+        const expH = (m.expense / maxVal) * plotH;
+        const revX = groupX - barWidth - 2;
+        const expX = groupX + 2;
+        const revRect = `<rect x="${revX}" y="${baseline - Math.max(revH, m.revenue ? 2 : 0)}" width="${barWidth}" height="${Math.max(revH, m.revenue ? 2 : 0)}" rx="2" fill="#2563eb"><title>Revenus ${monthLabel}: ${Math.round(m.revenue).toLocaleString('fr-FR')} FCFA</title></rect>`;
+        const expRect = `<rect x="${expX}" y="${baseline - Math.max(expH, m.expense ? 2 : 0)}" width="${barWidth}" height="${Math.max(expH, m.expense ? 2 : 0)}" rx="2" fill="#ef4444"><title>Dépenses ${monthLabel}: ${Math.round(m.expense).toLocaleString('fr-FR')} FCFA</title></rect>`;
+        const label = `<text x="${groupX}" y="${height - 12}" text-anchor="middle" fill="#8493a8" font-size="9">${escapeHtml(monthLabel)}</text>`;
+        return `${revRect}${expRect}${label}`;
+      }).join('');
+      const legend = `<span style="display:inline-flex;align-items:center;gap:5px;margin:8px 14px 0 0;color:#475569;font-size:11px;font-weight:600"><i style="width:9px;height:9px;border-radius:50%;background:#2563eb;display:inline-block;"></i>Revenus</span><span style="display:inline-flex;align-items:center;gap:5px;margin:8px 0 0 0;color:#475569;font-size:11px;font-weight:600"><i style="width:9px;height:9px;border-radius:50%;background:#ef4444;display:inline-block;"></i>Dépenses</span>`;
+      target.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Revenus et dépenses par mois" width="100%" height="260">${grid}${bars}</svg><div>${legend}</div>`;
     }
 
     function renderReportsActivityDistribution(activities) {
@@ -34667,68 +34826,218 @@
         totals.set(stage, (totals.get(stage) || 0) + 1);
       });
       const entries = Array.from(totals, ([label, total]) => ({ label, total })).sort((a, b) => b.total - a.total);
-      const max = Math.max(...entries.map(item => item.total), 1);
-      const colors = ['#1c86ed', '#16b88b', '#f5a142', '#9b78e8', '#18a9bd', '#eb6d87'];
       if (!entries.length) {
         target.innerHTML = '<p class="reports-chart-note">Aucune activité enregistrée.</p>';
         return;
       }
-      target.innerHTML = `<div style="display:grid;gap:10px">${entries.map((item, index) => `<div><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;color:#58708c;font-size:10px"><span>${escapeHtml(item.label)}</span><strong>${item.total}</strong></div><div style="height:8px;border-radius:6px;background:#edf2f8;overflow:hidden"><div style="width:${Math.max(item.total / max * 100, 2)}%;height:100%;background:${colors[index % colors.length]};border-radius:6px"></div></div></div>`).join('')}</div>`;
+      const totalCount = entries.reduce((sum, e) => sum + e.total, 0);
+      target.innerHTML = buildPercentDonutHtml(entries, String(totalCount), `activité${totalCount > 1 ? 's' : ''}`, 'Répartition des activités par étape');
+    }
+
+    function renderReportsExpenseByProjectChart(expenses) {
+      const target = document.getElementById('reports-expense-by-project');
+      if (!target) return;
+      const totals = new Map();
+      (Array.isArray(expenses) ? expenses : []).forEach(expense => {
+        const label = getExpenseProjectBucket(expense).label || 'Autre';
+        const amount = Number(expense.montantTotal || expense.totalPrice || 0);
+        totals.set(label, (totals.get(label) || 0) + amount);
+      });
+      const entries = Array.from(totals, ([label, total]) => ({ label, total })).filter(e => e.total > 0).sort((a, b) => b.total - a.total).slice(0, 8);
+      if (!entries.length) {
+        target.innerHTML = '<p class="reports-chart-note">Aucune dépense enregistrée par projet.</p>';
+        return;
+      }
+      const COLORS = ['#2563eb', '#10b981', '#8b5cf6', '#ef4444', '#ec4899', '#f59e0b', '#06b6d4', '#64748b'];
+      const maxTotal = Math.max(...entries.map(e => e.total), 1);
+      const rows = entries.map((entry, index) => {
+        const pct = Math.max((entry.total / maxTotal) * 100, 3);
+        return `<div style="display:grid;grid-template-columns:140px minmax(0,1fr) 70px;align-items:center;gap:10px;">
+          <span style="font-size:11px;color:#334155;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(entry.label)}">${escapeHtml(entry.label)}</span>
+          <div style="height:16px;border-radius:6px;background:#f1f5f9;overflow:hidden;"><div style="width:${pct}%;height:100%;border-radius:6px;background:${COLORS[index % COLORS.length]};"></div></div>
+          <strong style="font-size:11px;color:#1e293b;text-align:right;">${formatCompactFcfa(entry.total)}</strong>
+        </div>`;
+      }).join('');
+      target.innerHTML = `<div style="display:grid;gap:10px;">${rows}</div>`;
     }
 
     function renderReportsProjectCategoryChart(expenses) {
       const target = document.getElementById('reports-project-category');
       if (!target) return;
-      const projects = new Map();
-      const categoryTotals = new Map();
+      const projectTotals = new Map();
       (Array.isArray(expenses) ? expenses : []).forEach(expense => {
-        const project = getExpenseProjectBucket(expense).label || 'Autre';
-        const category = String(expense.categorie || 'Autres').trim() || 'Autres';
+        const label = getExpenseProjectBucket(expense).label || 'Autre';
+        const info = getReportExpenseCategoryInfo(expense);
         const amount = Number(expense.montantTotal || expense.totalPrice || 0);
-        if (!projects.has(project)) projects.set(project, new Map());
-        const projectCategories = projects.get(project);
-        projectCategories.set(category, (projectCategories.get(category) || 0) + amount);
-        categoryTotals.set(category, (categoryTotals.get(category) || 0) + amount);
+        if (!projectTotals.has(label)) projectTotals.set(label, { label, total: 0, categories: new Map() });
+        const bucket = projectTotals.get(label);
+        bucket.total += amount;
+        bucket.categories.set(info.key, (bucket.categories.get(info.key) || 0) + amount);
       });
-      const topCategories = Array.from(categoryTotals.entries()).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([label]) => label);
-      const entries = Array.from(projects.entries()).map(([label, values]) => {
-        const grouped = new Map();
-        values.forEach((amount, category) => {
-          const key = topCategories.includes(category) ? category : 'Autres';
-          grouped.set(key, (grouped.get(key) || 0) + amount);
-        });
-        return { label, values: grouped, total: Array.from(grouped.values()).reduce((sum, amount) => sum + amount, 0) };
-      }).sort((a, b) => b.total - a.total).slice(0, 8);
+      const entries = Array.from(projectTotals.values()).filter(e => e.total > 0).sort((a, b) => b.total - a.total).slice(0, 6);
       if (!entries.length) {
         target.innerHTML = '<p class="reports-chart-note">Aucune dépense à comparer par projet et catégorie.</p>';
         return;
       }
-      const categories = [...topCategories, ...(Array.from(categoryTotals.keys()).some(category => !topCategories.includes(category)) ? ['Autres'] : [])];
-      const colors = ['#2488e8', '#18b78c', '#f2a044', '#9b78e8', '#16a6ba'];
-      const maxTotal = Math.max(...entries.map(entry => entry.total), 1);
-      const width = 650;
-      const labelWidth = 142;
-      const plotWidth = 438;
-      const rowHeight = 31;
-      const chartHeight = 26 + entries.length * rowHeight + 28;
-      const grid = Array.from({ length: 5 }, (_, index) => {
-        const x = labelWidth + (plotWidth * index) / 4;
-        const value = (maxTotal * index) / 4;
-        return `<line x1="${x}" y1="18" x2="${x}" y2="${chartHeight - 27}" stroke="#e8eef6"/><text x="${x}" y="${chartHeight - 8}" text-anchor="middle" fill="#8292a8" font-size="9">${Math.round(value).toLocaleString('fr-FR')}</text>`;
+      const maxTotal = Math.max(...entries.map(e => e.total), 1);
+      const width = 680;
+      const padding = { top: 10, right: 20, bottom: 40, left: 56 };
+      const plotW = width - padding.left - padding.right;
+      const plotH = 220;
+      const height = padding.top + plotH + padding.bottom;
+      const colW = plotW / entries.length;
+      const barWidth = Math.min(54, colW * 0.6);
+      const baseline = padding.top + plotH;
+      const yAt = v => padding.top + plotH - (v / maxTotal) * plotH;
+      const grid = Array.from({ length: 5 }, (_, i) => {
+        const value = (maxTotal * i) / 4;
+        const y = yAt(value);
+        return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#eef2f8"/><text x="${padding.left - 8}" y="${y + 3}" text-anchor="end" fill="#8493a8" font-size="9">${formatCompactFcfa(value)}</text>`;
       }).join('');
-      const rows = entries.map((entry, index) => {
+      const bars = entries.map((entry, index) => {
+        const x = padding.left + index * colW + (colW - barWidth) / 2;
         let offset = 0;
-        const bars = categories.map((category, categoryIndex) => {
-          const amount = entry.values.get(category) || 0;
-          const barWidth = (amount / maxTotal) * plotWidth;
-          const x = labelWidth + offset;
-          offset += barWidth;
-          return amount > 0 ? `<rect x="${x}" y="${24 + index * rowHeight}" width="${barWidth}" height="14" rx="3" fill="${colors[categoryIndex % colors.length]}"><title>${escapeHtml(category)}: ${Math.round(amount).toLocaleString('fr-FR')} FCFA</title></rect>` : '';
+        const segments = REPORT_EXPENSE_CATEGORIES.map(category => {
+          const amount = entry.categories.get(category.key) || 0;
+          if (!amount) return '';
+          const segHeight = (amount / maxTotal) * plotH;
+          const y = baseline - offset - segHeight;
+          offset += segHeight;
+          return `<rect x="${x}" y="${y}" width="${barWidth}" height="${segHeight}" fill="${category.color}"><title>${escapeHtml(category.label)}: ${Math.round(amount).toLocaleString('fr-FR')} FCFA</title></rect>`;
         }).join('');
-        return `<text x="${labelWidth - 10}" y="${35 + index * rowHeight}" text-anchor="end" fill="#526a86" font-size="10">${escapeHtml(entry.label.slice(0, 24))}</text>${bars}`;
+        const label = entry.label.length > 16 ? `${entry.label.slice(0, 15)}…` : entry.label;
+        return `${segments}<text x="${x + barWidth / 2}" y="${baseline + 16}" text-anchor="middle" fill="#526a86" font-size="10">${escapeHtml(label)}</text>`;
       }).join('');
-      const legend = categories.map((category, index) => `<span style="display:inline-flex;align-items:center;gap:5px;margin:7px 12px 0 0;color:#64748b;font-size:10px"><i style="width:9px;height:9px;border-radius:3px;background:${colors[index % colors.length]}"></i>${escapeHtml(category)}</span>`).join('');
-      target.innerHTML = `<svg viewBox="0 0 ${width} ${chartHeight}" role="img" aria-label="Dépenses par projet et catégorie" width="100%" height="${chartHeight}">${grid}${rows}</svg><div>${legend}</div>`;
+      const legend = REPORT_EXPENSE_CATEGORIES.map(category => `<span style="display:inline-flex;align-items:center;gap:5px;margin:0 14px 8px 0;color:#475569;font-size:11px;font-weight:600"><i style="width:9px;height:9px;border-radius:2px;background:${category.color};display:inline-block;"></i>${escapeHtml(category.label)}</span>`).join('');
+      target.innerHTML = `<div>${legend}</div><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Dépenses par projet et catégorie" width="100%" height="${height}">${grid}${bars}</svg>`;
+    }
+
+    function renderReportsExplainerSummaries(expenses, revenues, activities) {
+      const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      };
+      const monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
+      const formatMonthLabel = month => {
+        try { return monthFormatter.format(new Date(`${month}-01T12:00:00`)); } catch (e) { return month; }
+      };
+      const money = amount => `${Math.round(amount).toLocaleString('fr-FR')} FCFA`;
+      const pctChange = (from, to) => (!from ? (to > 0 ? 100 : 0) : ((to - from) / Math.abs(from)) * 100);
+
+      const monthly = getReportMonthlyTotals(expenses, revenues);
+      if (monthly.length >= 2) {
+        const first = monthly[0];
+        const last = monthly[monthly.length - 1];
+        const firstNet = first.revenue - first.expense;
+        const lastNet = last.revenue - last.expense;
+        const variation = pctChange(firstNet, lastNet);
+        setText('reports-explain-financial', `Le résultat net est passé de ${money(firstNet)} (${formatMonthLabel(first.month)}) à ${money(lastNet)} (${formatMonthLabel(last.month)}), soit une variation de ${variation >= 0 ? '+' : ''}${variation.toFixed(0)}%.`);
+      } else if (monthly.length === 1) {
+        setText('reports-explain-financial', `Une seule période de données disponible (${formatMonthLabel(monthly[0].month)}) : résultat net de ${money(monthly[0].revenue - monthly[0].expense)}.`);
+      } else {
+        setText('reports-explain-financial', 'Aucune donnée disponible pour calculer une tendance.');
+      }
+
+      const revenueTotal = (revenues || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+      const expenseTotal = (expenses || []).reduce((sum, row) => sum + Number(row.montantTotal || row.totalPrice || 0), 0);
+      if (revenueTotal > 0 || expenseTotal > 0) {
+        const margin = revenueTotal > 0 ? ((revenueTotal - expenseTotal) / revenueTotal) * 100 : -100;
+        setText('reports-explain-income-expense', `Revenus cumulés : ${money(revenueTotal)} contre ${money(expenseTotal)} de dépenses, soit une marge de ${margin.toFixed(0)}% sur la période.`);
+      } else {
+        setText('reports-explain-income-expense', 'Aucun revenu ni dépense enregistré sur la période.');
+      }
+
+      if (monthly.length) {
+        let cumRevenue = 0;
+        let cumExpense = 0;
+        let crossingMonth = null;
+        let breakEvenValue = 0;
+        monthly.forEach(item => {
+          cumRevenue += item.revenue;
+          cumExpense += item.expense;
+          breakEvenValue = cumExpense;
+          if (!crossingMonth && cumRevenue > 0 && cumRevenue >= cumExpense) crossingMonth = item.month;
+        });
+        if (crossingMonth) {
+          setText('reports-explain-breakeven', `Le point mort est atteint en ${formatMonthLabel(crossingMonth)}, lorsque les revenus cumulés dépassent ${money(breakEvenValue)} de coûts cumulés.`);
+        } else {
+          setText('reports-explain-breakeven', `Point mort non atteint : les dépenses cumulées (${money(breakEvenValue)}) restent supérieures aux revenus cumulés sur la période observée.`);
+        }
+      } else {
+        setText('reports-explain-breakeven', 'Aucun flux financier daté disponible.');
+      }
+
+      const categoryTotals = new Map();
+      (expenses || []).forEach(expense => {
+        const info = getReportExpenseCategoryInfo(expense);
+        categoryTotals.set(info.label, (categoryTotals.get(info.label) || 0) + Number(expense.montantTotal || expense.totalPrice || 0));
+      });
+      const categoryEntries = Array.from(categoryTotals, ([label, total]) => ({ label, total })).filter(e => e.total > 0).sort((a, b) => b.total - a.total);
+      if (categoryEntries.length) {
+        const grandTotal = categoryEntries.reduce((sum, e) => sum + e.total, 0);
+        const top = categoryEntries[0];
+        let text = `${top.label} représente ${((top.total / grandTotal) * 100).toFixed(0)}% du total des dépenses (${money(top.total)}).`;
+        if (categoryEntries[1]) {
+          const second = categoryEntries[1];
+          text += ` Suivi de ${second.label} avec ${((second.total / grandTotal) * 100).toFixed(0)}%.`;
+        }
+        setText('reports-explain-categories', text);
+      } else {
+        setText('reports-explain-categories', 'Aucune dépense enregistrée.');
+      }
+
+      const projectTotals = new Map();
+      (expenses || []).forEach(expense => {
+        const label = getExpenseProjectBucket(expense).label || 'Autre';
+        projectTotals.set(label, (projectTotals.get(label) || 0) + Number(expense.montantTotal || expense.totalPrice || 0));
+      });
+      const projectEntries = Array.from(projectTotals, ([label, total]) => ({ label, total })).filter(e => e.total > 0).sort((a, b) => b.total - a.total);
+      if (projectEntries.length) {
+        const grandTotal = projectEntries.reduce((sum, e) => sum + e.total, 0);
+        const top = projectEntries[0];
+        let text = `${top.label} concentre ${((top.total / grandTotal) * 100).toFixed(0)}% des dépenses totales (${money(top.total)}).`;
+        if (projectEntries[1]) {
+          const second = projectEntries[1];
+          text += ` ${second.label} suit avec ${((second.total / grandTotal) * 100).toFixed(0)}%.`;
+        }
+        setText('reports-explain-project-ranking', text);
+      } else {
+        setText('reports-explain-project-ranking', 'Aucune dépense enregistrée par projet.');
+      }
+
+      if (projectEntries.length) {
+        const topProjectLabel = projectEntries[0].label;
+        const topProjectCategories = new Map();
+        (expenses || []).forEach(expense => {
+          if ((getExpenseProjectBucket(expense).label || 'Autre') !== topProjectLabel) return;
+          const info = getReportExpenseCategoryInfo(expense);
+          topProjectCategories.set(info.label, (topProjectCategories.get(info.label) || 0) + Number(expense.montantTotal || expense.totalPrice || 0));
+        });
+        const sortedCats = Array.from(topProjectCategories, ([label, total]) => ({ label, total })).sort((a, b) => b.total - a.total);
+        if (sortedCats.length) {
+          const projectTotal = sortedCats.reduce((sum, e) => sum + e.total, 0);
+          const topCat = sortedCats[0];
+          setText('reports-explain-project-category', `Sur ${topProjectLabel}, le poste principal est ${topCat.label} avec ${((topCat.total / projectTotal) * 100).toFixed(0)}% des dépenses du projet (${money(topCat.total)}).`);
+        } else {
+          setText('reports-explain-project-category', 'Aucune dépense catégorisée disponible.');
+        }
+      } else {
+        setText('reports-explain-project-category', 'Aucune dépense enregistrée par projet.');
+      }
+
+      const stageTotals = new Map();
+      (activities || []).forEach(row => {
+        const stage = String(row.stage || row.title || 'Autre').trim() || 'Autre';
+        stageTotals.set(stage, (stageTotals.get(stage) || 0) + 1);
+      });
+      const stageEntries = Array.from(stageTotals, ([label, total]) => ({ label, total })).sort((a, b) => b.total - a.total);
+      if (stageEntries.length) {
+        const totalCount = stageEntries.reduce((sum, e) => sum + e.total, 0);
+        const top = stageEntries[0];
+        setText('reports-explain-activities', `${totalCount} activité${totalCount > 1 ? 's' : ''} suivie${totalCount > 1 ? 's' : ''}, dont ${((top.total / totalCount) * 100).toFixed(0)}% concernent l'étape "${top.label}".`);
+      } else {
+        setText('reports-explain-activities', 'Aucune activité enregistrée.');
+      }
     }
 
     function updateReportsKpis(expenses, revenues, activities, projects) {
@@ -34872,6 +35181,8 @@
         renderReportsBreakEvenChart(financialExpenses, revenues);
         renderReportsExpenseCategories(financialExpenses);
         renderReportsActivityDistribution(activities);
+        renderReportsExpenseByProjectChart(financialExpenses);
+        renderReportsExplainerSummaries(financialExpenses, revenues, activities);
 
         const projectData = {};
         projectsCache = projects;
