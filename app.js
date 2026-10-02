@@ -4611,6 +4611,7 @@ async function getInternalMailUser(userId) {
            COALESCE(NULLIF(TRIM(he.jobTitle), ''), u.role) AS department
     FROM users u
     LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
+      AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(u.username)))
     WHERE u.id = ?
     LIMIT 1
   `, [Number(userId)]);
@@ -4646,6 +4647,7 @@ app.get('/api/internal-mail/users', async (req, res) => {
              COALESCE(NULLIF(TRIM(he.jobTitle), ''), u.role) AS department
       FROM users u
       LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
+        AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(u.username)))
       ORDER BY fullName ASC, u.id ASC
     `);
     return res.json((rows || []).map(row => ({
@@ -4680,6 +4682,7 @@ app.get('/api/internal-mail/conversations', async (req, res) => {
              m.id AS messageId, m.body, m.senderId, m.createdAt,
              su.username AS senderUsername,
              COALESCE(NULLIF(TRIM(se.fullName), ''), su.username) AS senderName,
+             COALESCE(NULLIF(TRIM(se.jobTitle), ''), su.role) AS senderDepartment,
              p.nomProjet AS projectName,
              COALESCE(r.isRead, 1) AS isRead,
              COALESCE(org.isStarred, r.isStarred, 0) AS isStarred,
@@ -4697,6 +4700,7 @@ app.get('/api/internal-mail/conversations', async (req, res) => {
       LEFT JOIN internal_mail_user_organization org ON org.conversationId = c.id AND org.userId = ?
       LEFT JOIN users su ON su.id = m.senderId
       LEFT JOIN hr_employees se ON LOWER(TRIM(se.username)) = LOWER(TRIM(su.username))
+        AND se.id = (SELECT MAX(se2.id) FROM hr_employees se2 WHERE LOWER(TRIM(se2.username)) = LOWER(TRIM(su.username)))
       LEFT JOIN projects p ON p.id = c.projectId
       WHERE (
         (? = 'sent' AND (c.createdBy = ? OR m.senderId = ?)) OR
@@ -4741,6 +4745,7 @@ app.get('/api/internal-mail/unread-count', async (req, res) => {
       JOIN internal_mail_conversations c ON c.id = r.conversationId
       LEFT JOIN users su ON su.id = m.senderId
       LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(su.username))
+        AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(su.username)))
       WHERE r.userId = ? AND r.isRead = 0 AND r.deletedAt = ''
       ORDER BY m.createdAt DESC, r.id DESC LIMIT 10
     `, [userId]);
@@ -4764,6 +4769,7 @@ app.get('/api/internal-mail/conversations/:id', async (req, res) => {
       FROM internal_mail_messages m
       LEFT JOIN users su ON su.id = m.senderId
       LEFT JOIN hr_employees se ON LOWER(TRIM(se.username)) = LOWER(TRIM(su.username))
+        AND se.id = (SELECT MAX(se2.id) FROM hr_employees se2 WHERE LOWER(TRIM(se2.username)) = LOWER(TRIM(su.username)))
       WHERE m.conversationId = ? ORDER BY m.createdAt ASC, m.id ASC
     `, [conversationId]);
     const hydrated = [];
@@ -4775,6 +4781,7 @@ app.get('/api/internal-mail/conversations/:id', async (req, res) => {
         FROM internal_mail_recipients r
         JOIN users u ON u.id = r.userId
         LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
+          AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(u.username)))
         JOIN internal_mail_conversations c ON c.id = r.conversationId
         WHERE r.messageId = ? AND (r.recipientType <> 'bcc' OR r.userId = ? OR c.createdBy = ?)
         ORDER BY fullName ASC

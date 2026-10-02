@@ -760,7 +760,6 @@
 
     .hr-employee-dossier-card:hover .hr-employee-card-role {
       filter: saturate(1.08);
-      transform: translateY(-1px);
     }
 
     .hr-employee-dossier-card::before {
@@ -7165,10 +7164,18 @@
     .internal-mail-row { display:grid; grid-template-columns:35px minmax(0,1fr) auto; gap:9px; padding:13px 14px; border-bottom:1px solid #edf1f7; cursor:pointer; }
     .internal-mail-row:hover, .internal-mail-row.active { background:#f0f6ff; }
     .internal-mail-row.unread { background:#f7fbff; border-left:3px solid #2867ee; padding-left:11px; }
-    .mail-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#dceaff; color:#2361d2; font-size:11px; font-weight:800; }
+    .mail-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; flex:none; }
+    .mail-avatar-0 { background:#dceaff; color:#2361d2; }
+    .mail-avatar-1 { background:#dcf5e8; color:#148a53; }
+    .mail-avatar-2 { background:#ffe6d5; color:#c2590a; }
+    .mail-avatar-3 { background:#f1e3ff; color:#7c3aed; }
+    .mail-avatar-4 { background:#ffe0ea; color:#be185d; }
+    .mail-avatar-5 { background:#d9f7fb; color:#0c7f93; }
     .mail-row-main { min-width:0; }
+    .mail-row-sender-line { display:flex; align-items:center; gap:6px; min-width:0; }
     .mail-row-sender, .mail-row-subject { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .mail-row-sender { color:#233758; font-size:12px; font-weight:800; }
+    .mail-row-sender { min-width:0; color:#233758; font-size:12px; font-weight:800; }
+    .mail-row-role { flex:none; padding:2px 7px; border-radius:999px; background:#eef2f8; color:#5b6b85; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.02em; }
     .mail-row-subject { margin-top:3px; color:#314766; font-size:11px; font-weight:700; }
     .mail-row-preview { margin-top:4px; overflow:hidden; color:#8491a7; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
     .mail-row-meta { color:#8491a7; font-size:10px; text-align:right; white-space:nowrap; }
@@ -23779,6 +23786,13 @@
       return String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || '?';
     }
 
+    function internalMailAvatarColorClass(seed) {
+      const str = String(seed || '');
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+      return `mail-avatar-${hash % 6}`;
+    }
+
     function internalMailDate(value) {
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) return '';
@@ -23810,8 +23824,8 @@
         return;
       }
       list.innerHTML = rows.map(row => `<article class="internal-mail-row ${Number(row.isRead) === 0 ? 'unread' : ''} ${Number(row.id) === Number(internalMailState.selectedId) ? 'active' : ''}" data-mail-conversation-id="${Number(row.id)}">
-        <span class="mail-avatar">${escapeHtml(internalMailInitials(row.senderName))}</span>
-        <div class="mail-row-main"><div class="mail-row-sender">${escapeHtml(row.senderName || row.senderUsername || 'Utilisateur')}</div><div class="mail-row-subject">${escapeHtml(row.subject || '(Sans sujet)')}</div><div class="mail-row-preview">${escapeHtml(String(row.body || '').replace(/\s+/g, ' ').slice(0, 120))}</div><div class="mail-row-icons">${Number(row.attachmentCount) ? '📎 ' : ''}${Number(row.messageCount) > 1 ? `▣ ${Number(row.messageCount)}` : ''}${Number(row.isImportant) ? ' · Important' : ''}</div></div>
+        <span class="mail-avatar ${internalMailAvatarColorClass(row.senderUsername || row.senderName)}">${escapeHtml(internalMailInitials(row.senderName))}</span>
+        <div class="mail-row-main"><div class="mail-row-sender-line"><span class="mail-row-sender">${escapeHtml(row.senderName || row.senderUsername || 'Utilisateur')}</span>${row.senderDepartment ? `<span class="mail-row-role">${escapeHtml(getRoleDisplayLabel(row.senderDepartment))}</span>` : ''}</div><div class="mail-row-subject">${escapeHtml(row.subject || '(Sans sujet)')}</div><div class="mail-row-preview">${escapeHtml(String(row.body || '').replace(/\s+/g, ' ').slice(0, 120))}</div><div class="mail-row-icons">${Number(row.attachmentCount) ? '📎 ' : ''}${Number(row.messageCount) > 1 ? `▣ ${Number(row.messageCount)}` : ''}${Number(row.isImportant) ? ' · Important' : ''}</div></div>
         <time class="mail-row-meta">${escapeHtml(internalMailDate(row.createdAt || row.updatedAt))}${Number(row.isStarred) ? '<br>★' : ''}</time>
       </article>`).join('');
       list.querySelectorAll('[data-mail-conversation-id]').forEach(row => row.addEventListener('click', () => openInternalMailConversation(row.dataset.mailConversationId)));
