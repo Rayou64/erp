@@ -7810,10 +7810,11 @@
     .reports-quick-icon { display:grid; place-items:center; width:24px; height:24px; border-radius:7px; font-size:14px; font-weight:700; }
     .icon-blue { background:#e5f1ff; color:#2181ea; }.icon-green { background:#e5f8f1; color:#10a876; }.icon-orange { background:#fff2df; color:#ed9224; }.icon-violet { background:#f1eaff; color:#9363e8; }.icon-cyan { background:#e4f8fc; color:#0ea5bc; }
     .reports-chevron { color:#87a0c0; font-size:21px; }
-    .reports-content { min-width:0; }
-    .reports-filter { display:flex; align-items:center; gap:12px; margin-bottom:12px; padding:10px 12px; border:1px solid #e2ebf8; border-radius:9px; background:#fff; }
+    .reports-filter { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px; padding:10px 12px; border:1px solid #e2ebf8; border-radius:9px; background:#fff; }
     .reports-filter label { flex:none; color:#49617f; font-size:11px; font-weight:700; }
-    .reports-filter input { min-width:0; width:100%; height:33px; padding:0 10px; border:1px solid #e1eaf5; border-radius:6px; font-size:12px; }
+    .reports-filter input { min-width:0; width:100%; flex:1 1 220px; height:33px; padding:0 10px; border:1px solid #e1eaf5; border-radius:6px; font-size:12px; }
+    .reports-filter select { height:33px; padding:0 10px; border:1px solid #e1eaf5; border-radius:6px; background:#fff; color:#2d4566; font-size:12px; }
+    .reports-time-scale-hint { flex:none; color:#8294ab; font-size:10px; font-style:italic; }
     .reports-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:12px; }
     .reports-kpi { min-width:0; padding:12px 13px; border:1px solid #e1eaf5; border-left:3px solid #2a84e9; border-radius:8px; background:#fff; }
     .reports-kpi span,.reports-kpi small { display:block; color:#7486a1; font-size:10px; }
@@ -7822,19 +7823,6 @@
     .reports-chart-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; }
     .reports-chart-pair { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; align-items:stretch; }
     .reports-explainer-summary { margin-top:8px; padding-top:8px; border-top:1px dashed rgba(15,23,42,.12); color:#1c3f70; font-size:11px; font-weight:700; line-height:1.5; }
-    .reports-explainer-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:7px; margin-top:14px; padding-top:12px; border-top:1px solid #e4edf7; }
-    .reports-explainer-heading { margin:0 3px 2px; color:#526a88; font-size:10px; font-weight:800; }
-    .reports-explainer-list .reports-graph-explainer { min-height:0; gap:9px; padding:10px 9px; border:1px solid #cbdfff; border-radius:8px; background:#edf5ff; }
-    .reports-explainer-list .reports-graph-explainer>span { width:27px; height:27px; border-radius:7px; font-size:10px; }
-    .reports-explainer-list .reports-graph-explainer h4 { margin:0 0 3px; font-size:11px; }
-    .reports-explainer-list .reports-graph-explainer p { font-size:9px; line-height:1.4; }
-    .reports-explainer-list .reports-graph-explainer:nth-of-type(1) { border-color:#cbdfff; background:#edf5ff; }.reports-explainer-list .reports-graph-explainer:nth-of-type(1)>span { color:#2780df; }
-    .reports-explainer-list .reports-graph-explainer:nth-of-type(2) { border-color:#c6efdf; background:#edf9f3; }.reports-explainer-list .reports-graph-explainer:nth-of-type(2)>span { color:#15976e; }
-    .reports-explainer-list .reports-graph-explainer:nth-of-type(3) { border-color:#f8dfb9; background:#fff7e9; }.reports-explainer-list .reports-graph-explainer:nth-of-type(3)>span { color:#ca8425; }
-    .reports-explainer-list .reports-graph-explainer:nth-of-type(4) { border-color:#f6d1d8; background:#fff1f3; }.reports-explainer-list .reports-graph-explainer:nth-of-type(4)>span { color:#d44863; }
-    .reports-explainer-list .reports-graph-explainer:nth-of-type(5) { border-color:#c3d8fb; background:#eef3ff; }.reports-explainer-list .reports-graph-explainer:nth-of-type(5)>span { color:#4f46e5; }
-    .reports-explainer-list .reports-graph-explainer:nth-of-type(6) { border-color:#ddd0fb; background:#f5f0ff; }.reports-explainer-list .reports-graph-explainer:nth-of-type(6)>span { color:#805bcc; }
-    .reports-explainer-list .reports-graph-explainer:nth-of-type(7) { border-color:#c8eaf1; background:#eaf8fb; }.reports-explainer-list .reports-graph-explainer:nth-of-type(7)>span { color:#138ca4; }
     .reports-graph-explainer { display:flex; align-items:flex-start; gap:12px; min-width:0; min-height:100%; padding:19px 16px; border:1px solid transparent; border-radius:9px; }
     .reports-graph-explainer>span { display:grid; place-items:center; width:32px; height:32px; flex:none; border-radius:9px; background:rgba(255,255,255,.82); font-size:12px; font-weight:800; }
     .reports-graph-explainer h4 { margin:1px 0 7px; color:#29476f; font-size:13px; }
@@ -7850,8 +7838,6 @@
     .reports-chart-wide { grid-column:span 2; }
     .reports-chart-title { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
     .reports-chart-title h3 { margin-top:2px; color:#26466f; font-size:13px; }
-    .reports-chart-actions { display:flex; align-items:center; gap:8px; }
-    .reports-chart-period-badge { display:inline-flex; align-items:center; gap:5px; height:29px; padding:0 10px; border:1px solid #dce8f6; border-radius:7px; background:#f7fbff; color:#3b587c; font-size:11px; font-weight:700; }
     .reports-icon-button { display:grid; place-items:center; width:29px; height:29px; flex:none; border:1px solid #dce8f6; border-radius:7px; background:#f7fbff; color:#3482d8; font-size:16px; cursor:pointer; }
     .reports-icon-button:hover { background:#e9f3ff; }
     .reports-chart-note { margin-top:6px; color:#8694a8; font-size:10px; line-height:1.4; }
@@ -12470,24 +12456,11 @@
             </div>
           </div>
           <div class="reports-layout">
-            <div class="reports-content">
-              <div class="reports-kpis">
-                <article class="reports-kpi kpi-revenue"><span>Revenus enregistrés</span><strong id="reports-kpi-revenue">—</strong><small>Données cumulées</small></article>
-                <article class="reports-kpi kpi-expense"><span>Dépenses enregistrées</span><strong id="reports-kpi-expense">—</strong><small>Données cumulées</small></article>
-                <article class="reports-kpi kpi-net"><span>Solde observé</span><strong id="reports-kpi-net">—</strong><small>Revenus moins dépenses</small></article>
-                <article class="reports-kpi kpi-activity"><span>Activités suivies</span><strong id="reports-kpi-activities">—</strong><small id="reports-kpi-project-count">Projets actifs</small></article>
-              </div>
-              <div class="reports-filter card"><label for="reports-search">Recherche dans les rapports</label><input type="search" id="reports-search" placeholder="Ex. chiffre d'affaires, projet, catégorie" /></div>
-              <div class="reports-chart-grid">
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TENDANCE</span><h3>Évolution financière</h3></div><div class="reports-chart-actions"><span class="reports-chart-period-badge">Par mois</span><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-financial-trend', 'evolution-financiere.svg')">⇩</button></div></div><div id="reports-financial-trend"></div></section><aside class="reports-graph-explainer"><span>01</span><div><h4>Évolution financière</h4><p>Compare les revenus, les dépenses et le solde mois après mois pour suivre la trajectoire financière.</p><p class="reports-explainer-summary" id="reports-explain-financial">Chargement des données…</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RÉPARTITION</span><h3>Revenus et dépenses</h3></div><div class="reports-chart-actions"><span class="reports-chart-period-badge">Cette année</span><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-income-expense-pie', 'revenus-depenses.svg')">⇩</button></div></div><div id="reports-income-expense-pie"></div></section><aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p><p class="reports-explainer-summary" id="reports-explain-income-expense">Chargement des données…</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RENTABILITÉ</span><h3>Coûts marginaux et point mort</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-breakeven-chart', 'couts-point-mort.svg')">⇩</button></div><div id="reports-breakeven-chart"></div></section><aside class="reports-graph-explainer"><span>03</span><div><h4>Coûts marginaux & point mort</h4><p>Suit les dépenses mensuelles et repère le moment où les revenus cumulés couvrent les coûts observés.</p><p class="reports-explainer-summary" id="reports-explain-breakeven">Chargement des données…</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">DÉPENSES</span><h3>Dépenses par catégorie</h3></div><div class="reports-chart-actions"><span class="reports-chart-period-badge">Cette année</span><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-expense-categories', 'depenses-par-categorie.svg')">⇩</button></div></div><div id="reports-expense-categories"></div></section><aside class="reports-graph-explainer"><span>04</span><div><h4>Dépenses par catégorie</h4><p>Fait ressortir les postes qui consomment le plus de budget et aide à comparer leur poids.</p><p class="reports-explainer-summary" id="reports-explain-categories">Chargement des données…</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">PROJETS</span><h3>Dépenses par projet</h3></div><div class="reports-chart-actions"><span class="reports-chart-period-badge">Cette année</span><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-expense-by-project', 'depenses-par-projet.svg')">⇩</button></div></div><div id="reports-expense-by-project"></div></section><aside class="reports-graph-explainer"><span>05</span><div><h4>Dépenses par projet</h4><p>Classe les projets du plus coûteux au moins coûteux pour prioriser le suivi budgétaire.</p><p class="reports-explainer-summary" id="reports-explain-project-ranking">Chargement des données…</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">PROJETS</span><h3>Dépenses par projet et catégorie</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-project-category', 'depenses-projet-categorie.svg')">⇩</button></div><div id="reports-project-category"></div></section><aside class="reports-graph-explainer"><span>06</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p><p class="reports-explainer-summary" id="reports-explain-project-category">Chargement des données…</p></div></aside></div>
-                <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TERRAIN</span><h3>Répartition des activités</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-activity-distribution', 'repartition-activites.svg')">⇩</button></div><div id="reports-activity-distribution"></div></section><aside class="reports-graph-explainer"><span>07</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p><p class="reports-explainer-summary" id="reports-explain-activities">Chargement des données…</p></div></aside></div>
-              </div>
-              <div class="reports-revenue-legacy"><h3 id="reports-revenue-chart-title">Courbes des recettes</h3><p id="reports-revenue-chart-helper"></p><div id="reports-revenue-line"></div></div>
+            <div class="reports-kpis">
+              <article class="reports-kpi kpi-revenue"><span>Revenus enregistrés</span><strong id="reports-kpi-revenue">—</strong><small>Données cumulées</small></article>
+              <article class="reports-kpi kpi-expense"><span>Dépenses enregistrées</span><strong id="reports-kpi-expense">—</strong><small>Données cumulées</small></article>
+              <article class="reports-kpi kpi-net"><span>Solde observé</span><strong id="reports-kpi-net">—</strong><small>Revenus moins dépenses</small></article>
+              <article class="reports-kpi kpi-activity"><span>Activités suivies</span><strong id="reports-kpi-activities">—</strong><small id="reports-kpi-project-count">Projets actifs</small></article>
             </div>
             <aside class="reports-quick-panel">
               <div class="reports-quick-heading"><span class="reports-heading-icon">▦</span><div><h2>Rapports rapides</h2><p>Générez des rapports détaillés en un clic.</p></div></div>
@@ -12498,17 +12471,30 @@
                 <button type="button" class="reports-quick-item" onclick="generateReport('activities')"><span class="reports-quick-icon icon-violet">⌁</span><span><strong>Rapport d’activités</strong><small>Avancement, productivité et indicateurs</small></span><span class="reports-chevron">›</span></button>
                 <button type="button" class="reports-quick-item" onclick="generateReport('export')"><span class="reports-quick-icon icon-cyan">⇩</span><span><strong>Exporter les données</strong><small>Export des données en PDF, Excel ou CSV</small></span><span class="reports-chevron">›</span></button>
               </div>
-              <div class="reports-explainer-list" aria-label="Explications des graphiques">
-                <h3 class="reports-explainer-heading">À propos des graphiques</h3>
-                <aside class="reports-graph-explainer"><span>01</span><div><h4>Évolution financière</h4><p>Compare les revenus, les dépenses et le solde mois après mois pour suivre la trajectoire financière.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>03</span><div><h4>Coûts marginaux & point mort</h4><p>Suit les dépenses mensuelles et repère le moment où les revenus cumulés couvrent les coûts observés.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>04</span><div><h4>Dépenses par catégorie</h4><p>Fait ressortir les postes qui consomment le plus de budget et aide à comparer leur poids.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>05</span><div><h4>Dépenses par projet</h4><p>Classe les projets du plus coûteux au moins coûteux pour prioriser le suivi budgétaire.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>06</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p></div></aside>
-                <aside class="reports-graph-explainer"><span>07</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p></div></aside>
-              </div>
             </aside>
+            <div class="reports-filter card">
+              <label for="reports-search">Recherche dans les rapports</label><input type="search" id="reports-search" placeholder="Ex. chiffre d'affaires, projet, catégorie" />
+              <label for="reports-time-scale">Échelle de temps</label>
+              <select id="reports-time-scale">
+                <option value="auto">Auto</option>
+                <option value="week">Semaine</option>
+                <option value="month">Mois</option>
+                <option value="quarter">Trimestre</option>
+                <option value="semester">Semestre</option>
+                <option value="year">Année</option>
+              </select>
+              <small id="reports-time-scale-hint" class="reports-time-scale-hint"></small>
+            </div>
+            <div class="reports-chart-grid">
+              <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TENDANCE</span><h3>Évolution financière</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-financial-trend', 'evolution-financiere.svg')">⇩</button></div><div id="reports-financial-trend"></div></section><aside class="reports-graph-explainer"><span>01</span><div><h4>Évolution financière</h4><p>Compare les revenus, les dépenses et le solde pour suivre la trajectoire financière.</p><p class="reports-explainer-summary" id="reports-explain-financial">Chargement des données…</p></div></aside></div>
+              <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RÉPARTITION</span><h3>Revenus et dépenses</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-income-expense-pie', 'revenus-depenses.svg')">⇩</button></div><div id="reports-income-expense-pie"></div></section><aside class="reports-graph-explainer"><span>02</span><div><h4>Revenus & dépenses</h4><p>Montre le poids relatif des entrées et sorties enregistrées pour visualiser l’équilibre financier.</p><p class="reports-explainer-summary" id="reports-explain-income-expense">Chargement des données…</p></div></aside></div>
+              <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">RENTABILITÉ</span><h3>Coûts marginaux et point mort</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-breakeven-chart', 'couts-point-mort.svg')">⇩</button></div><div id="reports-breakeven-chart"></div></section><aside class="reports-graph-explainer"><span>03</span><div><h4>Coûts marginaux & point mort</h4><p>Suit les dépenses par période et repère le moment où les revenus cumulés couvrent les coûts observés.</p><p class="reports-explainer-summary" id="reports-explain-breakeven">Chargement des données…</p></div></aside></div>
+              <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">DÉPENSES</span><h3>Dépenses par catégorie</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-expense-categories', 'depenses-par-categorie.svg')">⇩</button></div><div id="reports-expense-categories"></div></section><aside class="reports-graph-explainer"><span>04</span><div><h4>Dépenses par catégorie</h4><p>Fait ressortir les postes qui consomment le plus de budget et aide à comparer leur poids.</p><p class="reports-explainer-summary" id="reports-explain-categories">Chargement des données…</p></div></aside></div>
+              <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">PROJETS</span><h3>Dépenses par projet</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-expense-by-project', 'depenses-par-projet.svg')">⇩</button></div><div id="reports-expense-by-project"></div></section><aside class="reports-graph-explainer"><span>05</span><div><h4>Dépenses par projet</h4><p>Classe les projets du plus coûteux au moins coûteux pour prioriser le suivi budgétaire.</p><p class="reports-explainer-summary" id="reports-explain-project-ranking">Chargement des données…</p></div></aside></div>
+              <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">PROJETS</span><h3>Dépenses par projet et catégorie</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-project-category', 'depenses-projet-categorie.svg')">⇩</button></div><div id="reports-project-category"></div></section><aside class="reports-graph-explainer"><span>06</span><div><h4>Projets et catégories</h4><p>Compare les montants et la composition des dépenses d’un projet à l’autre.</p><p class="reports-explainer-summary" id="reports-explain-project-category">Chargement des données…</p></div></aside></div>
+              <div class="reports-chart-pair"><section class="reports-chart-card"><div class="reports-chart-title"><div><span class="reports-chart-kicker">TERRAIN</span><h3>Répartition des activités</h3></div><button type="button" class="reports-icon-button" title="Télécharger le graphique SVG" onclick="downloadChartSvg('reports-activity-distribution', 'repartition-activites.svg')">⇩</button></div><div id="reports-activity-distribution"></div></section><aside class="reports-graph-explainer"><span>07</span><div><h4>Répartition des activités</h4><p>Compte les suivis de chantier par étape pour comprendre où se concentre l’activité terrain.</p><p class="reports-explainer-summary" id="reports-explain-activities">Chargement des données…</p></div></aside></div>
+            </div>
+            <div class="reports-revenue-legacy"><h3 id="reports-revenue-chart-title">Courbes des recettes</h3><p id="reports-revenue-chart-helper"></p><div id="reports-revenue-line"></div></div>
           </div>
         </div>
 
@@ -33674,6 +33660,11 @@
       }
     });
 
+    document.getElementById('reports-time-scale')?.addEventListener('change', e => {
+      reportsTimeScale = e.target.value;
+      renderReportsTimeSeriesCharts();
+    });
+
     document.getElementById('database-global-search').addEventListener('input', e => {
       databaseGlobalSearchTerm = e.target.value;
       if (currentModule === 'database') {
@@ -34556,26 +34547,99 @@
       });
     });
 
-    function getReportMonth(value) {
-      const match = String(value || '').match(/^(\d{4})[-/](\d{1,2})/);
-      return match ? `${match[1]}-${String(match[2]).padStart(2, '0')}` : '';
+    let reportsTimeScale = 'auto';
+
+    function getReportDateValue(value) {
+      const raw = String(value || '').trim();
+      const match = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+      const parsed = new Date(raw);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
     }
 
-    function getReportMonthlyTotals(expenses, revenues) {
-      const monthly = new Map();
-      const ensure = month => {
-        if (!monthly.has(month)) monthly.set(month, { month, revenue: 0, expense: 0 });
-        return monthly.get(month);
+    function getReportBucketKey(date, scale) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      if (scale === 'week') {
+        const firstJan = new Date(year, 0, 1);
+        const dayOfYear = Math.floor((date - firstJan) / 86400000);
+        const week = Math.ceil((dayOfYear + firstJan.getDay() + 1) / 7);
+        return `${year}-W${String(week).padStart(2, '0')}`;
+      }
+      if (scale === 'quarter') return `${year}-Q${Math.floor(month / 3) + 1}`;
+      if (scale === 'semester') return `${year}-S${month < 6 ? 1 : 2}`;
+      if (scale === 'year') return `${year}`;
+      return `${year}-${String(month + 1).padStart(2, '0')}`;
+    }
+
+    function getReportBucketLabel(key, scale) {
+      if (scale === 'week') return `Sem. ${key.split('-W')[1]}`;
+      if (scale === 'quarter') {
+        const [year, q] = key.split('-Q');
+        return `T${q} ${year}`;
+      }
+      if (scale === 'semester') {
+        const [year, s] = key.split('-S');
+        return `S${s} ${year}`;
+      }
+      if (scale === 'year') return key;
+      const [year, month] = key.split('-');
+      const formatter = new Intl.DateTimeFormat('fr-FR', { month: 'short' });
+      return formatter.format(new Date(Number(year), Number(month) - 1, 1)).replace('.', '');
+    }
+
+    function getReportBucketedTotals(expenses, revenues, scale) {
+      const resolvedScale = scale || 'month';
+      const buckets = new Map();
+      const ensure = key => {
+        if (!buckets.has(key)) buckets.set(key, { key, revenue: 0, expense: 0 });
+        return buckets.get(key);
       };
       (Array.isArray(revenues) ? revenues : []).forEach(row => {
-        const month = getReportMonth(row.dateRevenue);
-        if (month) ensure(month).revenue += Number(row.amount || 0);
+        const date = getReportDateValue(row.dateRevenue);
+        if (!date) return;
+        ensure(getReportBucketKey(date, resolvedScale)).revenue += Number(row.amount || 0);
       });
       (Array.isArray(expenses) ? expenses : []).forEach(row => {
-        const month = getReportMonth(row.dateExpense || row.date);
-        if (month) ensure(month).expense += Number(row.montantTotal || row.totalPrice || 0);
+        const date = getReportDateValue(row.dateExpense || row.date);
+        if (!date) return;
+        ensure(getReportBucketKey(date, resolvedScale)).expense += Number(row.montantTotal || row.totalPrice || 0);
       });
-      return Array.from(monthly.values()).sort((a, b) => a.month.localeCompare(b.month));
+      return Array.from(buckets.values())
+        .sort((a, b) => a.key.localeCompare(b.key))
+        .map(item => ({ ...item, label: getReportBucketLabel(item.key, resolvedScale) }));
+    }
+
+    function resolveAutoReportsTimeScale(expenses, revenues) {
+      const dates = [
+        ...(Array.isArray(revenues) ? revenues : []).map(row => getReportDateValue(row.dateRevenue)),
+        ...(Array.isArray(expenses) ? expenses : []).map(row => getReportDateValue(row.dateExpense || row.date)),
+      ].filter(Boolean);
+      if (!dates.length) return 'week';
+      const minTime = Math.min(...dates.map(d => d.getTime()));
+      const maxTime = Math.max(...dates.map(d => d.getTime()));
+      const spanDays = (maxTime - minTime) / 86400000;
+      if (spanDays < 60) return 'week';
+      if (spanDays < 180) return 'month';
+      if (spanDays < 365) return 'quarter';
+      if (spanDays < 730) return 'semester';
+      return 'year';
+    }
+
+    function getEffectiveReportsTimeScale(expenses, revenues) {
+      if (reportsTimeScale && reportsTimeScale !== 'auto') return reportsTimeScale;
+      return resolveAutoReportsTimeScale(expenses, revenues);
+    }
+
+    function updateReportsTimeScaleHint(expenses, revenues) {
+      const hint = document.getElementById('reports-time-scale-hint');
+      if (!hint) return;
+      if (reportsTimeScale && reportsTimeScale !== 'auto') {
+        hint.textContent = '';
+        return;
+      }
+      const labels = { week: 'semaine', month: 'mois', quarter: 'trimestre', semester: 'semestre', year: 'année' };
+      hint.textContent = `(auto : ${labels[resolveAutoReportsTimeScale(expenses, revenues)] || 'mois'})`;
     }
 
     function formatCompactFcfa(value) {
@@ -34634,7 +34698,7 @@
     function renderReportsFinancialChart(expenses, revenues) {
       const target = document.getElementById('reports-financial-trend');
       if (!target) return;
-      const monthly = getReportMonthlyTotals(expenses, revenues);
+      const monthly = getReportBucketedTotals(expenses, revenues, getEffectiveReportsTimeScale(expenses, revenues));
       if (!monthly.length) {
         target.innerHTML = '<p class="reports-chart-note">Aucune donnée disponible pour cette période.</p>';
         return;
@@ -34662,7 +34726,7 @@
         return `${top} L ${xAt(values.length - 1)} ${baseline} L ${xAt(0)} ${baseline} Z`;
       };
       const buildLinePath = values => values.map((v, i) => `${i ? 'L' : 'M'} ${xAt(i)} ${yAt(v)}`).join(' ');
-      const monthLabels = monthly.map(m => monthFormatter.format(new Date(`${m.month}-01T12:00:00`)).replace('.', ''));
+      const monthLabels = monthly.map(m => m.label);
       const revenueDots = monthly.map((m, i) => `<circle cx="${xAt(i)}" cy="${yAt(m.revenue)}" r="3.2" fill="#2563eb"><title>Revenus ${monthLabels[i]}: ${Math.round(m.revenue).toLocaleString('fr-FR')} FCFA</title></circle>`).join('');
       const expenseDots = monthly.map((m, i) => `<circle cx="${xAt(i)}" cy="${yAt(m.expense)}" r="3.2" fill="#ef4444"><title>Dépenses ${monthLabels[i]}: ${Math.round(m.expense).toLocaleString('fr-FR')} FCFA</title></circle>`).join('');
       const netMax = Math.max(...netValues.map(v => Math.abs(v)), 1);
@@ -34696,7 +34760,7 @@
     function renderReportsBreakEvenChart(expenses, revenues) {
       const target = document.getElementById('reports-breakeven-chart');
       if (!target) return;
-      const monthly = getReportMonthlyTotals(expenses, revenues);
+      const monthly = getReportBucketedTotals(expenses, revenues, getEffectiveReportsTimeScale(expenses, revenues));
       if (!monthly.length) {
         target.innerHTML = '<p class="reports-chart-note">Aucun flux financier daté disponible.</p>';
         return;
@@ -34780,7 +34844,7 @@
     function renderReportsIncomeExpensePie(expenses, revenues) {
       const target = document.getElementById('reports-income-expense-pie');
       if (!target) return;
-      const monthly = getReportMonthlyTotals(expenses, revenues);
+      const monthly = getReportBucketedTotals(expenses, revenues, getEffectiveReportsTimeScale(expenses, revenues));
       if (!monthly.length) {
         target.innerHTML = '<p class="reports-chart-note">Aucune donnée disponible.</p>';
         return;
@@ -34790,7 +34854,6 @@
       const padding = { top: 20, right: 16, bottom: 34, left: 56 };
       const plotW = width - padding.left - padding.right;
       const plotH = height - padding.top - padding.bottom;
-      const monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'short' });
       const maxVal = Math.max(...monthly.map(m => Math.max(m.revenue, m.expense)), 1);
       const baseline = padding.top + plotH;
       const yAt = v => padding.top + plotH - (v / maxVal) * plotH;
@@ -34802,7 +34865,7 @@
       const groupWidth = plotW / monthly.length;
       const barWidth = Math.min(16, groupWidth * 0.32);
       const bars = monthly.map((m, i) => {
-        const monthLabel = monthFormatter.format(new Date(`${m.month}-01T12:00:00`)).replace('.', '');
+        const monthLabel = m.label;
         const groupX = padding.left + i * groupWidth + groupWidth / 2;
         const revH = (m.revenue / maxVal) * plotH;
         const expH = (m.expense / maxVal) * plotH;
@@ -34917,23 +34980,19 @@
         const el = document.getElementById(id);
         if (el) el.textContent = text;
       };
-      const monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
-      const formatMonthLabel = month => {
-        try { return monthFormatter.format(new Date(`${month}-01T12:00:00`)); } catch (e) { return month; }
-      };
       const money = amount => `${Math.round(amount).toLocaleString('fr-FR')} FCFA`;
       const pctChange = (from, to) => (!from ? (to > 0 ? 100 : 0) : ((to - from) / Math.abs(from)) * 100);
 
-      const monthly = getReportMonthlyTotals(expenses, revenues);
+      const monthly = getReportBucketedTotals(expenses, revenues, getEffectiveReportsTimeScale(expenses, revenues));
       if (monthly.length >= 2) {
         const first = monthly[0];
         const last = monthly[monthly.length - 1];
         const firstNet = first.revenue - first.expense;
         const lastNet = last.revenue - last.expense;
         const variation = pctChange(firstNet, lastNet);
-        setText('reports-explain-financial', `Le résultat net est passé de ${money(firstNet)} (${formatMonthLabel(first.month)}) à ${money(lastNet)} (${formatMonthLabel(last.month)}), soit une variation de ${variation >= 0 ? '+' : ''}${variation.toFixed(0)}%.`);
+        setText('reports-explain-financial', `Le résultat net est passé de ${money(firstNet)} (${first.label}) à ${money(lastNet)} (${last.label}), soit une variation de ${variation >= 0 ? '+' : ''}${variation.toFixed(0)}%.`);
       } else if (monthly.length === 1) {
-        setText('reports-explain-financial', `Une seule période de données disponible (${formatMonthLabel(monthly[0].month)}) : résultat net de ${money(monthly[0].revenue - monthly[0].expense)}.`);
+        setText('reports-explain-financial', `Une seule période de données disponible (${monthly[0].label}) : résultat net de ${money(monthly[0].revenue - monthly[0].expense)}.`);
       } else {
         setText('reports-explain-financial', 'Aucune donnée disponible pour calculer une tendance.');
       }
@@ -34956,10 +35015,10 @@
           cumRevenue += item.revenue;
           cumExpense += item.expense;
           breakEvenValue = cumExpense;
-          if (!crossingMonth && cumRevenue > 0 && cumRevenue >= cumExpense) crossingMonth = item.month;
+          if (!crossingMonth && cumRevenue > 0 && cumRevenue >= cumExpense) crossingMonth = item.label;
         });
         if (crossingMonth) {
-          setText('reports-explain-breakeven', `Le point mort est atteint en ${formatMonthLabel(crossingMonth)}, lorsque les revenus cumulés dépassent ${money(breakEvenValue)} de coûts cumulés.`);
+          setText('reports-explain-breakeven', `Le point mort est atteint en ${crossingMonth}, lorsque les revenus cumulés dépassent ${money(breakEvenValue)} de coûts cumulés.`);
         } else {
           setText('reports-explain-breakeven', `Point mort non atteint : les dépenses cumulées (${money(breakEvenValue)}) restent supérieures aux revenus cumulés sur la période observée.`);
         }
@@ -35038,6 +35097,17 @@
       } else {
         setText('reports-explain-activities', 'Aucune activité enregistrée.');
       }
+    }
+
+    function renderReportsTimeSeriesCharts() {
+      const expenses = window._reportExpenses || [];
+      const revenues = window._reportRevenues || [];
+      const activities = window._reportActivities || [];
+      renderReportsFinancialChart(expenses, revenues);
+      renderReportsIncomeExpensePie(expenses, revenues);
+      renderReportsBreakEvenChart(expenses, revenues);
+      renderReportsExplainerSummaries(expenses, revenues, activities);
+      updateReportsTimeScaleHint(expenses, revenues);
     }
 
     function updateReportsKpis(expenses, revenues, activities, projects) {
@@ -35183,6 +35253,7 @@
         renderReportsActivityDistribution(activities);
         renderReportsExpenseByProjectChart(financialExpenses);
         renderReportsExplainerSummaries(financialExpenses, revenues, activities);
+        updateReportsTimeScaleHint(financialExpenses, revenues);
 
         const projectData = {};
         projectsCache = projects;
