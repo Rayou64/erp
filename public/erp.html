@@ -34729,6 +34729,8 @@
       const monthLabels = monthly.map(m => m.label);
       const revenueDots = monthly.map((m, i) => `<circle cx="${xAt(i)}" cy="${yAt(m.revenue)}" r="3.2" fill="#2563eb"><title>Revenus ${monthLabels[i]}: ${Math.round(m.revenue).toLocaleString('fr-FR')} FCFA</title></circle>`).join('');
       const expenseDots = monthly.map((m, i) => `<circle cx="${xAt(i)}" cy="${yAt(m.expense)}" r="3.2" fill="#ef4444"><title>Dépenses ${monthLabels[i]}: ${Math.round(m.expense).toLocaleString('fr-FR')} FCFA</title></circle>`).join('');
+      const revenueValueLabels = monthly.map((m, i) => m.revenue ? `<text x="${xAt(i)}" y="${yAt(m.revenue) - 9}" text-anchor="middle" fill="#1d4ed8" font-size="9" font-weight="700" paint-order="stroke" stroke="#ffffff" stroke-width="3">${formatCompactFcfa(m.revenue)}</text>` : '').join('');
+      const expenseValueLabels = monthly.map((m, i) => m.expense ? `<text x="${xAt(i)}" y="${yAt(m.expense) + 15}" text-anchor="middle" fill="#dc2626" font-size="9" font-weight="700" paint-order="stroke" stroke="#ffffff" stroke-width="3">${formatCompactFcfa(m.expense)}</text>` : '').join('');
       const netMax = Math.max(...netValues.map(v => Math.abs(v)), 1);
       const barZoneHeight = plotH * 0.22;
       const barWidth = Math.min(22, (plotW / monthly.length) * 0.5);
@@ -34753,6 +34755,7 @@
         <path d="${buildLinePath(expenseValues)}" fill="none" stroke="#ef4444" stroke-width="2.5"/>
         <path d="${buildLinePath(revenueValues)}" fill="none" stroke="#2563eb" stroke-width="2.5"/>
         ${expenseDots}${revenueDots}
+        ${expenseValueLabels}${revenueValueLabels}
         ${labels}
       </svg><div>${legend}</div>`;
     }
@@ -34796,6 +34799,10 @@
       const totalLine = points.map((p, i) => `${i ? 'L' : 'M'} ${xAt(i)} ${yAt(p.total)}`).join(' ');
       const marginalLine = points.map((p, i) => `${i ? 'L' : 'M'} ${xAt(i)} ${yAt(p.marginal)}`).join(' ');
       const areaPath = `${totalLine} L ${xAt(points.length - 1)} ${padding.top + plotH} L ${xAt(0)} ${padding.top + plotH} Z`;
+      const totalDots = points.map((p, i) => `<circle cx="${xAt(i)}" cy="${yAt(p.total)}" r="3.2" fill="#2563eb"><title>Coût total: ${Math.round(p.total).toLocaleString('fr-FR')} FCFA</title></circle>`).join('');
+      const marginalDots = points.map((p, i) => `<circle cx="${xAt(i)}" cy="${yAt(p.marginal)}" r="3.2" fill="#f59e0b"><title>Coût marginal: ${Math.round(p.marginal).toLocaleString('fr-FR')} FCFA</title></circle>`).join('');
+      const totalValueLabels = points.map((p, i) => p.total ? `<text x="${xAt(i)}" y="${yAt(p.total) - 9}" text-anchor="middle" fill="#1d4ed8" font-size="9" font-weight="700" paint-order="stroke" stroke="#ffffff" stroke-width="3">${formatCompactFcfa(p.total)}</text>` : '').join('');
+      const marginalValueLabels = points.map((p, i) => p.marginal ? `<text x="${xAt(i)}" y="${yAt(p.marginal) + 15}" text-anchor="middle" fill="#b45309" font-size="9" font-weight="700" paint-order="stroke" stroke="#ffffff" stroke-width="3">${formatCompactFcfa(p.marginal)}</text>` : '').join('');
       const breakEvenY = yAt(breakEvenValue);
       const breakEvenLine = `<line x1="${padding.left}" y1="${breakEvenY}" x2="${width - padding.right}" y2="${breakEvenY}" stroke="#ef4444" stroke-width="2" stroke-dasharray="6 5"/>`;
       const labelBoxWidth = 160;
@@ -34814,6 +34821,8 @@
         <path d="${areaPath}" fill="url(#reportsCostGradient)"/>
         <path d="${totalLine}" fill="none" stroke="#2563eb" stroke-width="2.5"/>
         <path d="${marginalLine}" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+        ${totalDots}${marginalDots}
+        ${totalValueLabels}${marginalValueLabels}
         ${breakEvenLine}
         ${breakEvenLabel}
         ${pctLabels}
