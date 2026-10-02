@@ -12335,6 +12335,17 @@
               <div class="expenses-distribution-panel"><h3>Évolution des dépenses par catégorie</h3><div id="expenses-category-bars"></div></div>
             </div>
           </section>
+          <section class="expenses-analytics-card">
+            <div class="expenses-analytics-heading">
+              <h2>Répartition par projet et par lot</h2>
+              <button type="button" class="button button-secondary" style="font-size:12px;padding:5px 12px;" onclick="downloadChartSvg('expenses-lot-project-charts', 'repartition-projet-lot.svg')">⬇ Graphique</button>
+            </div>
+            <p class="expenses-analytics-description">Répartition totale des dépenses par projet, et répartition par lot pour le projet sélectionné dans le filtre.</p>
+            <div id="expenses-lot-project-charts" class="expenses-distribution-grid">
+              <div class="expenses-distribution-panel"><h3>Répartition par projet (total)</h3><div id="expenses-project-donut"></div></div>
+              <div class="expenses-distribution-panel"><h3>Répartition par lot</h3><div id="expenses-lot-donut"></div></div>
+            </div>
+          </section>
         </div>
 
         <!-- Revenues Module -->
@@ -21986,6 +21997,46 @@
       barContainer.innerHTML = `<div class="expenses-bar-chart-wrap"><svg viewBox="0 0 ${chartWidth} ${chartHeight}" role="img" aria-label="Évolution des dépenses par catégorie">${gridLines}<line x1="${chartLeft}" y1="${chartBottom}" x2="${chartRight}" y2="${chartBottom}" stroke="#b9c9de"/>${bars}</svg><div class="expenses-bar-legend">${legend}</div></div>`;
     }
 
+    function renderExpenseLotAndProjectCharts(expenses) {
+      const projectContainer = document.getElementById('expenses-project-donut');
+      const lotContainer = document.getElementById('expenses-lot-donut');
+      if (!projectContainer || !lotContainer) return;
+
+      const list = Array.isArray(expenses) ? expenses : [];
+
+      const projectTotals = new Map();
+      list.forEach(expense => {
+        const groupKey = expenseProjectGroupKeyById[expense?.projetId];
+        if (!groupKey) return;
+        const amount = Number(expense?.montantTotal || 0);
+        projectTotals.set(groupKey, (projectTotals.get(groupKey) || 0) + amount);
+      });
+      const projectEntries = [...projectTotals.entries()]
+        .map(([label, total]) => ({ label, total }))
+        .sort((a, b) => b.total - a.total);
+      projectContainer.innerHTML = buildPieChartHtml(projectEntries, 'Répartition des dépenses par projet');
+
+      const selectedGroupKey = String(document.getElementById('expenses-filter-project')?.value || '').trim();
+      if (!selectedGroupKey) {
+        lotContainer.innerHTML = '<p style="color:#64748b;">Sélectionne un projet pour voir la répartition par lot.</p>';
+        return;
+      }
+
+      const lotTotals = new Map();
+      list.forEach(expense => {
+        if (expenseProjectGroupKeyById[expense?.projetId] !== selectedGroupKey) return;
+        const amount = Number(expense?.montantTotal || 0);
+        const lotKey = String(expense?.projetId || '');
+        lotTotals.set(lotKey, (lotTotals.get(lotKey) || 0) + amount);
+      });
+      const groupProjects = expenseProjectGroups.get(selectedGroupKey) || [];
+      const lotEntries = groupProjects
+        .map(project => ({ label: getProjectLotLabel(project), total: lotTotals.get(String(project.id)) || 0 }))
+        .filter(entry => entry.total > 0)
+        .sort((a, b) => b.total - a.total);
+      lotContainer.innerHTML = buildPieChartHtml(lotEntries, 'Répartition des dépenses par lot');
+    }
+
     function getExpenseProjectBucket(expense) {
       const project = getProjectById(expense?.projetId);
       if (project) {
@@ -29466,6 +29517,7 @@
           renderExpensesDetailedByProject(financialExpenses);
         }
         renderExpenseDistributionCharts(financialExpenses);
+        renderExpenseLotAndProjectCharts(financialExpenses);
       } catch (err) {
         showMessage('Erreur', 'error');
       }
@@ -36019,6 +36071,11 @@
           expensesCurrentPage = 1;
           applyExpensesFiltersAndPagination();
         });
+      });
+
+      const expensesFilterProject = document.getElementById('expenses-filter-project');
+      if (expensesFilterProject) expensesFilterProject.addEventListener('change', () => {
+        renderExpenseLotAndProjectCharts(window._lastFinancialExpenses || []);
       });
 
       const expensesPeriod = document.getElementById('expenses-period');
