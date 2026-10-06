@@ -13094,6 +13094,17 @@
               </form>
             </section>
           </div>
+          <div id="users-reveal-overlay" class="users-purge-overlay" hidden>
+            <section class="users-purge-dialog" role="dialog" aria-modal="true" aria-labelledby="users-reveal-title">
+              <header class="users-purge-dialog-header"><span class="users-purge-dialog-icon" aria-hidden="true">👁</span><div><h2 id="users-reveal-title">Voir le mot de passe</h2><p id="users-reveal-description">Saisissez le code de sécurité pour afficher le mot de passe.</p></div><button type="button" class="users-dialog-close" aria-label="Fermer" onclick="closeUserRevealDialog()">×</button></header>
+              <form id="users-reveal-form" onsubmit="submitUserRevealForm(event)">
+                <input id="users-reveal-id" type="hidden">
+                <label class="users-purge-confirm-label" for="users-reveal-code">Code de sécurité</label><input id="users-reveal-code" class="users-purge-confirm-input" type="password" autocomplete="off" required>
+                <div id="users-reveal-result" style="display:none; margin-top:12px; padding:12px; border-radius:10px; background:#f1f5f9; font-family:monospace; font-size:18px; word-break:break-all;"></div>
+                <footer class="users-purge-dialog-footer"><button type="button" class="users-dialog-cancel" onclick="closeUserRevealDialog()">Fermer</button><button type="submit" class="users-dialog-confirm">Afficher</button></footer>
+              </form>
+            </section>
+          </div>
           <div id="users-purge-modal" class="users-purge-overlay" hidden>
             <section class="users-purge-dialog" role="dialog" aria-modal="true" aria-labelledby="users-purge-title">
               <header class="users-purge-dialog-header"><span class="users-purge-dialog-icon" aria-hidden="true">▤</span><div><h2 id="users-purge-title">Purge des données du système</h2><p>Sélectionnez les données à supprimer. Les éléments peuvent être choisis séparément.</p></div><button type="button" class="users-dialog-close" aria-label="Fermer" onclick="closeUsersPurgeDialog()">×</button></header>
@@ -13167,7 +13178,7 @@
                       </div>
                       <div id="access-profile-allowed-modules-list" style="display:grid; gap:8px; max-height:320px; overflow:auto; padding:10px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc;"></div>
                     </div>
-                    <div>
+                    <div style="display:none;">
                       <label style="display:block; font-weight:600; margin-bottom:6px;">Modules interdits</label>
                       <div id="access-profile-denied-modules-list" style="display:grid; gap:8px; max-height:320px; overflow:auto; padding:10px; border:1px solid #e2e8f0; border-radius:12px; background:#fff7ed;"></div>
                     </div>
@@ -14531,7 +14542,9 @@
     }
 
     function isRestrictedRole() {
-      return !isAdmin();
+      if (!isAdmin()) return true;
+      return Boolean(currentUserAccessProfile && Array.isArray(currentUserAccessProfile.effectiveModules) && currentUserAccessProfile.effectiveModules.length
+        && (currentUserAccessProfile.allowedModules?.length || currentUserAccessProfile.deniedModules?.length));
     }
 
     function canLoadMaterialCatalogForCurrentRole() {
@@ -16752,7 +16765,7 @@
             <td>${firstLoginAt ? escapeHtml(formatDateWithTime(firstLoginAt)) : 'Non suivi'}</td>
             <td>${lastLoginAt ? escapeHtml(formatDateWithTime(lastLoginAt)) : 'Non suivi'}</td>
             <td><span class="users-status-pill ${statusClass}">${statusLabel}</span></td>
-            <td>${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Modifier le mot de passe de ${escapeHtml(username)}" title="Modifier le mot de passe" onclick="openUserPasswordDialog(${Number(row?.id || 0)}, '${escapeHtml(username)}')">⌑</button>` : (!hasAccount && isAdmin() ? `<button type="button" class="users-row-action" aria-label="Créer le compte de ${escapeHtml(employeeName || username)}" title="Créer le compte lié" onclick="openUsersAccountDialog(${Number(row?.linkedEmployeeId || 0)})">＋</button>` : '—')} ${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Réinitialiser la première connexion de ${escapeHtml(username)}" title="Réinitialiser la première connexion" onclick="resetUserLoginState(${Number(row?.id || 0)})">↻</button>` : ''}</td>
+            <td>${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Modifier le mot de passe de ${escapeHtml(username)}" title="Modifier le mot de passe" onclick="openUserPasswordDialog(${Number(row?.id || 0)}, '${escapeHtml(username)}')">⌑</button>` : (!hasAccount && isAdmin() ? `<button type="button" class="users-row-action" aria-label="Créer le compte de ${escapeHtml(employeeName || username)}" title="Créer le compte lié" onclick="openUsersAccountDialog(${Number(row?.linkedEmployeeId || 0)})">＋</button>` : '—')} ${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Voir le mot de passe de ${escapeHtml(username)}" title="Voir le mot de passe" onclick="openUserRevealDialog(${Number(row?.id || 0)}, '${escapeHtml(username)}')">👁</button>` : ''} ${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Réinitialiser la première connexion de ${escapeHtml(username)}" title="Réinitialiser la première connexion" onclick="resetUserLoginState(${Number(row?.id || 0)})">↻</button>` : ''}</td>
           </tr>
         `;
       }).join('');
@@ -16879,7 +16892,7 @@
       try {
         const result = await fetchJson('/api/admin/users', { method: 'POST', body: JSON.stringify(payload) });
         closeUsersAccountDialog();
-        showMessage(`${result.message}: ${result.username}`);
+        showMessage(`${result.message}: ${result.username} — mot de passe : ${payload.password}`);
         await loadUsersModule();
       } catch (error) {
         showMessage('Création du compte impossible: ' + error.message, 'error');
@@ -16897,6 +16910,52 @@
       overlay.setAttribute('aria-hidden', 'false');
       overlay.classList.add('open');
       document.getElementById('users-password-new').focus();
+    }
+
+    function openUserRevealDialog(userId, username) {
+      if (!isAdmin()) return showMessage('Accès réservé à l’admin', 'error');
+      const overlay = document.getElementById('users-reveal-overlay');
+      if (!overlay) return;
+      document.getElementById('users-reveal-id').value = String(Number(userId) || '');
+      document.getElementById('users-reveal-description').textContent = `Mot de passe de ${String(username || 'ce compte')} — saisissez le code de sécurité.`;
+      document.getElementById('users-reveal-code').value = '';
+      const result = document.getElementById('users-reveal-result');
+      result.style.display = 'none';
+      result.textContent = '';
+      overlay.hidden = false;
+      overlay.setAttribute('aria-hidden', 'false');
+      overlay.classList.add('open');
+      document.getElementById('users-reveal-code').focus();
+    }
+
+    function closeUserRevealDialog() {
+      const overlay = document.getElementById('users-reveal-overlay');
+      if (overlay) {
+        overlay.classList.remove('open');
+        overlay.hidden = true;
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+      const result = document.getElementById('users-reveal-result');
+      if (result) { result.style.display = 'none'; result.textContent = ''; }
+      document.getElementById('users-reveal-form')?.reset();
+    }
+
+    async function submitUserRevealForm(event) {
+      event.preventDefault();
+      const userId = Number(document.getElementById('users-reveal-id')?.value || 0);
+      const code = String(document.getElementById('users-reveal-code')?.value || '');
+      const result = document.getElementById('users-reveal-result');
+      try {
+        const data = await fetchJson(`/api/admin/users/${userId}/reveal-password`, { method: 'POST', body: JSON.stringify({ code }) });
+        result.style.display = 'block';
+        result.style.fontFamily = data.password ? 'monospace' : 'inherit';
+        result.style.fontSize = data.password ? '18px' : '14px';
+        result.textContent = data.password ? data.password : (data.message || 'Mot de passe non disponible');
+        document.getElementById('users-reveal-code').value = '';
+      } catch (error) {
+        result.style.display = 'none';
+        showMessage('Affichage impossible: ' + error.message, 'error');
+      }
     }
 
     function closeUserPasswordDialog() {
@@ -16917,7 +16976,7 @@
       try {
         const result = await fetchJson(`/api/admin/users/${userId}/password`, { method: 'PATCH', body: JSON.stringify({ password }) });
         closeUserPasswordDialog();
-        showMessage(result.message || 'Mot de passe modifié');
+        showMessage((result.message || 'Mot de passe modifié') + ' — nouveau mot de passe : ' + password);
         await loadUsersModule();
       } catch (error) {
         showMessage('Modification impossible: ' + error.message, 'error');
@@ -16963,7 +17022,7 @@
       }
       const deniedSet = new Set(normalizeAccessProfileModuleList(row?.deniedModules || ''));
       const baselineSet = getAccessProfileBaselineModules(row?.role || '', row?.username || '');
-      if (String(row?.role || '').trim().toLowerCase() === 'admin') {
+      if (String(row?.role || '').trim().toLowerCase() === 'admin' && !normalizeAccessProfileModuleList(row?.allowedModules || '').length) {
         baselineSet.forEach(moduleKey => allowedSet.add(moduleKey));
       }
 
@@ -17183,9 +17242,7 @@
         const allowedModules = Array.from((document.getElementById('access-profile-allowed-modules-list')?.querySelectorAll('input[type="checkbox"][data-kind="allowed"]:checked') || []))
           .map(input => String(input.dataset.moduleKey || '').trim().toLowerCase())
           .filter(Boolean);
-        const deniedModules = Array.from((document.getElementById('access-profile-denied-modules-list')?.querySelectorAll('input[type="checkbox"][data-kind="denied"]:checked') || []))
-          .map(input => String(input.dataset.moduleKey || '').trim().toLowerCase())
-          .filter(Boolean);
+        const deniedModules = [];
 
         const payload = {
           accreditationLevel: String(document.getElementById('access-profile-accreditation')?.value || 'standard').trim(),

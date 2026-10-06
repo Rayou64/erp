@@ -2351,6 +2351,7 @@ async function initDb() {
     createdAt TEXT NOT NULL
   )`);
   console.log('[initDb] Table users créée');
+  try { await run("ALTER TABLE users ADD COLUMN passwordEnc TEXT NOT NULL DEFAULT ''"); } catch (_e) {}
 
   await run(`CREATE TABLE IF NOT EXISTS internal_mail_conversations (
     id INTEGER PRIMARY KEY,
@@ -3632,7 +3633,7 @@ async function initDb() {
       [nextUserId, PARK_MANAGER_USERNAME, parkManagerHashedPassword, 'admin', new Date().toISOString()]
     );
   } else {
-    await run('UPDATE users SET password = ?, role = ? WHERE username = ?', [parkManagerHashedPassword, 'admin', PARK_MANAGER_USERNAME]);
+    await run('UPDATE users SET role = ? WHERE username = ?', ['admin', PARK_MANAGER_USERNAME]);
   }
 
   await ensureAccessProfileSchema();
@@ -3767,6 +3768,19 @@ async function initDb() {
     console.log(`Utilisateur ${KOKAN_USERNAME} mis a jour avec role gestionnaire_stock_songon`);
   }
 
+  for (const [seedUser, seedPassword] of [
+    ['admin', 'admin123'], [EXECUTIVE_USERNAME, EXECUTIVE_PASSWORD], [HR_DIRECTOR_USERNAME, HR_DIRECTOR_PASSWORD],
+    [PARK_MANAGER_USERNAME, PARK_MANAGER_PASSWORD], [ACHAT_USERNAME, ACHAT_PASSWORD], [COMMIS_STOCK_USERNAME, COMMIS_STOCK_PASSWORD],
+    [PROCUREMENT_REVIEWER_USERNAME, PROCUREMENT_REVIEWER_PASSWORD], [KOKAN_USERNAME, KOKAN_PASSWORD],
+  ]) {
+    try {
+      const seeded = await get('SELECT id, password, passwordEnc FROM users WHERE username = ?', [seedUser]);
+      if (seeded && await bcrypt.compare(seedPassword, String(seeded.password || '')) && decryptStoredPassword(seeded.passwordEnc) !== seedPassword) {
+        await storeUserPasswordEnc(seeded.id, seedPassword);
+      }
+    } catch (_e) {}
+  }
+
   await ensureHrEmployeeProfile({
     username: KOKAN_USERNAME,
     fullName: 'KOKAN',
@@ -3823,11 +3837,84 @@ function runBackgroundReconciliationsOnce() {
   });
 }
 
+function getPasswordVaultKey() {
+  return crypto.createHash('sha256').update(String(process.env.PASSWORD_VAULT_KEY || JWT_SECRET)).digest();
+}
+
+function encryptStoredPassword(plain) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', getPasswordVaultKey(), iv);
+  const data = Buffer.concat([cipher.update(String(plain), 'utf8'), cipher.final()]);
+  return Buffer.concat([iv, cipher.getAuthTag(), data]).toString('base64');
+}
+
+function decryptStoredPassword(encoded) {
+  try {
+    const raw = Buffer.from(String(encoded || ''), 'base64');
+    if (raw.length < 29) return '';
+    const decipher = crypto.createDecipheriv('aes-256-gcm', getPasswordVaultKey(), raw.subarray(0, 12));
+    decipher.setAuthTag(raw.subarray(12, 28));
+    return Buffer.concat([decipher.update(raw.subarray(28)), decipher.final()]).toString('utf8');
+  } catch (_e) {
+    return '';
+  }
+}
+
+async function storeUserPasswordEnc(userId, plain) {
+  await run('UPDATE users SET passwordEnc = ? WHERE id = ?', [encryptStoredPassword(plain), userId]);
+}
+
+function verifyPasswordViewCode(code) {
+  const expected = Buffer.from(String(process.env.PASSWORD_VIEW_CODE || 'CHADA'));
+  const given = Buffer.from(String(code || ''));
+  return expected.length === given.length && crypto.timingSafeEqual(expected, given);
+}
+
+async function syncPasswordsFromProduction({ url, username, password }) {
+  const base = String(url || '').trim().replace(/\/+$/, '');
+  if (!base || !username || !password) throw new Error('URL, identifiant et mot de passe de production requis');
+  const code = process.env.PASSWORD_VIEW_CODE || 'CHADA';
+  const loginRes = await fetch(base + '/api/auth/login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }),
+  });
+  if (!loginRes.ok) throw new Error('Connexion à la production refusée');
+  const { token } = await loginRes.json();
+  const exportRes = await fetch(base + '/api/admin/users/passwords-export', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ code }),
+  });
+  if (!exportRes.ok) throw new Error('Export des mots de passe refusé');
+  const remote = await exportRes.json();
+  let updated = 0;
+  for (const entry of remote) {
+    const local = await get('SELECT id, password, passwordEnc FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [entry.username]);
+    if (!local) continue;
+    if (!(await bcrypt.compare(entry.password, String(local.password || '')))) {
+      await run('UPDATE users SET password = ? WHERE id = ?', [await bcrypt.hash(entry.password, 10), local.id]);
+      await storeUserPasswordEnc(local.id, entry.password);
+      updated += 1;
+    } else if (decryptStoredPassword(local.passwordEnc) !== entry.password) {
+      await storeUserPasswordEnc(local.id, entry.password);
+    }
+  }
+  return { checked: remote.length, updated };
+}
+
+function startProductionPasswordSync() {
+  if (NODE_ENV === 'production' || !process.env.PROD_SYNC_URL || !process.env.PROD_SYNC_USER || !process.env.PROD_SYNC_PASSWORD) return;
+  const tick = () => syncPasswordsFromProduction({
+    url: process.env.PROD_SYNC_URL, username: process.env.PROD_SYNC_USER, password: process.env.PROD_SYNC_PASSWORD,
+  }).then(r => { if (r.updated) console.log('[sync-passwords] mots de passe mis à jour depuis la production:', r.updated); })
+    .catch(e => console.warn('[sync-passwords]', e.message || e));
+  setTimeout(tick, 15000);
+  setInterval(tick, 5 * 60 * 1000);
+}
+
 async function initializeDatabaseOnce() {
   try {
     await initDbWithTimeout();
     isReady = true;
     console.log('Initialisation base de donnees terminee. API ready.');
+    startProductionPasswordSync();
     runBackgroundReconciliationsOnce();
   } catch (error) {
     isReady = false;
@@ -4556,6 +4643,10 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) {
     return res.status(401).json({ error: 'Utilisateur ou mot de passe invalide' });
+  }
+
+  if (decryptStoredPassword(user.passwordEnc) !== password) {
+    try { await storeUserPasswordEnc(user.id, password); } catch (_e) {}
   }
 
   const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, {
@@ -5457,7 +5548,8 @@ app.get('/api/users', async (req, res) => {
       0 AS hasLoggedIn,
       '' AS firstLoginAt,
       '' AS lastLoginAt,
-      CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END AS hasUserAccount
+      CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END AS hasUserAccount,
+      CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword
     FROM hr_employees he
     LEFT JOIN users u ON LOWER(TRIM(u.username)) = LOWER(TRIM(he.username))
 
@@ -5473,7 +5565,8 @@ app.get('/api/users', async (req, res) => {
       0 AS hasLoggedIn,
       '' AS firstLoginAt,
       '' AS lastLoginAt,
-      1 AS hasUserAccount
+      1 AS hasUserAccount,
+      CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword
     FROM users u
     WHERE NOT EXISTS (
       SELECT 1
@@ -5538,6 +5631,7 @@ app.post('/api/admin/users', async (req, res) => {
       [userId, username, passwordHash, role, now]
     );
   }
+  await storeUserPasswordEnc(userId, password);
 
   await run('UPDATE hr_employees SET username = ?, updatedAt = ? WHERE id = ?', [username, now, employeeId]);
   return res.status(linkedUser ? 200 : 201).json({
@@ -5565,7 +5659,48 @@ app.patch('/api/admin/users/:id/password', async (req, res) => {
   );
   const role = employee ? getRoleForEmployeePosition(employee.jobTitle, user.role) : user.role;
   await run('UPDATE users SET password = ?, role = ? WHERE id = ?', [passwordHash, role, userId]);
+  await storeUserPasswordEnc(userId, password);
   return res.json({ id: userId, role, message: 'Mot de passe modifié' });
+});
+
+app.post('/api/admin/users/:id/reveal-password', authRateLimiter, async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
+  const user = await get('SELECT id, username, password, passwordEnc FROM users WHERE id = ?', [Number(req.params.id || 0)]);
+  if (!user) return res.status(404).json({ error: 'Compte utilisateur introuvable' });
+  const plain = decryptStoredPassword(user.passwordEnc);
+  if (!plain || !(await bcrypt.compare(plain, String(user.password || '')))) {
+    return res.json({ username: user.username, password: null, message: 'Mot de passe non enregistré. Il sera visible après la prochaine connexion de l’utilisateur ou un changement de mot de passe.' });
+  }
+  return res.json({ username: user.username, password: plain });
+});
+
+app.post('/api/admin/users/passwords-export', authRateLimiter, async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
+  const rows = await all('SELECT username, password, passwordEnc FROM users');
+  const out = [];
+  for (const row of rows || []) {
+    const plain = decryptStoredPassword(row.passwordEnc);
+    if (plain && await bcrypt.compare(plain, String(row.password || ''))) out.push({ username: row.username, password: plain });
+  }
+  return res.json(out);
+});
+
+app.post('/api/admin/users/sync-passwords-from-production', authRateLimiter, async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  if (NODE_ENV === 'production') return res.status(400).json({ error: 'Synchronisation réservée à l’environnement local' });
+  if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
+  try {
+    const result = await syncPasswordsFromProduction({
+      url: req.body?.url || process.env.PROD_SYNC_URL,
+      username: req.body?.username || process.env.PROD_SYNC_USER,
+      password: req.body?.password || process.env.PROD_SYNC_PASSWORD,
+    });
+    return res.json(result);
+  } catch (error) {
+    return res.status(502).json({ error: String(error?.message || error) });
+  }
 });
 
 async function getMaterialCatalogTemplates() {
@@ -9322,6 +9457,7 @@ app.post('/api/driver/password', async (req, res) => {
   }
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   await run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+  await storeUserPasswordEnc(userId, newPassword);
   return res.json({ message: 'Mot de passe modifié' });
 });
 
@@ -12748,7 +12884,7 @@ function computeEffectiveModulesForAccessProfile(profileLike, fallbackRole = '')
     effective.delete(moduleKey);
   }
   const forcedModule = String(profileLike?.forcedModule || '').trim().toLowerCase();
-  if (forcedModule && !denied.has(forcedModule)) {
+  if (forcedModule && !denied.has(forcedModule) && (!allowed.size || allowed.has(forcedModule))) {
     effective.add(forcedModule);
   }
   return effective;
