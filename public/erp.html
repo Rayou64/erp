@@ -12022,21 +12022,68 @@
           #vehicles .veh-driver-big b { font-size:15px; display:block; margin-bottom:6px; } #vehicles .veh-driver-big p { margin:3px 0; font-size:12px; color:#1f4fa0; }
           #vehicles .veh-info-row { display:flex; justify-content:space-between; gap:8px; padding:9px 0; font-size:12px; color:#53627d; } #vehicles .veh-info-row b { color:#10213a; text-align:right; }
           @media (max-width:1100px) { #vehicles .veh-dgrid { grid-template-columns:1fr 1fr; } #vehicles .veh-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+          #vehicles, #vehicles button, #vehicles input, #vehicles select, #vehicles table { font-family:'Inter','Manrope','Segoe UI',system-ui,sans-serif; }
+          #vehicles i[data-vi], #vehicles .ico[data-vi] { display:inline-grid; place-items:center; font-style:normal; }
+          #vehicles svg.vi { width:16px; height:16px; flex:none; }
+          #vehicles .veh-head h1 { font-size:24px; font-weight:700; letter-spacing:-.2px; }
+          #vehicles .veh-head p { font-size:13px; }
+          #vehicles .veh-search input { width:240px; height:40px; font-size:12px; border-radius:10px; padding-left:36px; }
+          #vehicles .veh-search span { top:12px; left:12px; display:grid; color:#8a99ae; }
+          #vehicles .veh-btn { height:40px; font-size:12.5px; border-radius:10px; font-weight:600; background:#1f7af2; }
+          #vehicles .veh-btn.square { width:40px; padding:0; }
+          #vehicles .veh-stat { padding:16px 18px; gap:16px; border-radius:14px; }
+          #vehicles .veh-stat .ico { width:46px; height:46px; border-radius:12px; }
+          #vehicles .veh-stat .ico svg.vi { width:24px; height:24px; }
+          #vehicles .veh-stat .ico.blue { color:#2f7cf6; } #vehicles .veh-stat .ico.green { color:#22a55b; } #vehicles .veh-stat .ico.gray { color:#6b7a90; } #vehicles .veh-stat .ico.orange { color:#f08a24; }
+          #vehicles .veh-stat small { font-size:12px; font-weight:600; color:#2b3a52; }
+          #vehicles .veh-stat b { font-size:28px; font-weight:700; margin:2px 0; }
+          #vehicles .veh-stat em { font-size:11px; }
+          #vehicles .veh-filters { flex-wrap:nowrap; gap:8px; } #vehicles .veh-filters select { height:38px; font-size:11.5px; border-radius:10px; min-width:0; flex:0 1 128px; padding:0 6px; color:#2b3a52; } #vehicles .veh-filters .veh-btn { padding:0 12px; flex:none; } #vehicles .veh-reset { white-space:nowrap; flex:none; }
+          #vehicles .veh-reset { display:inline-flex; align-items:center; gap:6px; font-weight:600; }
+          #vehicles .veh-filters .veh-btn { height:38px; width:auto; }
+          #vehicles .veh-filters .veh-btn.square { width:38px; }
+          #vehicles .veh-pill { font-size:10px; font-weight:600; padding:3px 10px 3px 8px; }
+          #vehicles .veh-photo-wrap { padding:36px 6px 0; }
+          #vehicles .veh-photo { height:96px; }
+          #vehicles .veh-body { padding:12px 14px 14px; gap:8px; }
+          #vehicles .veh-name { font-size:14px; font-weight:700; }
+          #vehicles .veh-name small { font-weight:500; font-size:10px; }
+          #vehicles .veh-meta { font-size:11px; }
+          #vehicles .veh-specs { border:0; padding:0; gap:12px; font-size:10px; font-weight:500; }
+          #vehicles .veh-specs span { display:inline-flex; align-items:center; gap:4px; }
+          #vehicles .veh-specs svg.vi { width:12px; height:12px; color:#33425b; }
+          #vehicles .veh-driver { border:0; padding:0; gap:9px; }
+          #vehicles .veh-driver b { font-size:12px; font-weight:600; } #vehicles .veh-driver small { font-size:10.5px; }
+          #vehicles .veh-proj { border:0; padding:0; gap:9px; } #vehicles .veh-proj svg.vi { width:16px; height:16px; color:#1f7af2; }
+          #vehicles .veh-proj b { font-size:11px; font-weight:600; }
+          #vehicles .veh-card-actions button { height:34px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+          #vehicles .veh-card-actions button svg.vi { width:14px; height:14px; color:#1f7af2; }
+          #vehicles .veh-card-actions button:last-child svg.vi { color:#33425b; }
+          #vehicles .veh-crumb a { display:inline-flex; align-items:center; gap:6px; }
+          #vehicles .veh-panel h2 { font-size:20px; font-weight:700; }
+          #vehicles .veh-tabs { gap:18px; } #vehicles .veh-tabs button { font-size:12px; font-weight:500; } #vehicles .veh-tabs button.active { font-weight:600; }
+          #vehicles .veh-fields > div { display:flex; gap:10px; align-items:flex-start; }
+          #vehicles .veh-fields > div svg.vi { width:16px; height:16px; color:#5b6b83; margin-top:3px; }
+          #vehicles .veh-fields small { font-size:10px; font-weight:500; } #vehicles .veh-fields b { display:block; font-size:12px; font-weight:600; }
+          #vehicles .veh-driver-big p { display:flex; justify-content:center; align-items:center; gap:7px; }
+          #vehicles .veh-driver-big p svg.vi { width:13px; height:13px; }
+          #vehicles .veh-info-row { align-items:center; } #vehicles .veh-info-row span { white-space:nowrap; } #vehicles .veh-info-row b { font-size:11.5px; font-weight:600; } #vehicles .veh-info-row span { display:inline-flex; align-items:center; gap:10px; } #vehicles .veh-info-row svg.vi { width:15px; height:15px; color:#5b6b83; }
         </style>
         <div id="vehicles-overview">
           <header class="veh-head">
             <div><h1>Mes véhicules</h1><p>Gérez votre flotte de véhicules et leurs chauffeurs. Synchronisé avec <a id="vehicles-maps-link">Maps</a>.</p></div>
             <div class="veh-actions">
-              <div class="veh-search"><span>🔍</span><input id="vehicles-search" type="search" placeholder="Rechercher un véhicule, un chauffeur, plaque…"></div>
-              <button type="button" class="veh-btn" id="vehicles-add">＋ Ajouter un véhicule</button>
-              <button type="button" class="veh-btn light square" title="Plus d’options">⋯</button>
+              <div class="veh-search"><span data-vi="search"></span><input id="vehicles-search" type="search" placeholder="Rechercher un véhicule, un chauffeur, plaque…"></div>
+              <button type="button" class="veh-btn" id="vehicles-add"><i data-vi="plus"></i>Ajouter un véhicule</button>
+              <button type="button" class="veh-btn light square" title="Plus d’options"><i data-vi="dots"></i></button>
             </div>
           </header>
           <div class="veh-stats">
-            <div class="veh-stat"><span class="ico blue">🚚</span><div><small>Véhicules totaux</small><b id="vehicles-stat-total">0</b><em>Véhicules enregistrés</em></div></div>
-            <div class="veh-stat"><span class="ico green">▶️</span><div><small>En déplacement</small><b id="vehicles-stat-moving">0</b><em id="vehicles-pct-moving">0 % de la flotte</em></div></div>
-            <div class="veh-stat"><span class="ico gray">⏸️</span><div><small>À l’arrêt</small><b id="vehicles-stat-idle">0</b><em id="vehicles-pct-idle">0 % de la flotte</em></div></div>
-            <div class="veh-stat"><span class="ico orange">🔧</span><div><small>En maintenance</small><b id="vehicles-stat-maintenance">0</b><em id="vehicles-pct-maintenance">0 % de la flotte</em></div></div>
+            <div class="veh-stat"><span class="ico blue" data-vi="truck"></span><div><small>Véhicules totaux</small><b id="vehicles-stat-total">0</b><em>Véhicules enregistrés</em></div></div>
+            <div class="veh-stat"><span class="ico green" data-vi="play"></span><div><small>En déplacement</small><b id="vehicles-stat-moving">0</b><em id="vehicles-pct-moving">0 % de la flotte</em></div></div>
+            <div class="veh-stat"><span class="ico gray" data-vi="pause"></span><div><small>À l’arrêt</small><b id="vehicles-stat-idle">0</b><em id="vehicles-pct-idle">0 % de la flotte</em></div></div>
+            <div class="veh-stat"><span class="ico orange" data-vi="wrench"></span><div><small>En maintenance</small><b id="vehicles-stat-maintenance">0</b><em id="vehicles-pct-maintenance">0 % de la flotte</em></div></div>
           </div>
           <div class="veh-filters">
             <select id="vehicles-filter-project"><option value="">Tous les projets</option></select>
@@ -12044,11 +12091,11 @@
             <select id="vehicles-filter-status"><option value="">Tous les statuts</option><option value="moving">En déplacement</option><option value="idle">À l’arrêt</option><option value="maintenance">En maintenance</option><option value="offline">Hors ligne</option></select>
             <select id="vehicles-filter-driver"><option value="">Tous les chauffeurs</option></select>
             <select id="vehicles-filter-tracking"><option value="">Disponibilité</option><option value="available">Disponible</option><option value="unavailable">Indisponible</option><option value="on">Suivi activé</option><option value="off">Suivi désactivé</option></select>
-            <button type="button" class="veh-reset" id="vehicles-reset">↻ Réinitialiser</button>
+            <button type="button" class="veh-reset" id="vehicles-reset"><i data-vi="refresh"></i>Réinitialiser</button>
             <span style="flex:1"></span>
-            <button type="button" class="veh-btn" id="vehicles-view-cards">▦ Cartes</button>
-            <button type="button" class="veh-btn light" id="vehicles-view-table">☰ Tableau</button>
-            <button type="button" class="veh-btn light square" id="vehicles-sort" title="Trier">⇅</button>
+            <button type="button" class="veh-btn" id="vehicles-view-cards"><i data-vi="grid"></i>Cartes</button>
+            <button type="button" class="veh-btn light" id="vehicles-view-table"><i data-vi="list"></i>Tableau</button>
+            <button type="button" class="veh-btn light square" id="vehicles-sort" title="Trier"><i data-vi="sort"></i></button>
           </div>
           <div id="vehicles-content"></div>
         </div>
@@ -15325,7 +15372,43 @@
       return src ? `<img src="${escapeHtml(src)}" alt="${escapeHtml(buildAutoVehicleLabel(vehicle))}">` : mapsVehiclePlaceholderSvg();
     }
 
-    const VEHICLE_FOLDER_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#1f7af2"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+    const VI_PATHS = {
+      search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+      plus:'<path d="M12 5v14M5 12h14"/>',
+      dots:'<circle cx="5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="19" cy="12" r="1.2" fill="currentColor"/>',
+      truck:'<path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7.5" cy="17.5" r="1.8" fill="#fff"/><circle cx="17.5" cy="17.5" r="1.8" fill="#fff"/>',
+      play:'<path d="M7 4.5v15l12-7.5z" fill="currentColor"/>',
+      pause:'<path d="M7 4h4v16H7zM13 4h4v16h-4z" fill="currentColor"/>',
+      wrench:'<path d="M14.7 6.3a4 4 0 0 0 5 5L12 19a2.1 2.1 0 0 1-3-3l7.7-7.7-2-2z M14.7 6.3l2.6-2.6a4 4 0 0 0-3.6 5.4"/>',
+      refresh:'<path d="M20 11a8 8 0 0 0-14-4L4 9M4 4v5h5M4 13a8 8 0 0 0 14 4l2-2M20 20v-5h-5"/>',
+      grid:'<rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/>',
+      list:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+      sort:'<path d="M8 4v16M4 16l4 4 4-4M16 20V4M12 8l4-4 4 4"/>',
+      pin:'<path d="M12 21s7-6.2 7-11.2A7 7 0 0 0 5 9.8C5 14.8 12 21 12 21z"/><circle cx="12" cy="10" r="2.5" fill="currentColor"/>',
+      plate:'<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h4M7 14h10"/>',
+      signal:'<path d="M5 18a10 10 0 0 1 0-12M19 6a10 10 0 0 1 0 12M8.5 15a5 5 0 0 1 0-6M15.5 9a5 5 0 0 1 0 6"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/>',
+      folder:'<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="currentColor"/>',
+      phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2z" fill="currentColor"/>',
+      mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+      pencil:'<path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/>',
+      swap:'<circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0M17 8h4M19 6v4"/>',
+      back:'<path d="M19 12H5M11 6l-6 6 6 6"/>',
+      type:'<rect x="3" y="7" width="12" height="9" rx="1"/><path d="M15 10h3l3 3v3h-6"/>',
+      brand:'<path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/>',
+      model:'<rect x="3" y="9" width="18" height="7" rx="2"/><path d="M5 9l2-4h10l2 4"/><circle cx="7.5" cy="16" r="1.5"/><circle cx="16.5" cy="16" r="1.5"/>',
+      year:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+      vin:'<path d="M5 6h3M5 12h3M5 18h3M12 6h7M12 12h7M12 18h7"/>',
+      color:'<path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/>',
+      state:'<path d="M5 12l5 5 9-10"/>',
+      cost:'<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5c0-1 1-1.5 2.5-1.5s2.5.6 2.5 1.5-1 1.3-2.5 1.5-2.5.6-2.5 1.5 1 1.5 2.5 1.5 2.5-.5 2.5-1.5"/>',
+      clock:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+      route:'<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>',
+      gauge:'<path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 17 4-5"/>',
+      note:'<path d="M5 4h14v16H5zM9 9h6M9 13h4"/>',
+      status:'<circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.5 2.5 4.5-5"/>'
+    };
+    function vi(name, extra) { return '<svg class="vi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" ' + (extra || '') + '>' + (VI_PATHS[name] || '') + '</svg>'; }
+    const VEHICLE_FOLDER_SVG = vi('folder');
     let vehiclesSortAsc = true;
 
     function vehicleTitle(vehicle) { return [vehicle.marqueVehicule, vehicle.nomVehicule].filter(Boolean).join(' ') || buildAutoVehicleLabel(vehicle); }
@@ -15389,10 +15472,10 @@
           <div class="veh-body">
             <div class="veh-name"><span>${escapeHtml(vehicleTitle(vehicle))}</span><small>${vehicleCode(vehicle)}</small></div>
             <div class="veh-meta">${escapeHtml([vehicle.typeVehicule, vehicle.annee].filter(Boolean).join(' | ') || 'Véhicule')}</div>
-            <div class="veh-specs"><span>🪪 ${escapeHtml(vehicle.immatriculation || '—')}</span><span>📡 ${isVehicleTrackingOn(vehicle) ? 'Suivi activé' : 'Suivi désactivé'}</span></div>
+            <div class="veh-specs"><span>${vi('plate')}${escapeHtml(vehicle.immatriculation || '—')}</span><span>${vi('signal')}${isVehicleTrackingOn(vehicle) ? 'Suivi activé' : 'Suivi désactivé'}</span></div>
             <div class="veh-driver"><span class="veh-avatar">${escapeHtml(vehicleInitials(info.name))}</span><div><b>${escapeHtml(info.name || 'Non affecté')}</b><small>${escapeHtml(info.phone || 'Téléphone non renseigné')}</small></div></div>
             <div class="veh-proj">${VEHICLE_FOLDER_SVG}<div><b>${escapeHtml(site.project)}</b><small>${escapeHtml(site.site)}</small></div></div>
-            <div class="veh-card-actions"><button type="button" onclick="vehiclesOpenDetail(${Number(vehicle.id)})">📍 Voir détails</button><button type="button" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})" title="Voir sur Maps">⋯</button></div>
+            <div class="veh-card-actions"><button type="button" onclick="vehiclesOpenDetail(${Number(vehicle.id)})">${vi('pin')}Voir détails</button><button type="button" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})" title="Voir sur Maps">${vi('dots')}</button></div>
           </div>
         </div>`;
       }).join('')}</div>`;
@@ -15404,16 +15487,16 @@
       if (!vehicle || !target) return;
       document.querySelectorAll('#vehicles .veh-tabs button').forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
       const info = getVehicleDriverInfo(vehicle);
-      const field = (label, value) => `<div><small>${label}</small>${escapeHtml(value || '—')}</div>`;
+      const field = (label, value, icon) => `<div>${vi(icon || 'note')}<span><small>${label}</small><b>${escapeHtml(value || '—')}</b></span></div>`;
       if (tab === 'driver') {
-        target.innerHTML = `<div class="veh-fields">${field('Nom', info.name || 'Non affecté')}${field('Téléphone', info.phone)}${field('Email', info.email)}${field('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé')}</div>`;
+        target.innerHTML = `<div class="veh-fields">${field('Nom', info.name || 'Non affecté', 'swap')}${field('Téléphone', info.phone, 'phone')}${field('Email', info.email, 'mail')}${field('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé', 'signal')}</div>`;
       } else if (tab === 'overview') {
         target.innerHTML = `<div class="veh-fields">
-          ${field('Type de véhicule', vehicle.typeVehicule)}${field('Marque', vehicle.marqueVehicule)}
-          ${field('Modèle', vehicle.nomVehicule)}${field('Année', vehicle.annee)}
-          ${field('Plaque d’immatriculation', vehicle.immatriculation)}${field('VIN / Châssis', vehicle.numeroIdentification)}
-          ${field('Couleur', vehicle.couleur)}${field('État', vehicle.etatVehicule)}
-          ${field('Coût d’acquisition', vehicle.valeurVehicule ? `${Number(vehicle.valeurVehicule).toLocaleString('fr-FR')} FCFA` : '')}${field('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé')}
+          ${field('Type de véhicule', vehicle.typeVehicule, 'type')}${field('Marque', vehicle.marqueVehicule, 'brand')}
+          ${field('Modèle', vehicle.nomVehicule, 'model')}${field('Année', vehicle.annee, 'year')}
+          ${field('Plaque d’immatriculation', vehicle.immatriculation, 'plate')}${field('VIN / Châssis', vehicle.numeroIdentification, 'vin')}
+          ${field('Couleur', vehicle.couleur, 'color')}${field('État', vehicle.etatVehicule, 'state')}
+          ${field('Coût d’acquisition', vehicle.valeurVehicule ? `${Number(vehicle.valeurVehicule).toLocaleString('fr-FR')} FCFA` : '', 'cost')}${field('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé', 'signal')}
         </div>`;
       } else {
         target.innerHTML = '<p style="color:#7a8aa0;font-size:12px;">Aucune donnée disponible pour le moment.</p>';
@@ -15427,12 +15510,12 @@
       const info = getVehicleDriverInfo(vehicle);
       const loc = vehicle.lastLocation;
       const site = vehicleSiteLabel(vehicle);
-      const row = (label, value) => `<div class="veh-info-row"><span>${label}</span><b>${value}</b></div>`;
+      const row = (label, value, icon) => `<div class="veh-info-row"><span>${vi(icon || 'note')}${label}</span><b>${value}</b></div>`;
       const tabs = [['overview', 'Aperçu'], ['driver', 'Chauffeur'], ['maintenance', 'Entretien'], ['documents', 'Documents'], ['history', 'Historique']];
       detail.innerHTML = `
         <div class="veh-crumb">
-          <div><a onclick="vehiclesCloseDetail()">←&nbsp; Mes véhicules</a> &nbsp;›&nbsp; <b>${escapeHtml(vehicleTitle(vehicle))} (${vehicleCode(vehicle)})</b></div>
-          <div style="display:flex;gap:8px;"><button type="button" class="veh-btn light" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})">✏️ Modifier</button><button type="button" class="veh-btn light square">⋯</button></div>
+          <div><a onclick="vehiclesCloseDetail()">${vi('back')}</a> <a onclick="vehiclesCloseDetail()">Mes véhicules</a> &nbsp;›&nbsp; <b>${escapeHtml(vehicleTitle(vehicle))} (${vehicleCode(vehicle)})</b></div>
+          <div style="display:flex;gap:8px;"><button type="button" class="veh-btn light" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})">${vi('pencil')}Modifier</button><button type="button" class="veh-btn light square">${vi('dots')}</button></div>
         </div>
         <div class="veh-dgrid">
           <div class="veh-panel"><div class="veh-bigphoto">${vehicleImageHtml(vehicle)}</div></div>
@@ -15445,19 +15528,19 @@
             <div style="text-align:left;font-weight:800;font-size:13px;">Chauffeur actuel</div>
             <span class="veh-avatar">${escapeHtml(vehicleInitials(info.name))}</span>
             <b>${escapeHtml(info.name || 'Non affecté')}</b>
-            <p>📞 ${escapeHtml(info.phone || 'Non renseigné')}</p>
-            <p>✉️ ${escapeHtml(info.email || 'Non renseigné')}</p>
-            <button type="button" class="veh-btn light" style="width:100%;justify-content:center;margin-top:14px;color:#1f7af2;" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})">Réaffecter le chauffeur</button>
+            <p style="color:#1f7af2">${vi('phone')}${escapeHtml(info.phone || 'Non renseigné')}</p>
+            <p style="color:#1f7af2">${vi('mail')}${escapeHtml(info.email || 'Non renseigné')}</p>
+            <button type="button" class="veh-btn light" style="width:100%;justify-content:center;margin-top:14px;color:#1f7af2;" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})">${vi('swap')}Réaffecter le chauffeur</button>
           </div>
           <div class="veh-panel">
-            <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px;margin-bottom:6px;"><span>Informations complémentaires</span>${vehiclePillsHtml(vehicle, true)}</div>
-            ${row('Statut', escapeHtml(VEHICLE_STATUS_LABELS[getVehicleLiveStatus(vehicle)]))}
-            ${row('Dernier signal', escapeHtml(loc ? formatAutoLocationTimestamp(loc.recordedAt) : 'Aucun signal'))}
-            ${row('Projet', escapeHtml(site.project))}
-            ${row('Site / Zone', escapeHtml(site.site))}
-            ${row('Vitesse', loc ? `${Number(loc.speedKph || 0).toFixed(0)} km/h` : '—')}
-            ${row('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé')}
-            ${row('Notes', escapeHtml(vehicle.description || '—'))}
+            <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px;margin-bottom:6px;"><span>Informations complémentaires</span></div>
+            ${row('Statut', vehiclePillsHtml(vehicle, true), 'status')}
+            ${row('Dernier signal', escapeHtml(loc ? formatAutoLocationTimestamp(loc.recordedAt) : 'Aucun signal'), 'clock')}
+            ${row('Projet', escapeHtml(site.project), 'folder')}
+            ${row('Site / Zone', escapeHtml(site.site), 'pin')}
+            ${row('Vitesse', loc ? `${Number(loc.speedKph || 0).toFixed(0)} km/h` : '—', 'route')}
+            ${row('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé', 'signal')}
+            ${row('Notes', escapeHtml(vehicle.description || '—'), 'note')}
           </div>
         </div>`;
       window.vehiclesDetailTab(vehicle.id, 'overview');
@@ -15482,6 +15565,7 @@
     }
 
     function bindVehiclesModule() {
+      document.querySelectorAll('#vehicles [data-vi]').forEach(node => { node.innerHTML = vi(node.dataset.vi); });
       ['vehicles-search', 'vehicles-filter-type', 'vehicles-filter-status', 'vehicles-filter-driver', 'vehicles-filter-tracking'].forEach(id => {
         const node = document.getElementById(id);
         node?.addEventListener(node.tagName === 'INPUT' ? 'input' : 'change', renderVehiclesModule);
