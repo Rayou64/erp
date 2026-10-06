@@ -2984,6 +2984,15 @@ async function initDb() {
   try { await run("ALTER TABLE auto_vehicles ADD COLUMN description TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run("ALTER TABLE auto_vehicles ADD COLUMN couleur TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run("ALTER TABLE auto_vehicles ADD COLUMN photoDataUrl TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run('ALTER TABLE auto_vehicles ADD COLUMN kilometrage REAL NOT NULL DEFAULT 0'); } catch (error) {}
+  try { await run('ALTER TABLE auto_vehicles ADD COLUMN carburantPct REAL NOT NULL DEFAULT 0'); } catch (error) {}
+  try { await run('ALTER TABLE auto_vehicles ADD COLUMN heuresMoteur REAL NOT NULL DEFAULT 0'); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN projetNom TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN siteZone TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN photosExtra TEXT NOT NULL DEFAULT '[]'"); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN chauffeurPhotoDataUrl TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN permisNumero TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN permisExpiration TEXT NOT NULL DEFAULT ''"); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_vehicle_locations (
     id INTEGER PRIMARY KEY,
@@ -9478,6 +9487,43 @@ app.delete('/api/auto-maintenance-records/:id', async (req, res) => {
   res.json({ message: 'Intervention supprimée' });
 });
 
+const VEHICLE_IMAGE_PATTERN = /^data:image\/(png|jpeg|webp);base64,/;
+
+function parseVehicleExtras(body, existing = {}) {
+  const has = key => Object.prototype.hasOwnProperty.call(body || {}, key);
+  const number = (key, max) => {
+    if (!has(key)) return Number(existing[key] || 0);
+    const value = Number(body[key] || 0);
+    if (Number.isNaN(value) || value < 0 || value > max) throw new Error('Valeur invalide : ' + key);
+    return value;
+  };
+  const text = (key, max = 200) => (has(key) ? String(body[key] || '').trim().slice(0, max) : String(existing[key] || ''));
+  const image = key => {
+    if (!has(key)) return String(existing[key] || '');
+    const value = String(body[key] || '').trim();
+    if (value && (value.length > 900000 || !VEHICLE_IMAGE_PATTERN.test(value))) throw new Error('Image invalide ou trop volumineuse');
+    return value;
+  };
+  let photosExtra = String(existing.photosExtra || '[]');
+  if (has('photosExtra')) {
+    const list = Array.isArray(body.photosExtra) ? body.photosExtra : [];
+    if (list.length > 6 || list.some(item => typeof item !== 'string' || item.length > 900000 || !VEHICLE_IMAGE_PATTERN.test(item))) throw new Error('Photos supplémentaires invalides');
+    photosExtra = JSON.stringify(list);
+  }
+  const carburantPct = number('carburantPct', 100);
+  return {
+    kilometrage: number('kilometrage', 100000000),
+    carburantPct,
+    heuresMoteur: number('heuresMoteur', 10000000),
+    projetNom: text('projetNom'),
+    siteZone: text('siteZone'),
+    photosExtra,
+    chauffeurPhotoDataUrl: image('chauffeurPhotoDataUrl'),
+    permisNumero: text('permisNumero', 60),
+    permisExpiration: text('permisExpiration', 30),
+  };
+}
+
 app.post('/api/auto-vehicles', async (req, res) => {
   if (!isAdminUser(req)) return res.status(403).json({ error: 'Création de véhicule réservée à l’admin' });
   const {
@@ -9525,19 +9571,57 @@ app.post('/api/auto-vehicles', async (req, res) => {
   const resolvedDriverName = driverEmployeeId
     ? String((await get('SELECT fullName FROM hr_employees WHERE id = ?', [driverEmployeeId]))?.fullName || chauffeur).trim()
     : chauffeur;
+  let extras;
+  try { extras = parseVehicleExtras(req.body); } catch (error) { return res.status(400).json({ error: error.message }); }
   const vehicleId = await getNextTableId('auto_vehicles');
   await run(
     `INSERT INTO auto_vehicles
       (id, nomVehicule, marqueVehicule, immatriculation, chauffeurNom, gpsActif, valeurVehicule, etatVehicule, createdAt,
-       chauffeurEmployeeId, annee, typeVehicule, numeroIdentification, description, couleur, photoDataUrl)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       chauffeurEmployeeId, annee, typeVehicule, numeroIdentification, description, couleur, photoDataUrl,
+       kilometrage, carburantPct, heuresMoteur, projetNom, siteZone, photosExtra, chauffeurPhotoDataUrl, permisNumero, permisExpiration)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [vehicleId, nom, marque, plaque, resolvedDriverName, gpsEnabled, valeur, etat || 'Disponible', new Date().toISOString(),
       driverEmployeeId, String(annee || '').trim(), String(typeVehicule || '').trim(), String(numeroIdentification || '').trim(),
-      String(description || '').trim(), String(couleur || '').trim(), photo]
+      String(description || '').trim(), String(couleur || '').trim(), photo,
+      extras.kilometrage, extras.carburantPct, extras.heuresMoteur, extras.projetNom, extras.siteZone, extras.photosExtra,
+      extras.chauffeurPhotoDataUrl, extras.permisNumero, extras.permisExpiration]
   );
 
   const vehicle = await get('SELECT * FROM auto_vehicles WHERE id = ?', [vehicleId]);
   res.status(201).json(vehicle);
+});
+
+app.patch('/api/auto-vehicles/:id', async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Modification réservée à l’admin' });
+  const vehicleId = Number(req.params.id || 0);
+  if (!Number.isInteger(vehicleId) || vehicleId <= 0) return res.status(400).json({ error: 'Véhicule invalide' });
+  const current = await get('SELECT * FROM auto_vehicles WHERE id = ?', [vehicleId]);
+  if (!current) return res.status(404).json({ error: 'Véhicule introuvable' });
+  const body = req.body || {};
+  const has = key => Object.prototype.hasOwnProperty.call(body, key);
+  const text = (key, max = 200) => (has(key) ? String(body[key] || '').trim().slice(0, max) : String(current[key] || ''));
+  let extras;
+  try { extras = parseVehicleExtras(body, current); } catch (error) { return res.status(400).json({ error: error.message }); }
+  const value = has('valeurVehicule') ? Number(body.valeurVehicule || 0) : Number(current.valeurVehicule || 0);
+  if (Number.isNaN(value) || value < 0) return res.status(400).json({ error: 'Valeur invalide' });
+  let photo = String(current.photoDataUrl || '');
+  if (has('photoDataUrl')) {
+    photo = String(body.photoDataUrl || '').trim();
+    if (photo && (photo.length > 900000 || !VEHICLE_IMAGE_PATTERN.test(photo))) return res.status(400).json({ error: 'Photo invalide ou trop volumineuse' });
+  }
+  const nom = text('nomVehicule'); const marque = text('marqueVehicule');
+  if (!nom || !marque) return res.status(400).json({ error: 'Marque et modèle obligatoires' });
+  await run(
+    `UPDATE auto_vehicles SET nomVehicule = ?, marqueVehicule = ?, immatriculation = ?, valeurVehicule = ?, etatVehicule = ?,
+      annee = ?, typeVehicule = ?, numeroIdentification = ?, description = ?, couleur = ?, photoDataUrl = ?,
+      kilometrage = ?, carburantPct = ?, heuresMoteur = ?, projetNom = ?, siteZone = ?, photosExtra = ?,
+      chauffeurPhotoDataUrl = ?, permisNumero = ?, permisExpiration = ? WHERE id = ?`,
+    [nom, marque, text('immatriculation'), value, text('etatVehicule') || 'Disponible',
+      text('annee', 10), text('typeVehicule'), text('numeroIdentification'), text('description', 1000), text('couleur'), photo,
+      extras.kilometrage, extras.carburantPct, extras.heuresMoteur, extras.projetNom, extras.siteZone, extras.photosExtra,
+      extras.chauffeurPhotoDataUrl, extras.permisNumero, extras.permisExpiration, vehicleId]
+  );
+  res.json(await get('SELECT * FROM auto_vehicles WHERE id = ?', [vehicleId]));
 });
 
 app.patch('/api/auto-vehicles/:id/assignment', async (req, res) => {
@@ -9642,9 +9726,31 @@ app.get('/api/auto-vehicle-locations', async (_req, res) => {
     }
   });
   const deviceByVehicleId = new Map((devices || []).map(device => [Number(device.vehicleId), device]));
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayPoints = new Map();
+  rows.forEach(row => {
+    if (String(row.recordedAt || '').slice(0, 10) !== todayKey) return;
+    const list = todayPoints.get(Number(row.vehicleId)) || [];
+    list.push(row);
+    todayPoints.set(Number(row.vehicleId), list);
+  });
+  const distanceTodayKm = vehicleId => {
+    const points = (todayPoints.get(Number(vehicleId)) || []).slice().reverse();
+    let total = 0;
+    for (let i = 1; i < points.length; i += 1) {
+      const toRad = deg => Number(deg) * Math.PI / 180;
+      const dLat = toRad(points[i].latitude - points[i - 1].latitude);
+      const dLon = toRad(points[i].longitude - points[i - 1].longitude);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(points[i - 1].latitude)) * Math.cos(toRad(points[i].latitude)) * Math.sin(dLon / 2) ** 2;
+      const step = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      if (step < 5 && step > 0.005) total += step;
+    }
+    return Math.round(total * 10) / 10;
+  };
 
   res.json(vehicles.map(vehicle => ({
     ...vehicle,
+    distanceTodayKm: distanceTodayKm(vehicle.id),
     lastLocation: latestByVehicleId.get(Number(vehicle.id)) || null,
     trackingDevice: deviceByVehicleId.get(Number(vehicle.id)) || null,
   })));

@@ -12060,6 +12060,10 @@
           #vehicles .veh-card-actions button { height:34px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; gap:7px; }
           #vehicles .veh-card-actions button svg.vi { width:14px; height:14px; color:#1f7af2; }
           #vehicles .veh-card-actions button:last-child svg.vi { color:#33425b; }
+          #vehicles img.veh-avatar { object-fit:cover; background:#e3eaf6; }
+          #vehicles .veh-driver-big img.veh-avatar, #vehicles .veh-driver-big .veh-avatar { width:84px; height:84px; margin:10px auto 8px; }
+          #vehicles .veh-thumbs { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:8px; }
+          #vehicles .veh-thumbs img, #vehicles .veh-thumbs span { width:100%; height:48px; object-fit:cover; border-radius:6px; cursor:pointer; background:#e9edf4; display:grid; place-items:center; font-size:12px; font-weight:700; color:#53627d; }
           #vehicles .veh-crumb a { display:inline-flex; align-items:center; gap:6px; }
           #vehicles .veh-panel h2 { font-size:20px; font-weight:700; }
           #vehicles .veh-tabs { gap:18px; } #vehicles .veh-tabs button { font-size:12px; font-weight:500; } #vehicles .veh-tabs button.active { font-weight:600; }
@@ -12438,13 +12442,23 @@
                   <div class="form-group"><label for="maps-create-brand">Marque *</label><input id="maps-create-brand" required placeholder="Ex: Toyota"></div>
                   <div class="form-group"><label for="maps-create-model">Modèle *</label><input id="maps-create-model" required placeholder="Ex: Hilux"></div>
                   <div class="form-group"><label for="maps-create-year">Année</label><input id="maps-create-year" type="number" min="1950" max="2100" placeholder="Ex: 2023"></div>
-                  <div class="form-group"><label for="maps-create-type">Type de véhicule *</label><select id="maps-create-type" required><option value="">Sélectionner</option><option>Camionnette</option><option>Camion</option><option>Voiture</option><option>Minibus</option><option>Engin</option><option>Autre</option></select></div>
+                  <div class="form-group"><label for="maps-create-type">Type de véhicule *</label><select id="maps-create-type" required><option value="">Sélectionner</option><option>Camionnette</option><option>Camion</option><option>Camion benne</option><option>Camion plateau</option><option>Bétonnière</option><option>Chargeuse</option><option>Pelle excavatrice</option><option>Bouteur</option><option>Niveleuse</option><option>Voiture</option><option>Minibus</option><option>Engin</option><option>Autre</option></select></div>
                   <div class="form-group"><label for="maps-create-plate">Plaque d'immatriculation *</label><input id="maps-create-plate" required placeholder="Ex: ABC-123"></div>
                   <div class="form-group"><label for="maps-create-vin">Numéro d'identification (VIN)</label><input id="maps-create-vin" placeholder="Ex: 1HGBH41JXMN109186"></div>
                   <div class="form-group"><label for="maps-create-driver">Affectation du chauffeur</label><select id="maps-create-driver"><option value="">Aucun chauffeur</option></select></div>
                   <div class="form-group"><label for="maps-create-color">Couleur</label><select id="maps-create-color"><option>Blanc</option><option>Noir</option><option>Gris</option><option>Argent</option><option>Bleu</option><option>Rouge</option><option>Vert</option><option>Autre</option></select></div>
                   <div class="form-group"><label for="maps-create-status">Statut initial *</label><select id="maps-create-status" required><option>Disponible</option><option>En déplacement</option><option>En arrêt</option><option>Maintenance</option><option>Hors ligne</option></select></div>
                   <div class="form-group"><label for="maps-create-photo">Photo du véhicule (optionnel)</label><label class="maps-photo-picker" for="maps-create-photo"><img id="maps-create-photo-preview" alt="Aperçu du véhicule" hidden><span id="maps-create-photo-label">⇧<br>Cliquer pour ajouter une photo<br>PNG, JPG (max 5 Mo)</span></label><input id="maps-create-photo" type="file" accept="image/png,image/jpeg,image/webp" hidden></div>
+                  <div class="form-group"><label for="maps-create-km">Kilométrage (km)</label><input id="maps-create-km" type="number" min="0" step="1" placeholder="Ex: 120450"></div>
+                  <div class="form-group"><label for="maps-create-fuel">Carburant (%)</label><input id="maps-create-fuel" type="number" min="0" max="100" step="1" placeholder="Ex: 62"></div>
+                  <div class="form-group"><label for="maps-create-hours">Heures moteur</label><input id="maps-create-hours" type="number" min="0" step="1" placeholder="Ex: 5430"></div>
+                  <div class="form-group"><label for="maps-create-cost">Coût d'acquisition (FCFA)</label><input id="maps-create-cost" type="number" min="0" step="1" placeholder="Ex: 85000000"></div>
+                  <div class="form-group"><label for="maps-create-project">Projet actuel</label><input id="maps-create-project" placeholder="Ex: Songon Kassemblé"></div>
+                  <div class="form-group"><label for="maps-create-site">Site / Zone</label><input id="maps-create-site" placeholder="Ex: Site 3 - Zone A"></div>
+                  <div class="form-group"><label for="maps-create-permit">Permis n° du chauffeur</label><input id="maps-create-permit" placeholder="Ex: 0123456789"></div>
+                  <div class="form-group"><label for="maps-create-permit-exp">Expiration du permis</label><input id="maps-create-permit-exp" type="date"></div>
+                  <div class="form-group"><label for="maps-create-driver-photo">Photo du chauffeur (optionnel)</label><input id="maps-create-driver-photo" type="file" accept="image/png,image/jpeg,image/webp"></div>
+                  <div class="form-group"><label for="maps-create-extra-photos">Photos supplémentaires (jusqu'à 6)</label><input id="maps-create-extra-photos" type="file" accept="image/png,image/jpeg,image/webp" multiple></div>
                   <div class="form-group wide"><label for="maps-create-description">Description (optionnel)</label><textarea id="maps-create-description" placeholder="Informations complémentaires sur le véhicule"></textarea></div>
                 </div>
                 <footer class="maps-create-footer"><button type="button" id="maps-create-cancel">Annuler</button><button type="submit" class="primary">Enregistrer le véhicule</button></footer>
@@ -15350,12 +15364,14 @@
 
     function getVehiclesModuleFiltered() {
       const search = normalizeText(document.getElementById('vehicles-search')?.value || '');
+      const project = document.getElementById('vehicles-filter-project')?.value || '';
       const type = document.getElementById('vehicles-filter-type')?.value || '';
       const status = document.getElementById('vehicles-filter-status')?.value || '';
       const driver = document.getElementById('vehicles-filter-driver')?.value || '';
       const tracking = document.getElementById('vehicles-filter-tracking')?.value || '';
       return autoVehicleLocationsCache.filter(vehicle => {
         const info = getVehicleDriverInfo(vehicle);
+        if (project && String(vehicle.projetNom || '') !== project) return false;
         if (type && String(vehicle.typeVehicule || '') !== type) return false;
         if (status && getVehicleLiveStatus(vehicle) !== status) return false;
         if (driver && String(vehicle.chauffeurEmployeeId || '') !== driver) return false;
@@ -15393,6 +15409,8 @@
       pencil:'<path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/>',
       swap:'<circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0M17 8h4M19 6v4"/>',
       back:'<path d="M19 12H5M11 6l-6 6 6 6"/>',
+      fuel:'<path d="M5 20V5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v15M4 20h11M14 9h2l2 2v6a1.5 1.5 0 0 0 3 0V9l-3-3"/><path d="M7 8h5"/>',
+      engine:'<path d="M5 9h3l2-2h5v3h3v6h-3v2H9l-2-2H5z"/>',
       type:'<rect x="3" y="7" width="12" height="9" rx="1"/><path d="M15 10h3l3 3v3h-6"/>',
       brand:'<path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/>',
       model:'<rect x="3" y="9" width="18" height="7" rx="2"/><path d="M5 9l2-4h10l2 4"/><circle cx="7.5" cy="16" r="1.5"/><circle cx="16.5" cy="16" r="1.5"/>',
@@ -15412,11 +15430,17 @@
     let vehiclesSortAsc = true;
 
     function vehicleTitle(vehicle) { return [vehicle.marqueVehicule, vehicle.nomVehicule].filter(Boolean).join(' ') || buildAutoVehicleLabel(vehicle); }
+    function vehicleExtraPhotos(vehicle) { try { const list = JSON.parse(vehicle.photosExtra || '[]'); return Array.isArray(list) ? list : []; } catch (error) { return []; } }
+    function vehicleAvatarHtml(vehicle, info, cls) {
+      return vehicle.chauffeurPhotoDataUrl ? `<img class="veh-avatar ${cls || ''}" src="${escapeHtml(vehicle.chauffeurPhotoDataUrl)}" alt="">` : `<span class="veh-avatar ${cls || ''}">${escapeHtml(vehicleInitials(info.name))}</span>`;
+    }
+    function vehicleFuelHtml(vehicle) { const pct = Math.round(Number(vehicle.carburantPct) || 0); return `<span style="${pct > 0 && pct < 25 ? 'color:#e5383b;font-weight:700' : ''}">${vi('fuel')}${pct} %</span>`; }
     function vehicleCode(vehicle) { return `VH-${String(Number(vehicle.id) || 0).padStart(3, '0')}`; }
     function vehicleInitials(name) { return String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase() || '?'; }
     function vehicleIsAvailable(vehicle) { const live = getVehicleLiveStatus(vehicle); return live === 'idle' || live === 'offline'; }
     function vehicleSiteLabel(vehicle) {
       const loc = vehicle.lastLocation;
+      if (vehicle.projetNom || vehicle.siteZone) return { project: vehicle.projetNom || '—', site: vehicle.siteZone || '—' };
       if (!loc) return { project: 'Aucune position', site: 'Suivi ' + (isVehicleTrackingOn(vehicle) ? 'activé' : 'désactivé') };
       return { project: String(loc.note || '').trim() || 'Dernière position', site: `${Number(loc.latitude).toFixed(4)}, ${Number(loc.longitude).toFixed(4)}` };
     }
@@ -15437,6 +15461,13 @@
       setText('vehicles-stat-total', all.length);
       Object.keys(counts).forEach(key => { setText(`vehicles-stat-${key}`, counts[key]); setText(`vehicles-pct-${key}`, pct(counts[key])); });
 
+      const projectSelect = document.getElementById('vehicles-filter-project');
+      if (projectSelect) {
+        const previous = projectSelect.value;
+        const projects = Array.from(new Set(all.map(v => String(v.projetNom || '').trim()).filter(Boolean))).sort();
+        projectSelect.innerHTML = '<option value="">Tous les projets</option>' + projects.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+        projectSelect.value = projects.includes(previous) ? previous : '';
+      }
       const typeSelect = document.getElementById('vehicles-filter-type');
       if (typeSelect) {
         const previous = typeSelect.value;
@@ -15472,13 +15503,21 @@
           <div class="veh-body">
             <div class="veh-name"><span>${escapeHtml(vehicleTitle(vehicle))}</span><small>${vehicleCode(vehicle)}</small></div>
             <div class="veh-meta">${escapeHtml([vehicle.typeVehicule, vehicle.annee].filter(Boolean).join(' | ') || 'Véhicule')}</div>
-            <div class="veh-specs"><span>${vi('plate')}${escapeHtml(vehicle.immatriculation || '—')}</span><span>${vi('signal')}${isVehicleTrackingOn(vehicle) ? 'Suivi activé' : 'Suivi désactivé'}</span></div>
-            <div class="veh-driver"><span class="veh-avatar">${escapeHtml(vehicleInitials(info.name))}</span><div><b>${escapeHtml(info.name || 'Non affecté')}</b><small>${escapeHtml(info.phone || 'Téléphone non renseigné')}</small></div></div>
+            <div class="veh-specs"><span>${vi('plate')}${escapeHtml(vehicle.immatriculation || '—')}</span><span>${vi('gauge')}${Number(vehicle.kilometrage || 0).toLocaleString('fr-FR')} km</span>${vehicleFuelHtml(vehicle)}</div>
+            <div class="veh-driver">${vehicleAvatarHtml(vehicle, info)}<div><b>${escapeHtml(info.name || 'Non affecté')}</b><small>${escapeHtml(info.phone || 'Téléphone non renseigné')}</small></div></div>
             <div class="veh-proj">${VEHICLE_FOLDER_SVG}<div><b>${escapeHtml(site.project)}</b><small>${escapeHtml(site.site)}</small></div></div>
             <div class="veh-card-actions"><button type="button" onclick="vehiclesOpenDetail(${Number(vehicle.id)})">${vi('pin')}Voir détails</button><button type="button" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})" title="Voir sur Maps">${vi('dots')}</button></div>
           </div>
         </div>`;
       }).join('')}</div>`;
+    }
+
+    function vehicleThumbsHtml(vehicle) {
+      const photos = [vehicle.photoDataUrl, ...vehicleExtraPhotos(vehicle)].filter(Boolean);
+      if (photos.length < 2) return '';
+      const shown = photos.slice(0, 3);
+      const more = photos.length - shown.length;
+      return `<div class="veh-thumbs">${shown.map(src => `<img src="${escapeHtml(src)}" alt="" onclick="document.getElementById('vehicles-bigphoto').innerHTML='<img src=&quot;'+this.src+'&quot;>'">`).join('')}${more > 0 ? `<span>+${more}</span>` : ''}</div>`;
     }
 
     window.vehiclesDetailTab = (vehicleId, tab) => {
@@ -15489,14 +15528,14 @@
       const info = getVehicleDriverInfo(vehicle);
       const field = (label, value, icon) => `<div>${vi(icon || 'note')}<span><small>${label}</small><b>${escapeHtml(value || '—')}</b></span></div>`;
       if (tab === 'driver') {
-        target.innerHTML = `<div class="veh-fields">${field('Nom', info.name || 'Non affecté', 'swap')}${field('Téléphone', info.phone, 'phone')}${field('Email', info.email, 'mail')}${field('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé', 'signal')}</div>`;
+        target.innerHTML = `<div class="veh-fields">${field('Nom', info.name || 'Non affecté', 'swap')}${field('Téléphone', info.phone, 'phone')}${field('Email', info.email, 'mail')}${field('Permis n°', vehicle.permisNumero, 'plate')}${field('Expiration du permis', vehicle.permisExpiration ? new Date(String(vehicle.permisExpiration).slice(0,10) + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '', 'year')}${field('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé', 'signal')}</div>`;
       } else if (tab === 'overview') {
         target.innerHTML = `<div class="veh-fields">
           ${field('Type de véhicule', vehicle.typeVehicule, 'type')}${field('Marque', vehicle.marqueVehicule, 'brand')}
           ${field('Modèle', vehicle.nomVehicule, 'model')}${field('Année', vehicle.annee, 'year')}
           ${field('Plaque d’immatriculation', vehicle.immatriculation, 'plate')}${field('VIN / Châssis', vehicle.numeroIdentification, 'vin')}
           ${field('Couleur', vehicle.couleur, 'color')}${field('État', vehicle.etatVehicule, 'state')}
-          ${field('Coût d’acquisition', vehicle.valeurVehicule ? `${Number(vehicle.valeurVehicule).toLocaleString('fr-FR')} FCFA` : '', 'cost')}${field('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé', 'signal')}
+          ${field('Kilométrage', vehicle.kilometrage ? `${Number(vehicle.kilometrage).toLocaleString('fr-FR')} km` : '', 'gauge')}${field('Carburant', vehicle.carburantPct ? `${Math.round(vehicle.carburantPct)} %` : '', 'fuel')}${field('Coût d’acquisition', vehicle.valeurVehicule ? `${Number(vehicle.valeurVehicule).toLocaleString('fr-FR')} FCFA` : '', 'cost')}${field('Projet actuel', vehicle.projetNom ? `${vehicle.projetNom}${vehicle.siteZone ? ' – ' + vehicle.siteZone : ''}` : '', 'folder')}
         </div>`;
       } else {
         target.innerHTML = '<p style="color:#7a8aa0;font-size:12px;">Aucune donnée disponible pour le moment.</p>';
@@ -15515,10 +15554,10 @@
       detail.innerHTML = `
         <div class="veh-crumb">
           <div><a onclick="vehiclesCloseDetail()">${vi('back')}</a> <a onclick="vehiclesCloseDetail()">Mes véhicules</a> &nbsp;›&nbsp; <b>${escapeHtml(vehicleTitle(vehicle))} (${vehicleCode(vehicle)})</b></div>
-          <div style="display:flex;gap:8px;"><button type="button" class="veh-btn light" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})">${vi('pencil')}Modifier</button><button type="button" class="veh-btn light square">${vi('dots')}</button></div>
+          <div style="display:flex;gap:8px;"><button type="button" class="veh-btn light" onclick="vehiclesEdit(${Number(vehicle.id)})">${vi('pencil')}Modifier</button><button type="button" class="veh-btn light square">${vi('dots')}</button></div>
         </div>
         <div class="veh-dgrid">
-          <div class="veh-panel"><div class="veh-bigphoto">${vehicleImageHtml(vehicle)}</div></div>
+          <div class="veh-panel"><div class="veh-bigphoto" id="vehicles-bigphoto">${vehicleImageHtml(vehicle)}</div>${vehicleThumbsHtml(vehicle)}</div>
           <div class="veh-panel">
             <h2>${escapeHtml(vehicleTitle(vehicle))}</h2><span class="veh-code">${vehicleCode(vehicle)}</span>
             <div class="veh-tabs">${tabs.map(([key, label]) => `<button type="button" data-tab="${key}" class="${key === 'overview' ? 'active' : ''}" onclick="vehiclesDetailTab(${Number(vehicle.id)}, '${key}')">${label}</button>`).join('')}</div>
@@ -15526,10 +15565,11 @@
           </div>
           <div class="veh-panel veh-driver-big">
             <div style="text-align:left;font-weight:800;font-size:13px;">Chauffeur actuel</div>
-            <span class="veh-avatar">${escapeHtml(vehicleInitials(info.name))}</span>
+            ${vehicleAvatarHtml(vehicle, info)}
             <b>${escapeHtml(info.name || 'Non affecté')}</b>
             <p style="color:#1f7af2">${vi('phone')}${escapeHtml(info.phone || 'Non renseigné')}</p>
             <p style="color:#1f7af2">${vi('mail')}${escapeHtml(info.email || 'Non renseigné')}</p>
+            <div style="display:flex;justify-content:space-between;text-align:left;font-size:11px;color:#7a8aa0;margin-top:14px;"><span>Permis n°<b style="display:block;color:#10213a;font-size:12px;">${escapeHtml(vehicle.permisNumero || '—')}</b></span><span>Expiration<b style="display:block;color:#10213a;font-size:12px;">${vehicle.permisExpiration ? escapeHtml(new Date(String(vehicle.permisExpiration).slice(0,10) + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })) : '—'}</b></span></div>
             <button type="button" class="veh-btn light" style="width:100%;justify-content:center;margin-top:14px;color:#1f7af2;" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})">${vi('swap')}Réaffecter le chauffeur</button>
           </div>
           <div class="veh-panel">
@@ -15538,7 +15578,9 @@
             ${row('Dernier signal', escapeHtml(loc ? formatAutoLocationTimestamp(loc.recordedAt) : 'Aucun signal'), 'clock')}
             ${row('Projet', escapeHtml(site.project), 'folder')}
             ${row('Site / Zone', escapeHtml(site.site), 'pin')}
-            ${row('Vitesse', loc ? `${Number(loc.speedKph || 0).toFixed(0)} km/h` : '—', 'route')}
+            ${row('Distance aujourd’hui', `${Number(vehicle.distanceTodayKm || 0).toLocaleString('fr-FR')} km`, 'route')}
+            ${row('Heures moteur', vehicle.heuresMoteur ? `${Number(vehicle.heuresMoteur).toLocaleString('fr-FR')} h` : '—', 'engine')}
+            ${row('Vitesse', loc ? `${Number(loc.speedKph || 0).toFixed(0)} km/h` : '—', 'gauge')}
             ${row('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé', 'signal')}
             ${row('Notes', escapeHtml(vehicle.description || '—'), 'note')}
           </div>
@@ -15552,6 +15594,13 @@
       document.getElementById('vehicles-detail').hidden = true;
       document.getElementById('vehicles-overview').hidden = false;
     };
+    window.vehiclesEdit = async vehicleId => {
+      const vehicle = autoVehicleLocationsCache.find(item => Number(item.id) === Number(vehicleId));
+      if (!vehicle) return;
+      if (!isAdmin()) return showMessage('Accès réservé à l’admin', 'error');
+      openMapsCreateDialog(vehicle);
+    };
+
     window.vehiclesOpenOnMaps = async vehicleId => {
       document.querySelector('.menu-item[data-module="maps"]')?.click();
       await loadMapsModule();
@@ -15566,12 +15615,12 @@
 
     function bindVehiclesModule() {
       document.querySelectorAll('#vehicles [data-vi]').forEach(node => { node.innerHTML = vi(node.dataset.vi); });
-      ['vehicles-search', 'vehicles-filter-type', 'vehicles-filter-status', 'vehicles-filter-driver', 'vehicles-filter-tracking'].forEach(id => {
+      ['vehicles-search', 'vehicles-filter-project', 'vehicles-filter-type', 'vehicles-filter-status', 'vehicles-filter-driver', 'vehicles-filter-tracking'].forEach(id => {
         const node = document.getElementById(id);
         node?.addEventListener(node.tagName === 'INPUT' ? 'input' : 'change', renderVehiclesModule);
       });
       document.getElementById('vehicles-reset')?.addEventListener('click', () => {
-        ['vehicles-search', 'vehicles-filter-type', 'vehicles-filter-status', 'vehicles-filter-driver', 'vehicles-filter-tracking'].forEach(id => { const node = document.getElementById(id); if (node) node.value = ''; });
+        ['vehicles-search', 'vehicles-filter-project', 'vehicles-filter-type', 'vehicles-filter-status', 'vehicles-filter-driver', 'vehicles-filter-tracking'].forEach(id => { const node = document.getElementById(id); if (node) node.value = ''; });
         renderVehiclesModule();
       });
       const setView = view => {
@@ -15591,8 +15640,10 @@
       });
     }
     bindVehiclesModule();
-    function openMapsCreateDialog() {
+    let mapsEditingVehicleId = null;
+    function openMapsCreateDialog(vehicle) {
       populateVehicleChauffeurSelects();
+      mapsEditingVehicleId = vehicle?.id ? Number(vehicle.id) : null;
       const form = document.getElementById('maps-create-form');
       const overlay = document.getElementById('maps-create-overlay');
       const preview = document.getElementById('maps-create-photo-preview');
@@ -15600,6 +15651,23 @@
       form?.reset();
       if (preview) { preview.hidden = true; preview.removeAttribute('src'); }
       if (label) label.hidden = false;
+      const setValue = (id, value) => { const node = document.getElementById(id); if (node) node.value = value ?? ''; };
+      const title = document.getElementById('maps-create-title');
+      if (title) title.textContent = mapsEditingVehicleId ? 'Modifier le véhicule' : 'Ajouter un véhicule';
+      const driverSelect = document.getElementById('maps-create-driver');
+      if (driverSelect) driverSelect.disabled = Boolean(mapsEditingVehicleId);
+      if (mapsEditingVehicleId) {
+        setValue('maps-create-brand', vehicle.marqueVehicule); setValue('maps-create-model', vehicle.nomVehicule);
+        setValue('maps-create-year', vehicle.annee); setValue('maps-create-type', vehicle.typeVehicule);
+        setValue('maps-create-plate', vehicle.immatriculation); setValue('maps-create-vin', vehicle.numeroIdentification);
+        setValue('maps-create-color', vehicle.couleur); setValue('maps-create-status', vehicle.etatVehicule);
+        setValue('maps-create-description', vehicle.description);
+        setValue('maps-create-km', Number(vehicle.kilometrage) || ''); setValue('maps-create-fuel', Number(vehicle.carburantPct) || '');
+        setValue('maps-create-hours', Number(vehicle.heuresMoteur) || ''); setValue('maps-create-cost', Number(vehicle.valeurVehicule) || '');
+        setValue('maps-create-project', vehicle.projetNom); setValue('maps-create-site', vehicle.siteZone);
+        setValue('maps-create-permit', vehicle.permisNumero); setValue('maps-create-permit-exp', vehicle.permisExpiration);
+        if (vehicle.photoDataUrl && preview) { preview.src = vehicle.photoDataUrl; preview.hidden = false; if (label) label.hidden = true; }
+      }
       overlay?.classList.add('open');
       overlay?.setAttribute('aria-hidden', 'false');
       document.getElementById('maps-create-brand')?.focus();
@@ -15648,16 +15716,52 @@
         const marqueVehicule = String(document.getElementById('maps-create-brand')?.value || '').trim();
         const modele = String(document.getElementById('maps-create-model')?.value || '').trim();
         const photoDataUrl = await readMapsVehiclePhoto(photoFile);
+        const driverPhotoFile = document.getElementById('maps-create-driver-photo')?.files?.[0];
+        const chauffeurPhotoDataUrl = driverPhotoFile ? await readMapsVehiclePhoto(driverPhotoFile) : '';
+        const extraFiles = Array.from(document.getElementById('maps-create-extra-photos')?.files || []).slice(0, 6);
+        const photosExtra = [];
+        for (const file of extraFiles) photosExtra.push(await readMapsVehiclePhoto(file));
+        const num = id => Number(document.getElementById(id)?.value || 0) || 0;
+        const extras = {
+          kilometrage: num('maps-create-km'), carburantPct: num('maps-create-fuel'), heuresMoteur: num('maps-create-hours'),
+          projetNom: String(document.getElementById('maps-create-project')?.value || '').trim(),
+          siteZone: String(document.getElementById('maps-create-site')?.value || '').trim(),
+          permisNumero: String(document.getElementById('maps-create-permit')?.value || '').trim(),
+          permisExpiration: String(document.getElementById('maps-create-permit-exp')?.value || '').trim(),
+        };
+        if (chauffeurPhotoDataUrl) extras.chauffeurPhotoDataUrl = chauffeurPhotoDataUrl;
+        if (photosExtra.length) extras.photosExtra = photosExtra;
+        if (mapsEditingVehicleId) {
+          const editedId = mapsEditingVehicleId;
+          const patch = {
+            nomVehicule: modele, marqueVehicule, immatriculation: String(document.getElementById('maps-create-plate')?.value || '').trim(),
+            etatVehicule: String(document.getElementById('maps-create-status')?.value || 'Disponible'),
+            annee: String(document.getElementById('maps-create-year')?.value || '').trim(),
+            typeVehicule: String(document.getElementById('maps-create-type')?.value || '').trim(),
+            numeroIdentification: String(document.getElementById('maps-create-vin')?.value || '').trim(),
+            description: String(document.getElementById('maps-create-description')?.value || '').trim(),
+            couleur: String(document.getElementById('maps-create-color')?.value || '').trim(),
+            valeurVehicule: num('maps-create-cost'), ...extras,
+          };
+          if (photoDataUrl) patch.photoDataUrl = photoDataUrl;
+          await fetchJson('/api/auto-vehicles/' + editedId, { method: 'PATCH', body: JSON.stringify(patch) });
+          closeMapsCreateDialog();
+          showMessage('Véhicule modifié');
+          await loadMapsModule();
+          if (document.getElementById('vehicles')?.classList.contains('active')) { renderVehiclesModule(); if (!document.getElementById('vehicles-detail').hidden) window.vehiclesOpenDetail(editedId); }
+          return;
+        }
         await fetchJson('/api/auto-vehicles', {
           method: 'POST',
           body: JSON.stringify({
+            ...extras,
             nomVehicule: modele,
             marqueVehicule,
             immatriculation: String(document.getElementById('maps-create-plate')?.value || '').trim(),
             chauffeurEmployeeId,
             chauffeurNom: String(driver?.fullName || ''),
             gpsActif: false,
-            valeurVehicule: 0,
+            valeurVehicule: num('maps-create-cost'),
             etatVehicule: String(document.getElementById('maps-create-status')?.value || 'Disponible'),
             annee: String(document.getElementById('maps-create-year')?.value || '').trim(),
             typeVehicule: String(document.getElementById('maps-create-type')?.value || '').trim(),
