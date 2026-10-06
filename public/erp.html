@@ -12421,17 +12421,10 @@
                 <div class="maps-detail-summary"><div><small>Distance totale</small><strong id="maps-summary-distance">—</strong></div><div><small>Temps de conduite</small><strong id="maps-summary-duration">—</strong></div><div><small>Vitesse moyenne</small><strong id="maps-summary-speed">—</strong></div><div><small>Arrêts</small><strong id="maps-summary-stops">—</strong></div></div>
               </section>
             </div>
-            <details id="maps-update-panel" class="maps-manual-update">
-              <summary>Mise à jour manuelle / diagnostic GPS</summary>
-              <form id="maps-location-form" style="display:grid;gap:9px;margin-top:11px;">
-                <div class="form-group"><label>Véhicule *</label><select id="maps-location-vehicle" required></select></div>
-                <div class="grid-2" style="gap:10px;"><div class="form-group"><label>Latitude *</label><input type="number" id="maps-location-latitude" step="0.000001" min="-90" max="90" required /></div><div class="form-group"><label>Longitude *</label><input type="number" id="maps-location-longitude" step="0.000001" min="-180" max="180" required /></div></div>
-                <div class="grid-2" style="gap:10px;"><div class="form-group"><label>Vitesse (km/h)</label><input type="number" id="maps-location-speed" step="0.1" min="0" value="0" /></div><div class="form-group"><label>Précision (m)</label><input type="number" id="maps-location-accuracy" step="0.1" min="0" value="0" /></div></div>
-                <div class="grid-2" style="gap:10px;"><div class="form-group"><label>Statut</label><select id="maps-location-status"><option value="online">En ligne</option><option value="moving">En déplacement</option><option value="idle">À l'arrêt</option><option value="maintenance">Maintenance</option><option value="offline">Hors ligne</option></select></div><div class="form-group"><label>Source</label><select id="maps-location-source"><option value="manual">Saisie manuelle</option><option value="browser_gps">GPS navigateur</option><option value="mobile_app">Application mobile</option><option value="tracker">Boîtier GPS</option></select></div></div>
-                <div class="form-group"><label>Note</label><textarea id="maps-location-note" placeholder="Ex: arrivée sur chantier Riviera 3"></textarea></div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;"><button type="button" id="maps-use-current" class="button button-secondary">Utiliser ma position</button><button type="submit" class="button button-primary">Enregistrer la position</button></div>
-              </form>
-            </details>
+            <section id="maps-tracking-times-panel" class="maps-detail-panel" style="margin-top:12px">
+              <div class="maps-panel-head"><div><h2>Heures d'activation et d'arrêt du suivi</h2><p id="maps-tracking-times-subtitle">Sessions de suivi du chauffeur sélectionné</p></div></div>
+              <div style="overflow:auto"><table class="driver-history-table tracking-times-table" style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr><th>Date</th><th>Activation</th><th>Arrêt</th><th>Durée</th><th>Statut</th></tr></thead><tbody id="maps-tracking-times-rows"><tr><td colspan="5" style="padding:14px;text-align:center;color:#7789a1">—</td></tr></tbody></table></div>
+            </section>
           </section>
 
           <div id="maps-create-overlay" class="maps-create-overlay" aria-hidden="true">
@@ -12634,6 +12627,7 @@
                       <p id="driver-inline-status" class="driver-inline-status" aria-live="polite"></p>
                     </section>
                   </div>
+                <section class="driver-panel" style="margin-top:12px"><div class="driver-panel-head"><div><h2>Heures d'activation et d'arrêt du suivi</h2><p>Vos dernières sessions</p></div></div><div class="driver-history-table-wrap"><table class="driver-history-table" style="min-width:0"><thead><tr><th>Date</th><th>Activation</th><th>Arrêt</th><th>Durée</th><th>Statut</th></tr></thead><tbody id="driver-tracking-times-rows"><tr><td colspan="5" class="driver-empty">—</td></tr></tbody></table></div></section>
                 </section>
                 <section id="driver-view-history" class="driver-view" hidden>
                   <div class="driver-view-head driver-history-head"><div class="driver-filter"><label>Du<span class="driver-date-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><input id="driver-history-from" type="date"></span></label><label>Au<span class="driver-date-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><input id="driver-history-to" type="date"></span></label><button type="button" id="driver-history-apply" class="driver-action-button">Afficher</button></div></div>
@@ -15317,6 +15311,51 @@
       if (statusEl) statusEl.value = String(selectedVehicle.lastLocation.status || 'online');
     }
 
+    function renderTrackingTimesRows(sessions, colspan) {
+      const fmtDate = v => { const d = new Date(v); return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fr-FR'); };
+      const fmtTime = v => { const d = new Date(v); return Number.isNaN(d.getTime()) ? '—' : d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); };
+      if (!sessions.length) return `<tr><td colspan="${colspan}" style="padding:14px;text-align:center;color:#7789a1">Aucune activation du suivi enregistrée.</td></tr>`;
+      const now = Date.now();
+      return sessions.map(s => {
+        const start = new Date(s.startedAt).getTime();
+        const active = String(s.status) === 'active' && new Date(s.expiresAt).getTime() > now;
+        const endValue = s.endedAt || (active ? '' : s.expiresAt);
+        const end = endValue ? new Date(endValue).getTime() : now;
+        const minutes = Number.isFinite(start) && Number.isFinite(end) ? Math.max(0, Math.round((end - start) / 60000)) : null;
+        const duration = minutes === null ? '—' : (minutes >= 60 ? `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')} min` : `${minutes} min`);
+        const label = active ? 'Suivi actif' : 'Arrêté';
+        const color = active ? '#15834f' : '#7a8ca3';
+        return `<tr><td style="padding:10px 12px;border-top:1px solid #edf1f6">${escapeHtml(fmtDate(s.startedAt))}</td><td style="padding:10px 12px;border-top:1px solid #edf1f6">${escapeHtml(fmtTime(s.startedAt))}</td><td style="padding:10px 12px;border-top:1px solid #edf1f6">${active ? '—' : escapeHtml(fmtTime(endValue))}</td><td style="padding:10px 12px;border-top:1px solid #edf1f6">${escapeHtml(duration)}</td><td style="padding:10px 12px;border-top:1px solid #edf1f6;color:${color};font-weight:700">${label}</td></tr>`;
+      }).join('');
+    }
+
+    async function loadMapsTrackingTimes() {
+      const body = document.getElementById('maps-tracking-times-rows');
+      if (!body || !selectedAutoLocationVehicleId) return;
+      const vehicleId = selectedAutoLocationVehicleId;
+      try {
+        const result = await fetchJson(`/api/auto-vehicles/${vehicleId}/tracking-sessions`);
+        if (Number(vehicleId) !== Number(selectedAutoLocationVehicleId)) return;
+        const vehicle = autoVehiclesCache.find(item => Number(item.id) === Number(vehicleId));
+        const subtitle = document.getElementById('maps-tracking-times-subtitle');
+        if (subtitle) subtitle.textContent = `Chauffeur : ${vehicle?.chauffeurNom || 'non affecté'}`;
+        body.innerHTML = renderTrackingTimesRows(result.sessions || [], 5);
+      } catch (error) {
+        body.innerHTML = `<tr><td colspan="5" style="padding:14px;text-align:center;color:#b42318">${escapeHtml(error.message || 'Chargement impossible')}</td></tr>`;
+      }
+    }
+
+    async function loadDriverTrackingTimes() {
+      const body = document.getElementById('driver-tracking-times-rows');
+      if (!body) return;
+      try {
+        const result = await fetchJson('/api/driver/tracking-sessions');
+        body.innerHTML = renderTrackingTimesRows((result.sessions || []).slice(0, 30), 5).replace(/style="[^"]*"/g, '');
+      } catch (error) {
+        body.innerHTML = `<tr><td colspan="5" class="driver-empty">${escapeHtml(error.message || 'Chargement impossible')}</td></tr>`;
+      }
+    }
+
     function renderMapsModule() {
       if (!document.getElementById('maps')) return;
       renderMapsModuleStats();
@@ -15330,8 +15369,7 @@
       if (detail) detail.hidden = !mapsDetailOpen;
       syncMapsLocationInputsWithSelection();
       setMapsModuleMapMode(mapsModuleMapMode);
-      const updatePanel = document.getElementById('maps-update-panel');
-      if (updatePanel) updatePanel.style.display = isExecutive() ? 'none' : '';
+      if (mapsDetailOpen) loadMapsTrackingTimes();
     }
 
     async function loadMapsModule() {
@@ -16023,6 +16061,7 @@
         if (noVehicle) noVehicle.hidden = true;
         if (content) content.hidden = false;
         driverUpdateVehicleSummary();
+        loadDriverTrackingTimes();
         if (driverCurrentView === 'history') await loadDriverHistory();
       } catch (error) {
         driverVehicleState = null;
@@ -34498,7 +34537,7 @@
       });
     }
 
-    document.getElementById('maps-location-form').addEventListener('submit', async e => {
+    document.getElementById('maps-location-form')?.addEventListener('submit', async e => {
       e.preventDefault();
       try {
         const vehicleId = Number(document.getElementById('maps-location-vehicle').value);
@@ -35208,16 +35247,13 @@
       toggleElementFullscreen(target);
     });
 
-    document.getElementById('maps-location-vehicle').addEventListener('change', e => {
+    document.getElementById('maps-location-vehicle')?.addEventListener('change', e => {
       const vehicleId = Number(e.target.value);
       if (vehicleId) {
         setSelectedAutoLocationVehicle(vehicleId);
       }
     });
 
-    document.getElementById('maps-use-current').addEventListener('click', () => {
-      captureCurrentBrowserLocationForMaps();
-    });
     document.getElementById('driver-refresh')?.addEventListener('click', loadDriverTrackerModule);
     document.getElementById('driver-start-tracking')?.addEventListener('click', startDriverTracking);
     document.getElementById('driver-stop-tracking')?.addEventListener('click', () => stopDriverTracking(false));

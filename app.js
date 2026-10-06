@@ -10021,6 +10021,22 @@ app.get('/api/auto-vehicle-locations', async (_req, res) => {
   })));
 });
 
+app.get('/api/auto-vehicles/:id/tracking-sessions', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!id) return res.status(400).json({ error: 'ID vehicule invalide' });
+  const sessions = await all(
+    `SELECT s.id, s.vehicleId, s.chauffeurEmployeeId, s.status, s.startedAt, s.endedAt, s.expiresAt,
+            s.startPlace, s.arrivalPlace, s.destinationPlace, s.deviceName,
+            e.fullName AS chauffeurName
+     FROM auto_tracking_sessions s
+     LEFT JOIN hr_employees e ON e.id = s.chauffeurEmployeeId
+     WHERE s.vehicleId = ? AND s.startedAt <> ''
+     ORDER BY s.startedAt DESC, s.id DESC LIMIT 200`,
+    [id]
+  );
+  return res.json({ sessions: sessions || [] });
+});
+
 app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
   const id = Number(req.params.id);
   const limit = Math.min(Math.max(Number(req.query.limit || 25), 1), 5000);
