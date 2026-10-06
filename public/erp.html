@@ -16432,7 +16432,9 @@
 
     function getAllowedModules() {
       let allowed = null;
-      if (isAdmin()) {
+      if (isAdmin() && currentUserAccessProfile && Array.isArray(currentUserAccessProfile.effectiveModules) && currentUserAccessProfile.effectiveModules.length) {
+        allowed = new Set(normalizeAccessProfileModuleList(currentUserAccessProfile.effectiveModules));
+      } else if (isAdmin()) {
         allowed = new Set(getMenuModuleKeys().concat(['dashboard', 'access-profiles', 'admin-mail', 'users', 'settings', 'audit-log']));
       } else if (String(currentUserRole || '').trim().toLowerCase() === 'chauffeur') {
         allowed = new Set(['driver-tracker', 'driver-history', 'driver-settings']);
@@ -17058,7 +17060,7 @@
         const isSelected = username.toLowerCase() === String(selectedAccessProfileUsername || '').trim().toLowerCase();
         const linked = String(row?.linkedEmployee?.fullName || '').trim();
         const roleLabel = getRoleDisplayLabel(String(row?.role || '').trim());
-        const modules = String(row?.role || '').trim().toLowerCase() === 'admin'
+        const modules = String(row?.role || '').trim().toLowerCase() === 'admin' && !(row?.allowedModules?.length || row?.deniedModules?.length)
           ? getMenuModuleKeys()
           : normalizeAccessProfileModuleList(Array.isArray(row?.effectiveModules) ? row.effectiveModules : []);
         return `
@@ -17084,7 +17086,7 @@
       const baselineModules = Array.from(getAccessProfileBaselineModules(row.role, row.username));
       const payload = {
         accreditationLevel: String(row.accreditationLevel || 'standard').trim() || 'standard',
-        allowedModules: baselineModules.join(','),
+        allowedModules: ['admin', 'dirigeant', 'directeur_rh'].includes(String(row.role || '').trim().toLowerCase()) ? '' : baselineModules.join(','),
         deniedModules: [],
         forcedModule: '',
         notes: String(row.notes || '').trim(),

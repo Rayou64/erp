@@ -3635,6 +3635,18 @@ async function initDb() {
     await run('UPDATE users SET password = ?, role = ? WHERE username = ?', [parkManagerHashedPassword, 'admin', PARK_MANAGER_USERNAME]);
   }
 
+  await ensureAccessProfileSchema();
+  const parkProfile = await get('SELECT id FROM user_access_profiles WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [PARK_MANAGER_USERNAME]);
+  if (!parkProfile) {
+    const nowIso = new Date().toISOString();
+    await run(
+      `INSERT INTO user_access_profiles
+       (id, username, roleSnapshot, accreditationLevel, allowedModules, deniedModules, forcedModule, notes, createdAt, updatedAt, updatedBy)
+       VALUES (?, ?, 'admin', 'standard', ?, '', 'vehicles', 'Gestionnaire de parc auto', ?, ?, 'system')`,
+      [await getNextTableId('user_access_profiles'), PARK_MANAGER_USERNAME, PARK_MANAGER_MODULES.join(','), nowIso, nowIso]
+    );
+  }
+
   // Les employés au poste Chauffeur doivent avoir le rôle chauffeur
   await run(
     `UPDATE users SET role = 'chauffeur'
@@ -4563,18 +4575,18 @@ async function buildAuthProfilePayload(user) {
       }
     : null;
 
-  const accessProfile = roleCanBypassAccessProfile(role)
-    ? null
-    : await getUserAccessProfileByUsername(user?.username);
-  const effectiveModules = roleCanBypassAccessProfile(role)
-    ? []
-    : Array.from(computeEffectiveModulesForAccessProfile(accessProfile || {}, role));
+  const storedProfile = await getUserAccessProfileByUsername(user?.username);
+  const applyProfile = !roleCanBypassAccessProfile(role) || privilegedProfileIsRestricted(storedProfile);
+  const accessProfile = applyProfile ? storedProfile : null;
+  const effectiveModules = applyProfile
+    ? Array.from(computeEffectiveModulesForAccessProfile(accessProfile || {}, role))
+    : [];
 
   return {
     username: user.username,
     role: user.role,
     scope,
-    accessProfile: roleCanBypassAccessProfile(role)
+    accessProfile: !applyProfile
       ? null
       : {
           accreditationLevel: String(accessProfile?.accreditationLevel || 'standard').trim() || 'standard',
@@ -12640,6 +12652,13 @@ function roleCanBypassAccessProfile(role) {
   return PRIVILEGED_ACCESS_PROFILE_ROLES.has(String(role || '').trim().toLowerCase());
 }
 
+const RESTRICTED_DEFAULT_ALLOWED_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'guide-erp']);
+const PARK_MANAGER_MODULES = ['parc-auto-maintenance', 'parc-auto-transport', 'vehicles', 'maps'];
+
+function privilegedProfileIsRestricted(profile) {
+  return normalizeModuleList(profile?.allowedModules || '').size > 0 || normalizeModuleList(profile?.deniedModules || '').size > 0;
+}
+
 function parseCsvSet(value) {
   return new Set(
     String(value || '')
@@ -12868,7 +12887,7 @@ app.get('/api/admin/access-profiles', async (req, res) => {
 
       const profile = profileByUsername.get(username.toLowerCase()) || null;
       const baselineModules = Array.from(getAccessProfileBaselineModules(user?.role || profile?.roleSnapshot || ''));
-      const effectiveModules = roleCanBypassAccessProfile(user?.role)
+      const effectiveModules = roleCanBypassAccessProfile(user?.role) && !privilegedProfileIsRestricted(profile)
         ? baselineModules
         : Array.from(computeEffectiveModulesForAccessProfile(profile || {}, user?.role || ''));
 
@@ -12910,8 +12929,8 @@ app.patch('/api/admin/access-profiles/:username', async (req, res) => {
       return res.status(404).json({ error: 'Utilisateur introuvable' });
     }
 
-    if (roleCanBypassAccessProfile(target.role)) {
-      return res.status(400).json({ error: 'Profil privilegie non modifiable via ce module' });
+    if (String(target.username || '').trim().toLowerCase() === 'admin') {
+      return res.status(400).json({ error: 'Le compte admin principal ne peut pas etre restreint' });
     }
 
     const accreditationLevel = String(req.body?.accreditationLevel || 'standard').trim().toLowerCase() || 'standard';
@@ -13019,14 +13038,14 @@ app.post('/api/admin/access-profiles/restore-all', async (req, res) => {
           `UPDATE user_access_profiles
            SET roleSnapshot = ?, allowedModules = ?, deniedModules = '', forcedModule = '', accreditationLevel = ?, notes = ?, updatedAt = ?, updatedBy = ?
            WHERE id = ?`,
-          [String(user?.role || '').trim(), serializeCsvSet(baselineModules), accreditationLevel, notes, now, actor, Number(existing.id)]
+          [String(user?.role || '').trim(), roleCanBypassAccessProfile(user?.role) ? '' : serializeCsvSet(baselineModules), accreditationLevel, notes, now, actor, Number(existing.id)]
         );
       } else {
         await run(
           `INSERT INTO user_access_profiles
            (id, username, roleSnapshot, accreditationLevel, allowedModules, deniedModules, forcedModule, notes, createdAt, updatedAt, updatedBy)
            VALUES (?, ?, ?, ?, ?, '', '', ?, ?, ?, ?)`,
-          [await getNextTableId('user_access_profiles'), username, String(user?.role || '').trim(), accreditationLevel, serializeCsvSet(baselineModules), notes, now, now, actor]
+          [await getNextTableId('user_access_profiles'), username, String(user?.role || '').trim(), accreditationLevel, roleCanBypassAccessProfile(user?.role) ? '' : serializeCsvSet(baselineModules), notes, now, now, actor]
         );
       }
 
