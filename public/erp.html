@@ -16291,22 +16291,21 @@
       stopDriverTracking(true);
     }
 
+    function isDriverMobileDevice() {
+      return /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent || '');
+    }
+
+    function openDriverTrackerLink(result) {
+      const url = `${window.location.origin}/tracker.html?vehicleId=${Number(result.session?.vehicleId || driverVehicleState?.vehicle?.id || 0)}&token=${encodeURIComponent(String(result.deviceToken || ''))}&auto=1`;
+      setDriverStatusMessage('Ouverture du lien de suivi : autorisez la localisation.');
+      window.location.href = url;
+    }
+
     async function startDriverTracking() {
       if (driverTrackingUiOverride === 'starting') return;
       driverTrackingUiOverride = 'starting';
       driverUpdateVehicleSummary();
-      setDriverStatusMessage('Autorisation des notifications en cours…');
       try {
-        if (typeof Notification !== 'undefined') {
-          if (Notification.permission === 'default') {
-            try { await Notification.requestPermission(); } catch (_) {}
-          }
-          if (Notification.permission === 'denied') {
-            throw new Error('Les notifications sont bloquées. Autorisez-les dans les réglages de l’appareil pour démarrer le suivi.');
-          }
-          pushSetupReady = false;
-          setupPushNotifications({ requestPermission: false }).catch(() => {});
-        }
         setDriverStatusMessage('Autorisation GPS en cours…');
         await resolveDriverDestination();
         driverArrivalHandled = false;
@@ -16314,8 +16313,9 @@
         let result;
         let position;
         if (driverTrackingSession?.status === 'active') {
-          position = await getDriverPositionOnce();
+          if (!isDriverMobileDevice()) position = await getDriverPositionOnce();
           result = await fetchJson(`/api/driver/tracking-sessions/${Number(driverTrackingSession.id)}/resume`, { method: 'POST', body: JSON.stringify({}) });
+          if (isDriverMobileDevice()) { openDriverTrackerLink(result); return; }
         } else {
           result = await fetchJson('/api/driver/tracking-sessions/start', {
             method: 'POST',
@@ -16331,6 +16331,7 @@
           });
           driverTrackingSession = result.session;
           driverTrackingToken = String(result.deviceToken || '');
+          if (isDriverMobileDevice()) { openDriverTrackerLink(result); return; }
           try {
             position = await getDriverPositionOnce();
           } catch (error) {

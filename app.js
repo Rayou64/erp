@@ -4934,6 +4934,24 @@ app.post('/api/gps/ingest', async (req, res) => {
   }
 });
 
+app.post('/api/gps/stop', async (req, res) => {
+  const rawToken = String(req.headers['x-device-token'] || req.headers['x-tracking-token'] || req.body?.deviceToken || '').trim();
+  if (!rawToken) return res.status(401).json({ error: 'Token appareil manquant' });
+  const tokenHash = hashTrackingToken(rawToken);
+  const session = await get("SELECT id, vehicleId, deviceId FROM auto_tracking_sessions WHERE tokenHash = ? AND status = 'active' ORDER BY id DESC LIMIT 1", [tokenHash]);
+  if (!session) return res.status(404).json({ error: 'Aucune session de suivi active pour ce lien' });
+  const now = new Date().toISOString();
+  const last = await get('SELECT latitude, longitude FROM auto_vehicle_locations WHERE trackingSessionId = ? ORDER BY recorded_at DESC, id DESC LIMIT 1', [Number(session.id)]);
+  const hasEnd = last && Number.isFinite(Number(last.latitude)) && Number.isFinite(Number(last.longitude));
+  await run(
+    "UPDATE auto_tracking_sessions SET status = 'completed', endedAt = ?, arrivalPlace = ?, endLatitude = ?, endLongitude = ? WHERE id = ?",
+    [now, hasEnd ? `Position GPS (${Number(last.latitude).toFixed(5)}, ${Number(last.longitude).toFixed(5)})` : '', hasEnd ? Number(last.latitude) : null, hasEnd ? Number(last.longitude) : null, Number(session.id)]
+  );
+  await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE id = ?', [now, Number(session.deviceId)]);
+  await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(session.vehicleId)]);
+  return res.json({ stopped: true, endedAt: now });
+});
+
 app.use('/api', authenticateToken, authorizeRoleAccess);
 
 function normalizeInternalMailList(value) {
@@ -5756,6 +5774,25 @@ app.patch('/api/admin/users/:id/password', async (req, res) => {
   await run('UPDATE users SET password = ?, role = ? WHERE id = ?', [passwordHash, role, userId]);
   await storeUserPasswordEnc(userId, password);
   return res.json({ id: userId, role, message: 'Mot de passe modifié' });
+});
+
+app.post('/api/admin/users/recover-passwords', authRateLimiter, async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
+  const rows = await all("SELECT id, username, password, passwordEnc FROM users WHERE COALESCE(passwordEnc, '') = ''");
+  const recovered = [];
+  const unknown = [];
+  for (const row of rows || []) {
+    const name = String(row.username || '');
+    const normalized = normalizeHrUsernameCandidate(name);
+    const candidates = [...new Set([normalized + '@2026', name + '@2026', name.toLowerCase() + '@2026', name + '123', normalized + '123', 'chefsite15@123'])];
+    let found = '';
+    for (const candidate of candidates) {
+      if (await bcrypt.compare(candidate, String(row.password || ''))) { found = candidate; break; }
+    }
+    if (found) { await storeUserPasswordEnc(Number(row.id), found); recovered.push(name); } else unknown.push(name);
+  }
+  return res.json({ recovered, unknown });
 });
 
 app.post('/api/admin/users/:id/reveal-password', authRateLimiter, async (req, res) => {
@@ -9374,7 +9411,7 @@ app.post('/api/driver/tracking-sessions/start', async (req, res) => {
   const payload = req.body || {};
   const now = new Date();
   const startedAt = now.toISOString();
-  const expiresAt = new Date(now.getTime() + 12 * 60 * 60 * 1000).toISOString();
+  const expiresAt = '9999-12-31T23:59:59.999Z';
   const deviceName = String(payload.deviceName || req.headers['user-agent'] || 'Téléphone chauffeur').trim().slice(0, 120) || 'Téléphone chauffeur';
   const movingIntervalSeconds = normalizeDriverInterval(payload.movingIntervalSeconds, 10, 5, 300);
   const idleIntervalSeconds = normalizeDriverInterval(payload.idleIntervalSeconds, 60, 15, 900);

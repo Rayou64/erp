@@ -292,6 +292,15 @@
       }
     }
 
+    async function stopTrackingRemote() {
+      const token = tokenInput.value.trim();
+      if (!token) return;
+      try {
+        const response = await fetch('/api/gps/stop', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-device-token': token }, body: '{}' });
+        if (response.ok) setStatus('Suivi arrêté. Heure d\'arrêt enregistrée.', false);
+      } catch (_error) {}
+    }
+
     function stopTracking() {
       if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
@@ -319,6 +328,7 @@
 
       stopTracking();
       await acquireWakeLock();
+      setStatus('Autorisez la localisation pour activer le suivi…', false);
 
       watchId = navigator.geolocation.watchPosition(
         position => {
@@ -344,7 +354,7 @@
     }
 
     startBtn.addEventListener('click', startTracking);
-    stopBtn.addEventListener('click', stopTracking);
+    stopBtn.addEventListener('click', async () => { stopTracking(); await stopTrackingRemote(); });
     sendOnceBtn.addEventListener('click', () => sendLastPositionOnce(true));
 
     const params = new URLSearchParams(window.location.search);
@@ -354,6 +364,7 @@
     if (initialVehicleId) vehicleIdInput.value = initialVehicleId;
 
     updateMeta();
+    if (params.get('auto') === '1' && initialToken) startTracking();
   </script>
 </body>
 </html>
