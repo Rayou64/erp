@@ -12535,7 +12535,7 @@ function serializeCsvSet(values) {
 function getAccessProfileBaselineModules(role) {
   const normalizedRole = String(role || '').trim().toLowerCase();
   const presets = {
-    admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'assignments', 'materials', 'material-requests-tracking', 'inventory', 'stock-management', 'sortie-autorisations', 'purchase-orders', 'purchase-orders-tracking', 'material-catalog', 'parc-auto-maintenance', 'parc-auto-transport', 'maps', 'expenses', 'revenues', 'reports', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'users', 'settings', 'audit-log'],
+    admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'assignments', 'materials', 'material-requests-tracking', 'inventory', 'stock-management', 'sortie-autorisations', 'purchase-orders', 'purchase-orders-tracking', 'material-catalog', 'parc-auto-maintenance', 'parc-auto-transport', 'vehicles', 'maps', 'expenses', 'revenues', 'reports', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'users', 'settings', 'audit-log'],
     directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp'],
     dirigeant: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp'],
     commis: ['stock-management', 'inventory'],

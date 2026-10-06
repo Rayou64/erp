@@ -7996,6 +7996,7 @@
           <div class="menu-section-title">Parc Auto</div>
           <div class="menu-item" data-module="parc-auto-maintenance">🛠️ Maintenance et entretien</div>
           <div class="menu-item" data-module="parc-auto-transport">⛽ Coûts des transports</div>
+          <div class="menu-item" data-module="vehicles">🚚 Véhicules</div>
           <div class="menu-item" data-module="maps">🗺️ Maps</div>
           <div class="menu-item" data-module="driver-tracker">🚘 Mon véhicule</div>
           <div class="menu-item" data-module="driver-history">◷ Historique</div>
@@ -11951,7 +11952,77 @@
         </div>
 
         <!-- Maps Module -->
-        <div id="maps" class="module">
+        <div id="vehicles" class="module">
+        <style>
+          #vehicles .veh-head { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+          #vehicles .veh-head h1 { margin:0; font-size:24px; color:#10213a; }
+          #vehicles .veh-head p { margin:3px 0 0; color:#6a7b92; font-size:13px; }
+          #vehicles .veh-actions { display:flex; gap:8px; flex-wrap:wrap; }
+          #vehicles .veh-actions input { height:38px; min-width:240px; padding:0 12px; border:1px solid #d8e3f1; border-radius:8px; }
+          #vehicles .veh-btn { height:38px; padding:0 16px; border:0; border-radius:8px; background:#2878f5; color:#fff; font-weight:700; cursor:pointer; }
+          #vehicles .veh-btn.light { background:#fff; color:#2d4a70; border:1px solid #d8e3f1; }
+          #vehicles .veh-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+          #vehicles .veh-stat { display:flex; align-items:center; gap:12px; padding:14px; background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(20,40,80,.06); }
+          #vehicles .veh-stat b { display:block; font-size:26px; color:#10213a; line-height:1.1; }
+          #vehicles .veh-stat span.ico { display:grid; place-items:center; width:44px; height:44px; border-radius:10px; font-size:22px; background:#eaf2ff; }
+          #vehicles .veh-stat small { color:#6a7b92; }
+          #vehicles .veh-filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; align-items:center; }
+          #vehicles .veh-filters select { height:36px; padding:0 10px; border:1px solid #d8e3f1; border-radius:8px; background:#fff; }
+          #vehicles .veh-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; }
+          #vehicles .veh-card { display:flex; flex-direction:column; gap:8px; padding:12px; background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(20,40,80,.07); }
+          #vehicles .veh-pills { display:flex; flex-wrap:wrap; gap:5px; }
+          #vehicles .veh-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:99px; font-size:11px; font-weight:700; background:#e6f7ec; color:#16813d; }
+          #vehicles .veh-pill.idle { background:#e8f1ff; color:#2563c9; }
+          #vehicles .veh-pill.maintenance { background:#ffece3; color:#c4541a; }
+          #vehicles .veh-pill.offline { background:#eceff3; color:#5b6878; }
+          #vehicles .veh-pill.gps-on { background:#e6f7ec; color:#16813d; }
+          #vehicles .veh-pill.gps-off { background:#fdeaea; color:#c0392b; }
+          #vehicles .veh-photo { display:grid; place-items:center; height:120px; border-radius:8px; background:#f3f6fb; overflow:hidden; }
+          #vehicles .veh-photo svg { width:80px; height:80px; color:#9fb3cc; } #vehicles .veh-photo img { max-width:100%; max-height:120px; object-fit:contain; }
+          #vehicles .veh-name { display:flex; justify-content:space-between; gap:8px; font-weight:800; color:#10213a; }
+          #vehicles .veh-name small { color:#6a7b92; font-weight:600; }
+          #vehicles .veh-meta { color:#6a7b92; font-size:12px; }
+          #vehicles .veh-driver { padding:8px; border-radius:8px; background:#f6f9fd; font-size:12px; color:#2d4a70; }
+          #vehicles .veh-driver b { display:block; color:#10213a; font-size:13px; }
+          #vehicles .veh-card-actions { display:flex; gap:6px; margin-top:auto; }
+          #vehicles .veh-card-actions button { flex:1; height:34px; border:1px solid #d8e3f1; border-radius:8px; background:#fff; color:#2d4a70; font-weight:600; cursor:pointer; }
+          #vehicles .veh-table { width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; }
+          #vehicles .veh-table th, #vehicles .veh-table td { padding:10px 12px; text-align:left; border-bottom:1px solid #edf1f7; font-size:13px; }
+          #vehicles .veh-table th { background:#f5f8fd; color:#53627d; font-size:11px; text-transform:uppercase; }
+          #vehicles .veh-detail { padding:16px; background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(20,40,80,.07); }
+          #vehicles .veh-detail-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px 24px; margin-top:12px; }
+          #vehicles .veh-detail-grid div { font-size:13px; color:#10213a; } #vehicles .veh-detail-grid small { display:block; color:#6a7b92; font-size:11px; }
+          @media (max-width:800px) { #vehicles .veh-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } #vehicles .veh-detail-grid { grid-template-columns:1fr; } }
+        </style>
+        <div id="vehicles-overview">
+          <header class="veh-head">
+            <div><h1>Mes véhicules</h1><p>Gérez votre flotte de véhicules et leurs chauffeurs. Synchronisé avec Maps.</p></div>
+            <div class="veh-actions">
+              <input id="vehicles-search" type="search" placeholder="Rechercher un véhicule, un chauffeur, plaque…">
+              <button type="button" class="veh-btn" id="vehicles-add">+ Ajouter un véhicule</button>
+            </div>
+          </header>
+          <div class="veh-stats">
+            <div class="veh-stat"><span class="ico">🚚</span><div><small>Véhicules totaux</small><b id="vehicles-stat-total">0</b></div></div>
+            <div class="veh-stat"><span class="ico">▶️</span><div><small>En déplacement</small><b id="vehicles-stat-moving">0</b></div></div>
+            <div class="veh-stat"><span class="ico">⏸️</span><div><small>À l’arrêt</small><b id="vehicles-stat-idle">0</b></div></div>
+            <div class="veh-stat"><span class="ico">🔧</span><div><small>En maintenance</small><b id="vehicles-stat-maintenance">0</b></div></div>
+          </div>
+          <div class="veh-filters">
+            <select id="vehicles-filter-type"><option value="">Tous les types</option></select>
+            <select id="vehicles-filter-status"><option value="">Tous les statuts</option><option value="moving">En déplacement</option><option value="idle">À l’arrêt</option><option value="maintenance">En maintenance</option><option value="offline">Hors ligne</option></select>
+            <select id="vehicles-filter-driver"><option value="">Tous les chauffeurs</option></select>
+            <select id="vehicles-filter-tracking"><option value="">Suivi : tous</option><option value="on">Suivi activé</option><option value="off">Suivi désactivé</option></select>
+            <button type="button" class="veh-btn light" id="vehicles-reset">Réinitialiser</button>
+            <span style="flex:1"></span>
+            <button type="button" class="veh-btn" id="vehicles-view-cards">Cartes</button>
+            <button type="button" class="veh-btn light" id="vehicles-view-table">Tableau</button>
+          </div>
+          <div id="vehicles-content"></div>
+        </div>
+        <div id="vehicles-detail" class="veh-detail" hidden></div>
+      </div>
+      <div id="maps" class="module">
           <style>
             #maps { --maps-ink:#182b4b; --maps-muted:#70819a; --maps-line:#e4ebf5; --maps-blue:#2878f5; --maps-green:#17a875; --maps-orange:#ef982b; --maps-red:#ed5260; padding:12px; background:#f4f7fc; color:var(--maps-ink); }
             #maps > .page-header { display:none!important; }
@@ -13823,7 +13894,7 @@
     const ADMIN_ONLY_MODULES = new Set(['access-profiles', 'admin-mail']);
     const ACCESS_PROFILE_MODULE_OPTIONS = [
       'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'purchase-orders-tracking', 'stock-management', 'sortie-autorisations',
-      'material-catalog', 'material-requests-tracking', 'parc-auto', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees',
+      'material-catalog', 'material-requests-tracking', 'parc-auto', 'vehicles', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees',
       'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'users', 'settings', 'audit-log'
     ];
 
@@ -13848,6 +13919,7 @@
         'inventory': 'Inventaire',
         'journal-chantier': 'Journal chantier',
         'maps': 'Cartographie',
+        'vehicles': 'Véhicules',
         'material-catalog': 'Catalogue matériaux',
         'materials': 'Matériaux',
         'parc-auto': 'Parc auto',
@@ -14894,7 +14966,7 @@
                 <div style="min-width:0;">
                   <div class="maps-vehicle-name">${escapeHtml(buildAutoVehicleLabel(vehicle))}</div>
                   <div class="maps-vehicle-meta">${escapeHtml(vehicle.immatriculation || 'Plaque non renseignée')}</div>
-                  <div class="maps-vehicle-meta">${escapeHtml(vehicle.chauffeurNom || 'Chauffeur non affecté')} · ${lastLocation ? `Signal ${formatAutoLocationTimestamp(lastLocation.recordedAt)}` : 'Aucun signal'}</div>
+                  <div class="maps-vehicle-meta">${escapeHtml(vehicle.chauffeurNom || 'Chauffeur non affecté')}${getVehicleDriverInfo(vehicle).phone ? ` · 📞 ${escapeHtml(getVehicleDriverInfo(vehicle).phone)}` : ''} · ${isVehicleTrackingOn(vehicle) ? 'Suivi activé' : 'Suivi désactivé'} · ${lastLocation ? `Signal ${formatAutoLocationTimestamp(lastLocation.recordedAt)}` : 'Aucun signal'}</div>
                 </div>
                 <div><span class="maps-status-pill ${statusClass}">${escapeHtml(statusLabel)}</span><div class="maps-vehicle-live">${Number(lastLocation?.speedKph || 0).toFixed(0)} km/h</div></div>
                 <button type="button" class="maps-view-position" onclick="event.stopPropagation(); mapsSelectVehicle(${Number(vehicle.id)})">Voir position</button>
@@ -15175,6 +15247,179 @@
       overlay.setAttribute('aria-hidden', 'true');
     }
 
+    function getVehicleDriverInfo(vehicle) {
+      const employee = hrChauffeursCache.find(item => Number(item.id) === Number(vehicle?.chauffeurEmployeeId));
+      return {
+        name: String(vehicle?.chauffeurNom || employee?.fullName || '').trim(),
+        phone: String(employee?.phoneNumber || '').trim(),
+        email: String(employee?.email || '').trim(),
+      };
+    }
+
+    function isVehicleTrackingOn(vehicle) {
+      return Number(vehicle?.gpsActif || 0) === 1 || Boolean(vehicle?.trackingDevice?.isActive);
+    }
+
+    function getVehicleLiveStatus(vehicle) {
+      if (normalizeText(vehicle?.etatVehicule || '').includes('maintenance')) return 'maintenance';
+      const status = String(vehicle?.lastLocation?.status || '').toLowerCase();
+      if (status === 'moving' || status === 'idle' || status === 'maintenance') return status;
+      return 'offline';
+    }
+
+    const VEHICLE_STATUS_LABELS = { moving: 'En déplacement', idle: 'À l’arrêt', maintenance: 'En maintenance', offline: 'Hors ligne' };
+    let vehiclesModuleView = 'cards';
+
+    function getVehiclesModuleFiltered() {
+      const search = normalizeText(document.getElementById('vehicles-search')?.value || '');
+      const type = document.getElementById('vehicles-filter-type')?.value || '';
+      const status = document.getElementById('vehicles-filter-status')?.value || '';
+      const driver = document.getElementById('vehicles-filter-driver')?.value || '';
+      const tracking = document.getElementById('vehicles-filter-tracking')?.value || '';
+      return autoVehicleLocationsCache.filter(vehicle => {
+        const info = getVehicleDriverInfo(vehicle);
+        if (type && String(vehicle.typeVehicule || '') !== type) return false;
+        if (status && getVehicleLiveStatus(vehicle) !== status) return false;
+        if (driver && String(vehicle.chauffeurEmployeeId || '') !== driver) return false;
+        if (tracking && (tracking === 'on') !== isVehicleTrackingOn(vehicle)) return false;
+        if (!search) return true;
+        return normalizeText([vehicle.nomVehicule, vehicle.marqueVehicule, vehicle.immatriculation, vehicle.typeVehicule, info.name, info.phone].join(' ')).includes(search);
+      });
+    }
+
+    function vehicleImageHtml(vehicle) {
+      const src = vehicle.photoDataUrl || getVehicleIconByBrand(vehicle);
+      return src ? `<img src="${escapeHtml(src)}" alt="${escapeHtml(buildAutoVehicleLabel(vehicle))}">` : mapsVehiclePlaceholderSvg();
+    }
+
+    function vehiclePillsHtml(vehicle) {
+      const live = getVehicleLiveStatus(vehicle);
+      const on = isVehicleTrackingOn(vehicle);
+      return `<div class="veh-pills"><span class="veh-pill ${live === 'moving' ? '' : live}">${VEHICLE_STATUS_LABELS[live]}</span><span class="veh-pill ${on ? 'gps-on' : 'gps-off'}">${on ? '📡 Suivi activé' : '⭕ Suivi désactivé'}</span></div>`;
+    }
+
+    function renderVehiclesModule() {
+      const content = document.getElementById('vehicles-content');
+      if (!content) return;
+      const all = autoVehicleLocationsCache;
+      const setText = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = String(value); };
+      setText('vehicles-stat-total', all.length);
+      setText('vehicles-stat-moving', all.filter(v => getVehicleLiveStatus(v) === 'moving').length);
+      setText('vehicles-stat-idle', all.filter(v => getVehicleLiveStatus(v) === 'idle').length);
+      setText('vehicles-stat-maintenance', all.filter(v => getVehicleLiveStatus(v) === 'maintenance').length);
+
+      const typeSelect = document.getElementById('vehicles-filter-type');
+      if (typeSelect) {
+        const previous = typeSelect.value;
+        const types = Array.from(new Set(all.map(v => String(v.typeVehicule || '').trim()).filter(Boolean))).sort();
+        typeSelect.innerHTML = '<option value="">Tous les types</option>' + types.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+        typeSelect.value = types.includes(previous) ? previous : '';
+      }
+      const driverSelect = document.getElementById('vehicles-filter-driver');
+      if (driverSelect) {
+        const previous = driverSelect.value;
+        const drivers = all.filter(v => v.chauffeurEmployeeId);
+        driverSelect.innerHTML = '<option value="">Tous les chauffeurs</option>' + drivers.map(v => `<option value="${Number(v.chauffeurEmployeeId)}">${escapeHtml(getVehicleDriverInfo(v).name || 'Chauffeur')}</option>`).join('');
+        driverSelect.value = drivers.some(v => String(v.chauffeurEmployeeId) === previous) ? previous : '';
+      }
+
+      const vehicles = getVehiclesModuleFiltered();
+      if (!vehicles.length) {
+        content.innerHTML = '<div class="empty-state"><p>Aucun véhicule ne correspond aux filtres.</p></div>';
+        return;
+      }
+      if (vehiclesModuleView === 'table') {
+        content.innerHTML = `<table class="veh-table"><thead><tr><th>Véhicule</th><th>Plaque</th><th>Type</th><th>Chauffeur</th><th>Téléphone</th><th>Statut</th><th></th></tr></thead><tbody>${vehicles.map(vehicle => {
+          const info = getVehicleDriverInfo(vehicle);
+          return `<tr><td>${escapeHtml(buildAutoVehicleLabel(vehicle))}</td><td>${escapeHtml(vehicle.immatriculation || '—')}</td><td>${escapeHtml(vehicle.typeVehicule || '—')}</td><td>${escapeHtml(info.name || 'Non affecté')}</td><td>${escapeHtml(info.phone || '—')}</td><td>${vehiclePillsHtml(vehicle)}</td><td><button type="button" class="veh-btn light" onclick="vehiclesOpenDetail(${Number(vehicle.id)})">Détails</button></td></tr>`;
+        }).join('')}</tbody></table>`;
+        return;
+      }
+      content.innerHTML = `<div class="veh-grid">${vehicles.map(vehicle => {
+        const info = getVehicleDriverInfo(vehicle);
+        return `<div class="veh-card">
+          ${vehiclePillsHtml(vehicle)}
+          <div class="veh-photo">${vehicleImageHtml(vehicle)}</div>
+          <div class="veh-name"><span>${escapeHtml(buildAutoVehicleLabel(vehicle))}</span><small>${escapeHtml(vehicle.immatriculation || '')}</small></div>
+          <div class="veh-meta">${escapeHtml([vehicle.typeVehicule, vehicle.annee].filter(Boolean).join(' | ') || 'Véhicule')}</div>
+          <div class="veh-driver"><b>👤 ${escapeHtml(info.name || 'Chauffeur non affecté')}</b>${info.phone ? `📞 ${escapeHtml(info.phone)}` : 'Téléphone non renseigné'}</div>
+          <div class="veh-card-actions"><button type="button" onclick="vehiclesOpenDetail(${Number(vehicle.id)})">Voir détails</button><button type="button" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})">📍 Maps</button></div>
+        </div>`;
+      }).join('')}</div>`;
+    }
+
+    window.vehiclesOpenDetail = vehicleId => {
+      const vehicle = autoVehicleLocationsCache.find(item => Number(item.id) === Number(vehicleId));
+      const detail = document.getElementById('vehicles-detail');
+      if (!vehicle || !detail) return;
+      const info = getVehicleDriverInfo(vehicle);
+      const loc = vehicle.lastLocation;
+      const field = (label, value) => `<div><small>${label}</small>${escapeHtml(value || '—')}</div>`;
+      detail.innerHTML = `
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
+          <div><button type="button" class="veh-btn light" onclick="vehiclesCloseDetail()">← Mes véhicules</button></div>
+          <button type="button" class="veh-btn" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})">📍 Voir sur Maps</button>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:20px;margin-top:14px;">
+          <div class="veh-photo" style="height:200px;">${vehicleImageHtml(vehicle)}</div>
+          <div><h2 style="margin:0 0 6px;">${escapeHtml(buildAutoVehicleLabel(vehicle))}</h2>${vehiclePillsHtml(vehicle)}
+            <div class="veh-detail-grid">
+              ${field('Type de véhicule', vehicle.typeVehicule)}${field('Marque', vehicle.marqueVehicule)}
+              ${field('Plaque d’immatriculation', vehicle.immatriculation)}${field('Année', vehicle.annee)}
+              ${field('N° d’identification (VIN)', vehicle.numeroIdentification)}${field('Couleur', vehicle.couleur)}
+              ${field('État', vehicle.etatVehicule)}${field('Valeur', vehicle.valeurVehicule ? `${Number(vehicle.valeurVehicule).toLocaleString('fr-FR')} FCFA` : '')}
+              ${field('Chauffeur', info.name || 'Non affecté')}${field('Téléphone du chauffeur', info.phone)}
+              ${field('Email du chauffeur', info.email)}${field('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé')}
+              ${field('Dernier signal', loc ? formatAutoLocationTimestamp(loc.recordedAt) : 'Aucun signal')}${field('Vitesse', loc ? `${Number(loc.speedKph || 0).toFixed(0)} km/h` : '')}
+              ${field('Description', vehicle.description)}
+            </div>
+          </div>
+        </div>`;
+      document.getElementById('vehicles-overview').hidden = true;
+      detail.hidden = false;
+    };
+
+    window.vehiclesCloseDetail = () => {
+      document.getElementById('vehicles-detail').hidden = true;
+      document.getElementById('vehicles-overview').hidden = false;
+    };
+
+    window.vehiclesOpenOnMaps = async vehicleId => {
+      document.querySelector('.menu-item[data-module="maps"]')?.click();
+      await loadMapsModule();
+      await window.mapsSelectVehicle(vehicleId);
+    };
+
+    async function loadVehiclesModule() {
+      await loadParcAuto();
+      vehiclesCloseDetail();
+      renderVehiclesModule();
+    }
+
+    function bindVehiclesModule() {
+      ['vehicles-search', 'vehicles-filter-type', 'vehicles-filter-status', 'vehicles-filter-driver', 'vehicles-filter-tracking'].forEach(id => {
+        const node = document.getElementById(id);
+        node?.addEventListener(node.tagName === 'INPUT' ? 'input' : 'change', renderVehiclesModule);
+      });
+      document.getElementById('vehicles-reset')?.addEventListener('click', () => {
+        ['vehicles-search', 'vehicles-filter-type', 'vehicles-filter-status', 'vehicles-filter-driver', 'vehicles-filter-tracking'].forEach(id => { const node = document.getElementById(id); if (node) node.value = ''; });
+        renderVehiclesModule();
+      });
+      const setView = view => {
+        vehiclesModuleView = view;
+        document.getElementById('vehicles-view-cards')?.classList.toggle('light', view !== 'cards');
+        document.getElementById('vehicles-view-table')?.classList.toggle('light', view !== 'table');
+        renderVehiclesModule();
+      };
+      document.getElementById('vehicles-view-cards')?.addEventListener('click', () => setView('cards'));
+      document.getElementById('vehicles-view-table')?.addEventListener('click', () => setView('table'));
+      document.getElementById('vehicles-add')?.addEventListener('click', async () => {
+        document.querySelector('.menu-item[data-module="maps"]')?.click();
+        await loadMapsModule();
+        openMapsCreateDialog();
+      });
+    }
+    bindVehiclesModule();
     function openMapsCreateDialog() {
       populateVehicleChauffeurSelects();
       const form = document.getElementById('maps-create-form');
@@ -15395,7 +15640,7 @@
 
     function getVehicleIconByBrand(vehicle) {
       const normalize = value => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      const brand = normalize(vehicle?.marqueVehicule).replace(/^mercedes(-benz)?$/, 'mercedes-benz').replace(/^cat$/, 'caterpillar').replace(/^deere$/, 'john-deere').replace(/^chevy$/, 'chevrolet');
+      const brand = normalize(vehicle?.marqueVehicule).replace(/^mercedes(-benz)?$/, 'mercedes-benz').replace(/^cat$/, 'caterpillar').replace(/^deere$/, 'john-deere').replace(/^chevy$/, 'chevrolet').replace(/^(hilux|land-cruiser|landcruiser|corolla|hiace)$/, 'toyota');
       if (!brand) return '';
       const hint = normalize(`${vehicle?.typeVehicule || ''} ${vehicle?.nomVehicule || ''} ${vehicle?.description || ''}`);
       let order;
@@ -25291,6 +25536,7 @@
         'parc-auto': ['Parc Auto', 'Maintenance et entretien'],
         'parc-auto-maintenance': ['Parc Auto', 'Maintenance et entretien'],
         'parc-auto-transport': ['Parc Auto', 'Coûts des transports'],
+        vehicles: ['Parc Auto', 'Véhicules'],
         maps: ['Parc Auto', 'Maps'],
         'driver-tracker': ['Parc Auto', 'Mon véhicule'],
         'driver-history': ['Parc Auto', 'Historique'],
@@ -35871,6 +36117,7 @@
         else if (resolvedModule === 'purchase-orders-tracking') loadPurchaseOrdersTrackingModule();
         else if (resolvedModule === 'material-catalog') loadMaterialCatalog();
         else if (resolvedModule === 'parc-auto') loadParcAuto();
+        else if (resolvedModule === 'vehicles') loadVehiclesModule();
         else if (resolvedModule === 'maps') loadMapsModule();
         else if (resolvedModule === 'expenses') loadExpenses();
         else if (resolvedModule === 'revenues') loadRevenues();
