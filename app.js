@@ -11,6 +11,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+const webpush = require('web-push');
 const jwt = require('jsonwebtoken');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
@@ -2352,6 +2353,16 @@ async function initDb() {
   )`);
   console.log('[initDb] Table users créée');
   try { await run("ALTER TABLE users ADD COLUMN passwordEnc TEXT NOT NULL DEFAULT ''"); } catch (_e) {}
+  await run(`CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id INTEGER PRIMARY KEY,
+    userId INTEGER NOT NULL,
+    endpoint TEXT UNIQUE NOT NULL,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  )`);
+  await run('CREATE TABLE IF NOT EXISTS push_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
+  await ensurePushVapidKeys();
 
   await run(`CREATE TABLE IF NOT EXISTS internal_mail_conversations (
     id INTEGER PRIMARY KEY,
@@ -4735,8 +4746,90 @@ app.get('/api/auth/profile-stream', async (req, res) => {
   });
 });
 
+let pushVapid = null;
+
+async function ensurePushVapidKeys() {
+  let publicKey = String(process.env.VAPID_PUBLIC_KEY || '').trim();
+  let privateKey = String(process.env.VAPID_PRIVATE_KEY || '').trim();
+  if (!publicKey || !privateKey) {
+    const rows = await all("SELECT key, value FROM push_settings WHERE key IN ('vapidPublic', 'vapidPrivate')");
+    const stored = Object.fromEntries((rows || []).map(row => [row.key, row.value]));
+    publicKey = stored.vapidPublic || '';
+    privateKey = stored.vapidPrivate || '';
+    if (!publicKey || !privateKey) {
+      const generated = webpush.generateVAPIDKeys();
+      publicKey = generated.publicKey;
+      privateKey = generated.privateKey;
+      await run("INSERT INTO push_settings (key, value) VALUES ('vapidPublic', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", [publicKey]);
+      await run("INSERT INTO push_settings (key, value) VALUES ('vapidPrivate', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", [privateKey]);
+    }
+  }
+  webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:admin@ryanerp.local', publicKey, privateKey);
+  pushVapid = { publicKey };
+}
+
+async function sendPushToUsers(userIds, payload) {
+  if (!pushVapid) return;
+  const ids = Array.from(new Set((userIds || []).map(Number).filter(id => Number.isInteger(id) && id > 0)));
+  if (!ids.length) return;
+  const body = JSON.stringify(payload);
+  for (const userId of ids) {
+    let subscriptions = [];
+    try { subscriptions = await all('SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE userId = ?', [userId]); } catch (_e) { continue; }
+    for (const sub of subscriptions || []) {
+      try {
+        await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, body, { TTL: 86400, urgency: 'high' });
+      } catch (error) {
+        if (error?.statusCode === 404 || error?.statusCode === 410) {
+          await run('DELETE FROM push_subscriptions WHERE id = ?', [sub.id]).catch(() => {});
+        }
+      }
+    }
+  }
+}
+
+async function notifyInternalMailRecipients(senderId, userIds, conversationId, messageId, subject, body) {
+  try {
+    const sender = await get(`SELECT u.username, COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS senderName
+      FROM users u LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username)) WHERE u.id = ? LIMIT 1`, [Number(senderId)]);
+    const preview = String(body || '').replace(/\s+/g, ' ').trim().slice(0, 140);
+    await sendPushToUsers((userIds || []).filter(id => Number(id) !== Number(senderId)), {
+      title: `Nouveau message de ${String(sender?.senderName || 'Utilisateur')}`,
+      message: String(subject || '').trim() || preview || 'Vous avez reçu un message.',
+      module: 'internal-mail',
+      url: `/messaging.html?conversation=${Number(conversationId)}`,
+      tag: `internal-mail:${Number(messageId)}`,
+    });
+  } catch (_e) {
+    // Les notifications ne doivent jamais bloquer l'envoi du message.
+  }
+}
+
 app.get('/api/push/public-key', authenticateToken, async (_req, res) => {
-  res.json({ publicKey: String(process.env.VAPID_PUBLIC_KEY || '').trim(), enabled: Boolean(process.env.VAPID_PUBLIC_KEY) });
+  res.json({ publicKey: pushVapid?.publicKey || '', enabled: Boolean(pushVapid) });
+});
+
+app.post('/api/push/subscribe', authenticateToken, async (req, res) => {
+  const sub = req.body?.subscription || {};
+  const endpoint = String(sub.endpoint || '').trim();
+  const p256dh = String(sub.keys?.p256dh || '').trim();
+  const auth = String(sub.keys?.auth || '').trim();
+  if (!endpoint || !p256dh || !auth) return res.status(400).json({ error: 'Abonnement push invalide' });
+  const userId = Number(req.user?.id || 0);
+  const existing = await get('SELECT id FROM push_subscriptions WHERE endpoint = ?', [endpoint]);
+  if (existing) {
+    await run('UPDATE push_subscriptions SET userId = ?, p256dh = ?, auth = ? WHERE id = ?', [userId, p256dh, auth, existing.id]);
+  } else {
+    await run('INSERT INTO push_subscriptions (id, userId, endpoint, p256dh, auth, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
+      [await getNextTableId('push_subscriptions'), userId, endpoint, p256dh, auth, new Date().toISOString()]);
+  }
+  return res.json({ subscribed: true });
+});
+
+app.post('/api/push/unsubscribe', authenticateToken, async (req, res) => {
+  const endpoint = String(req.body?.endpoint || '').trim();
+  if (endpoint) await run('DELETE FROM push_subscriptions WHERE endpoint = ? AND userId = ?', [endpoint, Number(req.user?.id || 0)]);
+  return res.json({ subscribed: false });
 });
 
 app.post('/api/gps/ingest', async (req, res) => {
@@ -5091,6 +5184,7 @@ app.post('/api/internal-mail/conversations', async (req, res) => {
       if (!content) continue;
       await run('INSERT INTO internal_mail_attachments (id, messageId, fileName, mimeType, fileSize, contentBase64, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)', [await getNextTableId('internal_mail_attachments'), messageId, String(attachment.fileName || 'document'), String(attachment.mimeType || 'application/octet-stream'), Number(attachment.fileSize || 0), content, now]);
     }
+    if (status === 'sent') notifyInternalMailRecipients(sender.id, Array.from(recipientTypes.keys()), conversationId, messageId, subject, body);
     return res.status(201).json({ id: conversationId, message: status === 'draft' ? 'Brouillon enregistré' : 'Message envoyé' });
   } catch (error) {
     return res.status(500).json({ error: 'Erreur lors de l’enregistrement du message', details: String(error?.message || error) });
@@ -5129,6 +5223,7 @@ app.post('/api/internal-mail/conversations/:id/replies', async (req, res) => {
       await run('INSERT INTO internal_mail_attachments (id, messageId, fileName, mimeType, fileSize, contentBase64, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)', [await getNextTableId('internal_mail_attachments'), messageId, String(attachment.fileName || 'document'), String(attachment.mimeType || 'application/octet-stream'), Number(attachment.fileSize || 0), content, now]);
     }
     await run('UPDATE internal_mail_conversations SET updatedAt = ? WHERE id = ?', [now, conversationId]);
+    notifyInternalMailRecipients(senderId, finalRecipients, conversationId, messageId, conversation.subject, body);
     return res.status(201).json({ message: 'Réponse envoyée' });
   } catch (error) {
     return res.status(500).json({ error: 'Erreur lors de l’envoi de la réponse', details: String(error?.message || error) });

@@ -16256,8 +16256,19 @@
       if (driverTrackingUiOverride === 'starting') return;
       driverTrackingUiOverride = 'starting';
       driverUpdateVehicleSummary();
-      setDriverStatusMessage('Autorisation GPS en cours…');
+      setDriverStatusMessage('Autorisation des notifications en cours…');
       try {
+        if (typeof Notification !== 'undefined') {
+          if (Notification.permission === 'default') {
+            try { await Notification.requestPermission(); } catch (_) {}
+          }
+          if (Notification.permission === 'denied') {
+            throw new Error('Les notifications sont bloquées. Autorisez-les dans les réglages de l’appareil pour démarrer le suivi.');
+          }
+          pushSetupReady = false;
+          setupPushNotifications({ requestPermission: false }).catch(() => {});
+        }
+        setDriverStatusMessage('Autorisation GPS en cours…');
         await resolveDriverDestination();
         driverArrivalHandled = false;
         if (!navigator.geolocation) throw new Error('La géolocalisation n’est pas disponible sur cet appareil.');
@@ -37877,6 +37888,11 @@
       window.addEventListener('load', () => {
         ensureAppServiceWorkerRegistration();
       });
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data?.type === 'push-received') {
+          try { pollRealtimeNotifications(); } catch (_) {}
+        }
+      });
     }
 
     async function setupPushNotifications(options = {}) {
@@ -37942,7 +37958,7 @@
               url: payload.url || (payload.module ? `/erp.html?openModule=${encodeURIComponent(payload.module)}` : '/erp.html'),
               module: payload.module || 'dashboard',
             },
-            tag: payload.id || payload.module || 'erp-notification',
+            tag: payload.tag || payload.id || payload.module || 'erp-notification',
             renotify: false,
           });
         }
@@ -37970,7 +37986,7 @@
       if (notifications.length > 120) notifications = notifications.slice(0, 120);
       saveNotificationsToStorage();
       updateNotificationsUI();
-      dispatchSystemNotification({ id, title, message, module, url: options.url });
+      dispatchSystemNotification({ id, title, message, module, url: options.url, tag: options.sourceKey });
     }
 
     function updateNotificationsUI() {
@@ -38014,12 +38030,12 @@
     }
 
     async function pollRealtimeNotifications() {
-      if (String(currentUserRole || '').trim().toLowerCase() === 'chauffeur') return;
+      const isDriverRole = String(currentUserRole || '').trim().toLowerCase() === 'chauffeur';
       try {
         const [orders, auths, pendingSignatures, unreadMail] = await Promise.all([
-          fetchJson('/api/purchase-orders').catch(() => []),
-          fetchJson('/api/stock-issue-authorizations').catch(() => []),
-          fetchJson('/api/hr/employee-profile/pending-signatures').catch(() => []),
+          isDriverRole ? [] : fetchJson('/api/purchase-orders').catch(() => []),
+          isDriverRole ? [] : fetchJson('/api/stock-issue-authorizations').catch(() => []),
+          isDriverRole ? [] : fetchJson('/api/hr/employee-profile/pending-signatures').catch(() => []),
           fetchJson('/api/internal-mail/unread-count').catch(() => ({ items: [] })),
         ]);
         const poPending = Array.isArray(orders) ? orders.filter(o => String(o?.statut || '').toLowerCase().includes('attente')).length : 0;

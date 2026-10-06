@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'ryanerp-static-v1';
+const STATIC_CACHE = 'ryanerp-static-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -83,8 +83,10 @@ self.addEventListener('push', event => {
   const moduleName = String(data.module || 'dashboard').trim() || 'dashboard';
   const targetUrl = String(data.url || `/erp.html?openModule=${encodeURIComponent(moduleName)}`);
 
-  event.waitUntil(
-    self.registration.showNotification(title, {
+  event.waitUntil((async () => {
+    const openClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    openClients.forEach(client => { try { client.postMessage({ type: 'push-received', module: moduleName }); } catch (_) {} });
+    await self.registration.showNotification(title, {
       body,
       data: {
         url: targetUrl,
@@ -93,8 +95,9 @@ self.addEventListener('push', event => {
       tag: String(data.tag || `erp-${moduleName}`),
       renotify: false,
       requireInteraction: false,
-    })
-  );
+      vibrate: [200, 100, 200],
+    });
+  })());
 });
 
 self.addEventListener('notificationclick', event => {
