@@ -3626,6 +3626,14 @@ async function initDb() {
     await run('UPDATE users SET password = ?, role = ? WHERE username = ?', [parkManagerHashedPassword, 'admin', PARK_MANAGER_USERNAME]);
   }
 
+  // Les employés au poste Chauffeur doivent avoir le rôle chauffeur
+  await run(
+    `UPDATE users SET role = 'chauffeur'
+     WHERE role = 'employe_standard' AND LOWER(TRIM(username)) IN (
+       SELECT LOWER(TRIM(username)) FROM hr_employees WHERE LOWER(jobTitle) LIKE '%chauffeur%' AND TRIM(COALESCE(username, '')) <> ''
+     )`
+  );
+
   // Garantir un compte commis_stock toujours opérationnel (local + Railway)
   const commis = await get('SELECT id FROM users WHERE username = ?', [COMMIS_STOCK_USERNAME]);
 
