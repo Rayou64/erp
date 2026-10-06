@@ -3611,6 +3611,21 @@ async function initDb() {
     console.log(`Utilisateur ${HR_DIRECTOR_USERNAME} mis a jour avec role directeur_rh`);
   }
 
+  // Gestionnaire de parc auto: mêmes droits que admin (maintenance, coûts du transport, maps)
+  const PARK_MANAGER_USERNAME = process.env.PARK_MANAGER_USERNAME || 'gestionnaire_parc';
+  const PARK_MANAGER_PASSWORD = process.env.PARK_MANAGER_PASSWORD || 'park123';
+  const parkManager = await get('SELECT id FROM users WHERE username = ?', [PARK_MANAGER_USERNAME]);
+  const parkManagerHashedPassword = await bcrypt.hash(PARK_MANAGER_PASSWORD, 10);
+  if (!parkManager) {
+    const nextUserId = await getNextUserId();
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [nextUserId, PARK_MANAGER_USERNAME, parkManagerHashedPassword, 'admin', new Date().toISOString()]
+    );
+  } else {
+    await run('UPDATE users SET password = ?, role = ? WHERE username = ?', [parkManagerHashedPassword, 'admin', PARK_MANAGER_USERNAME]);
+  }
+
   // Garantir un compte commis_stock toujours opérationnel (local + Railway)
   const commis = await get('SELECT id FROM users WHERE username = ?', [COMMIS_STOCK_USERNAME]);
 
