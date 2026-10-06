@@ -14,7 +14,6 @@
       min-height: 100vh;
       padding: 14px;
     }
-    .back-arrow { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; margin:0 0 10px; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:24px; text-decoration:none; border:0; cursor:pointer; }
     .card {
       max-width: 720px;
       margin: 0 auto;
@@ -104,7 +103,6 @@
 <body>
   <div class="card">
     <button type="button" class="back-btn" id="tracker-back-btn" aria-label="Retour à l'étape précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Retour</button>
-    <a class="back-arrow" id="tracker-back" href="/erp.html" aria-label="Retour" title="Retour">&#8592;</a>
     <div class="brand">
       <div class="brand-logo">
         <img src="/assets/ryan-erp-logo-icon.png?v=20260627c" alt="Ryan ERP" />
@@ -377,6 +375,5 @@ document.getElementById('tracker-back-btn').addEventListener('click', function (
   window.location.href = '/erp.html';
 });
 </script>
-<script>document.getElementById('tracker-back').addEventListener('click',function(e){e.preventDefault();if(document.referrer&&history.length>1){history.back();}else{location.href='/erp.html';}});</script>
 </body>
 </html>
