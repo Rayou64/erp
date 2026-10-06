@@ -271,6 +271,10 @@
     }
 
     async function sendLastPositionOnce(force) {
+      if (!lastPosition && !force) {
+        setStatus('Recherche du signal GPS… (activez la localisation du téléphone et sortez à l\'air libre)', false);
+        return;
+      }
       try {
         await sendPosition(lastPosition, force);
       } catch (error) {
@@ -333,21 +337,40 @@
       await acquireWakeLock();
       setStatus('Autorisez la localisation pour activer le suivi…', false);
 
-      watchId = navigator.geolocation.watchPosition(
-        position => {
-          lastPosition = position;
-          updateMeta();
-          sendLastPositionOnce(false);
-        },
+      const onFix = position => {
+        lastPosition = position;
+        updateMeta();
+        sendLastPositionOnce(true);
+      };
+      const gpsErrorText = error => {
+        if (error && error.code === 1) return 'Localisation refusée : autorisez la position pour Ryan ERP dans les réglages du téléphone.';
+        if (error && error.code === 3) return 'Signal GPS lent, nouvelle tentative…';
+        return 'Signal GPS introuvable : activez la localisation (GPS) du téléphone puis réessayez.';
+      };
+      const startWatch = highAccuracy => {
+        if (watchId !== null && watchId !== undefined) navigator.geolocation.clearWatch(watchId);
+        watchId = navigator.geolocation.watchPosition(
+          position => {
+            lastPosition = position;
+            updateMeta();
+            sendLastPositionOnce(false);
+          },
+          error => {
+            setStatus(gpsErrorText(error), error && error.code === 1);
+            if (error && error.code !== 1 && highAccuracy) startWatch(false);
+          },
+          { enableHighAccuracy: highAccuracy, maximumAge: 10000, timeout: highAccuracy ? 20000 : 60000 }
+        );
+      };
+      navigator.geolocation.getCurrentPosition(
+        onFix,
         error => {
-          setStatus(`Erreur GPS: ${error.message}`, true);
+          setStatus(gpsErrorText(error), error && error.code === 1);
+          navigator.geolocation.getCurrentPosition(onFix, () => {}, { enableHighAccuracy: false, maximumAge: 600000, timeout: 30000 });
         },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 10000,
-          timeout: 20000,
-        }
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
       );
+      startWatch(true);
 
       sendTimer = setInterval(() => {
         sendLastPositionOnce(false);
