@@ -9727,30 +9727,52 @@ app.get('/api/auto-vehicle-locations', async (_req, res) => {
   });
   const deviceByVehicleId = new Map((devices || []).map(device => [Number(device.vehicleId), device]));
   const todayKey = new Date().toISOString().slice(0, 10);
-  const todayPoints = new Map();
+  const pointsByVehicle = new Map();
   rows.forEach(row => {
-    if (String(row.recordedAt || '').slice(0, 10) !== todayKey) return;
-    const list = todayPoints.get(Number(row.vehicleId)) || [];
-    list.push(row);
-    todayPoints.set(Number(row.vehicleId), list);
+    const list = pointsByVehicle.get(Number(row.vehicleId)) || [];
+    list.unshift(row);
+    pointsByVehicle.set(Number(row.vehicleId), list);
   });
-  const distanceTodayKm = vehicleId => {
-    const points = (todayPoints.get(Number(vehicleId)) || []).slice().reverse();
-    let total = 0;
+  const toRad = deg => Number(deg) * Math.PI / 180;
+  const vehicleStats = vehicleId => {
+    const points = pointsByVehicle.get(Number(vehicleId)) || [];
+    let totalKm = 0;
+    let todayKm = 0;
+    let movingMs = 0;
     for (let i = 1; i < points.length; i += 1) {
-      const toRad = deg => Number(deg) * Math.PI / 180;
       const dLat = toRad(points[i].latitude - points[i - 1].latitude);
       const dLon = toRad(points[i].longitude - points[i - 1].longitude);
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(points[i - 1].latitude)) * Math.cos(toRad(points[i].latitude)) * Math.sin(dLon / 2) ** 2;
-      const step = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      if (step < 5 && step > 0.005) total += step;
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(points[i - 1].latitude)) * Math.cos(toRad(points[i].latitude)) * Math.sin(dLon / 2) ** 2;
+      const step = 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+      const gapMs = new Date(points[i].recordedAt).getTime() - new Date(points[i - 1].recordedAt).getTime();
+      if (step < 5 && step > 0.005) {
+        totalKm += step;
+        if (String(points[i].recordedAt || '').slice(0, 10) === todayKey) todayKm += step;
+        if (gapMs > 0 && gapMs <= 10 * 60 * 1000) movingMs += gapMs;
+      }
     }
-    return Math.round(total * 10) / 10;
+    return {
+      distanceTodayKm: Math.round(todayKm * 10) / 10,
+      kilometrageGps: Math.round(totalKm * 10) / 10,
+      heuresGps: Math.round(movingMs / 3600000 * 10) / 10,
+    };
   };
+  const activeAssignments = await all(`
+    SELECT pa.employeeId, p.nomProjet, p.nomSite
+    FROM project_assignments pa JOIN projects p ON p.id = pa.projectId
+    WHERE pa.employeeId IS NOT NULL AND UPPER(COALESCE(pa.status, '')) = 'ACTIF'
+    ORDER BY pa.assignedAt DESC, pa.id DESC
+  `);
+  const assignmentByEmployee = new Map();
+  activeAssignments.forEach(item => {
+    if (!assignmentByEmployee.has(Number(item.employeeId))) assignmentByEmployee.set(Number(item.employeeId), item);
+  });
 
   res.json(vehicles.map(vehicle => ({
     ...vehicle,
-    distanceTodayKm: distanceTodayKm(vehicle.id),
+    ...vehicleStats(vehicle.id),
+    projetAuto: assignmentByEmployee.get(Number(vehicle.chauffeurEmployeeId))?.nomProjet || '',
+    siteAuto: assignmentByEmployee.get(Number(vehicle.chauffeurEmployeeId))?.nomSite || '',
     lastLocation: latestByVehicleId.get(Number(vehicle.id)) || null,
     trackingDevice: deviceByVehicleId.get(Number(vehicle.id)) || null,
   })));

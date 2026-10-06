@@ -12449,11 +12449,11 @@
                   <div class="form-group"><label for="maps-create-color">Couleur</label><select id="maps-create-color"><option>Blanc</option><option>Noir</option><option>Gris</option><option>Argent</option><option>Bleu</option><option>Rouge</option><option>Vert</option><option>Autre</option></select></div>
                   <div class="form-group"><label for="maps-create-status">Statut initial *</label><select id="maps-create-status" required><option>Disponible</option><option>En déplacement</option><option>En arrêt</option><option>Maintenance</option><option>Hors ligne</option></select></div>
                   <div class="form-group"><label for="maps-create-photo">Photo du véhicule (optionnel)</label><label class="maps-photo-picker" for="maps-create-photo"><img id="maps-create-photo-preview" alt="Aperçu du véhicule" hidden><span id="maps-create-photo-label">⇧<br>Cliquer pour ajouter une photo<br>PNG, JPG (max 5 Mo)</span></label><input id="maps-create-photo" type="file" accept="image/png,image/jpeg,image/webp" hidden></div>
-                  <div class="form-group"><label for="maps-create-km">Kilométrage (km)</label><input id="maps-create-km" type="number" min="0" step="1" placeholder="Ex: 120450"></div>
+                  <div class="form-group"><label for="maps-create-km">Kilométrage initial (km, optionnel – le GPS s’ajoute)</label><input id="maps-create-km" type="number" min="0" step="1" placeholder="Ex: 120450"></div>
                   <div class="form-group"><label for="maps-create-fuel">Carburant (%)</label><input id="maps-create-fuel" type="number" min="0" max="100" step="1" placeholder="Ex: 62"></div>
-                  <div class="form-group"><label for="maps-create-hours">Heures moteur</label><input id="maps-create-hours" type="number" min="0" step="1" placeholder="Ex: 5430"></div>
+                  <div class="form-group"><label for="maps-create-hours">Heures moteur initiales (optionnel – le GPS s’ajoute)</label><input id="maps-create-hours" type="number" min="0" step="1" placeholder="Ex: 5430"></div>
                   <div class="form-group"><label for="maps-create-cost">Coût d'acquisition (FCFA)</label><input id="maps-create-cost" type="number" min="0" step="1" placeholder="Ex: 85000000"></div>
-                  <div class="form-group"><label for="maps-create-project">Projet actuel</label><input id="maps-create-project" placeholder="Ex: Songon Kassemblé"></div>
+                  <div class="form-group"><label for="maps-create-project">Projet (si le chauffeur n’a pas d’assignation)</label><input id="maps-create-project" placeholder="Ex: Songon Kassemblé"></div>
                   <div class="form-group"><label for="maps-create-site">Site / Zone</label><input id="maps-create-site" placeholder="Ex: Site 3 - Zone A"></div>
                   <div class="form-group"><label for="maps-create-permit">Permis n° du chauffeur</label><input id="maps-create-permit" placeholder="Ex: 0123456789"></div>
                   <div class="form-group"><label for="maps-create-permit-exp">Expiration du permis</label><input id="maps-create-permit-exp" type="date"></div>
@@ -15371,7 +15371,7 @@
       const tracking = document.getElementById('vehicles-filter-tracking')?.value || '';
       return autoVehicleLocationsCache.filter(vehicle => {
         const info = getVehicleDriverInfo(vehicle);
-        if (project && String(vehicle.projetNom || '') !== project) return false;
+        if (project && vehicleProjectName(vehicle) !== project) return false;
         if (type && String(vehicle.typeVehicule || '') !== type) return false;
         if (status && getVehicleLiveStatus(vehicle) !== status) return false;
         if (driver && String(vehicle.chauffeurEmployeeId || '') !== driver) return false;
@@ -15430,6 +15430,10 @@
     let vehiclesSortAsc = true;
 
     function vehicleTitle(vehicle) { return [vehicle.marqueVehicule, vehicle.nomVehicule].filter(Boolean).join(' ') || buildAutoVehicleLabel(vehicle); }
+    function vehicleKm(vehicle) { return Math.round(((Number(vehicle.kilometrage) || 0) + (Number(vehicle.kilometrageGps) || 0)) * 10) / 10; }
+    function vehicleHours(vehicle) { return Math.round(((Number(vehicle.heuresMoteur) || 0) + (Number(vehicle.heuresGps) || 0)) * 10) / 10; }
+    function vehicleProjectName(vehicle) { return String(vehicle.projetAuto || vehicle.projetNom || '').trim(); }
+    function vehicleSiteName(vehicle) { return String(vehicle.projetAuto ? (vehicle.siteAuto || '') : (vehicle.siteZone || '')).trim(); }
     function vehicleExtraPhotos(vehicle) { try { const list = JSON.parse(vehicle.photosExtra || '[]'); return Array.isArray(list) ? list : []; } catch (error) { return []; } }
     function vehicleAvatarHtml(vehicle, info, cls) {
       return vehicle.chauffeurPhotoDataUrl ? `<img class="veh-avatar ${cls || ''}" src="${escapeHtml(vehicle.chauffeurPhotoDataUrl)}" alt="">` : `<span class="veh-avatar ${cls || ''}">${escapeHtml(vehicleInitials(info.name))}</span>`;
@@ -15440,7 +15444,7 @@
     function vehicleIsAvailable(vehicle) { const live = getVehicleLiveStatus(vehicle); return live === 'idle' || live === 'offline'; }
     function vehicleSiteLabel(vehicle) {
       const loc = vehicle.lastLocation;
-      if (vehicle.projetNom || vehicle.siteZone) return { project: vehicle.projetNom || '—', site: vehicle.siteZone || '—' };
+      if (vehicleProjectName(vehicle) || vehicleSiteName(vehicle)) return { project: vehicleProjectName(vehicle) || '—', site: vehicleSiteName(vehicle) || '—' };
       if (!loc) return { project: 'Aucune position', site: 'Suivi ' + (isVehicleTrackingOn(vehicle) ? 'activé' : 'désactivé') };
       return { project: String(loc.note || '').trim() || 'Dernière position', site: `${Number(loc.latitude).toFixed(4)}, ${Number(loc.longitude).toFixed(4)}` };
     }
@@ -15464,7 +15468,7 @@
       const projectSelect = document.getElementById('vehicles-filter-project');
       if (projectSelect) {
         const previous = projectSelect.value;
-        const projects = Array.from(new Set(all.map(v => String(v.projetNom || '').trim()).filter(Boolean))).sort();
+        const projects = Array.from(new Set(all.map(v => vehicleProjectName(v)).filter(Boolean))).sort();
         projectSelect.innerHTML = '<option value="">Tous les projets</option>' + projects.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
         projectSelect.value = projects.includes(previous) ? previous : '';
       }
@@ -15503,7 +15507,7 @@
           <div class="veh-body">
             <div class="veh-name"><span>${escapeHtml(vehicleTitle(vehicle))}</span><small>${vehicleCode(vehicle)}</small></div>
             <div class="veh-meta">${escapeHtml([vehicle.typeVehicule, vehicle.annee].filter(Boolean).join(' | ') || 'Véhicule')}</div>
-            <div class="veh-specs"><span>${vi('plate')}${escapeHtml(vehicle.immatriculation || '—')}</span><span>${vi('gauge')}${Number(vehicle.kilometrage || 0).toLocaleString('fr-FR')} km</span>${vehicleFuelHtml(vehicle)}</div>
+            <div class="veh-specs"><span>${vi('plate')}${escapeHtml(vehicle.immatriculation || '—')}</span><span>${vi('gauge')}${vehicleKm(vehicle).toLocaleString('fr-FR')} km</span>${Number(vehicle.carburantPct) > 0 ? vehicleFuelHtml(vehicle) : ''}</div>
             <div class="veh-driver">${vehicleAvatarHtml(vehicle, info)}<div><b>${escapeHtml(info.name || 'Non affecté')}</b><small>${escapeHtml(info.phone || 'Téléphone non renseigné')}</small></div></div>
             <div class="veh-proj">${VEHICLE_FOLDER_SVG}<div><b>${escapeHtml(site.project)}</b><small>${escapeHtml(site.site)}</small></div></div>
             <div class="veh-card-actions"><button type="button" onclick="vehiclesOpenDetail(${Number(vehicle.id)})">${vi('pin')}Voir détails</button><button type="button" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)})" title="Voir sur Maps">${vi('dots')}</button></div>
@@ -15535,7 +15539,7 @@
           ${field('Modèle', vehicle.nomVehicule, 'model')}${field('Année', vehicle.annee, 'year')}
           ${field('Plaque d’immatriculation', vehicle.immatriculation, 'plate')}${field('VIN / Châssis', vehicle.numeroIdentification, 'vin')}
           ${field('Couleur', vehicle.couleur, 'color')}${field('État', vehicle.etatVehicule, 'state')}
-          ${field('Kilométrage', vehicle.kilometrage ? `${Number(vehicle.kilometrage).toLocaleString('fr-FR')} km` : '', 'gauge')}${field('Carburant', vehicle.carburantPct ? `${Math.round(vehicle.carburantPct)} %` : '', 'fuel')}${field('Coût d’acquisition', vehicle.valeurVehicule ? `${Number(vehicle.valeurVehicule).toLocaleString('fr-FR')} FCFA` : '', 'cost')}${field('Projet actuel', vehicle.projetNom ? `${vehicle.projetNom}${vehicle.siteZone ? ' – ' + vehicle.siteZone : ''}` : '', 'folder')}
+          ${field('Kilométrage', `${vehicleKm(vehicle).toLocaleString('fr-FR')} km`, 'gauge')}${field('Carburant', vehicle.carburantPct ? `${Math.round(vehicle.carburantPct)} %` : '', 'fuel')}${field('Coût d’acquisition', vehicle.valeurVehicule ? `${Number(vehicle.valeurVehicule).toLocaleString('fr-FR')} FCFA` : '', 'cost')}${field('Projet actuel', vehicleProjectName(vehicle) ? `${vehicleProjectName(vehicle)}${vehicleSiteName(vehicle) ? ' – ' + vehicleSiteName(vehicle) : ''}` : '', 'folder')}
         </div>`;
       } else {
         target.innerHTML = '<p style="color:#7a8aa0;font-size:12px;">Aucune donnée disponible pour le moment.</p>';
@@ -15579,7 +15583,7 @@
             ${row('Projet', escapeHtml(site.project), 'folder')}
             ${row('Site / Zone', escapeHtml(site.site), 'pin')}
             ${row('Distance aujourd’hui', `${Number(vehicle.distanceTodayKm || 0).toLocaleString('fr-FR')} km`, 'route')}
-            ${row('Heures moteur', vehicle.heuresMoteur ? `${Number(vehicle.heuresMoteur).toLocaleString('fr-FR')} h` : '—', 'engine')}
+            ${row('Heures moteur', `${vehicleHours(vehicle).toLocaleString('fr-FR')} h`, 'engine')}
             ${row('Vitesse', loc ? `${Number(loc.speedKph || 0).toFixed(0)} km/h` : '—', 'gauge')}
             ${row('Suivi', isVehicleTrackingOn(vehicle) ? 'Activé' : 'Désactivé', 'signal')}
             ${row('Notes', escapeHtml(vehicle.description || '—'), 'note')}
