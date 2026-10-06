@@ -1955,6 +1955,12 @@
     /* ──────────────────────────────────────────────────────
        EXEC SUMMARY WIDGET  (résumé sous le dashboard classique)
     ────────────────────────────────────────────────────── */
+    .fleet-list { margin-top: 16px; display: grid; gap: 8px; }
+    .fleet-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.05); color: #e6eefc; font-size: 13px; cursor: pointer; }
+    .fleet-row small { display: block; color: #a4b7d6; margin-top: 2px; }
+    .fleet-pill { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+    .fleet-pill--on { background: rgba(110,199,86,0.2); color: #6ec756; }
+    .fleet-pill--off { background: rgba(255,107,107,0.18); color: #ff8a8a; }
     .exec-summary-widget {
       background: linear-gradient(135deg, #071322 0%, #0d1f38 60%, #0f2a45 100%);
       border: 1px solid rgba(75, 163, 255, 0.22);
@@ -8234,6 +8240,15 @@
               <h3 id="stat-hr-leave">0</h3>
               <p>En congé aujourd'hui</p>
             </div>
+          </div>
+
+          <div id="fleet-dashboard-widget" class="exec-summary-widget" style="display:none;">
+            <div class="esw-header">
+              <span class="esw-title" id="fleet-widget-title">🚚 Vue opérationnelle du parc auto</span>
+              <span class="esw-live-badge"><span class="esw-live-dot"></span>En direct</span>
+            </div>
+            <div class="esw-counters" id="fleet-counters"></div>
+            <div id="fleet-list" class="fleet-list"></div>
           </div>
 
           <!-- ── Résumé opérationnel (visible pour tous sauf dirigeant) ── -->
@@ -26408,8 +26423,83 @@
       }
     }
 
+    const FLEET_MODULE_KEYS = ['vehicles', 'maps', 'parc-auto-maintenance', 'parc-auto-transport', 'driver-tracker', 'driver-history', 'driver-settings'];
+
+    function isFleetOnlyProfile() {
+      if (String(currentUserRole || '').trim().toLowerCase() === 'chauffeur') return true;
+      const allowed = getAllowedModules();
+      const keys = Array.from(allowed || []).filter(key => key !== 'dashboard');
+      return keys.length > 0 && keys.every(key => FLEET_MODULE_KEYS.includes(key));
+    }
+
+    function fleetCounter(cls, value, label) {
+      return '<div class="esw-counter ' + cls + '"><span class="esw-counter-val">' + escapeHtml(String(value)) + '</span><span class="esw-counter-lbl">' + escapeHtml(label) + '</span></div>';
+    }
+
+    function fleetTime(iso) {
+      if (!iso) return '-';
+      const d = new Date(iso);
+      return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function loadFleetDashboard() {
+      const counters = document.getElementById('fleet-counters');
+      const list = document.getElementById('fleet-list');
+      const title = document.getElementById('fleet-widget-title');
+      if (!counters || !list) return;
+      const isDriver = String(currentUserRole || '').trim().toLowerCase() === 'chauffeur';
+      if (isDriver) {
+        if (title) title.textContent = '🚘 Mon véhicule en direct';
+        const [info, sess] = await Promise.all([
+          fetchJson('/api/driver/vehicle').catch(() => null),
+          fetchJson('/api/driver/tracking-sessions').catch(() => ({ sessions: [] })),
+        ]);
+        const vehicle = info?.vehicle;
+        if (!vehicle) {
+          counters.innerHTML = '';
+          list.innerHTML = '<div class="fleet-row">Aucun véhicule ne vous est affecté.</div>';
+          return;
+        }
+        const sessions = Array.isArray(sess?.sessions) ? sess.sessions : [];
+        const today = new Date().toISOString().slice(0, 10);
+        const todayCount = sessions.filter(x => String(x.startedAt || '').slice(0, 10) === today).length;
+        const active = !!info.activeSession;
+        counters.innerHTML = fleetCounter(active ? 'esw-counter--done' : 'esw-counter--delay', active ? 'Actif' : 'Arrêté', 'Suivi')
+          + fleetCounter('esw-counter--total', todayCount, "Suivis aujourd'hui")
+          + fleetCounter('esw-counter--active', vehicle.kilometrage ? Math.round(vehicle.kilometrage) + ' km' : '-', 'Kilométrage')
+          + fleetCounter('esw-counter--wait', vehicle.carburantPct ? Math.round(vehicle.carburantPct) + '%' : '-', 'Carburant');
+        const last = sessions[0];
+        list.innerHTML = '<div class="fleet-row" data-fleet-module="driver-tracker"><span>' + escapeHtml(vehicle.nomVehicule || '') + ' ' + escapeHtml(vehicle.immatriculation || '') + '<small>Dernier suivi : ' + escapeHtml(fleetTime(last?.startedAt)) + (last?.endedAt ? ' → ' + escapeHtml(fleetTime(last.endedAt)) : '') + '</small></span><span class="fleet-pill ' + (active ? 'fleet-pill--on' : 'fleet-pill--off') + '">' + (active ? 'Suivi activé' : 'Suivi désactivé') + '</span></div>';
+      } else {
+        if (title) title.textContent = '🚚 Vue opérationnelle du parc auto';
+        const vehicles = await fetchJson('/api/auto-vehicles').catch(() => []);
+        const rows = Array.isArray(vehicles) ? vehicles : [];
+        const on = rows.filter(v => Number(v.gpsActif) === 1).length;
+        const drivers = new Set(rows.map(v => String(v.chauffeurNom || '').trim()).filter(Boolean)).size;
+        counters.innerHTML = fleetCounter('esw-counter--total', rows.length, 'Véhicules')
+          + fleetCounter('esw-counter--done', on, 'Suivi activé')
+          + fleetCounter('esw-counter--delay', rows.length - on, 'Suivi désactivé')
+          + fleetCounter('esw-counter--active', drivers, 'Chauffeurs');
+        list.innerHTML = rows.length ? rows.slice(0, 12).map(v => '<div class="fleet-row" data-fleet-module="maps"><span>' + escapeHtml(v.nomVehicule || '') + ' · ' + escapeHtml(v.immatriculation || '') + '<small>' + escapeHtml(v.chauffeurNom || 'Sans chauffeur') + (v.projetNom ? ' · ' + escapeHtml(v.projetNom) : '') + '</small></span><span class="fleet-pill ' + (Number(v.gpsActif) === 1 ? 'fleet-pill--on' : 'fleet-pill--off') + '">' + (Number(v.gpsActif) === 1 ? 'Suivi activé' : 'Suivi désactivé') + '</span></div>').join('') : '<div class="fleet-row">Aucun véhicule enregistré.</div>';
+      }
+      list.querySelectorAll('[data-fleet-module]').forEach(row => {
+        row.addEventListener('click', () => document.querySelector('.menu-item[data-module="' + row.getAttribute('data-fleet-module') + '"]')?.click());
+      });
+    }
+
     async function loadDashboard() {
       try {
+        const fleetWidget = document.getElementById('fleet-dashboard-widget');
+        if (fleetWidget) fleetWidget.style.display = 'none';
+        if (isFleetOnlyProfile()) {
+          ['dashboard-classic-grid', 'hr-dashboard-grid', 'exec-summary-widget', 'executive-dashboard'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+          });
+          if (fleetWidget) fleetWidget.style.display = '';
+          await loadFleetDashboard();
+          return;
+        }
         const classicGrid = document.querySelector('#dashboard .dashboard-grid');
         const hrGrid = document.getElementById('hr-dashboard-grid');
         const executiveContainer = document.getElementById('executive-dashboard');
@@ -35805,6 +35895,15 @@
         modules: ['expenses', 'revenues', 'reports'],
       },
       {
+        key: 'parc',
+        label: 'Parc Auto',
+        icon: '🚚',
+        tone: 'construction',
+        description: 'Véhicules, suivi GPS, maintenance',
+        subtitle: 'Flotte, suivi des chauffeurs, maintenance et coûts de transport.',
+        modules: ['vehicles', 'maps', 'parc-auto-maintenance', 'parc-auto-transport', 'driver-tracker', 'driver-history', 'driver-settings'],
+      },
+      {
         key: 'rh',
         label: 'RH',
         icon: '👥',
@@ -35837,6 +35936,12 @@
       'purchase-orders': 'Commandes fournisseurs',
       'purchase-orders-tracking': 'Suivi detaille des BDC',
       'driver-tracker': 'Suivi GPS du véhicule affecté',
+      vehicles: 'Flotte, chauffeurs et état du suivi',
+      maps: 'Position des véhicules en direct',
+      'parc-auto-maintenance': 'Entretien et réparations',
+      'parc-auto-transport': 'Coûts de carburant et transport',
+      'driver-history': 'Trajets et heures de suivi',
+      'driver-settings': 'Fréquence GPS et mot de passe',
       'material-catalog': 'Catalogue des materiaux',
       expenses: 'Depenses et provisions',
       revenues: 'Recettes des projets',
