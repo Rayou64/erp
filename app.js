@@ -2977,6 +2977,13 @@ async function initDb() {
   try { await run("ALTER TABLE auto_vehicles ADD COLUMN immatriculation TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run("ALTER TABLE auto_vehicles ADD COLUMN chauffeurNom TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run('ALTER TABLE auto_vehicles ADD COLUMN gpsActif INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
+  try { await run('ALTER TABLE auto_vehicles ADD COLUMN chauffeurEmployeeId INTEGER'); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN annee TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN typeVehicule TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN numeroIdentification TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN description TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN couleur TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_vehicles ADD COLUMN photoDataUrl TEXT NOT NULL DEFAULT ''"); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_vehicle_locations (
     id INTEGER PRIMARY KEY,
@@ -3010,6 +3017,7 @@ async function initDb() {
   try { await run("ALTER TABLE auto_vehicle_locations ADD COLUMN recordedAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run("ALTER TABLE auto_vehicle_locations ADD COLUMN created_by TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run("ALTER TABLE auto_vehicle_locations ADD COLUMN createdBy TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run('ALTER TABLE auto_vehicle_locations ADD COLUMN trackingSessionId INTEGER'); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_tracking_devices (
     id INTEGER PRIMARY KEY,
@@ -3035,9 +3043,70 @@ async function initDb() {
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN lastLatitude REAL'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN lastLongitude REAL'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN lastSpeedKph REAL NOT NULL DEFAULT 0'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN movingIntervalSeconds INTEGER NOT NULL DEFAULT 20'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN idleIntervalSeconds INTEGER NOT NULL DEFAULT 120'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN createdBy TEXT NOT NULL DEFAULT "system"'); } catch (error) {}
   try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+
+  await run(`CREATE TABLE IF NOT EXISTS auto_tracking_sessions (
+    id INTEGER PRIMARY KEY,
+    vehicleId INTEGER NOT NULL,
+    chauffeurEmployeeId INTEGER NOT NULL,
+    deviceId INTEGER NOT NULL,
+    deviceName TEXT NOT NULL DEFAULT 'smartphone',
+    tokenHash TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    startPlace TEXT NOT NULL DEFAULT '',
+    destinationPlace TEXT NOT NULL DEFAULT '',
+    arrivalPlace TEXT NOT NULL DEFAULT '',
+    startLatitude REAL,
+    startLongitude REAL,
+    endLatitude REAL,
+    endLongitude REAL,
+    startedAt TEXT NOT NULL,
+    endedAt TEXT,
+    expiresAt TEXT NOT NULL,
+    movingIntervalSeconds INTEGER NOT NULL DEFAULT 20,
+    idleIntervalSeconds INTEGER NOT NULL DEFAULT 120,
+    createdBy TEXT NOT NULL DEFAULT '',
+    FOREIGN KEY(vehicleId) REFERENCES auto_vehicles(id) ON DELETE CASCADE
+  )`);
+  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN startPlace TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN destinationPlace TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN arrivalPlace TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN startLatitude REAL'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN startLongitude REAL'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN destinationLatitude REAL'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN destinationLongitude REAL'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN arrivedAtDestination INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN endLatitude REAL'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN endLongitude REAL'); } catch (error) {}
+  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN status TEXT NOT NULL DEFAULT 'active'"); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN endedAt TEXT'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN expiresAt TEXT NOT NULL DEFAULT ""'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN movingIntervalSeconds INTEGER NOT NULL DEFAULT 20'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN idleIntervalSeconds INTEGER NOT NULL DEFAULT 120'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN chauffeurEmployeeId INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
+  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN deviceId INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
+  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN deviceName TEXT NOT NULL DEFAULT 'smartphone'"); } catch (error) {}
+  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN tokenHash TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN startedAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN createdBy TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  await run('CREATE INDEX IF NOT EXISTS idx_auto_tracking_sessions_vehicle_started ON auto_tracking_sessions(vehicleId, startedAt DESC)');
+  await run('CREATE INDEX IF NOT EXISTS idx_auto_tracking_sessions_status_expiry ON auto_tracking_sessions(status, expiresAt)');
+  try { await run('CREATE UNIQUE INDEX IF NOT EXISTS idx_auto_tracking_sessions_token_hash ON auto_tracking_sessions(tokenHash)'); } catch (error) {}
+
+  await run(`CREATE TABLE IF NOT EXISTS auto_driver_settings (
+    id INTEGER PRIMARY KEY,
+    chauffeurEmployeeId INTEGER NOT NULL UNIQUE,
+    movingIntervalSeconds INTEGER NOT NULL DEFAULT 10,
+    idleIntervalSeconds INTEGER NOT NULL DEFAULT 60,
+    updatedAt TEXT NOT NULL DEFAULT ''
+  )`);
+  try { await run('ALTER TABLE auto_driver_settings ADD COLUMN movingIntervalSeconds INTEGER NOT NULL DEFAULT 10'); } catch (error) {}
+  try { await run('ALTER TABLE auto_driver_settings ADD COLUMN idleIntervalSeconds INTEGER NOT NULL DEFAULT 60'); } catch (error) {}
+  try { await run("ALTER TABLE auto_driver_settings ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_transport_costs (
     id INTEGER PRIMARY KEY,
@@ -3811,6 +3880,16 @@ function authenticateToken(req, res, next) {
 
 function authorizeRoleAccess(req, res, next) {
   const role = req.user && req.user.role;
+  if (role === 'chauffeur') {
+    const pathName = String(req.path || '');
+    const method = String(req.method || '').toUpperCase();
+    const allowed = (method === 'GET' && /^\/(auth\/me|driver\/vehicle|driver\/tracking-sessions)$/.test(pathName))
+      || (method === 'POST' && /^\/driver\/(tracking-device|tracking-sessions\/start|password)$/.test(pathName))
+      || (method === 'POST' && /^\/driver\/tracking-sessions\/\d+\/(?:resume|stop)$/.test(pathName))
+      || (method === 'PATCH' && /^\/driver\/settings$/.test(pathName))
+      || (method === 'DELETE' && /^\/driver\/tracking-device$/.test(pathName));
+    return allowed ? next() : res.status(403).json({ error: 'Accès limité au véhicule affecté' });
+  }
   if (
     role !== 'commis'
     && role !== 'gestionnaire_stock'
@@ -4332,6 +4411,7 @@ async function insertAutoVehicleLocationRecord({
   note = '',
   recordedAt,
   createdBy = 'system',
+  trackingSessionId = null,
 }) {
   const lat = Number(latitude);
   const lng = Number(longitude);
@@ -4372,8 +4452,9 @@ async function insertAutoVehicleLocationRecord({
       recorded_at,
       recordedAt,
       created_by,
-      createdBy
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      createdBy,
+      trackingSessionId
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
     [
       nextLocationId,
       Number(vehicleId),
@@ -4392,6 +4473,7 @@ async function insertAutoVehicleLocationRecord({
       effectiveRecordedAt,
       String(createdBy || 'system').trim() || 'system',
       String(createdBy || 'system').trim() || 'system',
+      Number(trackingSessionId || 0) || null,
     ]
   );
 
@@ -4554,6 +4636,20 @@ app.post('/api/gps/ingest', async (req, res) => {
     return res.status(401).json({ error: 'Token appareil invalide ou inactif' });
   }
 
+  const nowIso = new Date().toISOString();
+  const trackingSession = await get(
+    'SELECT id, status, expiresAt FROM auto_tracking_sessions WHERE tokenHash = ? AND deviceId = ? ORDER BY id DESC LIMIT 1',
+    [tokenHash, Number(device.id)]
+  );
+  if (trackingSession && (trackingSession.status !== 'active' || String(trackingSession.expiresAt || '') <= nowIso)) {
+    if (trackingSession.status === 'active') {
+      await run('UPDATE auto_tracking_sessions SET status = ?, endedAt = ? WHERE id = ?', ['expired', nowIso, Number(trackingSession.id)]);
+      await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE id = ?', [nowIso, Number(device.id)]);
+      await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(device.vehicleId)]);
+    }
+    return res.status(401).json({ error: 'Cette session de suivi est terminée ou expirée' });
+  }
+
   try {
     const location = await insertAutoVehicleLocationRecord({
       vehicleId: Number(device.vehicleId),
@@ -4567,7 +4663,20 @@ app.post('/api/gps/ingest', async (req, res) => {
       note,
       recordedAt,
       createdBy: `device:${String(device.deviceName || 'smartphone').trim()}`,
+      trackingSessionId: trackingSession?.id || null,
     });
+
+    if (trackingSession) {
+      const fallbackPlace = `Position GPS (${Number(location.latitude).toFixed(5)}, ${Number(location.longitude).toFixed(5)})`;
+      await run(
+        `UPDATE auto_tracking_sessions
+         SET startLatitude = COALESCE(startLatitude, ?),
+             startLongitude = COALESCE(startLongitude, ?),
+             startPlace = CASE WHEN TRIM(COALESCE(startPlace, '')) = '' THEN ? ELSE startPlace END
+         WHERE id = ?`,
+        [Number(location.latitude), Number(location.longitude), fallbackPlace, Number(trackingSession.id)]
+      );
+    }
 
     await run(
       'UPDATE auto_tracking_devices SET lastSeenAt = ?, lastLatitude = ?, lastLongitude = ?, lastSpeedKph = ?, updatedAt = ? WHERE id = ?',
@@ -5299,12 +5408,8 @@ app.get('/api/users', async (req, res) => {
       COALESCE(NULLIF(TRIM(u.username), ''), NULLIF(TRIM(he.username), ''), '') AS username,
       COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
       COALESCE(NULLIF(TRIM(he.fullName), ''), '') AS linkedEmployeeName,
-      CASE
-        WHEN u.id IS NULL THEN '-'
-        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' AND COALESCE(TRIM(u.role), '') = 'employe_standard' AND COALESCE(TRIM(u.username), '') <> '' THEN TRIM(u.username) || '@2026'
-        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' THEN '-'
-        ELSE COALESCE(NULLIF(TRIM(u.password), ''), '-')
-      END AS initialPasswordHint,
+      COALESCE(he.id, 0) AS linkedEmployeeId,
+      '-' AS initialPasswordHint,
       0 AS hasLoggedIn,
       '' AS firstLoginAt,
       '' AS lastLoginAt,
@@ -5319,11 +5424,8 @@ app.get('/api/users', async (req, res) => {
       COALESCE(NULLIF(TRIM(u.username), ''), '') AS username,
       COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
       '' AS linkedEmployeeName,
-      CASE
-        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' AND COALESCE(TRIM(u.role), '') = 'employe_standard' AND COALESCE(TRIM(u.username), '') <> '' THEN TRIM(u.username) || '@2026'
-        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' THEN '-'
-        ELSE COALESCE(NULLIF(TRIM(u.password), ''), '-')
-      END AS initialPasswordHint,
+      0 AS linkedEmployeeId,
+      '-' AS initialPasswordHint,
       0 AS hasLoggedIn,
       '' AS firstLoginAt,
       '' AS lastLoginAt,
@@ -5337,6 +5439,89 @@ app.get('/api/users', async (req, res) => {
     ORDER BY username
   `);
   res.json(rows);
+});
+
+function isAdminUser(req) {
+  return String(req.user?.role || '').trim().toLowerCase() === 'admin';
+}
+
+function getRoleForEmployeePosition(jobTitle, requestedRole) {
+  const title = normalizeTextValue(jobTitle || '');
+  if (title.includes('chauffeur')) return 'chauffeur';
+  const role = String(requestedRole || 'employe_standard').trim().toLowerCase();
+  const allowedRoles = new Set([
+    'admin', 'dirigeant', 'directeur_rh', 'achat', 'commis', 'controle_achat',
+    'controle_achat_global', 'chef_chantier_site', 'gestionnaire_stock',
+    'gestionnaire_stock_zone', 'gestionnaire_stock_songon', 'employe_standard',
+  ]);
+  return allowedRoles.has(role) ? role : 'employe_standard';
+}
+
+app.post('/api/admin/users', async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  const employeeId = Number(req.body?.employeeId || 0);
+  const username = String(req.body?.username || '').trim();
+  const password = String(req.body?.password || '');
+  if (!Number.isInteger(employeeId) || employeeId <= 0 || !/^[a-zA-Z0-9._-]{3,40}$/.test(username)) {
+    return res.status(400).json({ error: 'Employé et identifiant valide obligatoires' });
+  }
+  if (password.length < 6) return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
+
+  const employee = await get('SELECT id, fullName, jobTitle, username FROM hr_employees WHERE id = ?', [employeeId]);
+  if (!employee) return res.status(404).json({ error: 'Employé introuvable' });
+
+  const usernameOwner = await get('SELECT id FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [username]);
+  const linkedUser = String(employee.username || '').trim()
+    ? await get('SELECT id FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [employee.username])
+    : null;
+  if (usernameOwner && Number(usernameOwner.id) !== Number(linkedUser?.id || 0)) {
+    return res.status(409).json({ error: 'Cet identifiant est déjà utilisé par un autre compte' });
+  }
+  if (linkedUser && String(employee.username || '').trim().toLowerCase() !== username.toLowerCase()) {
+    return res.status(409).json({ error: 'Cet employé possède déjà un compte. Utilise l’action de changement de mot de passe.' });
+  }
+
+  const role = getRoleForEmployeePosition(employee.jobTitle, req.body?.role);
+  const passwordHash = await bcrypt.hash(password, 10);
+  const now = new Date().toISOString();
+  let userId = Number(linkedUser?.id || 0);
+  if (userId) {
+    await run('UPDATE users SET password = ?, role = ? WHERE id = ?', [passwordHash, role, userId]);
+  } else {
+    userId = await getNextTableId('users');
+    await run(
+      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
+      [userId, username, passwordHash, role, now]
+    );
+  }
+
+  await run('UPDATE hr_employees SET username = ?, updatedAt = ? WHERE id = ?', [username, now, employeeId]);
+  return res.status(linkedUser ? 200 : 201).json({
+    id: userId,
+    username,
+    role,
+    employeeId,
+    employeeName: String(employee.fullName || '').trim(),
+    message: linkedUser ? 'Compte mis à jour' : 'Compte créé',
+  });
+});
+
+app.patch('/api/admin/users/:id/password', async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  const userId = Number(req.params.id || 0);
+  const password = String(req.body?.password || '');
+  if (!Number.isInteger(userId) || userId <= 0) return res.status(400).json({ error: 'Compte invalide' });
+  if (password.length < 6) return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
+  const user = await get('SELECT id, username, role FROM users WHERE id = ?', [userId]);
+  if (!user) return res.status(404).json({ error: 'Compte utilisateur introuvable' });
+  const passwordHash = await bcrypt.hash(password, 10);
+  const employee = await get(
+    'SELECT jobTitle FROM hr_employees WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) ORDER BY id DESC LIMIT 1',
+    [String(user.username || '')]
+  );
+  const role = employee ? getRoleForEmployeePosition(employee.jobTitle, user.role) : user.role;
+  await run('UPDATE users SET password = ?, role = ? WHERE id = ?', [passwordHash, role, userId]);
+  return res.json({ id: userId, role, message: 'Mot de passe modifié' });
 });
 
 async function getMaterialCatalogTemplates() {
@@ -8841,6 +9026,341 @@ app.get('/api/reports/:reportType.:format', async (req, res) => {
   }
 });
 
+async function getDriverEmployeeAndVehicle(user) {
+  const username = String(user?.username || '').trim();
+  if (!username) return { employee: null, vehicle: null };
+  const employee = await get(
+    `SELECT id, fullName, jobTitle, phoneNumber, email, username
+     FROM hr_employees
+     WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))
+     ORDER BY id DESC LIMIT 1`,
+    [username]
+  );
+  if (!employee || !normalizeTextValue(employee.jobTitle || '').includes('chauffeur')) {
+    return { employee: employee || null, vehicle: null };
+  }
+  const vehicle = await get(
+    'SELECT * FROM auto_vehicles WHERE chauffeurEmployeeId = ? ORDER BY id DESC LIMIT 1',
+    [Number(employee.id)]
+  );
+  return { employee, vehicle: vehicle || null };
+}
+
+function normalizeDriverInterval(value, fallback, minimum, maximum) {
+  const number = Number(value);
+  return Number.isInteger(number) && number >= minimum && number <= maximum ? number : fallback;
+}
+
+async function getActiveDriverSession(vehicleId, employeeId) {
+  const now = new Date().toISOString();
+  const expired = await all(
+    `SELECT id, deviceId FROM auto_tracking_sessions
+     WHERE vehicleId = ? AND chauffeurEmployeeId = ? AND status = 'active' AND expiresAt <= ?`,
+    [Number(vehicleId), Number(employeeId), now]
+  );
+  for (const session of expired || []) {
+    await run('UPDATE auto_tracking_sessions SET status = ?, endedAt = ? WHERE id = ?', ['expired', now, Number(session.id)]);
+    await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE id = ?', [now, Number(session.deviceId)]);
+    await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(vehicleId)]);
+  }
+  return get(
+    `SELECT id, vehicleId, chauffeurEmployeeId, deviceId, deviceName, status, startPlace,
+            destinationPlace, destinationLatitude, destinationLongitude, arrivedAtDestination, arrivalPlace, startLatitude, startLongitude, endLatitude,
+            endLongitude, startedAt, endedAt, expiresAt, movingIntervalSeconds, idleIntervalSeconds
+     FROM auto_tracking_sessions
+     WHERE vehicleId = ? AND chauffeurEmployeeId = ? AND status = 'active' AND expiresAt > ?
+     ORDER BY startedAt DESC, id DESC LIMIT 1`,
+    [Number(vehicleId), Number(employeeId), now]
+  );
+}
+
+function getDriverDistanceKm(locations) {
+  const toRadians = value => value * Math.PI / 180;
+  let meters = 0;
+  for (let index = 1; index < locations.length; index += 1) {
+    const previous = locations[index - 1];
+    const current = locations[index];
+    const latDiff = toRadians(Number(current.latitude) - Number(previous.latitude));
+    const lngDiff = toRadians(Number(current.longitude) - Number(previous.longitude));
+    const a = Math.sin(latDiff / 2) ** 2
+      + Math.cos(toRadians(Number(previous.latitude))) * Math.cos(toRadians(Number(current.latitude))) * Math.sin(lngDiff / 2) ** 2;
+    meters += 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  return Math.round((meters / 1000) * 10) / 10;
+}
+
+app.post('/api/driver/tracking-sessions/start', async (req, res) => {
+  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
+  if (!employee) return res.status(403).json({ error: 'Aucune fiche employé liée à ce compte chauffeur' });
+  if (!vehicle) return res.status(404).json({ error: 'Aucun véhicule ne vous est affecté' });
+
+  const activeSession = await getActiveDriverSession(vehicle.id, employee.id);
+  if (activeSession) return res.status(409).json({ error: 'Un suivi est déjà actif pour ce véhicule' });
+
+  const payload = req.body || {};
+  const now = new Date();
+  const startedAt = now.toISOString();
+  const expiresAt = new Date(now.getTime() + 12 * 60 * 60 * 1000).toISOString();
+  const deviceName = String(payload.deviceName || req.headers['user-agent'] || 'Téléphone chauffeur').trim().slice(0, 120) || 'Téléphone chauffeur';
+  const movingIntervalSeconds = normalizeDriverInterval(payload.movingIntervalSeconds, 10, 5, 300);
+  const idleIntervalSeconds = normalizeDriverInterval(payload.idleIntervalSeconds, 60, 15, 900);
+  const token = generateTrackingToken();
+  const tokenHash = hashTrackingToken(token);
+  let device = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [Number(vehicle.id)]);
+  let deviceId = Number(device?.id || 0);
+
+  if (deviceId) {
+    await run(
+      `UPDATE auto_tracking_devices
+       SET deviceName = ?, tokenHash = ?, isActive = 1, movingIntervalSeconds = ?, idleIntervalSeconds = ?, updatedAt = ?
+       WHERE id = ?`,
+      [deviceName, tokenHash, movingIntervalSeconds, idleIntervalSeconds, startedAt, deviceId]
+    );
+  } else {
+    deviceId = await getNextTableId('auto_tracking_devices');
+    await run(
+      `INSERT INTO auto_tracking_devices
+       (id, vehicleId, deviceName, tokenHash, isActive, lastSpeedKph, movingIntervalSeconds, idleIntervalSeconds, createdBy, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, 1, 0, ?, ?, ?, ?, ?)`,
+      [deviceId, Number(vehicle.id), deviceName, tokenHash, movingIntervalSeconds, idleIntervalSeconds, String(req.user?.username || ''), startedAt, startedAt]
+    );
+  }
+
+  const sessionId = await getNextTableId('auto_tracking_sessions');
+  const startLatitude = Number.isFinite(Number(payload.latitude)) ? Number(payload.latitude) : null;
+  const startLongitude = Number.isFinite(Number(payload.longitude)) ? Number(payload.longitude) : null;
+  const startPlace = String(payload.startPlace || '').trim().slice(0, 180);
+  const destinationPlace = String(payload.destinationPlace || '').trim().slice(0, 180);
+  const hasDestinationCoords = destinationPlace && payload.destinationLatitude !== null && payload.destinationLatitude !== '' && payload.destinationLongitude !== null && payload.destinationLongitude !== '' && Number.isFinite(Number(payload.destinationLatitude)) && Number.isFinite(Number(payload.destinationLongitude));
+  const destinationLatitude = hasDestinationCoords ? Number(payload.destinationLatitude) : null;
+  const destinationLongitude = hasDestinationCoords ? Number(payload.destinationLongitude) : null;
+  await run(
+    `INSERT INTO auto_tracking_sessions
+     (id, vehicleId, chauffeurEmployeeId, deviceId, deviceName, tokenHash, status, startPlace, destinationPlace,
+      destinationLatitude, destinationLongitude, startLatitude, startLongitude, startedAt, expiresAt, movingIntervalSeconds, idleIntervalSeconds, createdBy)
+     VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [sessionId, Number(vehicle.id), Number(employee.id), deviceId, deviceName, tokenHash, startPlace, destinationPlace,
+      destinationLatitude, destinationLongitude, startLatitude, startLongitude, startedAt, expiresAt, movingIntervalSeconds, idleIntervalSeconds, String(req.user?.username || '')]
+  );
+  await run('UPDATE auto_vehicles SET gpsActif = 1 WHERE id = ?', [Number(vehicle.id)]);
+
+  return res.status(201).json({
+    session: { id: sessionId, vehicleId: Number(vehicle.id), chauffeurEmployeeId: Number(employee.id), deviceId, deviceName,
+      status: 'active', startPlace, destinationPlace, destinationLatitude, destinationLongitude, startedAt, expiresAt, movingIntervalSeconds, idleIntervalSeconds },
+    deviceToken: token,
+    ingestUrl: `${req.protocol}://${req.get('host')}/api/gps/ingest`,
+  });
+});
+
+app.post('/api/driver/tracking-sessions/:id/resume', async (req, res) => {
+  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
+  if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
+  const sessionId = Number(req.params.id || 0);
+  const now = new Date().toISOString();
+  const session = await get(
+    `SELECT id, vehicleId, chauffeurEmployeeId, deviceId, deviceName, status, expiresAt,
+            startPlace, destinationPlace, destinationLatitude, destinationLongitude, startedAt, movingIntervalSeconds, idleIntervalSeconds
+     FROM auto_tracking_sessions WHERE id = ? AND vehicleId = ? AND chauffeurEmployeeId = ? LIMIT 1`,
+    [sessionId, Number(vehicle.id), Number(employee.id)]
+  );
+  if (!session || session.status !== 'active' || String(session.expiresAt || '') <= now) {
+    if (session?.status === 'active') {
+      await run("UPDATE auto_tracking_sessions SET status = 'expired', endedAt = ? WHERE id = ?", [now, sessionId]);
+      await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE id = ?', [now, Number(session.deviceId)]);
+      await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(vehicle.id)]);
+    }
+    return res.status(410).json({ error: 'Cette session de suivi est terminée ou expirée' });
+  }
+  const token = generateTrackingToken();
+  const tokenHash = hashTrackingToken(token);
+  await run('UPDATE auto_tracking_sessions SET tokenHash = ? WHERE id = ?', [tokenHash, sessionId]);
+  await run('UPDATE auto_tracking_devices SET tokenHash = ?, isActive = 1, updatedAt = ? WHERE id = ?', [tokenHash, now, Number(session.deviceId)]);
+  return res.json({ session, deviceToken: token, ingestUrl: `${req.protocol}://${req.get('host')}/api/gps/ingest` });
+});
+
+app.post('/api/driver/tracking-sessions/:id/stop', async (req, res) => {
+  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
+  if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
+  const sessionId = Number(req.params.id || 0);
+  const session = await get(
+    `SELECT id, deviceId, status FROM auto_tracking_sessions
+     WHERE id = ? AND vehicleId = ? AND chauffeurEmployeeId = ? LIMIT 1`,
+    [sessionId, Number(vehicle.id), Number(employee.id)]
+  );
+  if (!session) return res.status(404).json({ error: 'Session de suivi introuvable' });
+  if (session.status !== 'active') return res.status(409).json({ error: 'Cette session est déjà terminée' });
+  const now = new Date().toISOString();
+  let endLatitude = Number(req.body?.latitude);
+  let endLongitude = Number(req.body?.longitude);
+  if (!Number.isFinite(endLatitude) || !Number.isFinite(endLongitude)) {
+    const last = await get(
+      `SELECT latitude, longitude FROM auto_vehicle_locations
+       WHERE trackingSessionId = ? ORDER BY recorded_at DESC, id DESC LIMIT 1`,
+      [sessionId]
+    );
+    endLatitude = Number(last?.latitude);
+    endLongitude = Number(last?.longitude);
+  }
+  const hasEndPosition = Number.isFinite(endLatitude) && Number.isFinite(endLongitude);
+  const arrivalPlace = String(req.body?.arrivalPlace || (hasEndPosition ? `Position GPS (${endLatitude.toFixed(5)}, ${endLongitude.toFixed(5)})` : '')).trim().slice(0, 180);
+  await run(
+    `UPDATE auto_tracking_sessions SET status = 'completed', endedAt = ?, arrivalPlace = ?,
+     endLatitude = ?, endLongitude = ?, arrivedAtDestination = ? WHERE id = ?`,
+    [now, arrivalPlace, hasEndPosition ? endLatitude : null, hasEndPosition ? endLongitude : null, req.body?.arrived === true ? 1 : 0, sessionId]
+  );
+  await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE id = ?', [now, Number(session.deviceId)]);
+  await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(vehicle.id)]);
+  return res.json({ message: 'Trajet terminé', sessionId, endedAt: now, arrivalPlace });
+});
+
+app.get('/api/driver/tracking-sessions', async (req, res) => {
+  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
+  if (!employee) return res.status(403).json({ error: 'Aucune fiche employé liée à ce compte chauffeur' });
+  if (!vehicle) return res.status(404).json({ error: 'Aucun véhicule ne vous est affecté' });
+  const from = String(req.query.from || '').trim();
+  const to = String(req.query.to || '').trim();
+  const sessions = await all(
+    `SELECT id, vehicleId, chauffeurEmployeeId, deviceName, status, startPlace, destinationPlace,
+            destinationLatitude, destinationLongitude, arrivedAtDestination, arrivalPlace, startLatitude, startLongitude, endLatitude, endLongitude, startedAt, endedAt,
+            expiresAt, movingIntervalSeconds, idleIntervalSeconds
+     FROM auto_tracking_sessions
+     WHERE vehicleId = ? AND chauffeurEmployeeId = ?
+       AND (? = '' OR substr(startedAt, 1, 10) >= ?)
+       AND (? = '' OR substr(startedAt, 1, 10) <= ?)
+     ORDER BY startedAt DESC, id DESC LIMIT 500`,
+    [Number(vehicle.id), Number(employee.id), from, from, to, to]
+  );
+  const results = [];
+  for (const session of sessions || []) {
+    const locations = await all(
+      `SELECT id, latitude, longitude, speed_kph AS speedKph, accuracy_meters AS accuracyMeters,
+              status, recorded_at AS recordedAt
+       FROM auto_vehicle_locations WHERE trackingSessionId = ? ORDER BY recorded_at ASC, id ASC LIMIT 10000`,
+      [Number(session.id)]
+    );
+    results.push({ ...session, locations: locations || [], distanceKm: getDriverDistanceKm(locations || []) });
+  }
+  return res.json({ employee, vehicle, sessions: results });
+});
+
+app.patch('/api/driver/settings', async (req, res) => {
+  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
+  if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
+  const movingIntervalSeconds = normalizeDriverInterval(req.body?.movingIntervalSeconds, 10, 5, 300);
+  const idleIntervalSeconds = normalizeDriverInterval(req.body?.idleIntervalSeconds, 60, 15, 900);
+  const now = new Date().toISOString();
+  const existingSettings = await get('SELECT id FROM auto_driver_settings WHERE chauffeurEmployeeId = ? LIMIT 1', [Number(employee.id)]);
+  if (existingSettings) {
+    await run('UPDATE auto_driver_settings SET movingIntervalSeconds = ?, idleIntervalSeconds = ?, updatedAt = ? WHERE chauffeurEmployeeId = ?',
+      [movingIntervalSeconds, idleIntervalSeconds, now, Number(employee.id)]);
+  } else {
+    await run('INSERT INTO auto_driver_settings (id, chauffeurEmployeeId, movingIntervalSeconds, idleIntervalSeconds, updatedAt) VALUES (?, ?, ?, ?, ?)',
+      [await getNextTableId('auto_driver_settings'), Number(employee.id), movingIntervalSeconds, idleIntervalSeconds, now]);
+  }
+  const device = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [Number(vehicle.id)]);
+  if (device) {
+    await run('UPDATE auto_tracking_devices SET movingIntervalSeconds = ?, idleIntervalSeconds = ?, updatedAt = ? WHERE id = ?',
+      [movingIntervalSeconds, idleIntervalSeconds, now, Number(device.id)]);
+    await run("UPDATE auto_tracking_sessions SET movingIntervalSeconds = ?, idleIntervalSeconds = ? WHERE vehicleId = ? AND chauffeurEmployeeId = ? AND status = 'active'",
+      [movingIntervalSeconds, idleIntervalSeconds, Number(vehicle.id), Number(employee.id)]);
+  }
+  return res.json({ movingIntervalSeconds, idleIntervalSeconds, saved: true });
+});
+
+app.post('/api/driver/password', async (req, res) => {
+  const userId = Number(req.user?.id || 0);
+  const currentPassword = String(req.body?.currentPassword || '');
+  const newPassword = String(req.body?.newPassword || '');
+  if (newPassword.length < 8) return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 8 caractères' });
+  const user = await get('SELECT id, password FROM users WHERE id = ? LIMIT 1', [userId]);
+  if (!user || !(await bcrypt.compare(currentPassword, String(user.password || '')))) {
+    return res.status(400).json({ error: 'Mot de passe actuel incorrect' });
+  }
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  await run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+  return res.json({ message: 'Mot de passe modifié' });
+});
+
+async function createAutoTrackingDevice(vehicle, createdBy, deviceName = 'smartphone', req) {
+  const vehicleId = Number(vehicle.id);
+  const rawToken = generateTrackingToken();
+  const tokenHash = hashTrackingToken(rawToken);
+  const now = new Date().toISOString();
+  const existing = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [vehicleId]);
+  if (existing) {
+    await run(
+      'UPDATE auto_tracking_devices SET deviceName = ?, tokenHash = ?, isActive = 1, updatedAt = ? WHERE vehicleId = ?',
+      [String(deviceName || 'smartphone').trim() || 'smartphone', tokenHash, now, vehicleId]
+    );
+  } else {
+    const nextDeviceId = await getNextTableId('auto_tracking_devices');
+    await run(
+      'INSERT INTO auto_tracking_devices (id, vehicleId, deviceName, tokenHash, isActive, createdBy, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [nextDeviceId, vehicleId, String(deviceName || 'smartphone').trim() || 'smartphone', tokenHash, 1, String(createdBy || 'admin'), now, now]
+    );
+  }
+  await run('UPDATE auto_vehicles SET gpsActif = 1 WHERE id = ?', [vehicleId]);
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  const trackerUrl = `${baseUrl}/tracker.html?vehicleId=${vehicleId}&token=${encodeURIComponent(rawToken)}`;
+  return {
+    vehicleId,
+    deviceName: String(deviceName || 'smartphone').trim() || 'smartphone',
+    token: rawToken,
+    ingestUrl: `${baseUrl}/api/gps/ingest`,
+    trackerUrl,
+    note: 'Conserve ce token de manière sécurisée. Il ne sera plus affiché en clair.',
+  };
+}
+
+app.get('/api/driver/vehicle', async (req, res) => {
+  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
+  if (!employee) return res.status(403).json({ error: 'Aucune fiche employé liée à ce compte chauffeur' });
+  if (!vehicle) return res.status(404).json({ error: 'Aucun véhicule ne vous est affecté' });
+  const latest = await get(
+        `SELECT id, vehicle_id AS vehicleId, latitude, longitude, speed_kph AS speedKph,
+          heading, accuracy_meters AS accuracyMeters, source, status, note, recorded_at AS recordedAt,
+          trackingSessionId
+     FROM auto_vehicle_locations WHERE vehicle_id = ? ORDER BY recorded_at DESC, id DESC LIMIT 1`,
+    [Number(vehicle.id)]
+  );
+  const locations = await all(
+        `SELECT id, vehicle_id AS vehicleId, latitude, longitude, speed_kph AS speedKph,
+          heading, accuracy_meters AS accuracyMeters, source, status, note, recorded_at AS recordedAt,
+          trackingSessionId
+     FROM auto_vehicle_locations WHERE vehicle_id = ? ORDER BY recorded_at DESC, id DESC LIMIT 100`,
+    [Number(vehicle.id)]
+  );
+  const device = await get(
+    'SELECT id, deviceName, isActive, lastSeenAt, lastLatitude, lastLongitude, lastSpeedKph, movingIntervalSeconds, idleIntervalSeconds FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1',
+    [Number(vehicle.id)]
+  );
+  const activeSession = await getActiveDriverSession(vehicle.id, employee.id);
+  const settings = await get('SELECT movingIntervalSeconds, idleIntervalSeconds FROM auto_driver_settings WHERE chauffeurEmployeeId = ? LIMIT 1', [Number(employee.id)]);
+  return res.json({ employee, vehicle, lastLocation: latest || null, locations: locations || [], device: device || null,
+    activeSession: activeSession || null,
+    settings: settings || { movingIntervalSeconds: Number(device?.movingIntervalSeconds || 10), idleIntervalSeconds: Number(device?.idleIntervalSeconds || 60) } });
+});
+
+app.post('/api/driver/tracking-device', async (req, res) => {
+  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
+  if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
+  const payload = await createAutoTrackingDevice(vehicle, req.user?.username, 'smartphone', req);
+  return res.status(201).json(payload);
+});
+
+app.delete('/api/driver/tracking-device', async (req, res) => {
+  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
+  if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
+  const device = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [Number(vehicle.id)]);
+  if (!device) return res.status(404).json({ error: 'Aucun suivi actif pour ce véhicule' });
+  const now = new Date().toISOString();
+  await run("UPDATE auto_tracking_sessions SET status = 'revoked', endedAt = ? WHERE vehicleId = ? AND chauffeurEmployeeId = ? AND status = 'active'",
+    [now, Number(vehicle.id), Number(employee.id)]);
+  await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE vehicleId = ?', [now, Number(vehicle.id)]);
+  await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(vehicle.id)]);
+  return res.json({ message: 'Suivi désactivé' });
+});
+
 app.get('/api/auto-vehicles', async (_req, res) => {
   const rows = await all('SELECT * FROM auto_vehicles ORDER BY createdAt DESC, id DESC');
   res.json(rows);
@@ -8936,35 +9456,87 @@ app.delete('/api/auto-maintenance-records/:id', async (req, res) => {
 });
 
 app.post('/api/auto-vehicles', async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Création de véhicule réservée à l’admin' });
   const {
     nomVehicule = '',
     marqueVehicule = '',
     immatriculation = '',
     chauffeurNom = '',
+    chauffeurEmployeeId = null,
     gpsActif = false,
     valeurVehicule,
     etatVehicule = '',
+    annee = '',
+    typeVehicule = '',
+    numeroIdentification = '',
+    description = '',
+    couleur = '',
+    photoDataUrl = '',
   } = req.body || {};
 
   const nom = String(nomVehicule).trim();
   const marque = String(marqueVehicule).trim();
   const plaque = String(immatriculation).trim();
   const chauffeur = String(chauffeurNom).trim();
+  const driverEmployeeId = Number(chauffeurEmployeeId || 0) || null;
   const etat = String(etatVehicule).trim();
-  const valeur = Number(valeurVehicule);
+  const valeur = Number(valeurVehicule || 0);
   const gpsEnabled = gpsActif ? 1 : 0;
+  const photo = String(photoDataUrl || '').trim();
 
-  if (!nom || !marque || !etat || Number.isNaN(valeur) || valeur < 0) {
+  if (!nom || !marque || Number.isNaN(valeur) || valeur < 0) {
     return res.status(400).json({ error: 'Nom, marque, valeur et etat du vehicule sont obligatoires' });
   }
+  if (photo.length > 900000 || (photo && !/^data:image\/(png|jpeg|webp);base64,/.test(photo))) {
+    return res.status(400).json({ error: 'Photo invalide ou trop volumineuse (max. 650 Ko)' });
+  }
+  if (driverEmployeeId) {
+    const driver = await get('SELECT id, fullName, jobTitle FROM hr_employees WHERE id = ?', [driverEmployeeId]);
+    if (!driver || !normalizeTextValue(driver.jobTitle || '').includes('chauffeur')) {
+      return res.status(400).json({ error: 'Sélectionne un employé dont le poste est Chauffeur' });
+    }
+    const existingAssignment = await get('SELECT id FROM auto_vehicles WHERE chauffeurEmployeeId = ? LIMIT 1', [driverEmployeeId]);
+    if (existingAssignment) return res.status(409).json({ error: 'Ce chauffeur est déjà affecté à un véhicule' });
+  }
 
-  const result = await run(
-    'INSERT INTO auto_vehicles (nomVehicule, marqueVehicule, immatriculation, chauffeurNom, gpsActif, valeurVehicule, etatVehicule, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [nom, marque, plaque, chauffeur, gpsEnabled, valeur, etat, new Date().toISOString()]
+  const resolvedDriverName = driverEmployeeId
+    ? String((await get('SELECT fullName FROM hr_employees WHERE id = ?', [driverEmployeeId]))?.fullName || chauffeur).trim()
+    : chauffeur;
+  const vehicleId = await getNextTableId('auto_vehicles');
+  await run(
+    `INSERT INTO auto_vehicles
+      (id, nomVehicule, marqueVehicule, immatriculation, chauffeurNom, gpsActif, valeurVehicule, etatVehicule, createdAt,
+       chauffeurEmployeeId, annee, typeVehicule, numeroIdentification, description, couleur, photoDataUrl)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [vehicleId, nom, marque, plaque, resolvedDriverName, gpsEnabled, valeur, etat || 'Disponible', new Date().toISOString(),
+      driverEmployeeId, String(annee || '').trim(), String(typeVehicule || '').trim(), String(numeroIdentification || '').trim(),
+      String(description || '').trim(), String(couleur || '').trim(), photo]
   );
 
-  const vehicle = await get('SELECT * FROM auto_vehicles WHERE id = ?', [result.lastID]);
+  const vehicle = await get('SELECT * FROM auto_vehicles WHERE id = ?', [vehicleId]);
   res.status(201).json(vehicle);
+});
+
+app.patch('/api/auto-vehicles/:id/assignment', async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  const vehicleId = Number(req.params.id || 0);
+  const employeeId = Number(req.body?.chauffeurEmployeeId || 0) || null;
+  if (!Number.isInteger(vehicleId) || vehicleId <= 0) return res.status(400).json({ error: 'Véhicule invalide' });
+  const vehicle = await get('SELECT id FROM auto_vehicles WHERE id = ?', [vehicleId]);
+  if (!vehicle) return res.status(404).json({ error: 'Véhicule introuvable' });
+
+  let employee = null;
+  if (employeeId) {
+    employee = await get('SELECT id, fullName, jobTitle FROM hr_employees WHERE id = ?', [employeeId]);
+    if (!employee || !normalizeTextValue(employee.jobTitle || '').includes('chauffeur')) {
+      return res.status(400).json({ error: 'Sélectionne un employé dont le poste est Chauffeur' });
+    }
+    const assignedElsewhere = await get('SELECT id FROM auto_vehicles WHERE chauffeurEmployeeId = ? AND id <> ? LIMIT 1', [employeeId, vehicleId]);
+    if (assignedElsewhere) return res.status(409).json({ error: 'Ce chauffeur est déjà affecté à un autre véhicule' });
+  }
+
+  await run('UPDATE auto_vehicles SET chauffeurEmployeeId = ?, chauffeurNom = ? WHERE id = ?', [employeeId, String(employee?.fullName || '').trim(), vehicleId]);
+  return res.json({ vehicleId, chauffeurEmployeeId: employeeId, chauffeurNom: String(employee?.fullName || '').trim() });
 });
 
 app.get('/api/auto-vehicles/:id/tracking-device', async (req, res) => {
@@ -8997,41 +9569,8 @@ app.post('/api/auto-vehicles/:id/tracking-device', async (req, res) => {
   if (!vehicle) {
     return res.status(404).json({ error: 'Vehicule non trouve' });
   }
-
-  const rawToken = generateTrackingToken();
-  const tokenHash = hashTrackingToken(rawToken);
-  const now = new Date().toISOString();
-  const existing = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [id]);
-
-  if (existing) {
-    await run(
-      'UPDATE auto_tracking_devices SET deviceName = ?, tokenHash = ?, isActive = 1, updatedAt = ? WHERE vehicleId = ?',
-      [deviceName, tokenHash, now, id]
-    );
-  } else {
-    const nextDeviceIdRow = await get('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM auto_tracking_devices');
-    const nextDeviceId = Number(nextDeviceIdRow?.nextId || 1);
-
-    await run(
-      'INSERT INTO auto_tracking_devices (id, vehicleId, deviceName, tokenHash, isActive, createdBy, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [nextDeviceId, id, deviceName, tokenHash, 1, req.user.username, now, now]
-    );
-  }
-
-  await run('UPDATE auto_vehicles SET gpsActif = 1 WHERE id = ?', [id]);
-
-  const trackerPath = '/tracker.html';
-  const baseUrl = `${req.protocol}://${req.get('host')}`;
-  const trackerUrl = `${baseUrl}${trackerPath}?vehicleId=${id}&token=${encodeURIComponent(rawToken)}`;
-
-  res.status(201).json({
-    vehicleId: id,
-    deviceName,
-    token: rawToken,
-    ingestUrl: `${baseUrl}/api/gps/ingest`,
-    trackerUrl,
-    note: 'Conserve ce token de maniere securisee. Il ne sera plus affiché en clair.',
-  });
+  const payload = await createAutoTrackingDevice(vehicle, req.user?.username, deviceName, req);
+  res.status(201).json(payload);
 });
 
 app.delete('/api/auto-vehicles/:id/tracking-device', async (req, res) => {
@@ -9050,7 +9589,7 @@ app.delete('/api/auto-vehicles/:id/tracking-device', async (req, res) => {
 });
 
 app.get('/api/auto-vehicle-locations', async (_req, res) => {
-  const [vehicles, rows] = await Promise.all([
+  const [vehicles, rows, devices] = await Promise.all([
     all('SELECT * FROM auto_vehicles ORDER BY createdAt DESC, id DESC'),
     all(`
       SELECT
@@ -9069,6 +9608,7 @@ app.get('/api/auto-vehicle-locations', async (_req, res) => {
       FROM auto_vehicle_locations
       ORDER BY recorded_at DESC, id DESC
     `),
+    all('SELECT id, vehicleId, deviceName, isActive, lastSeenAt, createdAt, updatedAt FROM auto_tracking_devices'),
   ]);
 
   const latestByVehicleId = new Map();
@@ -9078,16 +9618,18 @@ app.get('/api/auto-vehicle-locations', async (_req, res) => {
       latestByVehicleId.set(vehicleId, row);
     }
   });
+  const deviceByVehicleId = new Map((devices || []).map(device => [Number(device.vehicleId), device]));
 
   res.json(vehicles.map(vehicle => ({
     ...vehicle,
     lastLocation: latestByVehicleId.get(Number(vehicle.id)) || null,
+    trackingDevice: deviceByVehicleId.get(Number(vehicle.id)) || null,
   })));
 });
 
 app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
   const id = Number(req.params.id);
-  const limit = Math.min(Math.max(Number(req.query.limit || 25), 1), 200);
+  const limit = Math.min(Math.max(Number(req.query.limit || 25), 1), 5000);
 
   if (!id) {
     return res.status(400).json({ error: 'ID vehicule invalide' });
@@ -9098,6 +9640,12 @@ app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
     return res.status(404).json({ error: 'Vehicule non trouve' });
   }
 
+  const trackingDevice = await get(
+    'SELECT id, vehicleId, deviceName, isActive, lastSeenAt, createdAt, updatedAt FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1',
+    [id]
+  );
+  const trackingStartAt = String(trackingDevice?.createdAt || '').trim();
+  const fromTrackingStart = String(req.query.fromTrackingStart || '') === '1' && Boolean(trackingStartAt);
   const rows = await all(
     `SELECT
       id,
@@ -9114,13 +9662,15 @@ app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
       created_by AS createdBy
     FROM auto_vehicle_locations
     WHERE vehicle_id = ?
+      AND (? = 0 OR recorded_at >= ?)
     ORDER BY recorded_at DESC, id DESC
     LIMIT ?`,
-    [id, limit]
+    [id, fromTrackingStart ? 1 : 0, trackingStartAt, limit]
   );
 
   res.json({
     vehicle,
+    trackingDevice: trackingDevice || null,
     locations: rows,
   });
 });

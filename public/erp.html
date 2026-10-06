@@ -7997,6 +7997,9 @@
           <div class="menu-item" data-module="parc-auto-maintenance">🛠️ Maintenance et entretien</div>
           <div class="menu-item" data-module="parc-auto-transport">⛽ Coûts des transports</div>
           <div class="menu-item" data-module="maps">🗺️ Maps</div>
+          <div class="menu-item" data-module="driver-tracker">🚘 Mon véhicule</div>
+          <div class="menu-item" data-module="driver-history">◷ Historique</div>
+          <div class="menu-item" data-module="driver-settings">⚙ Paramètres</div>
         </div>
 
         <!-- Comptabilité -->
@@ -8061,32 +8064,20 @@
             <button id="internal-mail-launch" class="internal-mail-launch" type="button" title="Ouvrir la messagerie interne" aria-label="Ouvrir la messagerie interne">
               <img src="/assets/Messagerie%20interne.png" alt="Messagerie interne" />
             </button>
-            <button id="notif-bell-btn" title="Notifications">
-              🔔
-              <span id="notif-badge" class="notif-badge">0</span>
-            </button>
+            <button id="notif-bell-btn" title="Notifications">🔔<span id="notif-badge" class="notif-badge">0</span></button>
             <div id="notif-dropdown" class="notif-dropdown">
-              <div class="notif-header">
-                <span>Notifications</span>
-                <div class="notif-actions">
-                  <span id="notif-test" class="notif-test">Test</span>
-                  <span id="notif-clear" class="notif-clear">Vider</span>
-                </div>
-              </div>
+              <div class="notif-header"><span>Notifications</span><div class="notif-actions"><span id="notif-test" class="notif-test">Test</span><span id="notif-clear" class="notif-clear">Vider</span></div></div>
               <div id="notif-list" class="notif-list"></div>
             </div>
           </div>
           <button id="theme-toggle" class="button button-secondary button-small" title="Basculer mode sombre/clair">🌙</button>
           <div class="topbar-user-actions">
             <button id="logout-button" class="button topbar-logout-btn" type="button" title="Déconnexion">Déconnexion</button>
-            <div class="topbar-right-brand" aria-hidden="true">
-              <img src="/assets/ryan-erp-logo-icon.png?v=20260627c" alt="Ryan ERP" />
-            </div>
+            <div class="topbar-right-brand" aria-hidden="true"><img src="/assets/ryan-erp-logo-icon.png?v=20260627c" alt="Ryan ERP" /></div>
             <span id="username" style="display:none">Admin</span>
           </div>
         </div>
       </div>
-
       <!-- Content Area -->
       <div class="content-area">
         <div id="mobile-module-topbar" class="mobile-module-topbar">
@@ -11882,7 +11873,7 @@
                 </div>
                 <div class="form-group">
                   <label>Chauffeur affecté</label>
-                  <input type="text" id="auto-vehicle-driver" placeholder="Ex: Koffi Yao" />
+                  <select id="auto-vehicle-driver"><option value="">Aucun chauffeur</option></select>
                 </div>
                 <div class="form-group">
                   <label>Valeur de la voiture (FCFA) *</label>
@@ -11961,42 +11952,254 @@
 
         <!-- Maps Module -->
         <div id="maps" class="module">
-          <div class="page-header">
-            <h1>Maps</h1>
-            <p>Centre de suivi GPS des véhicules et historique des positions</p>
+          <style>
+            #maps { --maps-ink:#182b4b; --maps-muted:#70819a; --maps-line:#e4ebf5; --maps-blue:#2878f5; --maps-green:#17a875; --maps-orange:#ef982b; --maps-red:#ed5260; padding:12px; background:#f4f7fc; color:var(--maps-ink); }
+            #maps > .page-header { display:none!important; }
+            #maps .maps-page-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+            #maps .maps-page-head h1 { margin:0; color:#162b4c; font:750 21px/1.15 'Manrope','DM Sans',sans-serif; }
+            #maps .maps-page-head p { margin-top:4px; color:#75859c; font-size:10px; }
+            #maps .maps-add-vehicle { display:flex; align-items:center; gap:7px; min-height:38px; padding:0 13px; border:0; border-radius:7px; background:linear-gradient(105deg,#465ff0,#1f9be8); color:#fff; font-size:10px; font-weight:700; cursor:pointer; }
+            #maps .maps-statbar { display:grid; grid-template-columns:repeat(4,minmax(110px,1fr)) auto; gap:9px; margin:0 0 11px; }
+            #maps .maps-statbar .stat-card { display:flex; align-items:center; gap:10px; min-width:0; min-height:56px; margin:0; padding:8px 10px; border:1px solid #e6edf6; border-radius:8px; background:linear-gradient(180deg,#fff,#f9fbff); box-shadow:0 3px 10px rgba(31,55,99,.035); }
+            #maps .maps-stat-icon { display:grid; width:32px; height:32px; flex:none; place-items:center; border-radius:50%; background:#e9f1ff; color:#2878f5; font-size:15px; }
+            #maps .maps-statbar .stat-card:nth-child(2) .maps-stat-icon { background:#e4f8ef; color:#12a573; }
+            #maps .maps-statbar .stat-card:nth-child(3) .maps-stat-icon { background:#fff1dd; color:#e18a18; }
+            #maps .maps-statbar .stat-card:nth-child(4) .maps-stat-icon { background:#ffeaec; color:#df4d5b; }
+            #maps .maps-statbar .stat-card h3 { margin:0; color:#192d4c; font-size:16px; line-height:1; }
+            #maps .maps-statbar .stat-card p { margin:4px 0 0; color:#6e809a; font-size:8px; line-height:1.25; }
+            #maps .maps-overview-layout { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(330px,1fr); gap:10px; align-items:stretch; }
+            #maps .maps-main-card,#maps .maps-vehicles-card,#maps .maps-detail-panel { min-width:0; padding:11px; border:1px solid #e2eaf5; border-radius:9px; background:#fff; box-shadow:0 5px 16px rgba(31,55,99,.045); }
+            #maps .maps-panel-head { display:flex; justify-content:space-between; align-items:center; gap:9px; margin-bottom:8px; }
+            #maps .maps-panel-head h2 { margin:0; color:#1a3153; font:700 12px/1.2 'Manrope','DM Sans',sans-serif; }
+            #maps .maps-panel-head p { margin:3px 0 0; color:#7788a0; font-size:8px; }
+            #maps .maps-toolbar { display:flex; align-items:center; gap:5px; }
+            #maps .maps-toolbar .button { min-height:27px; padding:0 8px; font-size:8px; }
+            #maps .map-canvas-wrapper { height:310px; border-radius:7px; overflow:hidden; }
+            #maps .maps-map-footer { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:7px; color:#697b94; font-size:8px; }
+            #maps .maps-map-footer a { color:#286ee7!important; font-size:8px!important; }
+            #maps .maps-follow-tools { display:grid; grid-template-columns:minmax(0,1fr) 110px auto; gap:6px; margin-bottom:7px; }
+            #maps .maps-follow-tools input,#maps .maps-follow-tools select,#maps .maps-follow-tools button { width:100%; min-width:0; height:30px; padding:0 8px; border:1px solid #dfe7f1; border-radius:6px; background:#fff; color:#50647f; font-size:8px; }
+            #maps .maps-follow-tools button { color:#3276dd; cursor:pointer; }
+            #maps #maps-vehicles-list { display:grid; gap:5px; max-height:318px; overflow:auto; margin:0; padding:0; list-style:none; }
+            #maps .maps-vehicle-row { display:grid; grid-template-columns:42px minmax(0,1fr) auto auto 24px; align-items:center; gap:5px; min-width:0; padding:6px 6px; border:1px solid #e8edf5; border-radius:7px; background:#fff; cursor:pointer; }
+            #maps .maps-vehicle-row.selected { border-color:#80aaff; box-shadow:0 0 0 1px rgba(40,120,245,.12); }
+            #maps .maps-vehicle-thumb { width:45px; height:36px; display:grid; place-items:center; overflow:hidden; border-radius:5px; background:#f0f4fa; color:#6b7e99; font-size:22px; }
+            #maps .maps-vehicle-thumb img { width:100%; height:100%; object-fit:cover; }
+            #maps .maps-vehicle-name { overflow:hidden; color:#233957; font-size:9px; font-weight:750; text-overflow:ellipsis; white-space:nowrap; }
+            #maps .maps-vehicle-meta { margin-top:2px; overflow:hidden; color:#7c8ba0; font-size:7px; text-overflow:ellipsis; white-space:nowrap; }
+            #maps .maps-vehicle-live { color:#61748f; font-size:7px; white-space:nowrap; }
+            #maps .maps-status-pill { display:inline-flex; align-items:center; gap:4px; padding:4px 6px; border-radius:99px; background:#e3f7eb; color:#168a56; font-size:7px; font-weight:750; white-space:nowrap; }
+            #maps .maps-status-pill::before { width:5px; height:5px; border-radius:50%; background:currentColor; content:''; }
+            #maps .maps-status-pill.idle { background:#fff2df; color:#ce7d13; }
+            #maps .maps-status-pill.offline { background:#ffeaec; color:#cb3948; }
+            #maps .maps-status-pill.maintenance { background:#eeeaff; color:#7056cd; }
+            #maps .maps-view-position { min-height:26px; padding:0 8px; border:0; border-radius:5px; background:#2878f5; color:#fff; font-size:7px; font-weight:700; white-space:nowrap; cursor:pointer; }
+            #maps .maps-more-button { width:25px; height:25px; border:1px solid #e1e9f3; border-radius:6px; background:#fff; color:#536985; cursor:pointer; }
+            #maps .maps-detail-view[hidden],#maps .maps-overview-view[hidden] { display:none!important; }
+            #maps .maps-detail-top { display:flex; align-items:center; gap:13px; margin-bottom:9px; padding:9px 11px; border:1px solid #e2eaf5; border-radius:8px; background:#fff; }
+            #maps .maps-detail-photo { width:94px; height:55px; display:grid; flex:none; place-items:center; overflow:hidden; border-radius:6px; background:#f0f4fa; font-size:29px; }
+            #maps .maps-detail-photo img { width:100%; height:100%; object-fit:cover; }
+            #maps .maps-detail-ident { min-width:160px; }
+            #maps .maps-detail-ident h2 { margin:0; color:#1c3152; font-size:12px; }
+            #maps .maps-detail-ident p { margin:3px 0 0; color:#60748f; font-size:9px; }
+            #maps .maps-driver-assignment { display:flex; align-items:center; gap:5px; margin-top:5px; }
+            #maps .maps-driver-assignment select { max-width:165px; height:25px; padding:0 6px; border:1px solid #dbe4ef; border-radius:5px; background:#fff; color:#4c617c; font-size:8px; }
+            #maps .maps-driver-assignment button { height:25px; padding:0 7px; border:1px solid #dce6f2; border-radius:5px; background:#f8fbff; color:#286fd9; font-size:8px; cursor:pointer; }
+            #maps .maps-detail-stats { display:grid; flex:1; grid-template-columns:repeat(5,minmax(65px,1fr)); gap:6px; }
+            #maps .maps-detail-stat small { display:block; color:#8190a5; font-size:7px; }
+            #maps .maps-detail-stat strong { display:block; margin-top:4px; color:#263b5a; font-size:9px; }
+            #maps .maps-detail-actions { display:flex; align-items:center; justify-content:flex-end; gap:5px; flex-wrap:wrap; }
+            #maps .maps-detail-actions .button { min-height:26px; padding:0 8px; font-size:8px; }
+            #maps .maps-detail-layout { display:grid; grid-template-columns:minmax(280px,.82fr) minmax(0,1.5fr); gap:9px; }
+            #maps .maps-detail-history { max-height:370px; overflow:auto; }
+            #maps .maps-timeline-row { display:grid; grid-template-columns:16px minmax(0,1fr) auto; gap:7px; padding:7px 2px; border-bottom:1px solid #edf1f6; }
+            #maps .maps-timeline-dot { width:9px; height:9px; margin-top:2px; border:2px solid #fff; border-radius:50%; background:#267bf4; box-shadow:0 0 0 2px #b9d2ff; }
+            #maps .maps-timeline-row:nth-child(3n) .maps-timeline-dot { background:#18a874; box-shadow:0 0 0 2px #bcebd4; }
+            #maps .maps-timeline-row:nth-child(4n) .maps-timeline-dot { background:#ef982b; box-shadow:0 0 0 2px #f8ddb4; }
+            #maps .maps-timeline-title { color:#304865; font-size:8px; font-weight:700; }
+            #maps .maps-timeline-meta { margin-top:3px; color:#7d8ca2; font-size:7px; }
+            #maps .maps-detail-map { height:290px; overflow:hidden; border-radius:7px; background:#edf3fa; }
+            #maps .maps-detail-map iframe,#maps .maps-detail-map > div { width:100%; height:100%; border:0; }
+            #maps .maps-detail-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:8px; padding:8px; border:1px solid #e6edf5; border-radius:7px; background:#fff; }
+            #maps .maps-detail-summary small { display:block; color:#7c8ba0; font-size:7px; }
+            #maps .maps-detail-summary strong { display:block; margin-top:4px; color:#283e5d; font-size:9px; }
+            #maps .maps-manual-update { margin-top:9px; padding:9px 11px; border:1px solid #e2eaf5; border-radius:8px; background:#fff; }
+            #maps .maps-manual-update summary { color:#304765; font-size:9px; font-weight:700; cursor:pointer; }
+            #maps .maps-create-overlay { position:fixed; inset:0; z-index:11000; display:none; place-items:center; padding:14px; background:rgba(20,37,67,.34); }
+            #maps .maps-create-overlay.open { display:grid; }
+            #maps .maps-create-dialog { width:min(760px,100%); max-height:94vh; overflow:auto; padding:15px; border:1px solid #e2eaf5; border-radius:10px; background:#fff; box-shadow:0 22px 56px rgba(18,41,78,.24); }
+            #maps .maps-create-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:11px; }
+            #maps .maps-create-head h2 { margin:0; color:#203858; font-size:14px; }
+            #maps .maps-create-head button { width:27px; height:27px; border:0; border-radius:6px; background:#f2f5fa; color:#667991; font-size:17px; cursor:pointer; }
+            #maps .maps-create-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px 12px; }
+            #maps .maps-create-grid .form-group { min-width:0; margin:0; }
+            #maps .maps-create-grid .wide { grid-column:1/-1; }
+            #maps .maps-create-grid label { display:block; margin:0 0 4px; color:#405873; font-size:9px; font-weight:650; }
+            #maps .maps-create-grid input,#maps .maps-create-grid select,#maps .maps-create-grid textarea { width:100%; min-width:0; height:34px; padding:0 9px; border:1px solid #dbe4ef; border-radius:6px; background:#fff; color:#344b68; font:400 10px 'DM Sans','Segoe UI',sans-serif; }
+            #maps .maps-create-grid textarea { height:58px; padding:8px 9px; resize:vertical; }
+            #maps .maps-photo-picker { display:grid; min-height:84px; place-items:center; border:1px dashed #cbd8e8; border-radius:7px; background:#f8fbff; color:#74869e; font-size:8px; cursor:pointer; }
+            #maps .maps-photo-picker img { max-width:100%; max-height:120px; object-fit:contain; }
+            #maps .maps-create-footer { display:flex; justify-content:flex-end; gap:7px; margin-top:11px; }
+            #maps .maps-create-footer button { min-height:32px; padding:0 12px; border:1px solid #dce5f1; border-radius:6px; background:#fff; color:#506580; font-size:9px; font-weight:700; cursor:pointer; }
+            #maps .maps-create-footer button.primary { border-color:#2878f5; background:#2878f5; color:#fff; }
+            #maps { padding:16px; background:#f4f7fc; color:#182b4b; }
+            #maps .maps-page-head { min-height:44px; margin-bottom:14px; }
+            #maps .maps-page-head h1 { color:#172d50; font-size:22px; }
+            #maps .maps-page-head p { margin-top:4px; color:#72839b; font-size:12px; }
+            #maps .maps-add-vehicle { min-height:40px; padding:0 16px; border-radius:7px; background:#2878f5; box-shadow:0 3px 8px rgba(40,120,245,.16); font-size:12px; transition:background .16s, transform .16s, box-shadow .16s; }
+            #maps .maps-add-vehicle:hover { background:#1768e5; box-shadow:0 5px 12px rgba(40,120,245,.22); transform:translateY(-1px); }
+            #maps .maps-add-vehicle:focus-visible,#maps .maps-toolbar button:focus-visible,#maps .maps-vehicle-row button:focus-visible { outline:3px solid rgba(40,120,245,.25); outline-offset:2px; }
+            #maps .maps-add-vehicle svg { width:16px; height:16px; flex:none; }
+            #maps .maps-statbar { grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
+            #maps .maps-statbar .stat-card { min-height:64px; gap:11px; padding:10px 13px; border-radius:9px; background:#fff; box-shadow:0 3px 10px rgba(31,55,99,.035); }
+            #maps .maps-stat-icon { width:36px; height:36px; font-size:initial; }
+            #maps .maps-stat-icon svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #maps .maps-statbar .stat-card h3 { font-size:19px; }
+            #maps .maps-statbar .stat-card p { margin-top:5px; font-size:10px; }
+            #maps .maps-overview-layout { grid-template-columns:minmax(0,1.58fr) minmax(350px,1fr); gap:12px; }
+            #maps .maps-main-card,#maps .maps-vehicles-card,#maps .maps-detail-panel { padding:13px; border-color:#e1e9f4; border-radius:10px; box-shadow:0 4px 12px rgba(31,55,99,.035); }
+            #maps .maps-panel-head { gap:10px; margin-bottom:10px; }
+            #maps .maps-panel-head h2 { color:#1a3153; font-size:14px; }
+            #maps .maps-panel-head p { margin-top:4px; color:#7788a0; font-size:10px; }
+            #maps .maps-toolbar { gap:6px; }
+            #maps .maps-toolbar .button { min-height:32px; padding:0 10px; border-radius:6px; font-size:10px; }
+            #maps .maps-toolbar .maps-icon-button { display:grid; width:32px; padding:0; place-items:center; }
+            #maps .maps-toolbar .maps-icon-button svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #maps .maps-main-card .map-canvas-wrapper { height:clamp(340px,48vh,520px); min-height:340px; border:1px solid #e5edf6; border-radius:8px; }
+            #maps .maps-map-footer { margin-top:9px; color:#697b94; font-size:10px; }
+            #maps .maps-map-footer a { color:#2878f5!important; font-size:10px!important; font-weight:650; }
+            #maps .maps-follow-tools { grid-template-columns:minmax(0,1fr) 118px; gap:7px; margin-bottom:9px; }
+            #maps .maps-follow-tools input,#maps .maps-follow-tools select,#maps .maps-follow-tools button { height:34px; padding:0 9px; border-color:#dfe7f1; border-radius:6px; color:#405875; font-size:10px; }
+            #maps .maps-follow-tools button { grid-column:1/-1; justify-self:end; width:auto; min-width:96px; color:#2878f5; font-weight:650; transition:background .16s,border-color .16s; }
+            #maps .maps-follow-tools button:hover { border-color:#bcd2f4; background:#f4f8ff; }
+            #maps #maps-vehicles-list { gap:7px; max-height:clamp(340px,48vh,520px); }
+            #maps .maps-vehicle-row { grid-template-columns:54px minmax(0,1fr) auto auto 30px; gap:8px; padding:8px; border-color:#e7edf5; border-radius:8px; transition:border-color .16s,background .16s,box-shadow .16s,transform .16s; }
+            #maps .maps-vehicle-row:hover { border-color:#c5d9fa; background:#fbfdff; box-shadow:0 3px 8px rgba(31,55,99,.06); transform:translateY(-1px); }
+            #maps .maps-vehicle-row.selected { border-color:#80aaff; background:#f6f9ff; box-shadow:0 0 0 2px rgba(40,120,245,.09); }
+            #maps .maps-vehicle-thumb { width:54px; height:45px; border-radius:6px; background:#f0f4fa; color:#647a97; }
+            #maps .maps-vehicle-thumb img { object-fit:contain; }
+            #maps .maps-vehicle-placeholder { width:30px; height:30px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+            #maps .maps-vehicle-name { color:#213858; font-size:11px; font-weight:750; }
+            #maps .maps-vehicle-meta { margin-top:3px; color:#7c8ba0; font-size:9px; }
+            #maps .maps-vehicle-live { margin-top:3px; color:#61748f; font-size:9px; }
+            #maps .maps-status-pill { gap:5px; padding:4px 8px; font-size:9px; }
+            #maps .maps-status-pill::before { width:6px; height:6px; }
+            #maps .maps-status-pill.moving { background:#e3f7eb; color:#168a56; }
+            #maps .maps-status-pill.idle { background:#fff2df; color:#ce7d13; }
+            #maps .maps-status-pill.offline { background:#ffeaec; color:#cb3948; }
+            #maps .maps-status-pill.maintenance { background:#eef0ff; color:#5f56b8; }
+            #maps .maps-view-position { min-height:30px; padding:0 10px; border-radius:6px; background:#2878f5; font-size:9px; transition:background .16s,transform .16s; }
+            #maps .maps-view-position:hover { background:#1768e5; transform:translateY(-1px); }
+            #maps .maps-view-position svg,#maps .maps-more-button svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
+            #maps .maps-more-button { width:30px; height:30px; border-color:#e1e9f3; border-radius:6px; transition:background .16s,border-color .16s; }
+            #maps .maps-more-button:hover { border-color:#c7d8f0; background:#f6f9ff; }
+            #maps .maps-detail-top { display:grid; grid-template-columns:auto 104px minmax(170px,.85fr) minmax(0,1.7fr); align-items:center; gap:12px; margin-bottom:12px; padding:13px; border-color:#e1e9f4; border-radius:10px; box-shadow:0 4px 12px rgba(31,55,99,.035); }
+            #maps .maps-detail-top > #maps-back-to-overview { align-self:start; min-height:32px; white-space:nowrap; }
+            #maps .maps-detail-photo { width:104px; height:68px; border-radius:7px; background:#f0f4fa; font-size:initial; color:#647a97; }
+            #maps .maps-detail-photo img { object-fit:contain; }
+            #maps .maps-detail-ident { min-width:0; }
+            #maps .maps-detail-ident h2 { color:#1c3152; font-size:16px; }
+            #maps .maps-detail-ident p { margin-top:5px; color:#60748f; font-size:11px; }
+            #maps .maps-driver-assignment select { max-width:185px; height:30px; padding:0 8px; font-size:10px; }
+            #maps .maps-driver-assignment button { height:30px; padding:0 10px; font-size:10px; }
+            #maps .maps-detail-stats { grid-template-columns:repeat(5,minmax(72px,1fr)); gap:9px; }
+            #maps .maps-detail-stat small { color:#8190a5; font-size:9px; }
+            #maps .maps-detail-stat strong { margin-top:5px; color:#263b5a; font-size:11px; }
+            #maps .maps-detail-actions { grid-column:2/-1; justify-content:flex-end; gap:7px; padding-top:9px; border-top:1px solid #edf1f6; }
+            #maps .maps-detail-actions .button { min-height:32px; padding:0 11px; border-radius:6px; font-size:10px; }
+            #maps .maps-detail-layout { grid-template-columns:minmax(320px,.85fr) minmax(0,1.5fr); gap:12px; }
+            #maps .maps-detail-history { max-height:440px; }
+            #maps .maps-timeline-row { grid-template-columns:18px minmax(0,1fr) auto; gap:8px; padding:9px 3px; }
+            #maps .maps-timeline-dot { width:10px; height:10px; }
+            #maps .maps-timeline-title { color:#304865; font-size:10px; }
+            #maps .maps-timeline-meta { margin-top:4px; color:#7d8ca2; font-size:9px; }
+            #maps .maps-detail-map { height:clamp(300px,42vh,440px); border:1px solid #e5edf6; border-radius:8px; }
+            #maps .maps-detail-summary { gap:8px; margin-top:9px; padding:10px; border-color:#e6edf5; border-radius:8px; }
+            #maps .maps-detail-summary small { color:#7c8ba0; font-size:9px; }
+            #maps .maps-detail-summary strong { margin-top:5px; color:#283e5d; font-size:12px; }
+            #maps .maps-manual-update { margin-top:12px; padding:12px 14px; border-color:#e2eaf5; border-radius:9px; }
+            #maps .maps-manual-update summary { color:#304765; font-size:11px; }
+            #maps .maps-create-dialog { padding:20px; border-radius:12px; }
+            #maps .maps-create-head { margin-bottom:15px; }
+            #maps .maps-create-head h2 { font-size:18px; }
+            #maps .maps-create-head button { width:34px; height:34px; }
+            #maps .maps-create-grid { gap:12px 16px; }
+            #maps .maps-create-grid label { margin-bottom:5px; font-size:11px; }
+            #maps .maps-create-grid input,#maps .maps-create-grid select,#maps .maps-create-grid textarea { height:40px; padding:0 11px; border-radius:7px; font-size:12px; }
+            #maps .maps-create-grid textarea { height:72px; padding:9px 11px; }
+            #maps .maps-photo-picker { min-height:96px; border-radius:8px; font-size:10px; }
+            #maps .maps-create-footer { gap:9px; margin-top:16px; }
+            #maps .maps-create-footer button { min-height:38px; padding:0 15px; border-radius:7px; font-size:11px; transition:background .16s,border-color .16s,transform .16s; }
+            #maps .maps-create-footer button:hover { transform:translateY(-1px); }
+            #maps .maps-create-footer button.primary:hover { border-color:#1768e5; background:#1768e5; }
+            #maps .maps-create-footer button:disabled,#maps .maps-view-position:disabled { cursor:not-allowed; opacity:.55; transform:none; }
+            @media(max-width:1100px) {
+              #maps { padding:13px; }
+              #maps .maps-overview-layout { grid-template-columns:minmax(0,1.35fr) minmax(315px,1fr); gap:10px; }
+              #maps .maps-vehicle-row { grid-template-columns:48px minmax(0,1fr) auto 28px; }
+              #maps .maps-view-position { grid-column:3; grid-row:1; }
+              #maps .maps-more-button { grid-column:4; grid-row:1; }
+              #maps .maps-vehicle-row > div:nth-child(3) { grid-column:3; grid-row:2; }
+            }
+            @media(max-width:880px) {
+              #maps .maps-overview-layout { grid-template-columns:minmax(0,1fr); }
+              #maps .maps-main-card .map-canvas-wrapper { height:clamp(320px,50vh,460px); }
+              #maps #maps-vehicles-list { max-height:420px; }
+              #maps .maps-detail-top { grid-template-columns:32px 88px minmax(0,1fr); }
+              #maps .maps-detail-stats { grid-column:2/-1; grid-row:2; grid-template-columns:repeat(5,minmax(0,1fr)); }
+              #maps .maps-detail-actions { grid-column:2/-1; grid-row:3; }
+            }
+            @media(max-width:700px) {
+              #maps { padding:10px; }
+              #maps .maps-page-head h1 { font-size:20px; }
+              #maps .maps-statbar { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+              #maps .maps-statbar .stat-card { min-height:60px; padding:9px; }
+              #maps .maps-statbar .maps-add-vehicle { grid-column:1/-1; justify-content:center; }
+              #maps .maps-panel-head { align-items:flex-start; flex-wrap:wrap; }
+              #maps .maps-toolbar { flex-wrap:wrap; }
+              #maps .maps-follow-tools { grid-template-columns:minmax(0,1fr) 112px; }
+              #maps .maps-detail-top { grid-template-columns:30px 76px minmax(0,1fr); gap:9px; }
+              #maps .maps-detail-photo { width:76px; height:56px; }
+              #maps .maps-detail-stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+              #maps .maps-detail-layout { grid-template-columns:minmax(0,1fr); }
+              #maps .maps-detail-map { height:320px; }
+            }
+            @media(max-width:480px) {
+              #maps .maps-statbar { grid-template-columns:repeat(2,minmax(0,1fr)); }
+              #maps .maps-statbar .stat-card h3 { font-size:17px; }
+              #maps .maps-main-card,#maps .maps-vehicles-card,#maps .maps-detail-panel { padding:10px; }
+              #maps .maps-toolbar .button { min-height:30px; padding:0 8px; font-size:9px; }
+              #maps .maps-vehicle-row { grid-template-columns:44px minmax(0,1fr) auto; gap:6px; }
+              #maps .maps-vehicle-thumb { width:44px; height:40px; }
+              #maps .maps-view-position { grid-column:2; grid-row:2; justify-self:start; }
+              #maps .maps-more-button { grid-column:3; grid-row:2; }
+              #maps .maps-vehicle-row > div:nth-child(3) { grid-column:3; grid-row:1; }
+              #maps .maps-detail-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+              #maps .maps-detail-actions { grid-column:1/-1; justify-content:flex-start; }
+              #maps .maps-detail-actions .button { flex:1 1 135px; }
+              #maps .maps-detail-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+              #maps .maps-create-grid { grid-template-columns:1fr; }
+              #maps .maps-create-grid .wide { grid-column:auto; }
+            }
+          </style>
+
+          <header class="maps-page-head"><div><h1>Suivi des véhicules</h1><p>Localisation, activité et historique de la flotte</p></div><button type="button" id="maps-add-vehicle" class="maps-add-vehicle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Ajouter un véhicule</button></header>
+          <div class="dashboard-grid maps-statbar" aria-label="Résumé de la flotte">
+            <div class="card stat-card"><span class="maps-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7h12v11H3zM15 11h4l3 3v4h-7zM7 18a2 2 0 1 0 0 .01M18 18a2 2 0 1 0 0 .01"/></svg></span><div><h3 id="maps-stat-total-vehicles">0</h3><p>Véhicules · total flotte</p></div></div>
+            <div class="card stat-card"><span class="maps-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.2"/></svg></span><div><h3 id="maps-stat-localized">0</h3><p>Avec position récente</p></div></div>
+            <div class="card stat-card"><span class="maps-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17h3l3-5 3 3 4-7h3"/><path d="M16 8h4v4"/></svg></span><div><h3 id="maps-stat-moving">0</h3><p>En déplacement</p></div></div>
+            <div class="card stat-card"><span class="maps-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9a12 12 0 0 1 16 0M7 12a7.5 7.5 0 0 1 10 0M10 15a3 3 0 0 1 4 0"/><path d="m4 4 16 16"/></svg></span><div><h3 id="maps-stat-offline">0</h3><p>Hors ligne ou sans signal</p></div></div>
           </div>
 
-          <div class="dashboard-grid" style="margin-bottom: 20px;">
-            <div class="card stat-card">
-              <h3 id="maps-stat-total-vehicles">0</h3>
-              <p>Véhicules</p>
-            </div>
-            <div class="card stat-card">
-              <h3 id="maps-stat-localized">0</h3>
-              <p>Avec position</p>
-            </div>
-            <div class="card stat-card">
-              <h3 id="maps-stat-moving">0</h3>
-              <p>En déplacement</p>
-            </div>
-            <div class="card stat-card">
-              <h3 id="maps-stat-offline">0</h3>
-              <p>Hors ligne</p>
-            </div>
-          </div>
-
-          <div class="grid-2 maps-main-layout" style="align-items: start;">
+          <section id="maps-overview-view" class="maps-overview-layout">
             <div class="card maps-main-card">
-              <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 15px; flex-wrap: wrap;">
-                <div>
-                  <h3 style="margin-bottom: 4px;">Carte principale</h3>
-                  <p style="color: #64748b; font-size: 13px;">Vue Google Maps avec recentrage sur le véhicule sélectionné.</p>
-                </div>
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <div class="maps-panel-head">
+                <div><h2>Carte principale</h2><p>Position en temps réel des véhicules</p></div>
+                <div class="maps-toolbar">
                   <button type="button" id="maps-map-mode-google" class="button button-primary button-small">Vue Google</button>
                   <button type="button" id="maps-map-mode-leaflet" class="button button-secondary button-small">Vue technique</button>
-                  <button type="button" id="maps-expand" class="button button-secondary button-small">Plein écran</button>
-                  <button type="button" id="maps-refresh" class="button button-secondary button-small">Actualiser</button>
+                  <button type="button" id="maps-expand" class="button button-secondary button-small maps-icon-button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg></button>
+                  <button type="button" id="maps-refresh" class="button button-secondary button-small maps-icon-button" title="Actualiser" aria-label="Actualiser"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9A7 7 0 0 1 18 6l2 6M4 12l2 6a7 7 0 0 0 12.4-3"/></svg></button>
                 </div>
               </div>
 
@@ -12015,23 +12218,17 @@
                 <div id="maps-main-leaflet-map" class="map-canvas-wrapper map-canvas" style="background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);"></div>
               </div>
 
-              <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <span id="maps-focus-label" style="font-size: 12px; color: #475569;">Chargement de la carte...</span>
-                <a id="maps-open-google-link" href="https://www.google.com/maps?q=5.3364,-4.0267&z=15" target="_blank" rel="noopener noreferrer" style="font-size: 12px; color: #1d4ed8; text-decoration: none; font-weight: 600;">Ouvrir dans Google Maps</a>
+              <div class="maps-map-footer">
+                <span id="maps-focus-label">Chargement de la carte...</span>
+                <a id="maps-open-google-link" href="https://www.google.com/maps?q=5.3364,-4.0267&z=15" target="_blank" rel="noopener noreferrer">Ouvrir dans Google Maps ↗</a>
               </div>
-              <p style="margin-top: 8px; color: #64748b; font-size: 12px;">Astuce: la Vue technique affiche plusieurs véhicules en même temps. Clique sur un véhicule dans la liste pour voir sa position.</p>
             </div>
 
-            <div class="card form-card">
-              <h3 style="margin-bottom: 15px;">Véhicules suivis</h3>
-              <div class="grid-2" style="gap: 12px; margin-bottom: 12px;">
-                <div class="form-group" style="margin-bottom: 0;">
-                  <label>Recherche</label>
-                  <input type="text" id="maps-search" placeholder="Nom, marque, plaque, chauffeur" />
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                  <label>Statut</label>
-                  <select id="maps-status-filter">
+            <section class="card maps-vehicles-card">
+              <div class="maps-panel-head"><div><h2>Véhicules suivis</h2><p id="maps-vehicle-count">Flotte</p></div></div>
+              <div class="maps-follow-tools">
+                <input type="search" id="maps-search" placeholder="⌕ Rechercher un véhicule, plaque ou chauffeur" aria-label="Rechercher un véhicule" />
+                <select id="maps-status-filter" aria-label="Filtrer par statut">
                     <option value="all">Tous</option>
                     <option value="online">En ligne</option>
                     <option value="moving">En déplacement</option>
@@ -12039,92 +12236,266 @@
                     <option value="maintenance">Maintenance</option>
                     <option value="offline">Hors ligne</option>
                     <option value="unlocated">Sans position</option>
-                  </select>
-                </div>
+                </select>
+                <button type="button" id="maps-reset-filters">Réinitialiser</button>
               </div>
               <ul id="maps-vehicles-list" class="list"></ul>
-            </div>
-          </div>
+            </section>
+          </section>
 
-          <div class="grid-2" style="margin-top: 20px; align-items: start;">
-            <div class="card maps-history-card">
-              <h3 id="maps-history-title" style="margin-bottom: 10px;">Historique des positions</h3>
-              <ul id="maps-history-list" class="list"></ul>
+          <section id="maps-detail-view" class="maps-detail-view" hidden>
+            <header class="maps-detail-top">
+              <button type="button" id="maps-back-to-overview" class="button button-secondary button-small">‹ Retour à la carte</button>
+              <div id="maps-detail-photo" class="maps-detail-photo" aria-label="Photo du véhicule"><svg class="maps-vehicle-placeholder" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h12v11H3zM15 11h4l3 3v4h-7zM7 18a2 2 0 1 0 0 .01M18 18a2 2 0 1 0 0 .01"/></svg></div>
+              <div class="maps-detail-ident"><h2 id="maps-detail-name">Véhicule</h2><p id="maps-detail-plate">—</p><p id="maps-detail-driver">Chauffeur non affecté</p><div class="maps-driver-assignment"><select id="maps-detail-driver-select" aria-label="Affecter un chauffeur"><option value="">Aucun chauffeur</option></select><button type="button" id="maps-save-driver-assignment">Affecter</button></div></div>
+              <div class="maps-detail-stats">
+                <div class="maps-detail-stat"><small>Statut</small><strong id="maps-detail-status">—</strong></div>
+                <div class="maps-detail-stat"><small>Dernier signal</small><strong id="maps-detail-last-signal">—</strong></div>
+                <div class="maps-detail-stat"><small>Début du suivi</small><strong id="maps-detail-start">—</strong></div>
+                <div class="maps-detail-stat"><small>Distance aujourd'hui</small><strong id="maps-detail-distance">—</strong></div>
+                <div class="maps-detail-stat"><small>Précision GPS</small><strong id="maps-detail-accuracy">—</strong></div>
+              </div>
+              <div class="maps-detail-actions"><button type="button" id="maps-detail-center" class="button button-secondary">⌖ Voir sur la carte</button><button type="button" id="maps-detail-history" class="button button-secondary">▤ Historique complet</button><button type="button" id="maps-detail-start-tracking" class="button button-primary">Démarrer le tracking</button></div>
+            </header>
+            <div class="maps-detail-layout">
+              <section class="maps-detail-panel">
+                <div class="maps-panel-head"><div><h2 id="maps-history-title">Historique des positions</h2><p>Derniers signaux GPS enregistrés</p></div><select id="maps-history-range" aria-label="Période de l'historique"><option value="today">Aujourd'hui</option><option value="7">7 jours</option><option value="30">30 jours</option></select></div>
+                <ul id="maps-history-list" class="maps-detail-history"></ul>
+              </section>
+              <section class="maps-detail-panel">
+                <div class="maps-panel-head"><div><h2>Trajet du jour</h2><p id="maps-detail-map-subtitle">Position GPS du véhicule</p></div><a id="maps-detail-google-link" target="_blank" rel="noopener noreferrer">Ouvrir dans Google Maps ↗</a></div>
+                <div id="maps-detail-map" class="maps-detail-map"><iframe id="maps-detail-google-frame" title="Carte du véhicule sélectionné" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+                <div class="maps-detail-summary"><div><small>Distance totale</small><strong id="maps-summary-distance">—</strong></div><div><small>Temps de conduite</small><strong id="maps-summary-duration">—</strong></div><div><small>Vitesse moyenne</small><strong id="maps-summary-speed">—</strong></div><div><small>Arrêts</small><strong id="maps-summary-stops">—</strong></div></div>
+              </section>
             </div>
-
-            <div class="erp-section-sep">Historique récent</div>
-            <div class="card form-card maps-create-card" id="maps-update-panel">
-              <h3 style="margin-bottom: 15px;">Mise à jour rapide de position</h3>
-              <form id="maps-location-form">
-                <div class="form-group">
-                  <label>Véhicule *</label>
-                  <select id="maps-location-vehicle" required></select>
-                </div>
-                <div class="grid-2" style="gap: 12px;">
-                  <div class="form-group">
-                    <label>Latitude *</label>
-                    <input type="number" id="maps-location-latitude" step="0.000001" min="-90" max="90" required />
-                  </div>
-                  <div class="form-group">
-                    <label>Longitude *</label>
-                    <input type="number" id="maps-location-longitude" step="0.000001" min="-180" max="180" required />
-                  </div>
-                </div>
-                <div class="grid-2" style="gap: 12px;">
-                  <div class="form-group">
-                    <label>Vitesse (km/h)</label>
-                    <input type="number" id="maps-location-speed" step="0.1" min="0" value="0" />
-                  </div>
-                  <div class="form-group">
-                    <label>Précision (m)</label>
-                    <input type="number" id="maps-location-accuracy" step="0.1" min="0" value="0" />
-                  </div>
-                </div>
-                <div class="grid-2" style="gap: 12px;">
-                  <div class="form-group">
-                    <label>Statut</label>
-                    <select id="maps-location-status">
-                      <option value="online">En ligne</option>
-                      <option value="moving">En déplacement</option>
-                      <option value="idle">À l'arrêt</option>
-                      <option value="maintenance">Maintenance</option>
-                      <option value="offline">Hors ligne</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label>Source</label>
-                    <select id="maps-location-source">
-                      <option value="manual">Saisie manuelle</option>
-                      <option value="browser_gps">GPS navigateur</option>
-                      <option value="mobile_app">Application mobile</option>
-                      <option value="tracker">Boîtier GPS</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label>Note</label>
-                  <textarea id="maps-location-note" placeholder="Ex: arrivée sur chantier Riviera 3"></textarea>
-                </div>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                  <button type="button" id="maps-use-current" class="button button-secondary">Utiliser ma position</button>
-                  <button type="submit" class="button button-primary" style="flex: 1; min-width: 180px;">Enregistrer la position</button>
-                </div>
+            <details id="maps-update-panel" class="maps-manual-update">
+              <summary>Mise à jour manuelle / diagnostic GPS</summary>
+              <form id="maps-location-form" style="display:grid;gap:9px;margin-top:11px;">
+                <div class="form-group"><label>Véhicule *</label><select id="maps-location-vehicle" required></select></div>
+                <div class="grid-2" style="gap:10px;"><div class="form-group"><label>Latitude *</label><input type="number" id="maps-location-latitude" step="0.000001" min="-90" max="90" required /></div><div class="form-group"><label>Longitude *</label><input type="number" id="maps-location-longitude" step="0.000001" min="-180" max="180" required /></div></div>
+                <div class="grid-2" style="gap:10px;"><div class="form-group"><label>Vitesse (km/h)</label><input type="number" id="maps-location-speed" step="0.1" min="0" value="0" /></div><div class="form-group"><label>Précision (m)</label><input type="number" id="maps-location-accuracy" step="0.1" min="0" value="0" /></div></div>
+                <div class="grid-2" style="gap:10px;"><div class="form-group"><label>Statut</label><select id="maps-location-status"><option value="online">En ligne</option><option value="moving">En déplacement</option><option value="idle">À l'arrêt</option><option value="maintenance">Maintenance</option><option value="offline">Hors ligne</option></select></div><div class="form-group"><label>Source</label><select id="maps-location-source"><option value="manual">Saisie manuelle</option><option value="browser_gps">GPS navigateur</option><option value="mobile_app">Application mobile</option><option value="tracker">Boîtier GPS</option></select></div></div>
+                <div class="form-group"><label>Note</label><textarea id="maps-location-note" placeholder="Ex: arrivée sur chantier Riviera 3"></textarea></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;"><button type="button" id="maps-use-current" class="button button-secondary">Utiliser ma position</button><button type="submit" class="button button-primary">Enregistrer la position</button></div>
               </form>
+            </details>
+          </section>
 
-              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
+          <div id="maps-create-overlay" class="maps-create-overlay" aria-hidden="true">
+            <section class="maps-create-dialog" role="dialog" aria-modal="true" aria-labelledby="maps-create-title">
+              <header class="maps-create-head"><h2 id="maps-create-title">Ajouter un véhicule</h2><button type="button" id="maps-create-close" aria-label="Fermer">×</button></header>
+              <form id="maps-create-form">
+                <div class="maps-create-grid">
+                  <div class="form-group"><label for="maps-create-brand">Marque *</label><input id="maps-create-brand" required placeholder="Ex: Toyota"></div>
+                  <div class="form-group"><label for="maps-create-model">Modèle *</label><input id="maps-create-model" required placeholder="Ex: Hilux"></div>
+                  <div class="form-group"><label for="maps-create-year">Année</label><input id="maps-create-year" type="number" min="1950" max="2100" placeholder="Ex: 2023"></div>
+                  <div class="form-group"><label for="maps-create-type">Type de véhicule *</label><select id="maps-create-type" required><option value="">Sélectionner</option><option>Camionnette</option><option>Camion</option><option>Voiture</option><option>Minibus</option><option>Engin</option><option>Autre</option></select></div>
+                  <div class="form-group"><label for="maps-create-plate">Plaque d'immatriculation *</label><input id="maps-create-plate" required placeholder="Ex: ABC-123"></div>
+                  <div class="form-group"><label for="maps-create-vin">Numéro d'identification (VIN)</label><input id="maps-create-vin" placeholder="Ex: 1HGBH41JXMN109186"></div>
+                  <div class="form-group"><label for="maps-create-driver">Affectation du chauffeur</label><select id="maps-create-driver"><option value="">Aucun chauffeur</option></select></div>
+                  <div class="form-group"><label for="maps-create-color">Couleur</label><select id="maps-create-color"><option>Blanc</option><option>Noir</option><option>Gris</option><option>Argent</option><option>Bleu</option><option>Rouge</option><option>Vert</option><option>Autre</option></select></div>
+                  <div class="form-group"><label for="maps-create-status">Statut initial *</label><select id="maps-create-status" required><option>Disponible</option><option>En déplacement</option><option>En arrêt</option><option>Maintenance</option><option>Hors ligne</option></select></div>
+                  <div class="form-group"><label for="maps-create-photo">Photo du véhicule (optionnel)</label><label class="maps-photo-picker" for="maps-create-photo"><img id="maps-create-photo-preview" alt="Aperçu du véhicule" hidden><span id="maps-create-photo-label">⇧<br>Cliquer pour ajouter une photo<br>PNG, JPG (max 5 Mo)</span></label><input id="maps-create-photo" type="file" accept="image/png,image/jpeg,image/webp" hidden></div>
+                  <div class="form-group wide"><label for="maps-create-description">Description (optionnel)</label><textarea id="maps-create-description" placeholder="Informations complémentaires sur le véhicule"></textarea></div>
+                </div>
+                <footer class="maps-create-footer"><button type="button" id="maps-create-cancel">Annuler</button><button type="submit" class="primary">Enregistrer le véhicule</button></footer>
+              </form>
+            </section>
+          </div>
+        </div>
 
-              <h4 style="margin-bottom: 10px; color: #475569; font-size: 13px;">Tracking smartphone automatique</h4>
-              <div class="form-group">
-                <label>Véhicule pour tracking auto</label>
-                <select id="maps-tracker-vehicle"></select>
+        <div id="driver-tracker" class="module">
+          <style>
+            #driver-tracker { --drv-ink:#142947; --drv-muted:#71839b; --drv-blue:#2878f5; --drv-line:#e1eaf5; min-height:calc(100vh - 90px); padding:12px; background:#f3f7fd; color:var(--drv-ink); }
+            #driver-tracker > .page-header { display:none!important; }
+            #driver-tracker [hidden] { display:none!important; }
+            #driver-tracker .driver-shell { display:grid; grid-template-columns:minmax(0,1fr); min-height:calc(100vh - 116px); overflow:hidden; border:1px solid #e0e9f5; border-radius:14px; background:#f7faff; box-shadow:0 8px 24px rgba(31,63,110,.055); }
+            #driver-tracker .driver-nav { display:flex; flex-direction:column; gap:5px; padding:14px 10px; border-right:1px solid #e3ebf6; background:#fff; }
+            #driver-tracker .driver-nav-title { margin:0 8px 12px; color:#8696ad; font-size:10px; font-weight:800; text-transform:uppercase; }
+            #driver-tracker .driver-nav button { display:flex; align-items:center; gap:9px; width:100%; min-height:38px; padding:0 10px; border:0; border-radius:7px; background:transparent; color:#49617f; text-align:left; font:600 12px 'DM Sans','Segoe UI',sans-serif; cursor:pointer; transition:background .16s,color .16s; }
+            #driver-tracker .driver-nav button:hover { background:#f1f6ff; color:#2469df; }
+            #driver-tracker .driver-nav button.active { background:#e7f0ff; color:#1768e7; font-weight:800; }
+            #driver-tracker .driver-nav svg { width:17px; height:17px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #driver-tracker .driver-main { min-width:0; padding:14px; }
+            #driver-tracker .driver-page-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 13px; }
+            #driver-tracker .driver-page-head h1 { margin:0; color:#172d50; font:750 21px/1.2 'Manrope','DM Sans',sans-serif; }
+            #driver-tracker .driver-page-head p { margin:3px 0 0; color:#7588a3; font-size:11px; }
+            #driver-tracker .driver-page-head-actions { display:flex; align-items:center; gap:8px; }
+            #driver-tracker .driver-view[hidden] { display:none!important; }
+            #driver-tracker .driver-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:11px; }
+            #driver-tracker .driver-kpi,#driver-tracker .driver-panel { min-width:0; border:1px solid var(--drv-line); border-radius:9px; background:#fff; box-shadow:0 4px 13px rgba(38,70,116,.035); }
+            #driver-tracker .driver-kpi { display:flex; align-items:center; gap:10px; min-height:68px; padding:10px 12px; }
+            #driver-tracker .driver-kpi-icon { display:grid; place-items:center; width:36px; height:36px; flex:none; border-radius:50%; background:#e8f1ff; color:#2878f5; }
+            #driver-tracker .driver-kpi-icon.green { background:#e2f8ec; color:#16a567; }
+            #driver-tracker .driver-kpi-icon.orange { background:#fff1dd; color:#df8a18; }
+            #driver-tracker .driver-kpi-icon.violet { background:#f0eaff; color:#7957df; }
+            #driver-tracker .driver-kpi-icon svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+            #driver-tracker .driver-kpi-copy { min-width:0; }
+            #driver-tracker .driver-kpi-copy strong { display:block; overflow:hidden; color:#20395f; font-size:14px; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
+            #driver-tracker .driver-kpi-copy span { display:block; margin-top:3px; color:#7487a1; font-size:10px; }
+            #driver-tracker .driver-kpi-copy small { display:block; margin-top:2px; color:#8494aa; font-size:9px; }
+            #driver-tracker .driver-live-layout { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(270px,.8fr); gap:10px; align-items:stretch; }
+            #driver-tracker .driver-panel { padding:12px; }
+            #driver-tracker .driver-panel-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:9px; }
+            #driver-tracker .driver-panel h2 { margin:0; color:#1c355a; font-size:13px; font-weight:800; }
+            #driver-tracker .driver-panel-head p { margin:3px 0 0; color:#8393a8; font-size:10px; }
+            #driver-tracker .driver-map-toolbar { display:flex; gap:6px; }
+            #driver-tracker .driver-map-toolbar button { min-height:29px; padding:0 9px; border:1px solid #dce6f3; border-radius:6px; background:#fff; color:#526986; font-size:10px; font-weight:700; cursor:pointer; }
+            #driver-tracker .driver-map-toolbar button.active { border-color:#2878f5; background:#2878f5; color:#fff; }
+            #driver-tracker .driver-map { height:clamp(300px,42vh,430px); overflow:hidden; border:1px solid #e1eaf5; border-radius:8px; background:#eaf1f8; }
+            #driver-tracker .driver-map .leaflet-container { width:100%; height:100%; font:11px 'DM Sans','Segoe UI',sans-serif; }
+            #driver-tracker .driver-detail-panel { display:flex; flex-direction:column; gap:10px; }
+            #driver-tracker .driver-vehicle-summary { display:grid; grid-template-columns:96px minmax(0,1fr); align-items:center; gap:12px; padding-bottom:10px; border-bottom:1px solid #edf1f7; }
+            #driver-tracker .driver-vehicle-photo { display:grid; place-items:center; width:96px; height:66px; overflow:hidden; border-radius:7px; background:#f2f6fb; }
+            #driver-tracker .driver-vehicle-photo img { width:100%; height:100%; object-fit:cover; }
+            #driver-tracker .driver-vehicle-photo img.brand-icon { object-fit:contain; background:#fff; }
+            #driver-tracker .driver-profile-vehicle-icon img { width:100%; height:100%; object-fit:contain; mix-blend-mode:multiply; }
+            #driver-tracker .driver-vehicle-photo svg { width:40px; height:40px; fill:none; stroke:#6c83a1; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+            #driver-tracker .driver-vehicle-summary h2 { margin:0; color:#1c355a; font-size:14px; }
+            #driver-tracker .driver-vehicle-summary p { margin:4px 0 0; color:#71839b; font-size:10px; }
+            #driver-tracker .driver-status { display:inline-flex; align-items:center; gap:7px; width:100%; min-height:54px; padding:9px 11px; border:1px solid #c7efd9; border-radius:8px; background:#eafaf1; color:#15834f; }
+            #driver-tracker .driver-status-icon { display:grid; place-items:center; width:33px; height:33px; flex:none; border-radius:50%; background:#d1f4df; }
+            #driver-tracker .driver-status-icon svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+            #driver-tracker .driver-status strong { display:block; font-size:11px; }
+            #driver-tracker .driver-status small { display:block; margin-top:3px; color:#4a9b72; font-size:9px; }
+            #driver-tracker .driver-status.is-offline { border-color:#f5d5d8; background:#fff0f1; color:#d63945; }
+            #driver-tracker .driver-status.is-offline small { color:#b95a62; }
+            #driver-tracker .driver-start-button { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:42px; border:0; border-radius:7px; background:#2878f5; color:#fff; font:700 12px 'DM Sans','Segoe UI',sans-serif; cursor:pointer; transition:background .16s,transform .16s; }
+            #driver-tracker .driver-start-button:hover { background:#1769e8; transform:translateY(-1px); }
+            #driver-tracker .driver-start-button:disabled { opacity:.65; cursor:wait; transform:none; }
+            #driver-tracker .driver-start-button.stop { background:#ef4444; }
+            #driver-tracker .driver-start-button.stop:hover { background:#dc2626; }
+            #driver-tracker .driver-device-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+            #driver-tracker .driver-device-stat { display:flex; align-items:center; gap:8px; min-width:0; padding:9px; border:1px solid #e7edf5; border-radius:7px; background:#fafcff; }
+            #driver-tracker .driver-device-stat svg { width:18px; height:18px; flex:none; fill:none; stroke:#6480a4; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+            #driver-tracker .driver-device-stat span { min-width:0; color:#7386a0; font-size:9px; }
+            #driver-tracker .driver-device-stat strong { display:block; margin-top:2px; color:#2f496d; font-size:10px; }
+            #driver-tracker .driver-manual-place { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+            #driver-tracker .driver-manual-place label { display:grid; gap:4px; color:#71839b; font-size:9px; font-weight:700; }
+            #driver-tracker .driver-manual-place input,#driver-tracker .driver-filter input,#driver-tracker .driver-settings input,#driver-tracker .driver-settings select { width:100%; min-width:0; height:34px; padding:0 9px; border:1px solid #dce6f2; border-radius:6px; background:#fff; color:#294464; font:11px 'DM Sans','Segoe UI',sans-serif; }
+            #driver-tracker .driver-view-head { display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:12px; }
+            #driver-tracker .driver-view-head h1 { margin:0; color:#172d50; font:750 19px 'Manrope','DM Sans',sans-serif; }
+            #driver-tracker .driver-view-head p { margin:4px 0 0; color:#7588a3; font-size:10px; }
+            #driver-tracker .driver-filter { display:flex; align-items:end; gap:8px; }
+            #driver-tracker .driver-filter label { display:grid; gap:4px; color:#71839b; font-size:9px; font-weight:700; }
+            #driver-tracker .driver-action-button { min-height:34px; padding:0 12px; border:1px solid #2878f5; border-radius:6px; background:#2878f5; color:#fff; font:700 10px 'DM Sans','Segoe UI',sans-serif; cursor:pointer; }
+            #driver-tracker .driver-destination-field { position:relative; }
+            #driver-tracker .driver-suggestions { position:absolute; left:0; right:0; top:100%; z-index:30; max-height:220px; margin-top:3px; overflow:auto; border:1px solid #dce6f2; border-radius:8px; background:#fff; box-shadow:0 10px 24px rgba(38,70,116,.16); }
+            #driver-tracker .driver-suggestions button { display:block; width:100%; padding:8px 10px; border:0; border-bottom:1px solid #eef2f7; background:#fff; color:#294464; font:11px 'DM Sans','Segoe UI',sans-serif; font-weight:500; text-align:left; cursor:pointer; }
+            #driver-tracker .driver-suggestions button:hover { background:#f2f7ff; }
+            #driver-tracker .driver-suggestions .driver-suggestions-empty { padding:9px 10px; color:#7a8ca3; font-size:11px; }
+            #driver-tracker .driver-destination-field input.is-resolved { border-color:#16a567; }
+            #driver-tracker .driver-history-head { justify-content:flex-end; }
+            #driver-tracker .driver-filter { gap:10px; }
+            #driver-tracker .driver-filter label { font-size:11px; font-weight:600; }
+            #driver-tracker .driver-date-field { position:relative; display:block; }
+            #driver-tracker .driver-date-field svg { position:absolute; left:10px; top:50%; width:14px; height:14px; transform:translateY(-50%); fill:none; stroke:#5b6f8c; stroke-width:2; stroke-linecap:round; pointer-events:none; }
+            #driver-tracker .driver-date-field input { width:150px!important; height:38px!important; padding:0 8px 0 32px!important; border-radius:8px!important; font-size:12px!important; }
+            #driver-tracker .driver-filter .driver-action-button { min-height:38px; padding:0 22px; border-radius:8px; font-size:12px; }
+            #driver-tracker .driver-history-table-wrap { overflow:auto; border:1px solid #e6edf6; border-radius:12px; background:#fff; box-shadow:0 4px 13px rgba(38,70,116,.035); }
+            #driver-tracker .driver-history-table { width:100%; min-width:680px; border-collapse:collapse; }
+            #driver-tracker .driver-history-table th { padding:13px 14px; background:#fff; color:#45597a; font-size:11px; font-weight:700; text-align:left; }
+            #driver-tracker .driver-history-table td { padding:15px 14px; border-top:1px solid #edf1f6; color:#2e4768; font-size:12px; }
+            #driver-tracker .driver-history-table td:last-child { width:30px; color:#2878f5; font-size:18px; text-align:center; }
+            #driver-tracker .driver-history-table tbody tr { cursor:pointer; }
+            #driver-tracker .driver-history-table tbody tr:hover td { background:#f7faff; }
+            #driver-tracker .driver-session-status { display:inline-flex; align-items:center; gap:8px; color:#16a567; font-size:12px; font-weight:600; }
+            #driver-tracker .driver-session-status::before { display:grid; place-items:center; width:14px; height:14px; border-radius:50%; background:currentColor; box-shadow:inset 0 0 0 4px currentColor, inset 0 0 0 7px #fff; content:''; }
+            #driver-tracker .driver-session-status.start { color:#2878f5; }
+            #driver-tracker .driver-session-status.idle { color:#f08a1c; }
+            #driver-tracker .driver-session-status.stopped,#driver-tracker .driver-session-status.expired,#driver-tracker .driver-session-status.revoked { color:#e5484d; }
+            #driver-tracker .driver-settings { display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }
+            #driver-tracker .driver-settings-profile { border-left:4px solid #2878f5; }
+            #driver-tracker .driver-profile-head { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+            #driver-tracker .driver-profile-head strong { display:block; color:#1c355a; font-size:13px; }
+            #driver-tracker .driver-profile-head small { display:block; margin-top:2px; color:#7a8ca3; font-size:11px; }
+            #driver-tracker .driver-profile-field { margin:12px 0; }
+            #driver-tracker .driver-profile-field small,#driver-tracker .driver-profile-vehicle small { display:block; color:#8192a8; font-size:10px; }
+            #driver-tracker .driver-profile-field strong,#driver-tracker .driver-profile-vehicle strong { display:block; margin-top:3px; color:#1c355a; font-size:13px; }
+            #driver-tracker .driver-profile-vehicle { display:flex; align-items:center; gap:12px; margin-top:14px; }
+            #driver-tracker .driver-profile-vehicle-icon { display:grid; place-items:center; width:48px; height:32px; flex:none; }
+            #driver-tracker .driver-profile-vehicle-icon svg,#driver-tracker .driver-profile-vehicle-icon img { width:48px; height:32px; object-fit:contain; }
+            #driver-tracker .driver-tracker-state { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+            #driver-tracker .driver-tracker-state strong { display:block; color:#1c355a; font-size:13px; }
+            #driver-tracker .driver-tracker-state small { display:block; margin-top:2px; color:#7a8ca3; font-size:11px; }
+            #driver-tracker .driver-tracker-check { display:grid; place-items:center; width:24px; height:24px; flex:none; border-radius:50%; background:#16a567; }
+            #driver-tracker .driver-tracker-check svg { width:14px; height:14px; fill:none; stroke:#fff; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+            #driver-tracker .driver-tracker-position { display:flex; align-items:center; gap:12px; margin-bottom:14px; padding:12px; border:1px solid #e6edf6; border-radius:8px; background:#f3f7fc; }
+            #driver-tracker .driver-tracker-position strong { display:block; color:#1c355a; font-size:12px; }
+            #driver-tracker .driver-tracker-position small { display:block; margin-top:2px; color:#7a8ca3; font-size:11px; }
+            #driver-tracker .driver-tracker-pin { display:grid; place-items:center; width:28px; height:28px; flex:none; color:#2878f5; }
+            #driver-tracker .driver-tracker-pin svg { width:20px; height:20px; fill:#2878f5; stroke:none; }
+            #driver-tracker .driver-tracker-pin svg circle { fill:#fff; }
+            #driver-tracker .driver-danger-button { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:38px; font-size:12px!important; border-radius:7px!important; }
+            #driver-tracker .driver-danger-button:disabled { opacity:.65; cursor:wait; }
+            #driver-tracker .driver-settings-card { padding:15px; border:1px solid var(--drv-line); border-radius:9px; background:#fff; box-shadow:0 4px 13px rgba(38,70,116,.035); }
+            #driver-tracker .driver-settings-card h2 { margin:0 0 12px; color:#1c355a; font-size:13px; }
+            #driver-tracker .driver-profile-row { display:grid; grid-template-columns:42px 1fr; gap:10px; align-items:center; margin:10px 0; padding-bottom:9px; border-bottom:1px solid #eef2f7; }
+            #driver-tracker .driver-profile-avatar { display:grid; place-items:center; width:38px; height:38px; border-radius:50%; background:#e7efff; color:#286fe0; font-size:12px; font-weight:800; }
+            #driver-tracker .driver-profile-row small { display:block; color:#8192a8; font-size:9px; }
+            #driver-tracker .driver-profile-row strong { display:block; margin-top:3px; color:#2e4768; font-size:11px; }
+            #driver-tracker .driver-settings-form { display:grid; gap:10px; }
+            #driver-tracker .driver-settings-form label { display:grid; gap:5px; color:#71839b; font-size:10px; font-weight:700; }
+            #driver-tracker .driver-settings-hint { margin:0; color:#7a8ca3; font-size:9px; line-height:1.5; }
+            #driver-tracker .driver-inline-status { min-height:16px; color:#15834f; font-size:10px; }
+            #driver-tracker .driver-danger-button { min-height:34px; padding:0 10px; border:1px solid #ef4444; border-radius:6px; background:#ef4444; color:#fff; font-size:10px; font-weight:700; cursor:pointer; }
+            #driver-tracker .driver-empty { padding:22px; color:#7789a1; text-align:center; font-size:11px; }
+            @media(max-width:1000px) { #driver-tracker .driver-live-layout { grid-template-columns:minmax(0,1.3fr) minmax(245px,.8fr); } #driver-tracker .driver-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+            @media(max-width:760px) { #driver-tracker { padding:8px; } #driver-tracker .driver-shell { grid-template-columns:1fr; } #driver-tracker .driver-nav { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; padding:7px; border-right:0; border-bottom:1px solid #e3ebf6; } #driver-tracker .driver-nav-title { display:none; } #driver-tracker .driver-nav button { justify-content:center; gap:5px; padding:0 5px; font-size:10px; } #driver-tracker .driver-main { padding:9px; } #driver-tracker .driver-page-head h1 { font-size:18px; } #driver-tracker .driver-live-layout,#driver-tracker .driver-settings { grid-template-columns:1fr; } #driver-tracker .driver-map { height:300px; } #driver-tracker .driver-view-head { align-items:start; flex-direction:column; } #driver-tracker .driver-filter { width:100%; flex-wrap:wrap; } #driver-tracker .driver-filter label { flex:1 1 120px; } }
+          </style>
+          <div class="driver-shell">
+            <div class="driver-main">
+              <header class="driver-page-head"><div><h1 id="driver-greeting">Bonjour</h1><p id="driver-page-subtitle">Voici le suivi de votre véhicule.</p></div><div class="driver-page-head-actions"><button type="button" id="driver-refresh" class="button button-secondary button-small" title="Actualiser" aria-label="Actualiser">↻</button></div></header>
+              <div id="driver-no-vehicle" class="driver-panel" hidden><h2>Aucun véhicule affecté</h2><p>Contactez l’administrateur du parc pour rattacher un véhicule à votre profil.</p></div>
+              <div id="driver-vehicle-content" hidden>
+                <section id="driver-view-vehicle" class="driver-view">
+                  <div class="driver-kpis">
+                    <article class="driver-kpi"><span class="driver-kpi-icon"><svg viewBox="0 0 24 24"><path d="M3 13l2-6h14l2 6v5h-2v-2H5v2H3z"/><circle cx="7.5" cy="15" r="1"/><circle cx="16.5" cy="15" r="1"/><path d="M5 7l2-3h10l2 3"/></svg></span><div class="driver-kpi-copy"><strong id="driver-kpi-vehicle">—</strong><span id="driver-kpi-plate">Véhicule affecté</span><small>Mon véhicule</small></div></article>
+                    <article class="driver-kpi"><span class="driver-kpi-icon green"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2.5"/></svg></span><div class="driver-kpi-copy"><strong id="driver-kpi-gps">GPS indisponible</strong><span id="driver-kpi-accuracy">Autorisation requise</span><small id="driver-kpi-connectivity">En attente</small></div></article>
+                    <article class="driver-kpi"><span class="driver-kpi-icon orange"><svg viewBox="0 0 24 24"><path d="M3 17a9 9 0 1 1 18 0"/><path d="M12 13l4-4M12 17h.01"/></svg></span><div class="driver-kpi-copy"><strong id="driver-kpi-speed">— km/h</strong><span>Vitesse actuelle</span><small id="driver-kpi-motion">En attente de position</small></div></article>
+                    <article class="driver-kpi"><span class="driver-kpi-icon violet"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div class="driver-kpi-copy"><strong id="driver-kpi-last-signal">Aucun signal</strong><span>Dernier signal</span><small>Transmission GPS</small></div></article>
+                  </div>
+                  <div class="driver-live-layout">
+                    <section class="driver-panel">
+                      <div class="driver-panel-head"><div><h2>Position en temps réel</h2><p id="driver-live-updated">En attente d’une position GPS</p></div><div class="driver-map-toolbar"><button type="button" class="active" data-driver-map-mode="road">Vue Google</button><button type="button" data-driver-map-mode="satellite">Vue technique</button><button type="button" id="driver-map-fullscreen" title="Plein écran" aria-label="Plein écran">⛶</button></div></div>
+                      <div id="driver-map" class="driver-map" aria-label="Carte GPS du véhicule"></div>
+                    </section>
+                    <section class="driver-panel driver-detail-panel">
+                      <h2>Mon véhicule</h2>
+                      <div class="driver-vehicle-summary"><div id="driver-vehicle-photo" class="driver-vehicle-photo"><svg viewBox="0 0 48 48"><path d="M5 28l4-13h30l4 13v10h-4v-4H9v4H5z"/><circle cx="14" cy="30" r="2"/><circle cx="34" cy="30" r="2"/><path d="M10 15l4-7h20l4 7"/></svg></div><div><h2 id="driver-vehicle-name">Véhicule</h2><p id="driver-vehicle-meta">—</p><p id="driver-driver-name">—</p></div></div>
+                      <div id="driver-vehicle-status" class="driver-status"><span class="driver-status-icon"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span><strong id="driver-status-title">GPS indisponible</strong><small id="driver-status-subtitle">Autorisation de localisation requise</small></span></div>
+                      <div class="driver-manual-place"><label>Lieu de départ<input id="driver-start-place" maxlength="180" placeholder="Détecté par GPS ou saisir"></label><label class="driver-destination-field">Destination prévue<input id="driver-destination-place" maxlength="180" placeholder="Adresse (ex. 311 rue des Échevins, Saint-Jean)" autocomplete="off"><div id="driver-destination-suggestions" class="driver-suggestions" hidden></div></label></div>
+                      <button type="button" id="driver-start-tracking" class="driver-start-button"><span aria-hidden="true">▶</span>Démarrer le suivi</button>
+                      <button type="button" id="driver-stop-tracking" class="driver-start-button stop" hidden><span aria-hidden="true">■</span>Arrêter le suivi</button>
+                      <div class="driver-device-stats"><div class="driver-device-stat"><svg viewBox="0 0 24 24"><path d="M5 9a10 10 0 0 1 14 0M8 12a6 6 0 0 1 8 0m-5 4h.01"/></svg><span>Signal GPS<strong id="driver-device-signal">En attente</strong></span></div><div class="driver-device-stat"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><span>Téléphone<strong id="driver-device-name">Appareil actuel</strong></span></div></div>
+                      <p id="driver-inline-status" class="driver-inline-status" aria-live="polite"></p>
+                    </section>
+                  </div>
+                </section>
+                <section id="driver-view-history" class="driver-view" hidden>
+                  <div class="driver-view-head driver-history-head"><div class="driver-filter"><label>Du<span class="driver-date-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><input id="driver-history-from" type="date"></span></label><label>Au<span class="driver-date-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><input id="driver-history-to" type="date"></span></label><button type="button" id="driver-history-apply" class="driver-action-button">Afficher</button></div></div>
+                  <div class="driver-history-table-wrap"><table class="driver-history-table"><thead><tr><th>Date et heure</th><th>Statut</th><th>Lieu</th><th>Vitesse moy.</th><th>Distance</th><th></th></tr></thead><tbody id="driver-history-rows"></tbody></table></div>
+                  <section id="driver-history-route-panel" class="driver-panel" hidden style="margin-top:12px"><div class="driver-panel-head"><div><h2 id="driver-history-route-title">Trajet sélectionné</h2><p id="driver-history-route-meta"></p></div><button type="button" id="driver-history-route-close" class="button button-secondary button-small">Fermer</button></div><div id="driver-history-map" class="driver-map"></div></section>
+                </section>
+                <section id="driver-view-settings" class="driver-view" hidden>
+                  <div class="driver-settings">
+                    <section class="driver-settings-card driver-settings-profile">
+                      <h2>Informations du chauffeur</h2>
+                      <div class="driver-profile-head"><span id="driver-settings-avatar" class="driver-profile-avatar">—</span><div><strong id="driver-settings-name">—</strong><small id="driver-settings-role">Chauffeur</small></div></div>
+                      <div class="driver-profile-field"><small>Téléphone de l’appareil</small><strong id="driver-settings-phone">Non renseigné</strong></div>
+                      <div class="driver-profile-field"><small>Identifiant</small><strong id="driver-settings-username">—</strong></div>
+                      <div class="driver-profile-vehicle"><span id="driver-settings-vehicle-icon" class="driver-profile-vehicle-icon"><svg viewBox="0 0 48 28"><path d="M3 20l3-9 6-3h20l6 3 6 2v7H3z" fill="#9aa8bb"/><circle cx="13" cy="22" r="4" fill="#33415a"/><circle cx="37" cy="22" r="4" fill="#33415a"/></svg></span><div><small>Véhicule assigné</small><strong id="driver-settings-vehicle">—</strong></div></div>
+                    </section>
+                    <section class="driver-settings-card">
+                      <h2>État du tracker</h2>
+                      <div class="driver-tracker-state"><span class="driver-tracker-check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><strong id="driver-settings-device-title">Appareil autorisé</strong><small id="driver-settings-device-state">Cet appareil est lié à votre compte et à votre véhicule.</small></div></div>
+                      <div class="driver-tracker-position"><span class="driver-tracker-pin"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2.5"/></svg></span><div><strong>Position transmise automatiquement</strong><small id="driver-settings-interval">Intervalle : 10 secondes</small></div></div>
+                      <button type="button" id="driver-revoke-tracking" class="driver-danger-button"><span aria-hidden="true">■</span>Désactiver le tracking sur cet appareil</button>
+                      <p id="driver-settings-status" class="driver-inline-status" aria-live="polite"></p>
+                    </section>
+                  </div>
+                </section>
               </div>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
-                <button type="button" id="maps-tracker-generate" class="button button-primary button-small">Générer token</button>
-                <button type="button" id="maps-tracker-open" class="button button-secondary button-small">Ouvrir tracker mobile</button>
-                <button type="button" id="maps-tracker-disable" class="button button-danger button-small">Désactiver tracking</button>
-              </div>
-              <div id="maps-tracker-status" style="font-size: 12px; color: #64748b; margin-bottom: 8px;">Aucun token généré pour cette session.</div>
-              <textarea id="maps-tracker-link" readonly style="width: 100%; min-height: 92px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; background: #f8fafc; color: #1e293b;" placeholder="Le lien de tracking mobile apparaîtra ici après génération."></textarea>
             </div>
           </div>
         </div>
@@ -12510,6 +12881,7 @@
             <div class="users-page-title"><span class="users-title-icon" aria-hidden="true">♟</span><div><h1>Gestion des profils</h1><p>Administration des comptes utilisateurs et de leurs données.</p></div></div>
             <div class="users-toolbar">
               <button type="button" class="users-toolbar-button users-refresh" onclick="loadUsersModule()"><span aria-hidden="true">↻</span> Actualiser</button>
+              <button type="button" id="users-create-account" class="users-toolbar-button users-sync"><span aria-hidden="true">＋</span> Créer un compte</button>
               <button type="button" class="users-toolbar-button users-sync" onclick="reconcileHrUsersFromEmployees()"><span aria-hidden="true">⟳</span> Synchroniser RH</button>
               <button type="button" id="users-reset-all-login-state" class="users-toolbar-button users-reset" onclick="resetAllUsersLoginState()"><span aria-hidden="true">⟳</span> Réinitialiser tous les profils</button>
               <button type="button" id="users-purge-business-data" class="users-toolbar-button users-purge" onclick="purgeErpBusinessData()"><span aria-hidden="true">▤</span> Purge des données</button>
@@ -12537,6 +12909,28 @@
               </table>
             </div>
           </section>
+          <div id="users-account-overlay" class="users-purge-overlay" hidden>
+            <section class="users-purge-dialog" role="dialog" aria-modal="true" aria-labelledby="users-account-title">
+              <header class="users-purge-dialog-header"><span class="users-purge-dialog-icon" aria-hidden="true">♟</span><div><h2 id="users-account-title">Créer un compte utilisateur</h2><p>Associez le compte à une fiche employé existante. Le mot de passe prend effet immédiatement.</p></div><button type="button" class="users-dialog-close" id="users-account-close" aria-label="Fermer">×</button></header>
+              <form id="users-account-form">
+                <label class="users-purge-confirm-label" for="users-account-employee">Employé lié</label><select id="users-account-employee" class="users-purge-confirm-input" required><option value="">Choisir un employé</option></select>
+                <label class="users-purge-confirm-label" for="users-account-username">Identifiant</label><input id="users-account-username" class="users-purge-confirm-input" autocomplete="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]+" />
+                <label class="users-purge-confirm-label" for="users-account-role">Rôle</label><select id="users-account-role" class="users-purge-confirm-input" required><option value="chauffeur">Chauffeur</option><option value="employe_standard">Employé standard</option><option value="chef_chantier_site">Chef de chantier</option><option value="gestionnaire_stock">Gestionnaire stock</option><option value="commis">Commis stock</option><option value="achat">Achats</option><option value="directeur_rh">Directeur RH</option><option value="dirigeant">Dirigeant</option></select>
+                <label class="users-purge-confirm-label" for="users-account-password">Nouveau mot de passe</label><input id="users-account-password" class="users-purge-confirm-input" type="password" autocomplete="new-password" required minlength="6" />
+                <footer class="users-purge-dialog-footer"><button type="button" class="users-dialog-cancel" id="users-account-cancel">Annuler</button><button type="submit" class="users-dialog-confirm">Enregistrer</button></footer>
+              </form>
+            </section>
+          </div>
+          <div id="users-password-overlay" class="users-purge-overlay" hidden>
+            <section class="users-purge-dialog" role="dialog" aria-modal="true" aria-labelledby="users-password-title">
+              <header class="users-purge-dialog-header"><span class="users-purge-dialog-icon" aria-hidden="true">🔑</span><div><h2 id="users-password-title">Modifier le mot de passe</h2><p id="users-password-description">Le nouveau mot de passe sera utilisable immédiatement.</p></div><button type="button" class="users-dialog-close" id="users-password-close" aria-label="Fermer">×</button></header>
+              <form id="users-password-form">
+                <input id="users-password-id" type="hidden">
+                <label class="users-purge-confirm-label" for="users-password-new">Nouveau mot de passe</label><input id="users-password-new" class="users-purge-confirm-input" type="password" autocomplete="new-password" required minlength="6">
+                <footer class="users-purge-dialog-footer"><button type="button" class="users-dialog-cancel" id="users-password-cancel">Annuler</button><button type="submit" class="users-dialog-confirm">Appliquer</button></footer>
+              </form>
+            </section>
+          </div>
           <div id="users-purge-modal" class="users-purge-overlay" hidden>
             <section class="users-purge-dialog" role="dialog" aria-modal="true" aria-labelledby="users-purge-title">
               <header class="users-purge-dialog-header"><span class="users-purge-dialog-icon" aria-hidden="true">▤</span><div><h2 id="users-purge-title">Purge des données du système</h2><p>Sélectionnez les données à supprimer. Les éléments peuvent être choisis séparément.</p></div><button type="button" class="users-dialog-close" aria-label="Fermer" onclick="closeUsersPurgeDialog()">×</button></header>
@@ -13228,6 +13622,8 @@
     let hrLeaveRequestsCache = [];
     let hrSignatureRequestsCache = [];
     let usersAdminCache = [];
+    let usersEmployeeCache = [];
+    let hrChauffeursCache = [];
     let usersCurrentPage = 1;
     let usersPageSize = Number.MAX_SAFE_INTEGER;
     let usersLastLoadedAt = null;
@@ -13258,19 +13654,35 @@
     let materialRequestsCache = [];
     let purchaseOrdersCache = [];
     let autoVehiclesCache = [];
+    let driverVehicleState = null;
+    let driverTrackingSession = null;
+    let driverTrackingToken = '';
+    let driverGpsWatchId = null;
+    let driverLastSentAt = 0;
+    let driverLastPosition = null;
+    let driverVehicleLeafletMap = null;
+    let driverVehicleBaseLayer = null;
+    let driverVehicleMapMode = 'road';
+    let driverVehicleMapLayers = [];
+    let driverHistoryLeafletMap = null;
+    let driverHistoryMapLayers = [];
+    let driverHistorySessions = [];
+    let driverCurrentView = 'vehicle';
     let autoTransportCostsCache = [];
     let autoTransportProjectsCache = [];
     let autoMaintenanceCache = [];
     let autoVehicleLocationsCache = [];
     let autoLocationHistoryCache = [];
     let selectedAutoLocationVehicleId = null;
+    let mapsDetailOpen = false;
+    let driverTrackerLatestLink = '';
     let autoVehicleMap = null;
     let autoVehicleMapLayers = [];
     let autoVehicleMapHistoryLayer = null;
     let autoMapMode = 'google';
     let mapsModuleSearchTerm = '';
     let mapsModuleStatusFilter = 'all';
-    let mapsModuleMapMode = 'leaflet';
+    let mapsModuleMapMode = 'google';
     let mapsModuleLeafletMap = null;
     let mapsModuleLeafletLayers = [];
     let mapsModuleLeafletMarkersByVehicleId = new Map();
@@ -14269,6 +14681,19 @@
         : '<div class="empty-state"><p>Aucune position enregistrée pour ce véhicule.</p></div>';
     }
 
+    function populateVehicleChauffeurSelects() {
+      const selects = [document.getElementById('auto-vehicle-driver'), document.getElementById('maps-create-driver'), document.getElementById('maps-detail-driver-select')].filter(Boolean);
+      selects.forEach(select => {
+        const previous = select.value;
+        const isMapsSelect = select.id === 'maps-create-driver';
+        const emptyLabel = isMapsSelect ? 'Aucun chauffeur' : 'Aucun chauffeur';
+        select.innerHTML = `<option value="">${emptyLabel}</option>` + hrChauffeursCache
+          .map(employee => `<option value="${Number(employee.id)}">${escapeHtml(employee.fullName)}${employee.jobTitle ? ` · ${escapeHtml(employee.jobTitle)}` : ''}</option>`)
+          .join('');
+        if (hrChauffeursCache.some(employee => String(employee.id) === previous)) select.value = previous;
+      });
+    }
+
     function getMapsModuleFilteredVehicles() {
       const searchValue = normalizeText(mapsModuleSearchTerm.trim());
       return autoVehicleLocationsCache.filter(vehicle => {
@@ -14442,29 +14867,42 @@
       }
     }
 
+    function mapsVehiclePlaceholderSvg() {
+      return '<svg class="maps-vehicle-placeholder" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h12v11H3zM15 11h4l3 3v4h-7zM7 18a2 2 0 1 0 0 .01M18 18a2 2 0 1 0 0 .01"/></svg>';
+    }
+
     function renderMapsModuleVehicleList() {
       const list = document.getElementById('maps-vehicles-list');
       if (!list) return;
 
       const vehicles = getMapsModuleFilteredVehicles().slice(0, 30);
+      const count = document.getElementById('maps-vehicle-count');
+      if (count) count.textContent = `${vehicles.length} véhicule${vehicles.length === 1 ? '' : 's'} affiché${vehicles.length === 1 ? '' : 's'}`;
       list.innerHTML = vehicles.length
         ? vehicles.map(vehicle => {
             const lastLocation = vehicle.lastLocation;
             const isSelected = Number(vehicle.id) === Number(selectedAutoLocationVehicleId);
+            const status = String(lastLocation?.status || 'offline').toLowerCase();
+            const statusLabel = lastLocation ? getAutoLocationStatusLabel(status) : 'Hors ligne';
+            const statusClass = status === 'idle' ? 'idle' : (status === 'maintenance' ? 'maintenance' : (status === 'offline' ? 'offline' : ''));
+            const vehiclePhoto = vehicle.photoDataUrl
+              ? `<img src="${escapeHtml(vehicle.photoDataUrl)}" alt="${escapeHtml(buildAutoVehicleLabel(vehicle))}">`
+              : mapsVehiclePlaceholderSvg();
             return `
-              <li class="list-item" style="${isSelected ? 'border-left: 4px solid #1d4ed8; cursor: pointer;' : 'cursor: pointer;'}" onclick="mapsSelectVehicle(${Number(vehicle.id)})" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();mapsSelectVehicle(${Number(vehicle.id)});}">
-                <div class="list-item-content">
-                  <div class="list-item-title">${escapeHtml(buildAutoVehicleLabel(vehicle))}</div>
-                  <div class="list-item-meta">${lastLocation ? `${escapeHtml(getAutoLocationStatusLabel(lastLocation.status))} • ${formatAutoLocationTimestamp(lastLocation.recordedAt)}` : 'Aucune position GPS'}</div>
-                  <div class="list-item-meta">${lastLocation ? `Lat ${Number(lastLocation.latitude).toFixed(5)} • Lng ${Number(lastLocation.longitude).toFixed(5)} • ${Number(lastLocation.speedKph || 0).toFixed(1)} km/h` : (vehicle.chauffeurNom ? `Chauffeur: ${escapeHtml(vehicle.chauffeurNom)}` : 'Position en attente')}</div>
+              <li class="maps-vehicle-row ${isSelected ? 'selected' : ''}" onclick="mapsSelectVehicle(${Number(vehicle.id)})" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();mapsSelectVehicle(${Number(vehicle.id)});}">
+                <div class="maps-vehicle-thumb">${vehiclePhoto}</div>
+                <div style="min-width:0;">
+                  <div class="maps-vehicle-name">${escapeHtml(buildAutoVehicleLabel(vehicle))}</div>
+                  <div class="maps-vehicle-meta">${escapeHtml(vehicle.immatriculation || 'Plaque non renseignée')}</div>
+                  <div class="maps-vehicle-meta">${escapeHtml(vehicle.chauffeurNom || 'Chauffeur non affecté')} · ${lastLocation ? `Signal ${formatAutoLocationTimestamp(lastLocation.recordedAt)}` : 'Aucun signal'}</div>
                 </div>
-                <div class="action-buttons">
-                  <button class="button button-small button-secondary" onclick="event.stopPropagation(); mapsSelectVehicle(${Number(vehicle.id)})">Voir position</button>
-                </div>
+                <div><span class="maps-status-pill ${statusClass}">${escapeHtml(statusLabel)}</span><div class="maps-vehicle-live">${Number(lastLocation?.speedKph || 0).toFixed(0)} km/h</div></div>
+                <button type="button" class="maps-view-position" onclick="event.stopPropagation(); mapsSelectVehicle(${Number(vehicle.id)})">Voir position</button>
+                <button type="button" class="maps-more-button" title="Actions véhicule" onclick="event.stopPropagation(); mapsSelectVehicle(${Number(vehicle.id)})">⋯</button>
               </li>
             `;
           }).join('')
-        : '<div class="empty-state"><p>Aucun véhicule ne correspond aux filtres.</p></div>';
+        : '<li class="empty-state"><p>Aucun véhicule ne correspond aux filtres.</p></li>';
     }
 
     function renderMapsModuleHistory() {
@@ -14478,16 +14916,74 @@
         : 'Historique des positions';
 
       list.innerHTML = autoLocationHistoryCache.length
-        ? autoLocationHistoryCache.slice(0, 20).map(location => `
-            <li class="list-item">
-              <div class="list-item-content">
-                <div class="list-item-title">${escapeHtml(getAutoLocationStatusLabel(location.status))} • ${formatAutoLocationTimestamp(location.recordedAt)}</div>
-                <div class="list-item-meta">Lat ${Number(location.latitude).toFixed(5)} • Lng ${Number(location.longitude).toFixed(5)} • ${Number(location.speedKph || 0).toFixed(1)} km/h</div>
-                <div class="list-item-meta">Source: ${escapeHtml(location.source || 'manual')} • Précision: ${Number(location.accuracyMeters || 0).toFixed(1)} m${location.note ? ` • ${escapeHtml(location.note)}` : ''}</div>
-              </div>
+        ? autoLocationHistoryCache.slice(0, 100).map(location => `
+            <li class="maps-timeline-row">
+              <span class="maps-timeline-dot" aria-hidden="true"></span>
+              <div><div class="maps-timeline-title">${escapeHtml(getAutoLocationStatusLabel(location.status))}</div><div class="maps-timeline-meta">${Number(location.latitude).toFixed(5)}, ${Number(location.longitude).toFixed(5)} · ${escapeHtml(location.note || location.source || 'Signal GPS')}</div></div>
+              <div class="maps-timeline-meta">${escapeHtml(internalMailDate(location.recordedAt))}<br>${new Date(location.recordedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
             </li>
           `).join('')
-        : '<div class="empty-state"><p>Aucune position disponible pour ce véhicule.</p></div>';
+        : '<li class="empty-state"><p>Aucune position disponible pour ce véhicule.</p></li>';
+    }
+
+    function mapsDistanceKm(a, b) {
+      const radians = value => value * Math.PI / 180;
+      const lat1 = Number(a?.latitude);
+      const lon1 = Number(a?.longitude);
+      const lat2 = Number(b?.latitude);
+      const lon2 = Number(b?.longitude);
+      if (![lat1, lon1, lat2, lon2].every(Number.isFinite)) return 0;
+      const deltaLat = radians(lat2 - lat1);
+      const deltaLon = radians(lon2 - lon1);
+      const haversine = Math.sin(deltaLat / 2) ** 2 + Math.cos(radians(lat1)) * Math.cos(radians(lat2)) * Math.sin(deltaLon / 2) ** 2;
+      return 6371 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+    }
+
+    function renderMapsVehicleDetail() {
+      const vehicle = autoVehiclesCache.find(item => Number(item.id) === Number(selectedAutoLocationVehicleId));
+      if (!vehicle) return;
+      const locations = autoLocationHistoryCache.slice().sort((a, b) => new Date(a.recordedAt) - new Date(b.recordedAt));
+      const last = locations[locations.length - 1] || vehicle.lastLocation || null;
+      const first = locations[0] || last;
+      const vehiclePhoto = document.getElementById('maps-detail-photo');
+      if (vehiclePhoto) vehiclePhoto.innerHTML = vehicle.photoDataUrl ? `<img src="${escapeHtml(vehicle.photoDataUrl)}" alt="${escapeHtml(buildAutoVehicleLabel(vehicle))}">` : mapsVehiclePlaceholderSvg();
+      const setText = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = value; };
+      setText('maps-detail-name', buildAutoVehicleLabel(vehicle));
+      setText('maps-detail-plate', vehicle.immatriculation || 'Plaque non renseignée');
+      setText('maps-detail-driver', `Chauffeur · ${vehicle.chauffeurNom || 'non affecté'}`);
+      const assignmentWrap = document.querySelector('#maps-detail-driver-select')?.parentElement;
+      if (assignmentWrap) assignmentWrap.style.display = isAdmin() ? 'flex' : 'none';
+      populateVehicleChauffeurSelects();
+      const driverSelect = document.getElementById('maps-detail-driver-select');
+      if (driverSelect) driverSelect.value = String(vehicle.chauffeurEmployeeId || '');
+      setText('maps-detail-status', last ? getAutoLocationStatusLabel(last.status) : 'Hors ligne');
+      setText('maps-detail-last-signal', last ? formatAutoLocationTimestamp(last.recordedAt) : 'Aucun signal');
+      setText('maps-detail-start', first ? new Date(first.recordedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—');
+      setText('maps-detail-accuracy', last ? `± ${Math.round(Number(last.accuracyMeters || 0))} m` : '—');
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayLocations = locations.filter(item => new Date(item.recordedAt) >= todayStart);
+      let distance = 0;
+      for (let index = 1; index < todayLocations.length; index += 1) distance += mapsDistanceKm(todayLocations[index - 1], todayLocations[index]);
+      setText('maps-detail-distance', todayLocations.length > 1 ? `${distance.toFixed(1)} km` : '—');
+      setText('maps-summary-distance', todayLocations.length > 1 ? `${distance.toFixed(1)} km` : '—');
+      setText('maps-summary-duration', todayLocations.length > 1 ? `${Math.max(1, Math.round((new Date(todayLocations[todayLocations.length - 1].recordedAt) - new Date(todayLocations[0].recordedAt)) / 60000))} min` : '—');
+      const avgSpeed = todayLocations.length ? todayLocations.reduce((sum, item) => sum + Number(item.speedKph || 0), 0) / todayLocations.length : 0;
+      setText('maps-summary-speed', todayLocations.length ? `${avgSpeed.toFixed(0)} km/h` : '—');
+      setText('maps-summary-stops', String(todayLocations.filter(item => Number(item.speedKph || 0) < 2).length));
+      const frame = document.getElementById('maps-detail-google-frame');
+      const link = document.getElementById('maps-detail-google-link');
+      const subtitle = document.getElementById('maps-detail-map-subtitle');
+      if (last && frame) {
+        const query = `${Number(last.latitude)},${Number(last.longitude)}`;
+        frame.src = `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=14&hl=fr&output=embed`;
+        if (link) link.href = `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=15`;
+        if (subtitle) subtitle.textContent = `Position à ${formatAutoLocationTimestamp(last.recordedAt)}`;
+      } else {
+        if (frame) frame.src = 'https://www.google.com/maps?q=5.3364,-4.0267&z=12&hl=fr&output=embed';
+        if (link) link.href = 'https://www.google.com/maps?q=5.3364,-4.0267&z=15';
+        if (subtitle) subtitle.textContent = 'Aucune coordonnée enregistrée pour ce véhicule';
+      }
     }
 
     function renderMapsModuleGoogleMap() {
@@ -14650,10 +15146,13 @@
       syncMapsVehicleSelects();
       renderMapsModuleVehicleList();
       renderMapsModuleHistory();
+      renderMapsVehicleDetail();
+      const overview = document.getElementById('maps-overview-view');
+      const detail = document.getElementById('maps-detail-view');
+      if (overview) overview.hidden = mapsDetailOpen;
+      if (detail) detail.hidden = !mapsDetailOpen;
       syncMapsLocationInputsWithSelection();
       setMapsModuleMapMode(mapsModuleMapMode);
-      refreshMapsTrackerStatus();
-      // Masquer le panneau de mise à jour pour le dirigeant
       const updatePanel = document.getElementById('maps-update-panel');
       if (updatePanel) updatePanel.style.display = isExecutive() ? 'none' : '';
     }
@@ -14664,9 +15163,662 @@
     }
 
     window.mapsSelectVehicle = async vehicleId => {
+      mapsDetailOpen = true;
       await setSelectedAutoLocationVehicle(vehicleId);
       renderMapsModule();
     };
+
+    function closeMapsCreateDialog() {
+      const overlay = document.getElementById('maps-create-overlay');
+      if (!overlay) return;
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    function openMapsCreateDialog() {
+      populateVehicleChauffeurSelects();
+      const form = document.getElementById('maps-create-form');
+      const overlay = document.getElementById('maps-create-overlay');
+      const preview = document.getElementById('maps-create-photo-preview');
+      const label = document.getElementById('maps-create-photo-label');
+      form?.reset();
+      if (preview) { preview.hidden = true; preview.removeAttribute('src'); }
+      if (label) label.hidden = false;
+      overlay?.classList.add('open');
+      overlay?.setAttribute('aria-hidden', 'false');
+      document.getElementById('maps-create-brand')?.focus();
+    }
+
+    async function readMapsVehiclePhoto(file) {
+      if (!file) return '';
+      if (file.size > 5 * 1024 * 1024) throw new Error('La photo doit faire 5 Mo maximum');
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) throw new Error('Format de photo non pris en charge');
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Impossible de lire la photo'));
+        reader.readAsDataURL(file);
+      });
+      const image = await new Promise((resolve, reject) => {
+        const element = new Image();
+        element.onload = () => resolve(element);
+        element.onerror = () => reject(new Error('Image illisible'));
+        element.src = dataUrl;
+      });
+      const scale = Math.min(1, 1280 / Math.max(image.width, image.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext('2d');
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      let quality = 0.84;
+      let compressed = canvas.toDataURL('image/jpeg', quality);
+      while (compressed.length > 700000 && quality > 0.48) {
+        quality -= 0.08;
+        compressed = canvas.toDataURL('image/jpeg', quality);
+      }
+      if (compressed.length > 700000) throw new Error('Photo trop détaillée; choisissez une image plus petite');
+      return compressed;
+    }
+
+    async function submitMapsVehicleForm(event) {
+      event.preventDefault();
+      const photoFile = document.getElementById('maps-create-photo')?.files?.[0];
+      try {
+        const chauffeurEmployeeId = Number(document.getElementById('maps-create-driver')?.value || 0) || null;
+        const driver = hrChauffeursCache.find(employee => Number(employee.id) === chauffeurEmployeeId);
+        const marqueVehicule = String(document.getElementById('maps-create-brand')?.value || '').trim();
+        const modele = String(document.getElementById('maps-create-model')?.value || '').trim();
+        const photoDataUrl = await readMapsVehiclePhoto(photoFile);
+        await fetchJson('/api/auto-vehicles', {
+          method: 'POST',
+          body: JSON.stringify({
+            nomVehicule: modele,
+            marqueVehicule,
+            immatriculation: String(document.getElementById('maps-create-plate')?.value || '').trim(),
+            chauffeurEmployeeId,
+            chauffeurNom: String(driver?.fullName || ''),
+            gpsActif: false,
+            valeurVehicule: 0,
+            etatVehicule: String(document.getElementById('maps-create-status')?.value || 'Disponible'),
+            annee: String(document.getElementById('maps-create-year')?.value || '').trim(),
+            typeVehicule: String(document.getElementById('maps-create-type')?.value || '').trim(),
+            numeroIdentification: String(document.getElementById('maps-create-vin')?.value || '').trim(),
+            description: String(document.getElementById('maps-create-description')?.value || '').trim(),
+            couleur: String(document.getElementById('maps-create-color')?.value || '').trim(),
+            photoDataUrl,
+          }),
+        });
+        closeMapsCreateDialog();
+        showMessage('Véhicule enregistré');
+        await loadMapsModule();
+      } catch (error) {
+        showMessage('Enregistrement impossible: ' + error.message, 'error');
+      }
+    }
+
+    function setDriverStatusMessage(message, isError = false) {
+      const status = document.getElementById('driver-inline-status');
+      if (status) {
+        status.textContent = String(message || '');
+        status.style.color = isError ? '#dc3545' : '#168451';
+      }
+    }
+
+    function getDriverPositionOnce() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error('La géolocalisation n’est pas disponible sur cet appareil.'));
+        navigator.geolocation.getCurrentPosition(resolve, error => reject(new Error(error.message || 'Autorisation GPS refusée.')), {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: 20000,
+        });
+      });
+    }
+
+    function driverPositionPayload(position) {
+      const coords = position?.coords || {};
+      const latitude = Number(coords.latitude);
+      const longitude = Number(coords.longitude);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) throw new Error('Position GPS invalide.');
+      return {
+        latitude,
+        longitude,
+        speedKph: Number(coords.speed) > 0 ? Number(coords.speed) * 3.6 : 0,
+        heading: Number(coords.heading) >= 0 ? Number(coords.heading || 0) : 0,
+        accuracyMeters: Number(coords.accuracy || 0),
+        recordedAt: new Date(Number(position.timestamp) || Date.now()).toISOString(),
+      };
+    }
+
+    function driverPointLabel(location) {
+      return `${Number(location.latitude).toFixed(5)}, ${Number(location.longitude).toFixed(5)}`;
+    }
+
+    function driverClearMapLayers(map, layers) {
+      if (!map || !Array.isArray(layers)) return;
+      layers.forEach(layer => { try { map.removeLayer(layer); } catch (error) {} });
+      layers.length = 0;
+    }
+
+    function driverEnsureLeafletMap(containerId, kind) {
+      if (!window.L) {
+        const container = document.getElementById(containerId);
+        if (container) container.innerHTML = '<div class="driver-empty">La carte n’est pas disponible. Les positions restent enregistrées dans l’historique.</div>';
+        return null;
+      }
+      const isHistory = kind === 'history';
+      let map = isHistory ? driverHistoryLeafletMap : driverVehicleLeafletMap;
+      if (!map) {
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+        map = L.map(container, { zoomControl: true, scrollWheelZoom: false }).setView([5.35, -4.02], 12);
+        if (isHistory) {
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19, attribution: 'Tiles &copy; Esri',
+          }).addTo(map);
+        } else {
+          driverVehicleBaseLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19, attribution: 'Tiles &copy; Esri',
+          }).addTo(map);
+        }
+        if (isHistory) driverHistoryLeafletMap = map;
+        else driverVehicleLeafletMap = map;
+      }
+      window.requestAnimationFrame(() => map.invalidateSize());
+      return map;
+    }
+
+    function setDriverMapMode(mode) {
+      driverVehicleMapMode = mode === 'satellite' ? 'satellite' : 'road';
+      const map = driverVehicleLeafletMap;
+      if (map && window.L) {
+        if (driverVehicleBaseLayer) map.removeLayer(driverVehicleBaseLayer);
+        const url = driverVehicleMapMode === 'satellite'
+          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+          : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+        driverVehicleBaseLayer = L.tileLayer(url, { maxZoom: 19, attribution: 'Tiles &copy; Esri' }).addTo(map);
+      }
+      document.querySelectorAll('#driver-tracker [data-driver-map-mode]').forEach(button => {
+        button.classList.toggle('active', button.dataset.driverMapMode === driverVehicleMapMode);
+      });
+    }
+
+    function renderDriverRouteMap(containerId, locations, kind = 'vehicle', session = null) {
+      const isHistory = kind === 'history';
+      const map = driverEnsureLeafletMap(containerId, kind);
+      if (!map) return;
+      const layers = isHistory ? driverHistoryMapLayers : driverVehicleMapLayers;
+      driverClearMapLayers(map, layers);
+      const points = (Array.isArray(locations) ? locations : []).filter(point =>
+        Number.isFinite(Number(point?.latitude)) && Number.isFinite(Number(point?.longitude))
+      );
+      if (!points.length) {
+        map.setView([5.35, -4.02], 12);
+        const container = document.getElementById(containerId);
+        if (container && !container.querySelector('.driver-map-empty-label')) {
+          const label = document.createElement('div');
+          label.className = 'driver-map-empty-label';
+          label.textContent = 'Aucune position GPS enregistrée pour ce trajet.';
+          label.style.cssText = 'position:absolute;z-index:500;left:50%;top:12px;transform:translateX(-50%);padding:7px 10px;border-radius:6px;background:#fff;color:#60748e;font:11px DM Sans, sans-serif;box-shadow:0 2px 8px #23385522;';
+          container.appendChild(label);
+        }
+        return;
+      }
+      document.getElementById(containerId)?.querySelector('.driver-map-empty-label')?.remove();
+      const latlngs = points.map(point => [Number(point.latitude), Number(point.longitude)]);
+      if (latlngs.length > 1) layers.push(L.polyline(latlngs, { color: '#2878f5', weight: 5, opacity: 0.92, lineJoin: 'round' }).addTo(map));
+      const start = points[0];
+      const end = points[points.length - 1];
+      layers.push(L.circleMarker(latlngs[0], { radius: 7, color: '#fff', weight: 2, fillColor: '#14a968', fillOpacity: 1 }).addTo(map).bindTooltip(`Départ · ${escapeHtml(session?.startPlace || driverPointLabel(start))}`));
+      if (points.length > 1) {
+        layers.push(L.circleMarker(latlngs[latlngs.length - 1], { radius: 7, color: '#fff', weight: 2, fillColor: session?.status === 'active' ? '#2878f5' : '#e74852', fillOpacity: 1 }).addTo(map).bindTooltip(`${session?.status === 'active' ? 'Position actuelle' : 'Arrivée'} · ${escapeHtml(session?.arrivalPlace || driverPointLabel(end))}`));
+      }
+      if (latlngs.length > 1) map.fitBounds(L.latLngBounds(latlngs).pad(0.16));
+      else map.setView(latlngs[0], 14);
+      window.requestAnimationFrame(() => map.invalidateSize());
+    }
+
+    let driverTrackingUiOverride = null;
+
+    const VEHICLE_ICON_BRANDS = {
+      pickup: ['toyota', 'ford', 'chevrolet', 'ram', 'nissan', 'gmc', 'isuzu', 'mitsubishi', 'mazda'],
+      truck: ['volvo', 'mercedes-benz', 'mack', 'freightliner', 'international', 'kenworth', 'peterbilt', 'scania', 'man'],
+      mixer: ['mack', 'volvo', 'mercedes-benz', 'freightliner', 'international', 'kenworth', 'scania', 'man'],
+      excavator: ['caterpillar', 'komatsu', 'hitachi', 'volvo', 'doosan', 'hyundai', 'sany', 'kobelco', 'case'],
+      loader: ['caterpillar', 'komatsu', 'volvo', 'john-deere', 'case'],
+      dozer: ['caterpillar', 'komatsu', 'john-deere'],
+      grader: ['caterpillar', 'john-deere', 'komatsu'],
+    };
+
+    function getVehicleIconByBrand(vehicle) {
+      const normalize = value => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const brand = normalize(vehicle?.marqueVehicule).replace(/^mercedes(-benz)?$/, 'mercedes-benz').replace(/^cat$/, 'caterpillar').replace(/^deere$/, 'john-deere').replace(/^chevy$/, 'chevrolet');
+      if (!brand) return '';
+      const hint = normalize(`${vehicle?.typeVehicule || ''} ${vehicle?.nomVehicule || ''} ${vehicle?.description || ''}`);
+      let order;
+      if (/betonniere|malaxeur|mixer/.test(hint)) order = ['mixer'];
+      else if (/niveleuse|grader/.test(hint)) order = ['grader'];
+      else if (/bouteur|bulldozer|dozer/.test(hint)) order = ['dozer'];
+      else if (/chargeuse|loader/.test(hint)) order = ['loader'];
+      else if (/pelle|excavat/.test(hint)) order = ['excavator'];
+      else if (/engin/.test(hint)) order = ['excavator', 'loader', 'dozer', 'grader'];
+      else if (/camion(?!nette)/.test(hint)) order = ['truck', 'mixer'];
+      else order = ['pickup'];
+      order.push('pickup', 'truck', 'excavator', 'loader', 'dozer', 'grader', 'mixer');
+      const category = order.find(name => VEHICLE_ICON_BRANDS[name].includes(brand));
+      return category ? `/vehicle-icons/${category}-${brand}.png` : '';
+    }
+
+    function driverUpdateVehicleSummary() {
+      const result = driverVehicleState || {};
+      const vehicle = result.vehicle || {};
+      const employee = result.employee || {};
+      const location = driverLastPosition || result.lastLocation || null;
+      const active = Boolean(result.activeSession && result.activeSession.status === 'active');
+      const setText = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = String(value ?? ''); };
+      setText('driver-greeting', `Bonjour ${employee.fullName || currentUserUsername || ''}`.trim());
+      setText('driver-vehicle-name', buildAutoVehicleLabel(vehicle));
+      setText('driver-vehicle-meta', `${vehicle.immatriculation || 'Plaque non renseignée'} · ${vehicle.annee || 'Année non renseignée'} · ${vehicle.typeVehicule || 'Véhicule'}`);
+      setText('driver-driver-name', `Chauffeur · ${employee.fullName || currentUserUsername || '—'}`);
+      setText('driver-kpi-vehicle', buildAutoVehicleLabel(vehicle));
+      setText('driver-kpi-plate', vehicle.immatriculation || 'Plaque non renseignée');
+      setText('driver-kpi-gps', active ? 'GPS disponible' : (result.device?.isActive ? 'Appareil autorisé' : 'GPS disponible'));
+      setText('driver-kpi-accuracy', location ? `Précision : ${Math.round(Number(location.accuracyMeters || 0))} m` : 'Autorisation requise');
+      setText('driver-kpi-connectivity', active ? 'Connecté' : 'Prêt à démarrer');
+      const speedKph = Number(location?.speedKph || 0);
+      setText('driver-kpi-speed', `${Math.round(speedKph)} km/h`);
+      setText('driver-kpi-motion', speedKph > 2 ? 'En déplacement' : (location ? 'À l’arrêt' : 'En attente de position'));
+      setText('driver-kpi-last-signal', location ? internalMailDate(location.recordedAt) : 'Aucun signal');
+      setText('driver-live-updated', location ? `Dernière mise à jour : ${formatAutoLocationTimestamp(location.recordedAt)}` : 'En attente d’une position GPS');
+      setText('driver-device-signal', location ? getAutoLocationStatusLabel(location.status) : 'En attente');
+      setText('driver-device-name', active ? (result.activeSession.deviceName || 'Appareil actuel') : (result.device?.deviceName || 'Appareil actuel'));
+      const status = document.getElementById('driver-vehicle-status');
+      if (status) status.classList.toggle('is-offline', !location && !active);
+      setText('driver-status-title', active ? 'GPS disponible' : (location ? getAutoLocationStatusLabel(location.status) : 'GPS indisponible'));
+      setText('driver-status-subtitle', location ? `Précision : ${Math.round(Number(location.accuracyMeters || 0))} m` : 'Autorisation de localisation requise');
+      const photo = document.getElementById('driver-vehicle-photo');
+      const brandIcon = vehicle.photoDataUrl ? '' : getVehicleIconByBrand(vehicle);
+      if (photo && brandIcon) photo.innerHTML = `<img class="brand-icon" src="${brandIcon}" alt="${escapeHtml(vehicle.marqueVehicule || '')}">`;
+      const settingsIcon = document.getElementById('driver-settings-vehicle-icon');
+      if (settingsIcon && brandIcon) settingsIcon.innerHTML = `<img src="${brandIcon}" alt="">`;
+      if (photo && vehicle.photoDataUrl) photo.innerHTML = `<img src="${escapeHtml(vehicle.photoDataUrl)}" alt="${escapeHtml(buildAutoVehicleLabel(vehicle))}">`;
+      const startButton = document.getElementById('driver-start-tracking');
+      const stopButton = document.getElementById('driver-stop-tracking');
+      const buttonsActive = driverTrackingUiOverride === 'starting' ? true : (driverTrackingUiOverride === 'stopping' ? false : active);
+      if (startButton) {
+        startButton.hidden = buttonsActive;
+        startButton.innerHTML = '<span aria-hidden="true">▶</span>Démarrer le suivi';
+      }
+      if (stopButton) stopButton.hidden = !buttonsActive;
+      const settings = result.settings || {};
+      setText('driver-settings-name', employee.fullName || '—');
+      setText('driver-settings-role', employee.jobTitle || 'Chauffeur');
+      setText('driver-settings-phone', employee.phoneNumber || 'Non renseigné');
+      setText('driver-settings-username', employee.username || currentUserUsername || '—');
+      setText('driver-settings-vehicle', `${[vehicle.nomVehicule, vehicle.marqueVehicule].filter(Boolean).join(' • ') || '—'}${vehicle.immatriculation ? ` (${vehicle.immatriculation})` : ''}`);
+      const authorized = active || Boolean(result.device?.isActive);
+      setText('driver-settings-device-title', authorized ? 'Appareil autorisé' : 'Appareil non autorisé');
+      setText('driver-settings-device-state', authorized ? 'Cet appareil est lié à votre compte et à votre véhicule.' : 'Démarrez un suivi depuis Mon véhicule pour autoriser cet appareil.');
+      setText('driver-settings-interval', `Intervalle : ${Number(settings.movingIntervalSeconds || 10)} secondes`);
+      const revokeButton = document.getElementById('driver-revoke-tracking');
+      if (revokeButton) revokeButton.disabled = !authorized;
+      const avatar = document.getElementById('driver-settings-avatar');
+      if (avatar) avatar.textContent = internalMailInitials(employee.fullName || currentUserUsername);
+      const activePoints = active
+        ? (result.locations || []).filter(point => Number(point.trackingSessionId) === Number(result.activeSession.id))
+        : (location ? [location] : []);
+      renderDriverRouteMap('driver-map', activePoints, 'vehicle', result.activeSession);
+      if (location && window.navigator?.getBattery) {
+        navigator.getBattery().then(battery => setText('driver-device-name', `${result.activeSession?.deviceName || result.device?.deviceName || 'Appareil actuel'} · Batterie ${Math.round(battery.level * 100)}%`)).catch(() => {});
+      }
+    }
+
+    async function loadDriverTrackerModule() {
+      const noVehicle = document.getElementById('driver-no-vehicle');
+      const content = document.getElementById('driver-vehicle-content');
+      try {
+        const result = await fetchJson('/api/driver/vehicle');
+        driverVehicleState = result;
+        driverTrackingSession = result.activeSession || null;
+        if (noVehicle) noVehicle.hidden = true;
+        if (content) content.hidden = false;
+        driverUpdateVehicleSummary();
+        if (driverCurrentView === 'history') await loadDriverHistory();
+      } catch (error) {
+        driverVehicleState = null;
+        driverTrackingSession = null;
+        if (content) content.hidden = true;
+        if (noVehicle) {
+          noVehicle.hidden = false;
+          noVehicle.querySelector('p').textContent = error.message || 'Aucun véhicule ne vous est affecté.';
+        }
+      }
+    }
+
+    function showDriverView(viewName) {
+      const view = ['vehicle', 'history', 'settings'].includes(viewName) ? viewName : 'vehicle';
+      driverCurrentView = view;
+      document.querySelectorAll('#driver-tracker [data-driver-view]').forEach(button => button.classList.toggle('active', button.dataset.driverView === view));
+      document.querySelectorAll('#driver-tracker .driver-view').forEach(panel => { panel.hidden = panel.id !== `driver-view-${view}`; });
+      const title = document.querySelector('#driver-tracker .driver-page-head h1');
+      const subtitle = document.getElementById('driver-page-subtitle');
+      if (title) title.textContent = view === 'history' ? 'Historique des trajets' : view === 'settings' ? 'Paramètres' : `Bonjour ${driverVehicleState?.employee?.fullName || currentUserUsername || ''}`.trim();
+      if (subtitle) subtitle.textContent = view === 'history' ? 'Consultez vos déplacements passés.' : view === 'settings' ? 'Gérez votre appareil et vos informations.' : 'Voici le suivi de votre véhicule.';
+      if (view === 'history') loadDriverHistory();
+      if (view === 'vehicle') window.requestAnimationFrame(() => driverUpdateVehicleSummary());
+    }
+
+    function formatDriverSessionPlace(session) {
+      const from = String(session.startPlace || (Number.isFinite(Number(session.startLatitude)) ? `${Number(session.startLatitude).toFixed(4)}, ${Number(session.startLongitude).toFixed(4)}` : 'Lieu non renseigné'));
+      const to = String(session.arrivalPlace || session.destinationPlace || (Number.isFinite(Number(session.endLatitude)) ? `${Number(session.endLatitude).toFixed(4)}, ${Number(session.endLongitude).toFixed(4)}` : (session.status === 'active' ? 'En cours' : 'Arrivée non renseignée')));
+      return `${from} → ${to}`;
+    }
+
+    function getDriverSessionStatusKey(session) {
+      const status = String(session?.status || '').toLowerCase();
+      if (status === 'active') return 'active';
+      if (status === 'completed' && Number(session?.arrivedAtDestination) === 1) return 'completed';
+      return 'stopped';
+    }
+
+    function getDriverSessionStatusLabel(session) {
+      return ({ active: 'En déplacement', completed: 'Arrivée', stopped: 'Arrêt' })[getDriverSessionStatusKey(session)];
+    }
+
+    function formatDriverHistoryDate(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '—';
+      const pad = number => String(number).padStart(2, '0');
+      return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function initDriverHistoryDates() {
+      const from = document.getElementById('driver-history-from');
+      const to = document.getElementById('driver-history-to');
+      if (!from || !to || from.value || to.value) return;
+      const toIso = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const today = new Date();
+      to.value = toIso(today);
+      from.value = toIso(new Date(today.getFullYear(), today.getMonth(), 1));
+    }
+
+    async function loadDriverHistory() {
+      const body = document.getElementById('driver-history-rows');
+      if (!body) return;
+      body.innerHTML = '<tr><td colspan="6" class="driver-empty">Chargement de vos trajets…</td></tr>';
+      initDriverHistoryDates();
+      try {
+        const from = document.getElementById('driver-history-from')?.value || '';
+        const to = document.getElementById('driver-history-to')?.value || '';
+        const result = await fetchJson(`/api/driver/tracking-sessions?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+        driverHistorySessions = Array.isArray(result.sessions) ? result.sessions : [];
+        if (!driverHistorySessions.length) {
+          body.innerHTML = '<tr><td colspan="6" class="driver-empty">Aucun trajet enregistré pour cette période.</td></tr>';
+          return;
+        }
+        body.innerHTML = driverHistorySessions.map(session => {
+          const averageSpeed = session.locations?.length
+            ? Math.round(session.locations.reduce((sum, item) => sum + Number(item.speedKph || 0), 0) / session.locations.length)
+            : 0;
+          const distance = Number(session.distanceKm || 0);
+          return `<tr data-driver-session-id="${Number(session.id)}"><td>${escapeHtml(formatDriverHistoryDate(session.startedAt))}</td><td><span class="driver-session-status ${getDriverSessionStatusKey(session)}">${escapeHtml(getDriverSessionStatusLabel(session))}</span></td><td>${escapeHtml(formatDriverSessionPlace(session))}</td><td>${session.locations?.length ? `${averageSpeed} km/h` : '—'}</td><td>${distance ? `${distance.toLocaleString('fr-FR')} km` : '—'}</td><td aria-label="Voir le trajet">›</td></tr>`;
+        }).join('');
+        body.querySelectorAll('[data-driver-session-id]').forEach(row => row.addEventListener('click', () => {
+          const session = driverHistorySessions.find(item => Number(item.id) === Number(row.dataset.driverSessionId));
+          if (session) openDriverHistoryRoute(session);
+        }));
+      } catch (error) {
+        body.innerHTML = `<tr><td colspan="6" class="driver-empty">${escapeHtml(error.message || 'Impossible de charger l’historique.')}</td></tr>`;
+      }
+    }
+
+    function openDriverHistoryRoute(session) {
+      const panel = document.getElementById('driver-history-route-panel');
+      if (!panel) return;
+      panel.hidden = false;
+      const name = buildAutoVehicleLabel(driverVehicleState?.vehicle || {});
+      const title = document.getElementById('driver-history-route-title');
+      const meta = document.getElementById('driver-history-route-meta');
+      if (title) title.textContent = `${name} · ${getDriverSessionStatusLabel(session)}`;
+      if (meta) meta.textContent = `${formatDriverSessionPlace(session)} · ${Number(session.distanceKm || 0).toLocaleString('fr-FR')} km`;
+      window.requestAnimationFrame(() => renderDriverRouteMap('driver-history-map', session.locations || [], 'history', session));
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function startDriverPositionWatch() {
+      if (!driverTrackingToken || driverGpsWatchId !== null || !navigator.geolocation) return;
+      driverGpsWatchId = navigator.geolocation.watchPosition(position => {
+        const point = driverPositionPayload(position);
+        driverLastPosition = point;
+        const moving = point.speedKph >= 3;
+        const configured = driverVehicleState?.settings || {};
+        const intervalMs = Number(moving ? configured.movingIntervalSeconds : configured.idleIntervalSeconds) * 1000 || (moving ? 10000 : 60000);
+        if (Date.now() - driverLastSentAt >= intervalMs) sendDriverPosition(position).catch(error => setDriverStatusMessage(error.message, true));
+        driverUpdateVehicleSummary();
+      }, error => {
+        setDriverStatusMessage(`Signal GPS interrompu : ${error.message}`, true);
+      }, { enableHighAccuracy: true, maximumAge: 0, timeout: 25000 });
+    }
+
+    function stopDriverPositionWatch() {
+      if (driverGpsWatchId !== null && navigator.geolocation) navigator.geolocation.clearWatch(driverGpsWatchId);
+      driverGpsWatchId = null;
+    }
+
+    async function sendDriverPosition(position, force = false) {
+      if (!driverTrackingToken) throw new Error('Session GPS introuvable. Reprenez le suivi.');
+      const point = driverPositionPayload(position);
+      if (!force && Date.now() - driverLastSentAt < 3000) return;
+      const speedKph = Number(point.speedKph || 0);
+      const result = await fetchJson('/api/gps/ingest', {
+        method: 'POST',
+        headers: { 'x-tracking-token': driverTrackingToken },
+        body: JSON.stringify({ ...point, status: speedKph >= 3 ? 'moving' : 'idle', source: 'driver_browser' }),
+      });
+      driverLastSentAt = Date.now();
+      driverLastPosition = result.location || point;
+      if (driverVehicleState) {
+        driverVehicleState.lastLocation = driverLastPosition;
+        const locations = Array.isArray(driverVehicleState.locations) ? driverVehicleState.locations : [];
+        locations.push(driverLastPosition);
+        driverVehicleState.locations = locations.slice(-100);
+      }
+      setDriverStatusMessage('Position transmise automatiquement.');
+      driverUpdateVehicleSummary();
+      checkDriverArrival(driverLastPosition);
+      return result;
+    }
+
+    let driverDestination = { text: '', latitude: null, longitude: null };
+    let driverSuggestTimer = null;
+    let driverArrivalHandled = false;
+
+    async function searchDriverAddress(query, limit = 5) {
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=${limit}&accept-language=fr&q=${encodeURIComponent(query)}`;
+      const response = await fetch(url, { headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error('Recherche d’adresse indisponible.');
+      const rows = await response.json();
+      return (Array.isArray(rows) ? rows : []).map(row => ({ label: String(row.display_name || '').slice(0, 180), latitude: Number(row.lat), longitude: Number(row.lon) }))
+        .filter(item => item.label && Number.isFinite(item.latitude) && Number.isFinite(item.longitude));
+    }
+
+    function setDriverDestination(text, latitude = null, longitude = null) {
+      driverDestination = { text, latitude, longitude };
+      document.getElementById('driver-destination-place')?.classList.toggle('is-resolved', Number.isFinite(latitude));
+    }
+
+    function hideDriverSuggestions() {
+      const box = document.getElementById('driver-destination-suggestions');
+      if (box) { box.hidden = true; box.innerHTML = ''; }
+    }
+
+    async function showDriverSuggestions(query) {
+      const box = document.getElementById('driver-destination-suggestions');
+      if (!box) return;
+      try {
+        const items = await searchDriverAddress(query);
+        if (document.getElementById('driver-destination-place')?.value.trim() !== query) return;
+        box.innerHTML = items.length
+          ? items.map((item, index) => `<button type="button" data-index="${index}">${escapeHtml(item.label)}</button>`).join('')
+          : '<div class="driver-suggestions-empty">Aucune adresse trouvée.</div>';
+        box.hidden = false;
+        box.querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
+          const item = items[Number(button.dataset.index)];
+          const input = document.getElementById('driver-destination-place');
+          if (input) input.value = item.label;
+          setDriverDestination(item.label, item.latitude, item.longitude);
+          hideDriverSuggestions();
+        }));
+      } catch (_error) {
+        hideDriverSuggestions();
+      }
+    }
+
+    function onDriverDestinationInput(event) {
+      const query = event.target.value.trim();
+      setDriverDestination(query);
+      window.clearTimeout(driverSuggestTimer);
+      if (query.length < 4) return hideDriverSuggestions();
+      driverSuggestTimer = window.setTimeout(() => showDriverSuggestions(query), 450);
+    }
+
+    async function resolveDriverDestination() {
+      const text = document.getElementById('driver-destination-place')?.value.trim() || '';
+      if (!text) return setDriverDestination('');
+      if (driverDestination.text === text && Number.isFinite(driverDestination.latitude)) return;
+      try {
+        const [first] = await searchDriverAddress(text, 1);
+        if (first) setDriverDestination(text, first.latitude, first.longitude);
+        else setDriverDestination(text);
+      } catch (_error) {
+        setDriverDestination(text);
+      }
+    }
+
+    function driverDistanceMeters(lat1, lng1, lat2, lng2) {
+      const toRad = value => value * Math.PI / 180;
+      const a = Math.sin(toRad(lat2 - lat1) / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(toRad(lng2 - lng1) / 2) ** 2;
+      return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function checkDriverArrival(point) {
+      const session = driverTrackingSession;
+      const latitude = Number(session?.destinationLatitude);
+      const longitude = Number(session?.destinationLongitude);
+      if (driverArrivalHandled || !session || session.status !== 'active' || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+      const radius = Math.max(100, Math.min(Number(point.accuracyMeters || 0), 200));
+      if (driverDistanceMeters(Number(point.latitude), Number(point.longitude), latitude, longitude) > radius) return;
+      driverArrivalHandled = true;
+      stopDriverTracking(true);
+    }
+
+    async function startDriverTracking() {
+      if (driverTrackingUiOverride === 'starting') return;
+      driverTrackingUiOverride = 'starting';
+      driverUpdateVehicleSummary();
+      setDriverStatusMessage('Autorisation GPS en cours…');
+      try {
+        await resolveDriverDestination();
+        driverArrivalHandled = false;
+        if (!navigator.geolocation) throw new Error('La géolocalisation n’est pas disponible sur cet appareil.');
+        let result;
+        let position;
+        if (driverTrackingSession?.status === 'active') {
+          position = await getDriverPositionOnce();
+          result = await fetchJson(`/api/driver/tracking-sessions/${Number(driverTrackingSession.id)}/resume`, { method: 'POST', body: JSON.stringify({}) });
+        } else {
+          result = await fetchJson('/api/driver/tracking-sessions/start', {
+            method: 'POST',
+            body: JSON.stringify({
+              deviceName: String(navigator.userAgent || 'Appareil chauffeur').slice(0, 110),
+              startPlace: document.getElementById('driver-start-place')?.value.trim() || '',
+              destinationPlace: driverDestination.text || document.getElementById('driver-destination-place')?.value.trim() || '',
+              destinationLatitude: Number.isFinite(driverDestination.latitude) ? driverDestination.latitude : null,
+              destinationLongitude: Number.isFinite(driverDestination.longitude) ? driverDestination.longitude : null,
+              movingIntervalSeconds: Number(driverVehicleState?.settings?.movingIntervalSeconds || 10),
+              idleIntervalSeconds: Number(driverVehicleState?.settings?.idleIntervalSeconds || 60),
+            }),
+          });
+          driverTrackingSession = result.session;
+          driverTrackingToken = String(result.deviceToken || '');
+          try {
+            position = await getDriverPositionOnce();
+          } catch (error) {
+            await fetchJson(`/api/driver/tracking-sessions/${Number(driverTrackingSession?.id)}/stop`, {
+              method: 'POST', body: JSON.stringify({ arrivalPlace: 'GPS refusé au démarrage' }),
+            }).catch(() => {});
+            driverTrackingSession = null;
+            driverTrackingToken = '';
+            throw error;
+          }
+        }
+        driverTrackingSession = result.session || driverTrackingSession;
+        driverTrackingToken = String(result.deviceToken || driverTrackingToken || '');
+        if (!driverTrackingToken) throw new Error('La session est créée, mais le token sécurisé n’a pas été remis au navigateur.');
+        await sendDriverPosition(position, true);
+        startDriverPositionWatch();
+        await loadDriverTrackerModule();
+        setDriverStatusMessage('Suivi actif. Les positions sont transmises automatiquement.');
+      } catch (error) {
+        setDriverStatusMessage(error.message || 'Impossible de démarrer le suivi.', true);
+        showMessage(`Impossible de démarrer le suivi : ${error.message}`, 'error');
+      } finally {
+        driverTrackingUiOverride = null;
+        driverUpdateVehicleSummary();
+      }
+    }
+
+    async function revokeDriverTracking() {
+      const button = document.getElementById('driver-revoke-tracking');
+      if (!window.confirm('Désactiver le tracking sur cet appareil ?')) return;
+      if (button) button.disabled = true;
+      try {
+        await fetchJson('/api/driver/tracking-device', { method: 'DELETE' });
+        stopDriverPositionWatch();
+        driverTrackingToken = '';
+        driverTrackingSession = null;
+        setDriverStatusMessage('Tracking désactivé sur cet appareil.');
+        await loadDriverTrackerModule();
+      } catch (error) {
+        setDriverStatusMessage(error.message || 'Impossible de désactiver le tracking.', true);
+        if (button) button.disabled = false;
+      }
+    }
+
+    async function stopDriverTracking(arrived = false) {
+      arrived = arrived === true;
+      const sessionId = Number(driverTrackingSession?.id || 0);
+      if (!sessionId) {
+        setDriverStatusMessage('Aucune session active.', true);
+        return;
+      }
+      if (driverTrackingUiOverride === 'stopping') return;
+      driverTrackingUiOverride = 'stopping';
+      driverUpdateVehicleSummary();
+      try {
+        let finalPosition = null;
+        if (navigator.geolocation) finalPosition = await getDriverPositionOnce().catch(() => null);
+        if (finalPosition && driverTrackingToken) await sendDriverPosition(finalPosition, true).catch(() => {});
+        const arrivalPlace = arrived ? (driverTrackingSession?.destinationPlace || '') : '';
+        await fetchJson(`/api/driver/tracking-sessions/${sessionId}/stop`, {
+          method: 'POST', body: JSON.stringify({ ...(finalPosition ? driverPositionPayload(finalPosition) : {}), arrivalPlace, arrived }),
+        });
+        stopDriverPositionWatch();
+        driverTrackingToken = '';
+        driverTrackingSession = null;
+        setDriverStatusMessage(arrived ? 'Arrivée à destination. Trajet enregistré dans l’historique.' : 'Trajet terminé et enregistré dans l’historique.');
+        await loadDriverTrackerModule();
+        if (driverCurrentView === 'history') await loadDriverHistory();
+      } catch (error) {
+        setDriverStatusMessage(error.message || 'Impossible d’arrêter le suivi.', true);
+      } finally {
+        driverTrackingUiOverride = null;
+        driverUpdateVehicleSummary();
+      }
+    }
 
     function captureCurrentBrowserLocationForMaps() {
       if (!navigator.geolocation) {
@@ -14758,6 +15910,8 @@
       let allowed = null;
       if (isAdmin()) {
         allowed = new Set(getMenuModuleKeys().concat(['dashboard', 'access-profiles', 'admin-mail', 'users', 'settings', 'audit-log']));
+      } else if (String(currentUserRole || '').trim().toLowerCase() === 'chauffeur') {
+        allowed = new Set(['driver-tracker', 'driver-history', 'driver-settings']);
       } else if (currentUserAccessProfile && Array.isArray(currentUserAccessProfile.effectiveModules) && currentUserAccessProfile.effectiveModules.length) {
         allowed = new Set(normalizeAccessProfileModuleList(currentUserAccessProfile.effectiveModules));
       } else {
@@ -15065,14 +16219,14 @@
 
         return `
           <tr>
-            <td><span class="users-profile-name">${escapeHtml(username)}</span><small class="users-profile-meta">Mot de passe initial : ${escapeHtml(String(row?.initialPasswordHint || '').trim() || '-')}</small></td>
+            <td><span class="users-profile-name">${escapeHtml(username)}</span><small class="users-profile-meta">Mot de passe protégé</small></td>
             <td>${escapeHtml(employeeName || 'Compte autonome')}</td>
             <td><span class="users-role-badge">${escapeHtml(getRoleDisplayLabel(row?.role || ''))}</span></td>
             <td>${employeeName ? '<span class="users-status-pill users-status-connected">Lié RH</span>' : '<span class="users-status-pill users-status-missing">Autonome</span>'}</td>
             <td>${firstLoginAt ? escapeHtml(formatDateWithTime(firstLoginAt)) : 'Non suivi'}</td>
             <td>${lastLoginAt ? escapeHtml(formatDateWithTime(lastLoginAt)) : 'Non suivi'}</td>
             <td><span class="users-status-pill ${statusClass}">${statusLabel}</span></td>
-            <td>${isAdmin() ? `<button type="button" class="users-row-action" aria-label="Réinitialiser le profil ${escapeHtml(username)}" title="Réinitialiser la première connexion" onclick="resetUserLoginState(${Number(row?.id || 0)})">↻</button>` : '—'}</td>
+            <td>${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Modifier le mot de passe de ${escapeHtml(username)}" title="Modifier le mot de passe" onclick="openUserPasswordDialog(${Number(row?.id || 0)}, '${escapeHtml(username)}')">⌑</button>` : (!hasAccount && isAdmin() ? `<button type="button" class="users-row-action" aria-label="Créer le compte de ${escapeHtml(employeeName || username)}" title="Créer le compte lié" onclick="openUsersAccountDialog(${Number(row?.linkedEmployeeId || 0)})">＋</button>` : '—')} ${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Réinitialiser la première connexion de ${escapeHtml(username)}" title="Réinitialiser la première connexion" onclick="resetUserLoginState(${Number(row?.id || 0)})">↻</button>` : ''}</td>
           </tr>
         `;
       }).join('');
@@ -15082,6 +16236,8 @@
       const tbody = document.getElementById('users-table-body');
       const resetAllButton = document.getElementById('users-reset-all-login-state');
       const purgeButton = document.getElementById('users-purge-business-data');
+      const createButton = document.getElementById('users-create-account');
+      if (createButton) createButton.style.display = isAdmin() ? 'inline-flex' : 'none';
       if (resetAllButton) {
         resetAllButton.style.display = isAdmin() ? 'inline-flex' : 'none';
       }
@@ -15112,6 +16268,16 @@
           document.getElementById('users-page-prev')?.addEventListener('click', () => { usersCurrentPage -= 1; renderUsersModuleTable(); });
           document.getElementById('users-page-next')?.addEventListener('click', () => { usersCurrentPage += 1; renderUsersModuleTable(); });
           document.getElementById('users-page-size')?.addEventListener('change', event => { usersPageSize = Math.max(1, Number(event.target.value) || 10); usersCurrentPage = 1; renderUsersModuleTable(); });
+          document.getElementById('users-create-account')?.addEventListener('click', () => openUsersAccountDialog());
+          document.getElementById('users-account-close')?.addEventListener('click', closeUsersAccountDialog);
+          document.getElementById('users-account-cancel')?.addEventListener('click', closeUsersAccountDialog);
+          document.getElementById('users-account-overlay')?.addEventListener('click', event => { if (event.target.id === 'users-account-overlay') closeUsersAccountDialog(); });
+          document.getElementById('users-account-employee')?.addEventListener('change', syncUsersAccountFieldsFromEmployee);
+          document.getElementById('users-account-form')?.addEventListener('submit', submitUsersAccountForm);
+          document.getElementById('users-password-close')?.addEventListener('click', closeUserPasswordDialog);
+          document.getElementById('users-password-cancel')?.addEventListener('click', closeUserPasswordDialog);
+          document.getElementById('users-password-overlay')?.addEventListener('click', event => { if (event.target.id === 'users-password-overlay') closeUserPasswordDialog(); });
+          document.getElementById('users-password-form')?.addEventListener('submit', submitUserPasswordForm);
         }
         renderUsersModuleTable();
       } catch (err) {
@@ -15119,6 +16285,116 @@
         if (tbody) {
           tbody.innerHTML = '<tr><td colspan="8" class="users-empty-row">Erreur de chargement des utilisateurs.</td></tr>';
         }
+      }
+    }
+
+    function closeUsersAccountDialog() {
+      const overlay = document.getElementById('users-account-overlay');
+      if (overlay) {
+        overlay.classList.remove('open');
+        overlay.hidden = true;
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+      document.getElementById('users-account-form')?.reset();
+    }
+
+    function syncUsersAccountFieldsFromEmployee() {
+      const employeeId = Number(document.getElementById('users-account-employee')?.value || 0);
+      const employee = hrChauffeursCache.find(row => Number(row.id) === employeeId)
+        || usersEmployeeCache.find(row => Number(row.id) === employeeId);
+      if (!employee) return;
+      const usernameInput = document.getElementById('users-account-username');
+      const roleInput = document.getElementById('users-account-role');
+      if (usernameInput) {
+        const suggested = String(employee.username || employee.fullName || '')
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+          .replace(/[^a-z0-9._-]+/g, '.').replace(/^\.+|\.+$/g, '');
+        usernameInput.value = suggested.slice(0, 40);
+      }
+      if (roleInput) roleInput.value = normalizeText(String(employee.jobTitle || '')).includes('chauffeur') ? 'chauffeur' : 'employe_standard';
+    }
+
+    async function openUsersAccountDialog(employeeId = 0) {
+      if (!isAdmin()) return showMessage('Accès réservé à l’admin', 'error');
+      try {
+        if (!usersEmployeeCache.length) {
+          const rows = await fetchJson('/api/hr/employees');
+          usersEmployeeCache = Array.isArray(rows) ? rows : [];
+        }
+        const linkedEmployeeIds = new Set((usersAdminCache || []).filter(row => Number(row.hasUserAccount)).map(row => Number(row.linkedEmployeeId || 0)).filter(Boolean));
+        const accountless = usersEmployeeCache.filter(employee => !linkedEmployeeIds.has(Number(employee.id)));
+        const select = document.getElementById('users-account-employee');
+        const overlay = document.getElementById('users-account-overlay');
+        if (!select || !overlay) return;
+        select.innerHTML = '<option value="">Choisir un employé sans compte</option>' + accountless.map(employee => `<option value="${Number(employee.id)}">${escapeHtml(employee.fullName)} · ${escapeHtml(employee.jobTitle || 'Sans poste')}</option>`).join('');
+        select.value = accountless.some(employee => Number(employee.id) === Number(employeeId)) ? String(employeeId) : '';
+        document.getElementById('users-account-title').textContent = 'Créer un compte utilisateur';
+        document.getElementById('users-account-form')?.reset();
+        select.value = accountless.some(employee => Number(employee.id) === Number(employeeId)) ? String(employeeId) : '';
+        if (select.value) syncUsersAccountFieldsFromEmployee();
+        overlay.hidden = false;
+        overlay.setAttribute('aria-hidden', 'false');
+        overlay.classList.add('open');
+        select.focus();
+      } catch (error) {
+        showMessage('Impossible de charger les employés: ' + error.message, 'error');
+      }
+    }
+
+    async function submitUsersAccountForm(event) {
+      event.preventDefault();
+      if (!isAdmin()) return showMessage('Accès réservé à l’admin', 'error');
+      const payload = {
+        employeeId: Number(document.getElementById('users-account-employee')?.value || 0),
+        username: String(document.getElementById('users-account-username')?.value || '').trim(),
+        role: String(document.getElementById('users-account-role')?.value || 'employe_standard'),
+        password: String(document.getElementById('users-account-password')?.value || ''),
+      };
+      try {
+        const result = await fetchJson('/api/admin/users', { method: 'POST', body: JSON.stringify(payload) });
+        closeUsersAccountDialog();
+        showMessage(`${result.message}: ${result.username}`);
+        await loadUsersModule();
+      } catch (error) {
+        showMessage('Création du compte impossible: ' + error.message, 'error');
+      }
+    }
+
+    function openUserPasswordDialog(userId, username) {
+      if (!isAdmin()) return showMessage('Accès réservé à l’admin', 'error');
+      const overlay = document.getElementById('users-password-overlay');
+      if (!overlay) return;
+      document.getElementById('users-password-id').value = String(Number(userId) || '');
+      document.getElementById('users-password-description').textContent = `Nouveau mot de passe pour ${String(username || 'ce compte')}. Il sera actif immédiatement.`;
+      document.getElementById('users-password-new').value = '';
+      overlay.hidden = false;
+      overlay.setAttribute('aria-hidden', 'false');
+      overlay.classList.add('open');
+      document.getElementById('users-password-new').focus();
+    }
+
+    function closeUserPasswordDialog() {
+      const overlay = document.getElementById('users-password-overlay');
+      if (overlay) {
+        overlay.classList.remove('open');
+        overlay.hidden = true;
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+      document.getElementById('users-password-form')?.reset();
+    }
+
+    async function submitUserPasswordForm(event) {
+      event.preventDefault();
+      if (!isAdmin()) return showMessage('Accès réservé à l’admin', 'error');
+      const userId = Number(document.getElementById('users-password-id')?.value || 0);
+      const password = String(document.getElementById('users-password-new')?.value || '');
+      try {
+        const result = await fetchJson(`/api/admin/users/${userId}/password`, { method: 'PATCH', body: JSON.stringify({ password }) });
+        closeUserPasswordDialog();
+        showMessage(result.message || 'Mot de passe modifié');
+        await loadUsersModule();
+      } catch (error) {
+        showMessage('Modification impossible: ' + error.message, 'error');
       }
     }
 
@@ -23050,6 +24326,7 @@
       const key = String(role || '').trim().toLowerCase();
       const labels = {
         admin: 'Admin',
+        chauffeur: 'Chauffeur',
         achat: 'Achat',
         commis: 'Commis',
         controle_achat: 'Contrôle achat',
@@ -23942,6 +25219,12 @@
     }
 
     function showModule(moduleName) {
+      const driverViewByModule = {
+        'driver-history': 'history',
+        'driver-settings': 'settings',
+      };
+      const driverView = driverViewByModule[moduleName] || (moduleName === 'driver-tracker' ? 'vehicle' : null);
+      const resolvedModuleName = driverView ? 'driver-tracker' : moduleName;
       if (moduleName !== 'dashboard') {
         document.body.classList.remove('mobile-search-open');
         document.body.classList.remove('mobile-notif-open');
@@ -23950,11 +25233,12 @@
       document.body.classList.toggle('mobile-module-topbar-visible', moduleName !== 'dashboard');
       document.body.classList.toggle('project-progress-layout', moduleName === 'project-progress');
       document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
-      const activeModuleEl = document.getElementById(moduleName);
+      const activeModuleEl = document.getElementById(resolvedModuleName);
       activeModuleEl?.classList.add('active');
       document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
       document.querySelector(`[data-module="${moduleName}"]`)?.classList.add('active');
       currentModule = moduleName;
+      if (driverView) driverCurrentView = driverView;
       const contentArea = document.querySelector('.content-area');
       if (contentArea) contentArea.scrollTop = 0;
       if (activeModuleEl) {
@@ -23973,6 +25257,9 @@
       }
       if (moduleName === 'admin-mail') {
         loadInternalMailModule();
+      }
+      if (driverView) {
+        loadDriverTrackerModule().then(() => showDriverView(driverView));
       }
       if (moduleName === 'dashboard') {
         loadDashboard();
@@ -24005,6 +25292,9 @@
         'parc-auto-maintenance': ['Parc Auto', 'Maintenance et entretien'],
         'parc-auto-transport': ['Parc Auto', 'Coûts des transports'],
         maps: ['Parc Auto', 'Maps'],
+        'driver-tracker': ['Parc Auto', 'Mon véhicule'],
+        'driver-history': ['Parc Auto', 'Historique'],
+        'driver-settings': ['Parc Auto', 'Paramètres'],
         expenses: ['Comptabilité', 'Dépenses'],
         revenues: ['Comptabilité', 'Revenus'],
         reports: ['Comptabilité', 'Rapports'],
@@ -29069,13 +30359,16 @@
 
     async function loadParcAuto(silentError = false) {
       try {
-        const [vehiclesWithLocations, costs, maintenanceRecords, autoProjects] = await Promise.all([
+        const [vehiclesWithLocations, costs, maintenanceRecords, autoProjects, hrEmployees] = await Promise.all([
           fetchJson('/api/auto-vehicle-locations'),
           fetchJson('/api/auto-transport-costs'),
           fetchJson('/api/auto-maintenance-records').catch(() => []),
           fetchJson('/api/projects').catch(() => []),
+          fetchJson('/api/hr/employees').catch(() => []),
         ]);
 
+        hrChauffeursCache = (Array.isArray(hrEmployees) ? hrEmployees : []).filter(employee => normalizeText(String(employee?.jobTitle || '')).includes('chauffeur'));
+        populateVehicleChauffeurSelects();
         autoVehicleLocationsCache = Array.isArray(vehiclesWithLocations) ? vehiclesWithLocations : [];
         autoVehiclesCache = sortRecent(
           autoVehicleLocationsCache.map(vehicle => ({
@@ -29084,9 +30377,16 @@
             marqueVehicule: vehicle.marqueVehicule,
             immatriculation: vehicle.immatriculation,
             chauffeurNom: vehicle.chauffeurNom,
+            chauffeurEmployeeId: vehicle.chauffeurEmployeeId,
             gpsActif: vehicle.gpsActif,
             valeurVehicule: vehicle.valeurVehicule,
             etatVehicule: vehicle.etatVehicule,
+            annee: vehicle.annee,
+            typeVehicule: vehicle.typeVehicule,
+            numeroIdentification: vehicle.numeroIdentification,
+            description: vehicle.description,
+            couleur: vehicle.couleur,
+            photoDataUrl: vehicle.photoDataUrl,
             createdAt: vehicle.createdAt,
           })),
           vehicle => vehicle?.createdAt || vehicle?.id
@@ -30502,7 +31802,8 @@
           selectedStockWarehouseId = getScopedWarehouseId();
           selectedInventoryWarehouseId = getScopedWarehouseId();
         }
-        document.getElementById('username').textContent = user.username;
+        const usernameNode = document.getElementById('username');
+        if (usernameNode) usernameNode.textContent = user.username;
         syncMobilePremiumIdentity();
         return user;
       } catch (err) {
@@ -32453,7 +33754,8 @@
         const nomVehicule = document.getElementById('auto-vehicle-name').value.trim();
         const marqueVehicule = document.getElementById('auto-vehicle-brand').value.trim();
         const immatriculation = document.getElementById('auto-vehicle-plate').value.trim();
-        const chauffeurNom = document.getElementById('auto-vehicle-driver').value.trim();
+        const chauffeurEmployeeId = Number(document.getElementById('auto-vehicle-driver').value || 0) || null;
+        const chauffeurNom = hrChauffeursCache.find(employee => Number(employee.id) === chauffeurEmployeeId)?.fullName || '';
         const gpsActif = document.getElementById('auto-vehicle-gps-enabled').checked;
         const valeurVehicule = Number(document.getElementById('auto-vehicle-value').value);
         const etatVehicule = document.getElementById('auto-vehicle-condition').value;
@@ -32470,6 +33772,7 @@
             marqueVehicule,
             immatriculation,
             chauffeurNom,
+            chauffeurEmployeeId,
             gpsActif,
             valeurVehicule,
             etatVehicule,
@@ -33244,9 +34547,57 @@
       mapsModuleStatusFilter = e.target.value;
       renderMapsModule();
     });
+    document.getElementById('maps-reset-filters')?.addEventListener('click', () => {
+      mapsModuleSearchTerm = '';
+      mapsModuleStatusFilter = 'all';
+      const search = document.getElementById('maps-search');
+      const status = document.getElementById('maps-status-filter');
+      if (search) search.value = '';
+      if (status) status.value = 'all';
+      renderMapsModule();
+    });
 
     document.getElementById('maps-refresh').addEventListener('click', () => {
       loadMapsModule();
+    });
+    document.getElementById('maps-add-vehicle')?.addEventListener('click', openMapsCreateDialog);
+    document.getElementById('maps-create-close')?.addEventListener('click', closeMapsCreateDialog);
+    document.getElementById('maps-create-cancel')?.addEventListener('click', closeMapsCreateDialog);
+    document.getElementById('maps-create-overlay')?.addEventListener('click', event => { if (event.target.id === 'maps-create-overlay') closeMapsCreateDialog(); });
+    document.getElementById('maps-create-form')?.addEventListener('submit', submitMapsVehicleForm);
+    document.getElementById('maps-create-photo')?.addEventListener('change', async event => {
+      const preview = document.getElementById('maps-create-photo-preview');
+      const label = document.getElementById('maps-create-photo-label');
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const dataUrl = await readMapsVehiclePhoto(file);
+        if (preview) { preview.src = dataUrl; preview.hidden = false; }
+        if (label) label.hidden = true;
+      } catch (error) {
+        event.target.value = '';
+        showMessage(error.message, 'error');
+      }
+    });
+    document.getElementById('maps-back-to-overview')?.addEventListener('click', () => {
+      mapsDetailOpen = false;
+      renderMapsModule();
+    });
+    document.getElementById('maps-detail-history')?.addEventListener('click', () => document.getElementById('maps-history-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    document.getElementById('maps-detail-center')?.addEventListener('click', () => document.getElementById('maps-detail-map')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    document.getElementById('maps-detail-start-tracking')?.addEventListener('click', () => showMessage('Le suivi GPS se démarre depuis le compte du chauffeur affecté.', 'error'));
+    document.getElementById('maps-save-driver-assignment')?.addEventListener('click', async () => {
+      if (!isAdmin()) return showMessage('Accès réservé à l’admin', 'error');
+      const vehicleId = Number(selectedAutoLocationVehicleId || 0);
+      const chauffeurEmployeeId = Number(document.getElementById('maps-detail-driver-select')?.value || 0) || null;
+      if (!vehicleId) return showMessage('Sélectionne un véhicule', 'error');
+      try {
+        await fetchJson(`/api/auto-vehicles/${vehicleId}/assignment`, { method: 'PATCH', body: JSON.stringify({ chauffeurEmployeeId }) });
+        showMessage(chauffeurEmployeeId ? 'Chauffeur affecté au véhicule' : 'Affectation chauffeur supprimée');
+        await loadMapsModule();
+      } catch (error) {
+        showMessage('Affectation impossible: ' + error.message, 'error');
+      }
     });
 
     document.getElementById('maps-map-mode-google').addEventListener('click', () => {
@@ -33269,30 +34620,18 @@
       }
     });
 
-    document.getElementById('maps-tracker-vehicle').addEventListener('change', e => {
-      const vehicleId = Number(e.target.value);
-      if (vehicleId) {
-        setSelectedAutoLocationVehicle(vehicleId);
-      } else {
-        refreshMapsTrackerStatus();
-      }
-    });
-
-    document.getElementById('maps-tracker-generate').addEventListener('click', () => {
-      generateMapsTrackerToken();
-    });
-
-    document.getElementById('maps-tracker-open').addEventListener('click', () => {
-      openMapsTrackerLink();
-    });
-
-    document.getElementById('maps-tracker-disable').addEventListener('click', () => {
-      disableMapsTracker();
-    });
-
     document.getElementById('maps-use-current').addEventListener('click', () => {
       captureCurrentBrowserLocationForMaps();
     });
+    document.getElementById('driver-refresh')?.addEventListener('click', loadDriverTrackerModule);
+    document.getElementById('driver-start-tracking')?.addEventListener('click', startDriverTracking);
+    document.getElementById('driver-stop-tracking')?.addEventListener('click', () => stopDriverTracking(false));
+    document.getElementById('driver-destination-place')?.addEventListener('input', onDriverDestinationInput);
+    document.getElementById('driver-destination-place')?.addEventListener('keydown', event => { if (event.key === 'Escape') hideDriverSuggestions(); });
+    document.addEventListener('click', event => { if (!event.target.closest?.('.driver-destination-field')) hideDriverSuggestions(); });
+    document.getElementById('driver-revoke-tracking')?.addEventListener('click', revokeDriverTracking);
+    document.getElementById('driver-history-apply')?.addEventListener('click', loadDriverHistory);
+    document.getElementById('driver-history-route-close')?.addEventListener('click', () => { document.getElementById('driver-history-route-panel').hidden = true; });
 
     document.addEventListener('fullscreenchange', () => {
       window.setTimeout(() => {
@@ -33865,6 +35204,7 @@
       'sortie-autorisations': 'Validation des sorties',
       'purchase-orders': 'Commandes fournisseurs',
       'purchase-orders-tracking': 'Suivi detaille des BDC',
+      'driver-tracker': 'Suivi GPS du véhicule affecté',
       'material-catalog': 'Catalogue des materiaux',
       expenses: 'Depenses et provisions',
       revenues: 'Recettes des projets',
@@ -36089,6 +37429,7 @@
     }
 
     async function pollRealtimeNotifications() {
+      if (String(currentUserRole || '').trim().toLowerCase() === 'chauffeur') return;
       try {
         const [orders, auths, pendingSignatures, unreadMail] = await Promise.all([
           fetchJson('/api/purchase-orders').catch(() => []),
@@ -36748,7 +38089,9 @@
         document.getElementById('hr-leave-end').value = formatDateForInput();
       }
 
-      loadProjects();
+      if (String(currentUserRole || '').trim().toLowerCase() !== 'chauffeur') {
+        loadProjects();
+      }
       addPoItemRow();
       updatePoOrderTotal();
     })();
