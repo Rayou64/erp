@@ -27,6 +27,7 @@
         <button type="submit">Se connecter</button>
       </form>
       <div id="login-error" class="error" aria-live="polite"></div>
+      <p class="hint" id="app-version" style="text-align:center;font-size:12px"></p>
     </div>
   </div>
 
@@ -34,6 +35,15 @@
     if (localStorage.getItem('erp_token')) {
       window.location.href = 'erp.html';
     }
+
+    fetch('/version.json', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(v => {
+        if (!v) return;
+        document.querySelector('#app-version').textContent =
+          'Version ' + v.version + ' · build ' + v.buildId + ' · ' + new Date(v.startedAt).toLocaleString('fr-CA');
+      })
+      .catch(() => {});
 
     const form = document.querySelector('#login-form');
     const errorBox = document.querySelector('#login-error');

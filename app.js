@@ -706,6 +706,31 @@ async function ensureGuideDocumentAudienceColumns() {
   return getTableColumns('guide_documents');
 }
 
+const APP_STARTED_AT = new Date().toISOString();
+let cachedBuildInfo = null;
+function getBuildInfo() {
+  if (cachedBuildInfo) return cachedBuildInfo;
+  const crypto = require('crypto');
+  const hash = crypto.createHash('sha256');
+  for (const file of ['app.js', 'public/index.html', 'public/erp.html', 'public/sw.js', 'public/manifest.webmanifest']) {
+    try { hash.update(require('fs').readFileSync(path.join(__dirname, file))); } catch (_e) {}
+  }
+  let version = '';
+  try { version = require('./package.json').version; } catch (_e) {}
+  cachedBuildInfo = {
+    app: 'RyanERP',
+    version,
+    buildId: hash.digest('hex').slice(0, 10),
+    startedAt: APP_STARTED_AT,
+  };
+  return cachedBuildInfo;
+}
+
+app.get('/version.json', (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json(getBuildInfo());
+});
+
 app.get('/healthz', (_req, res) => {
   if (isShuttingDown) {
     return res.status(503).json({ status: 'shutting-down' });
