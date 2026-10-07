@@ -5703,6 +5703,9 @@
       margin-bottom: 20px;
     }
 
+    .map-overlay-fullscreen { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; max-height: none !important; min-height: 0 !important; z-index: 99990 !important; border-radius: 0 !important; margin: 0 !important; background: #fff; }
+    .map-overlay-back { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 12px; z-index: 99999; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border: 0; border-radius: 999px; background: #0b5fff; color: #fff; font-size: 15px; font-weight: 700; box-shadow: 0 6px 18px rgba(0,0,0,.3); cursor: pointer; }
+    body.map-overlay-open { overflow: hidden; }
     .map-canvas-wrapper {
       height: min(80vh, 880px);
       border-radius: 14px;
@@ -14580,21 +14583,42 @@
       return getAutoVehicleLocationEntry(vehicleId)?.lastLocation || null;
     }
 
+    function exitMapOverlay(element) {
+      if (!element) return;
+      element.classList.remove('map-overlay-fullscreen');
+      element.querySelector(':scope > .map-overlay-back')?.remove();
+      document.body.classList.remove('map-overlay-open');
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
+    }
+
     async function toggleElementFullscreen(elementId) {
       const element = document.getElementById(elementId);
       if (!element) return;
-
-      const isFullscreen = document.fullscreenElement === element;
-      try {
-        if (isFullscreen) {
-          await document.exitFullscreen();
-        } else {
-          await element.requestFullscreen();
-        }
-      } catch (error) {
-        showMessage('Impossible de passer en plein écran sur cet appareil', 'error');
+      if (element.classList.contains('map-overlay-fullscreen')) {
+        exitMapOverlay(element);
+        return;
       }
+      element.classList.add('map-overlay-fullscreen');
+      document.body.classList.add('map-overlay-open');
+      const back = document.createElement('button');
+      back.type = 'button';
+      back.className = 'map-overlay-back';
+      back.setAttribute('aria-label', 'Retour');
+      back.innerHTML = '&#8592; Retour';
+      back.addEventListener('click', event => { event.stopPropagation(); exitMapOverlay(element); });
+      element.appendChild(back);
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
     }
+
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      const open = document.querySelector('.map-overlay-fullscreen');
+      if (open) exitMapOverlay(open);
+    });
+
+    document.addEventListener('click', event => {
+      if (event.target.closest && event.target.closest('#driver-map-fullscreen')) toggleElementFullscreen('driver-map');
+    });
 
     function getAutoMapFocusLocation() {
       const selectedVehicle = autoVehicleLocationsCache.find(vehicle => Number(vehicle.id) === Number(selectedAutoLocationVehicleId));
