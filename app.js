@@ -5776,6 +5776,18 @@ app.patch('/api/admin/users/:id/password', async (req, res) => {
   return res.json({ id: userId, role, message: 'Mot de passe modifié' });
 });
 
+app.post('/api/admin/auto-tracking/purge-history', authRateLimiter, async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
+  const countOf = async table => Number((await get('SELECT COUNT(*) AS n FROM ' + table))?.n || 0);
+  const before = { positions: await countOf('auto_vehicle_locations'), sessions: await countOf('auto_tracking_sessions') };
+  await run('DELETE FROM auto_vehicle_locations');
+  await run('DELETE FROM auto_tracking_sessions');
+  await run("UPDATE auto_tracking_devices SET isActive = 0, lastLatitude = NULL, lastLongitude = NULL, lastSpeedKph = 0, lastSeenAt = NULL");
+  await run('UPDATE auto_vehicles SET gpsActif = 0');
+  return res.json({ deleted: before, message: 'Historique des trajets et positions supprimé' });
+});
+
 app.post('/api/admin/users/recover-passwords', authRateLimiter, async (req, res) => {
   if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
   if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
