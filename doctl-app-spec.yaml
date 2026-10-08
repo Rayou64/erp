@@ -1,0 +1,89 @@
+databases:
+- engine: PG
+  name: erp-db
+  num_nodes: 1
+  size: db-s-1vcpu-1gb
+  version: "16"
+ingress:
+  rules:
+  - component:
+      name: erp-web
+    match:
+      path:
+        prefix: /
+name: ryanerp
+region: fra
+services:
+- build_command: npm ci --omit=dev
+  environment_slug: node-js
+  envs:
+  - key: NODE_ENV
+    scope: RUN_AND_BUILD_TIME
+    value: production
+  - key: DATABASE_DRIVER
+    scope: RUN_AND_BUILD_TIME
+    value: postgres
+  - key: DATABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:RYD1FB+mg+GApPZq7zcIMGG4RxBjbcxX:5w7MbNJRIitiFlQDXoQSbI5v1OT36SzC/wIPa+JEhLChNAbX8CM=]
+  - key: PGSSL_DISABLE
+    scope: RUN_AND_BUILD_TIME
+    value: "0"
+  - key: JSON_BODY_LIMIT
+    scope: RUN_AND_BUILD_TIME
+    value: 1mb
+  - key: API_RATE_WINDOW_MS
+    scope: RUN_AND_BUILD_TIME
+    value: "60000"
+  - key: API_RATE_MAX
+    scope: RUN_AND_BUILD_TIME
+    value: "600"
+  - key: AUTH_RATE_WINDOW_MS
+    scope: RUN_AND_BUILD_TIME
+    value: "900000"
+  - key: AUTH_RATE_MAX
+    scope: RUN_AND_BUILD_TIME
+    value: "25"
+  - key: SMTP_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: smtp.gmail.com
+  - key: SMTP_PORT
+    scope: RUN_AND_BUILD_TIME
+    value: "587"
+  - key: SMTP_SECURE
+    scope: RUN_AND_BUILD_TIME
+    value: "0"
+  - key: SMTP_USER
+    scope: RUN_AND_BUILD_TIME
+    value: "erp.rhf@gmail.com"
+  - key: MAIL_FROM
+    scope: RUN_AND_BUILD_TIME
+    value: "ERP <erp.rhf@gmail.com>"
+  - key: PUBLIC_APP_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://ryanerp-hn5zd.ondigitalocean.app/erp.html
+  - key: JWT_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:gRD8w7T1/BgTf9EmaUJdqJmxXyEOJhC5:erxIpOaOEaLBEcYsGl3gAeSFdDk1i1pLpc8g11a1RNM3VIodjXnextzbr/QUcvDVWi3b/NHypbneD7ee0rdUd1filDaCoCIoZIoTGuJhAKs=]
+  - key: AUTO_BACKUP_ENABLED
+    scope: RUN_AND_BUILD_TIME
+    value: "0"
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: Rayou64/erp
+  health_check:
+    failure_threshold: 6
+    http_path: /healthz
+    initial_delay_seconds: 15
+    period_seconds: 10
+    success_threshold: 1
+    timeout_seconds: 5
+  http_port: 4000
+  instance_count: 1
+  instance_size_slug: basic-xs
+  name: erp-web
+  run_command: npm start
+  source_dir: /

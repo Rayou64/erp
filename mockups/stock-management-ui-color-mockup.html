@@ -1,0 +1,371 @@
+Enter your access token:<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maquette Gestion de stock</title>
+  <style>
+    :root {
+      --page: #f3f7fc;
+      --surface: #ffffff;
+      --surface-soft: #f8fbff;
+      --line: #dfe8f5;
+      --line-soft: #edf3fb;
+      --ink: #10233f;
+      --muted: #60738f;
+      --blue: #1677f2;
+      --blue-soft: #eaf3ff;
+      --green: #08a66f;
+      --green-soft: #eafff5;
+      --orange: #f59e0b;
+      --orange-soft: #fff3d8;
+      --red: #ef4444;
+      --red-soft: #ffe9eb;
+      --violet: #6657ef;
+      --shadow: 0 10px 26px rgba(31, 55, 99, .06);
+      --shadow-soft: 0 7px 18px rgba(31, 55, 99, .045);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 22% -6%, rgba(22, 119, 242, .09), transparent 28%),
+        linear-gradient(180deg, #f8fbff 0%, var(--page) 100%);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+    }
+
+    .stock-page {
+      width: 100%;
+      min-height: 100vh;
+      padding: 10px 14px 18px;
+    }
+
+    .stock-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 12px;
+    }
+
+    .stock-title h1 {
+      margin: 0;
+      color: #0c2240;
+      font-size: 23px;
+      line-height: 1.05;
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    .stock-title p {
+      margin: 5px 0 0;
+      color: #536985;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(150px, 1fr));
+      gap: 10px;
+      min-width: 480px;
+    }
+
+    .kpi {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      align-items: center;
+      gap: 9px;
+      min-height: 52px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .kpi-icon {
+      display: grid;
+      width: 26px;
+      height: 26px;
+      place-items: center;
+      border-radius: 8px;
+    }
+
+    .kpi-icon svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .kpi:nth-child(1) .kpi-icon { color: #5268e8; background: #eef2ff; }
+    .kpi:nth-child(2) .kpi-icon { color: var(--green); background: #e9fbf3; }
+    .kpi:nth-child(3) .kpi-icon { color: var(--red); background: #fff0f2; }
+    .kpi small { display: block; color: #657792; font-size: 9px; font-weight: 600; }
+    .kpi strong { display: block; margin-top: 2px; color: var(--ink); font-size: 13px; font-weight: 850; }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 33%) minmax(0, 67%);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .panel, .site-preview {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .orders-panel { padding: 16px; }
+    .issue-panel { padding: 18px; }
+    .panel-title { margin: 0; color: var(--ink); font-size: 16px; line-height: 1.15; font-weight: 850; }
+    .panel-subtitle { margin: 5px 0 0; color: #60738f; font-size: 10px; font-weight: 500; }
+
+    .tabs {
+      display: flex;
+      gap: 25px;
+      margin: 16px 0 12px;
+      border-bottom: 1px solid #e5edf7;
+    }
+
+    .tabs button {
+      padding: 0 0 9px;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: none;
+      color: #536985;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .tabs .active { color: var(--blue); border-bottom-color: var(--blue); }
+
+    .search-row { display: grid; grid-template-columns: 1fr 72px; gap: 8px; margin-bottom: 12px; }
+    .input, .select {
+      width: 100%;
+      height: 36px;
+      border: 1px solid #dce6f2;
+      border-radius: 7px;
+      background: #fff;
+      color: #334b6b;
+      padding: 0 12px;
+      font: 500 10px inherit;
+    }
+    .filter-btn { border: 1px solid #dce6f2; border-radius: 7px; background: #fff; color: #2c4264; font-size: 10px; font-weight: 800; }
+
+    .orders { display: grid; gap: 12px; }
+    .order-card {
+      min-height: 154px;
+      padding: 12px;
+      border: 1px solid #caefe2;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #fff 0%, #f6fffb 50%, var(--green-soft) 100%);
+      box-shadow: var(--shadow-soft);
+    }
+    .order-card.partial { border-color: #f6e4bd; background: linear-gradient(135deg, #fff 0%, #fffcf5 50%, var(--orange-soft) 100%); }
+    .order-card.late { border-color: #ffd0d5; background: linear-gradient(135deg, #fff 0%, #fff8f8 50%, var(--red-soft) 100%); }
+
+    .order-top, .order-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .badge { display: inline-flex; padding: 4px 8px; border-radius: 999px; font-size: 7px; font-weight: 900; text-transform: uppercase; }
+    .badge.green { color: var(--green); background: #e9fff4; }
+    .badge.orange { color: #e09619; background: #fff1d5; }
+    .badge.red { color: var(--red); background: #ffe8ea; }
+    .ref { display: flex; gap: 7px; color: #6c7e98; font-size: 9px; font-weight: 600; }
+
+    .order-title { display: grid; grid-template-columns: 28px 1fr; gap: 9px; align-items: center; margin: 10px 0 12px; }
+    .order-icon { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 8px; color: var(--blue); background: var(--blue-soft); }
+    .order-icon.orange { color: var(--orange); background: #fff1d7; }
+    .order-icon.red { color: var(--red); background: #ffe9eb; }
+    .order-icon svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .order-name { font-size: 10px; line-height: 1.42; font-weight: 900; color: var(--ink); }
+    .order-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 10px; }
+    .order-meta span span:first-child { display: block; color: #687b95; font-size: 7px; font-weight: 500; }
+    .order-meta span span:last-child { display: block; margin-top: 3px; color: #0f2340; font-size: 8px; font-weight: 800; }
+    .order-foot { padding-top: 9px; border-top: 1px solid #edf2f8; }
+    .articles { display: flex; align-items: center; gap: 5px; color: #536985; font-size: 9px; font-weight: 700; }
+    .articles svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .primary-small { height: 29px; padding: 0 13px; border: 0; border-radius: 6px; background: var(--blue); color: #fff; font-size: 9px; font-weight: 800; box-shadow: 0 7px 14px rgba(22,119,242,.22); }
+    .outline-pill { min-width: 78px; height: 28px; border: 1px solid var(--green); border-radius: 999px; background: #fbfffd; color: #087f63; font-size: 9px; font-weight: 900; }
+
+    .stepper { display: grid; grid-template-columns: auto 1fr auto 1fr auto; align-items: center; gap: 10px; margin: 18px 0 20px; color: #95a6bd; font-size: 10px; font-weight: 800; }
+    .step { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+    .step b { display: grid; width: 24px; height: 24px; place-items: center; border-radius: 50%; background: #edf3fb; color: #91a2b8; font-size: 10px; }
+    .step.active { color: #5d50eb; }
+    .step.active b { background: #6657ef; color: #fff; box-shadow: 0 8px 18px rgba(102,87,239,.2); }
+    .line { height: 1px; background: #dce6f2; }
+
+    .field-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .stage-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 12px; margin-top: 12px; }
+    label { display: block; margin-bottom: 6px; color: #435873; font-size: 10px; font-weight: 700; }
+    .toggle-line { display: flex; align-items: center; gap: 8px; margin: 12px 0 16px; color: #60738f; font-size: 10px; font-weight: 600; }
+    .toggle-line input { width: 16px; height: 16px; }
+
+    .material-layout { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 14px; align-items: start; }
+    .material-title { margin: 0 0 10px; color: var(--ink); font-size: 12px; font-weight: 800; }
+    .material-filter { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px; }
+    .switch-label { display: flex; align-items: center; gap: 7px; white-space: nowrap; color: #536985; font-size: 9px; font-weight: 700; }
+    .switch { width: 28px; height: 16px; border: 1px solid #d7e2f0; border-radius: 999px; background: #edf2f8; }
+    .mat-head, .mat-row { display: grid; grid-template-columns: 20px minmax(110px, 1fr) 44px 68px 136px; gap: 8px; align-items: center; }
+    .mat-head { min-height: 28px; padding: 8px 10px; border: 1px solid #e2eaf5; border-bottom: 0; border-radius: 8px 8px 0 0; background: #f4f7fb; color: #53647d; font-size: 7px; font-weight: 800; text-transform: uppercase; }
+    .mat-body { overflow: hidden; border: 1px solid #e2eaf5; border-radius: 0 0 9px 9px; }
+    .mat-row { min-height: 50px; padding: 8px 10px; border-bottom: 1px solid #e9eef5; background: #fff; }
+    .mat-row:last-child { border-bottom: 0; }
+    .mat-name { color: var(--ink); font-size: 9px; line-height: 1.25; font-weight: 800; }
+    .mat-sub, .mat-unit { color: #7a8aa4; font-size: 7px; font-weight: 500; }
+    .available strong { display: block; color: #17365e; font-size: 10px; font-weight: 900; }
+    .available small { display: block; color: #0aa979; font-size: 7px; font-weight: 700; }
+    .qty { display: grid; grid-template-columns: 24px 34px 24px 38px; width: 120px; }
+    .qty button, .qty input { height: 25px; border: 1px solid #dce6f2; background: #fff; color: #253d5c; font: 700 9px inherit; text-align: center; }
+    .qty button:first-child { border-radius: 6px 0 0 6px; }
+    .qty input { border-left: 0; border-right: 0; }
+    .qty button:nth-child(3) { border-left: 0; border-radius: 0 6px 6px 0; }
+    .qty .max { margin-left: 6px; border: 0; }
+
+    .summary { padding: 14px; border: 1px solid #ccefe5; border-radius: 9px; background: linear-gradient(180deg, #f4fcf9 0%, #f8fffc 100%); box-shadow: 0 8px 20px rgba(17,148,112,.045); }
+    .summary h4 { margin: 0 0 16px; color: #0a8d66; font-size: 12px; font-weight: 800; }
+    .summary-row { display: flex; justify-content: space-between; gap: 8px; margin: 12px 0; color: #657890; font-size: 9px; font-weight: 400; }
+    .summary-row strong { color: #17314f; font-size: 9px; font-weight: 800; text-align: right; }
+    .validate { width: 100%; height: 36px; margin-top: 12px; border: 0; border-radius: 7px; color: #fff; font-size: 10px; font-weight: 800; background: linear-gradient(90deg, #6657ef, #00bd93); }
+    .draft { width: 100%; height: 36px; margin-top: 8px; border: 1px solid #dce6f2; border-radius: 7px; background: #fff; color: var(--ink); font-size: 10px; font-weight: 800; }
+    textarea.input { height: 72px; padding-top: 12px; resize: vertical; }
+
+    .site-preview { margin-top: 14px; padding: 14px 18px; }
+    .site-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .site-head h3 { margin: 0; color: var(--ink); font-size: 12px; font-weight: 900; }
+    .site-head a { color: var(--blue); font-size: 9px; font-weight: 800; text-decoration: none; }
+    .site-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .site-card { display: grid; grid-template-columns: 1fr 52px; align-items: center; gap: 10px; min-height: 66px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+    .site-card strong { display: block; color: var(--ink); font-size: 11px; font-weight: 900; }
+    .site-card small { display: block; margin-top: 4px; color: #70819a; font-size: 9px; }
+    .ring { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 50%; background: conic-gradient(var(--ring, #11b98d) var(--pct), #edf2f8 0); }
+    .ring i { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; background: #fff; color: #1e385c; font-size: 9px; font-style: normal; font-weight: 900; }
+
+    .stock-head { margin-bottom: 10px; }
+    .kpis { width: 100%; min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 12px; }
+    .main-grid { grid-template-columns: 1fr; gap: 12px; }
+    .panel { padding: 15px 16px; }
+    .orders-panel .tabs { margin: 12px 0 9px; }
+    .orders-panel .search-row { max-width: 520px; }
+    .orders-panel .orders { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .order-card { min-height: 0; }
+    .filter-surface { margin-top: 14px; padding: 12px; border: 1px solid var(--line-soft); border-radius: 8px; background: #f8fbff; }
+    .filter-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .filter-heading strong { color: #30476a; font-size: 10px; font-weight: 850; }
+    .filter-heading small { color: #73849d; font-size: 9px; }
+    .field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .filter-surface .toggle-line { margin-bottom: 0; }
+    .available-panel { margin-top: 12px; }
+    .available-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .available-head .material-filter { width: min(520px, 52%); margin: 0; }
+    .material-layout { grid-template-columns: minmax(0, 1fr) minmax(235px, 285px); gap: 14px; margin-top: 14px; }
+    .materials-table-wrap { min-width: 0; overflow-x: auto; }
+    .mat-head, .mat-row { min-width: 720px; }
+    .available-panel > label { margin-top: 12px !important; }
+    .site-preview { margin-top: 12px; }
+
+    @media (max-width: 1050px) {
+      .orders-panel .orders { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .material-layout { grid-template-columns: minmax(0, 1fr) 235px; }
+    }
+
+    @media (max-width: 720px) {
+      .stock-page { padding: 10px; }
+      .stock-head { align-items: flex-start; }
+      .stock-title h1 { font-size: 20px; }
+      .kpis { grid-template-columns: 1fr; min-width: 0; }
+      .orders-panel .orders { grid-template-columns: 1fr; }
+      .field-grid, .stage-grid, .material-layout { grid-template-columns: 1fr; }
+      .available-head { align-items: stretch; flex-direction: column; }
+      .available-head .material-filter { width: 100%; grid-template-columns: 1fr; }
+      .filter-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .site-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 420px) {
+      .site-grid { grid-template-columns: 1fr; }
+      .order-foot { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stock-page">
+    <header class="stock-head">
+      <div class="stock-title">
+        <h1>Gestion de stock</h1>
+        <p>Gérez les réceptions, sorties et disponibilités de matériel.</p>
+      </div>
+    </header>
+
+    <section class="kpis" aria-label="Indicateurs du stock">
+      <div class="kpi"><span class="kpi-icon"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6M9 13h6"/></svg></span><span><small>Valeur du stock total</small><strong>Non disponible</strong></span></div>
+      <div class="kpi"><span class="kpi-icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg></span><span><small>Articles en stock</small><strong>12</strong></span></div>
+      <div class="kpi"><span class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/><path d="M10.3 4.5 2.8 17.4A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.6L13.7 4.5a2 2 0 0 0-3.4 0Z"/></svg></span><span><small>Alertes stock bas</small><strong>0</strong></span></div>
+    </section>
+
+    <section class="panel orders-panel">
+        <h2 class="panel-title">Commandes en cours de réception</h2>
+        <p class="panel-subtitle">Suivez les commandes destinées à cet entrepôt.</p>
+        <nav class="tabs"><button class="active">En attente</button><button>Partiellement reçues</button><button>Historique</button></nav>
+        <div class="search-row"><input class="input" placeholder="Rechercher une commande, projet..."><button class="filter-btn">Filtrer</button></div>
+        <div class="orders">
+          <article class="order-card">
+            <div class="order-top"><span class="badge green">En attente</span><span class="ref">Commande #CMD-2024-048 <b>⋮</b></span></div>
+            <div class="order-title"><span class="order-icon"><svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 8 7.5 4.2L19.5 8M12 12.2V21"/></svg></span><strong class="order-name">Montage élévation 10 rangs RDC - DUPLEX - MONTAGE ET COULAGE CHAINAGE HAUT-193</strong></div>
+            <div class="order-meta"><span><span>Projet</span><span>Songon Kassemble</span></span><span><span>Fournisseur</span><span>CI Matériaux</span></span><span><span>Livraison prévue</span><span>21 mai 2024</span></span></div>
+            <div class="order-foot"><span class="articles"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 3v4M15 3v4"/></svg>12 articles</span><button class="primary-small">✓ Marquer comme arrivé</button></div>
+          </article>
+          <article class="order-card partial">
+            <div class="order-top"><span class="badge orange">Partiellement reçue</span><span class="ref">Commande #CMD-2024-047 <b>⋮</b></span></div>
+            <div class="order-title"><span class="order-icon orange"><svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 8 7.5 4.2L19.5 8M12 12.2V21"/></svg></span><strong class="order-name">Électricité - câbles et accessoires Villa secondaire</strong></div>
+            <div class="order-meta"><span><span>Projet</span><span>Cocody Riviera</span></span><span><span>Fournisseur</span><span>Electro CI</span></span><span><span>Livraison prévue</span><span>20 mai 2024</span></span></div>
+            <div class="order-foot"><span class="articles"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 3v4M15 3v4"/></svg>8 articles</span><button class="outline-pill">Afficher</button></div>
+          </article>
+          <article class="order-card late">
+            <div class="order-top"><span class="badge red">En retard</span><span class="ref">Commande #CMD-2024-046 <b>⋮</b></span></div>
+            <div class="order-title"><span class="order-icon red"><svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 8 7.5 4.2L19.5 8M12 12.2V21"/></svg></span><strong class="order-name">Peintures intérieures Bâtiment administratif</strong></div>
+            <div class="order-meta"><span><span>Projet</span><span>Yamoussoukro Centre</span></span><span><span>Fournisseur</span><span>Bâtimat CI</span></span><span><span>Livraison prévue</span><span>18 mai 2024</span></span></div>
+            <div class="order-foot"><span class="articles"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 3v4M15 3v4"/></svg>6 articles</span><button class="outline-pill" style="border-color:#fca5a5;color:#dc2626;background:#fff8f8;">Relancer</button></div>
+          </article>
+        </div>
+    </section>
+
+    <section class="panel issue-panel">
+        <h2 class="panel-title">Sortie de matériel</h2>
+        <p class="panel-subtitle">Sélectionnez le matériel et la destination pour enregistrer une sortie.</p>
+        <div class="stepper"><span class="step active"><b>1</b>Destination</span><i class="line"></i><span class="step"><b>2</b>Matériel</span><i class="line"></i><span class="step"><b>3</b>Détails & validation</span></div>
+        <div class="filter-surface">
+        <div class="filter-heading"><strong>Filtres de sortie</strong><small>Choisissez une destination pour afficher le matériel correspondant.</small></div>
+        <div class="field-grid"><label>Entrepôt de sortie *<select class="select"><option>Entrepôt Principal - Songon</option></select></label><label>Zone *<select class="select"><option>Songon</option></select></label><label>Site destinataire *<select class="select"><option>Site N°193 - T1</option></select></label></div>
+        <div class="stage-grid"><label>Étape destinataire *<select class="select"><option>Montage élévation 10 rangs RDC</option></select></label><label>Sous-étape (optionnel)<select class="select"><option>MONTAGE ET COULAGE CHAINAGE HAUT-193</option></select></label></div>
+        <label class="toggle-line"><input type="checkbox">Charger les matériaux de toutes les sous-étapes de l'étape principale</label>
+        </div>
+    </section>
+
+    <section class="panel available-panel">
+      <div class="available-head">
+        <div><h2 class="panel-title">Matériel disponible</h2><p class="panel-subtitle">Matériel correspondant à la destination et à l'étape sélectionnées.</p></div>
+        <div class="material-filter"><input class="input" placeholder="Rechercher un matériau..."><span class="switch-label"><i class="switch"></i>Afficher uniquement en stock</span></div>
+      </div>
+        <div class="material-layout">
+          <div class="materials-table-wrap">
+            <div class="mat-head"><span></span><span>Matériau</span><span>Unité</span><span>Disponible</span><span>Quantité à sortir</span></div>
+            <div class="mat-body">
+              <div class="mat-row"><input type="checkbox"><span><b class="mat-name">Ciment CPJ 42,5</b><small class="mat-sub">Sac 50 kg</small></span><span class="mat-unit">Sac</span><span class="available"><strong>120</strong><small>en stock</small></span><span class="qty"><button>-</button><input value="10"><button>+</button><button class="max">Max</button></span></div>
+              <div class="mat-row"><input type="checkbox"><span><b class="mat-name">Sable (0,00 - 4,75)</b><small class="mat-sub">M3</small></span><span class="mat-unit">M³</span><span class="available"><strong>18.50</strong><small>en stock</small></span><span class="qty"><button>-</button><input value="5"><button>+</button><button class="max">Max</button></span></div>
+              <div class="mat-row"><input type="checkbox"><span><b class="mat-name">Gravier (5,00 - 20,00)</b><small class="mat-sub">M3</small></span><span class="mat-unit">M³</span><span class="available"><strong>12.80</strong><small>en stock</small></span><span class="qty"><button>-</button><input value="4"><button>+</button><button class="max">Max</button></span></div>
+              <div class="mat-row"><input type="checkbox"><span><b class="mat-name">Fer à béton HA 12</b><small class="mat-sub">Barre 12 m</small></span><span class="mat-unit">Barre</span><span class="available"><strong>300</strong><small>en stock</small></span><span class="qty"><button>-</button><input value="20"><button>+</button><button class="max">Max</button></span></div>
+            </div>
+          </div>
+          <aside class="summary"><h4>Résumé de la sortie</h4><p class="summary-row"><span>Articles sélectionnés</span><strong>5</strong></p><p class="summary-row"><span>Quantité totale</span><strong>40 unités</strong></p><p class="summary-row"><span>Destination</span><strong>Site N°193 - T1</strong></p><p class="summary-row"><span>Étape</span><strong>Montage élévation 10 rangs RDC</strong></p><button class="validate">Valider la sortie</button><button class="draft">Enregistrer en brouillon</button></aside>
+        </div>
+        <label style="margin-top:12px;">Note (optionnel)<textarea class="input" placeholder="Ex: sortie pour coulage des poteaux RDC..."></textarea></label>
+      </section>
+
+    <section class="site-preview">
+      <div class="site-head"><h3>Aperçu du stock par site</h3><a href="#">Voir tout</a></div>
+      <div class="site-grid"><article class="site-card"><span><strong>Songon - Site N°193</strong><small>128 articles</small><small>Valeur : 8 250 000 FCFA</small></span><span class="ring" style="--pct:73%;"><i>73%</i></span></article><article class="site-card"><span><strong>Cocody - Site N°45</strong><small>96 articles</small><small>Valeur : 5 350 000 FCFA</small></span><span class="ring" style="--pct:52%;--ring:#f59e0b;"><i>52%</i></span></article><article class="site-card"><span><strong>Yamoussoukro - Site N°8</strong><small>64 articles</small><small>Valeur : 2 150 000 FCFA</small></span><span class="ring" style="--pct:28%;--ring:#ef4444;"><i>28%</i></span></article><article class="site-card" style="place-items:center;border-style:dashed;"><strong style="color:#1677f2;">+ Ajouter un site</strong></article></div>
+    </section>
+  </main>
+</body>
+</html>

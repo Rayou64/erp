@@ -174,6 +174,10 @@
     let lastPosition = null;
     let lastSentAt = 0;
     let wakeLock = null;
+    let nativeStatusTimer = null;
+    const nativeTracker = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())
+      ? window.Capacitor.registerPlugin('NativeTracker')
+      : null;
 
     function setStatus(message, isError) {
       statusBox.textContent = message;
@@ -214,6 +218,39 @@
       return speedKph >= 5 ? intervals.moving : intervals.idle;
     }
 
+    const PENDING_KEY = 'ryanerp_tracker_pending';
+    const ACTIVE_KEY = 'ryanerp_tracker_active';
+
+    function readPending() {
+      try { return JSON.parse(localStorage.getItem(PENDING_KEY) || '[]'); } catch (_e) { return []; }
+    }
+
+    function queuePending(payload) {
+      const list = readPending();
+      list.push(payload);
+      try { localStorage.setItem(PENDING_KEY, JSON.stringify(list.slice(-500))); } catch (_e) {}
+    }
+
+    function postPayload(token, payload) {
+      return fetch('/api/gps/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-device-token': token },
+        body: JSON.stringify(payload),
+      });
+    }
+
+    async function flushPending(token) {
+      const list = readPending();
+      if (!list.length) return;
+      const remaining = list.slice();
+      while (remaining.length) {
+        const res = await postPayload(token, remaining[0]);
+        if (!res.ok && res.status >= 500) break;
+        remaining.shift();
+      }
+      try { localStorage.setItem(PENDING_KEY, JSON.stringify(remaining)); } catch (_e) {}
+    }
+
     async function sendPosition(position, force) {
       const token = tokenInput.value.trim();
       if (!token) {
@@ -251,14 +288,17 @@
         payload.vehicleIdHint = rawVehicleId;
       }
 
-      const response = await fetch('/api/gps/ingest', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-device-token': token,
-        },
-        body: JSON.stringify(payload),
-      });
+      let response;
+      try {
+        await flushPending(token);
+        response = await postPayload(token, payload);
+      } catch (networkError) {
+        // Réseau coupé (tunnel, zone sans données) : on garde la position pour l'envoyer plus tard.
+        queuePending(payload);
+        lastSentAt = now;
+        setStatus('Réseau indisponible, position mise en attente (' + readPending().length + ').', true);
+        return;
+      }
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
@@ -309,6 +349,8 @@
     }
 
     function stopTracking() {
+      if (nativeTracker) nativeTracker.stop().catch(() => {});
+      if (nativeStatusTimer) { clearInterval(nativeStatusTimer); nativeStatusTimer = null; }
       if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
         watchId = null;
@@ -321,10 +363,48 @@
       setStatus('Tracking arrêté.', false);
     }
 
+    function pollNativeStatus() {
+      nativeTracker.getStatus().then(s => {
+        if (s.last) {
+          lastPosition = {
+            coords: { latitude: s.last.latitude, longitude: s.last.longitude, speed: s.last.speedKph / 3.6, heading: s.last.heading, accuracy: s.last.accuracyMeters },
+            timestamp: Date.now(),
+          };
+          updateMeta();
+        }
+        const pending = Number(s.pending || 0);
+        setStatus(s.active
+          ? 'Suivi natif actif : continue écran éteint ou application fermée.' + (pending ? ` ${pending} position(s) en attente d'envoi.` : '')
+          : 'Suivi arrêté.', false);
+      }).catch(() => {});
+    }
+
     async function startTracking() {
       const token = tokenInput.value.trim();
       if (!token) {
         setStatus('Token appareil requis avant démarrage.', true);
+        return;
+      }
+
+      if (nativeTracker) {
+        // Service Android natif : capte et envoie lui-même, sans dépendre de cette page.
+        try {
+          if (nativeStatusTimer) clearInterval(nativeStatusTimer);
+          await nativeTracker.start({
+            token,
+            baseUrl: window.location.origin,
+            vehicleId: Number(vehicleIdInput.value || 0),
+            status: statusInput.value || 'online',
+            movingSec: getIntervalsMs().moving / 1000,
+            idleSec: getIntervalsMs().idle / 1000,
+          });
+        } catch (error) {
+          setStatus('Impossible de démarrer le suivi : ' + (error.message || error), true);
+          return;
+        }
+        try { localStorage.setItem(ACTIVE_KEY, JSON.stringify({ token, vehicleId: vehicleIdInput.value || '' })); } catch (_e) {}
+        pollNativeStatus();
+        nativeStatusTimer = setInterval(pollNativeStatus, 5000);
         return;
       }
 
@@ -380,7 +460,17 @@
     }
 
     startBtn.addEventListener('click', startTracking);
-    stopBtn.addEventListener('click', async () => { stopTracking(); await stopTrackingRemote(); });
+    stopBtn.addEventListener('click', async () => {
+      try { localStorage.removeItem(ACTIVE_KEY); } catch (_e) {}
+      stopTracking();
+      await stopTrackingRemote();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && (watchId !== null)) {
+        acquireWakeLock();
+        sendLastPositionOnce(false);
+      }
+    });
     sendOnceBtn.addEventListener('click', () => sendLastPositionOnce(true));
 
     const params = new URLSearchParams(window.location.search);
@@ -389,8 +479,16 @@
     if (initialToken) tokenInput.value = initialToken;
     if (initialVehicleId) vehicleIdInput.value = initialVehicleId;
 
+    let savedActive = null;
+    try { savedActive = JSON.parse(localStorage.getItem(ACTIVE_KEY) || 'null'); } catch (_e) {}
+    if (!initialToken && savedActive && savedActive.token) {
+      tokenInput.value = savedActive.token;
+      if (savedActive.vehicleId) vehicleIdInput.value = savedActive.vehicleId;
+    }
+
     updateMeta();
-    if (params.get('auto') === '1' && initialToken) startTracking();
+    // Reprise automatique si le suivi était actif avant la fermeture de l'application.
+    if ((params.get('auto') === '1' && initialToken) || (savedActive && savedActive.token && nativeTracker)) startTracking();
   </script>
 <script>
 document.getElementById('tracker-back-btn').addEventListener('click', function () {

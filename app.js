@@ -11,10 +11,8 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
-const webpush = require('web-push');
 const jwt = require('jsonwebtoken');
 const PDFDocument = require('pdfkit');
-const ExcelJS = require('exceljs');
 const { PDFDocument: PdfLibDocument, StandardFonts: PdfLibStandardFonts, rgb: pdfRgb } = require('pdf-lib');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -244,7 +242,6 @@ const DATA_PURGE_TABLES = [
   'auto_vehicle_locations',
   'auto_tracking_devices',
   'auto_transport_costs',
-  'auto_maintenance_records',
   'auto_vehicles',
   'expenses',
   'revenues',
@@ -295,106 +292,48 @@ async function purgeBusinessData() {
   };
 }
 
-const SELECTIVE_DATA_PURGE_GROUPS = {
-  activities: ['project_progress_updates', 'project_assignments'],
-  procurement: ['stock_issue_authorization_items', 'stock_issues', 'stock_issue_authorizations', 'purchase_order_items', 'purchase_orders', 'material_requests'],
-  finance: ['expenses', 'revenues'],
-};
-const SELECTIVE_DATA_PURGE_DOCUMENT_TYPES = ['material_request_authorization', 'purchase_order'];
+const SELECTIVE_DATA_PURGE_TABLES = [
+  'stock_issue_authorization_items',
+  'stock_issues',
+  'stock_issue_authorizations',
+  'purchase_order_items',
+  'purchase_orders',
+  'material_requests',
+  'project_progress_updates',
+  'project_assignments',
+  'expenses',
+  'revenues',
+];
 
-async function removeArchivedFiles(relativePaths) {
-  const archiveRoot = path.resolve(ARCHIVE_ROOT);
-  for (const relativePath of relativePaths || []) {
-    const candidate = path.resolve(archiveRoot, String(relativePath || ''));
-    const relative = path.relative(archiveRoot, candidate);
-    if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) continue;
-    try { await fs.promises.rm(candidate, { force: true }); } catch (_error) {}
-  }
-}
-
-async function purgeSelectedBusinessData(groups, actorUsername) {
+async function purgeSelectedBusinessData() {
   const deletedRows = {};
-  const selectedGroups = new Set(Array.isArray(groups) ? groups : []);
-  const allowedGroups = new Set([...Object.keys(SELECTIVE_DATA_PURGE_GROUPS), 'documents', 'profiles']);
-  for (const group of selectedGroups) {
-    if (!allowedGroups.has(group)) {
-      const error = new Error('Categorie de purge invalide');
-      error.statusCode = 400;
-      throw error;
-    }
-  }
-  if (!selectedGroups.size) {
-    const error = new Error('Selectionnez au moins une categorie');
-    error.statusCode = 400;
-    throw error;
+
+  for (const tableName of SELECTIVE_DATA_PURGE_TABLES) {
+    const result = await run(`DELETE FROM ${tableName}`);
+    deletedRows[tableName] = Number(result?.changes || result?.rowCount || 0);
   }
 
-  const addDeletedCount = (name, result) => {
-    deletedRows[name] = Number(result?.changes || result?.rowCount || 0);
-  };
-  for (const group of selectedGroups) {
-    for (const tableName of SELECTIVE_DATA_PURGE_GROUPS[group] || []) {
-      const result = await run(`DELETE FROM ${tableName}`);
-      addDeletedCount(tableName, result);
-    }
-  }
+  const transactionDocumentTypes = ['material_request_authorization', 'purchase_order'];
+  const documentPlaceholders = transactionDocumentTypes.map(() => '?').join(', ');
+  const documentsResult = await run(
+    `DELETE FROM generated_documents WHERE entityType IN (${documentPlaceholders})`,
+    transactionDocumentTypes
+  );
+  deletedRows.generated_documents = Number(documentsResult?.changes || documentsResult?.rowCount || 0);
 
-  if (selectedGroups.has('documents')) {
-    const placeholders = SELECTIVE_DATA_PURGE_DOCUMENT_TYPES.map(() => '?').join(', ');
-    const documents = await all(
-      `SELECT relativePath FROM generated_documents WHERE entityType IN (${placeholders})`,
-      SELECTIVE_DATA_PURGE_DOCUMENT_TYPES
-    );
-    await removeArchivedFiles((documents || []).map(row => row.relativePath));
-    const result = await run(
-      `DELETE FROM generated_documents WHERE entityType IN (${placeholders})`,
-      SELECTIVE_DATA_PURGE_DOCUMENT_TYPES
-    );
-    addDeletedCount('generated_documents', result);
-  }
-
-  if (selectedGroups.has('profiles')) {
-    const actor = String(actorUsername || '').trim();
-    const removableEmployees = await all(
-      `SELECT id FROM hr_employees WHERE LOWER(TRIM(COALESCE(username, ''))) <> LOWER(TRIM(?))`,
-      [actor]
-    );
-    const employeeIds = (removableEmployees || []).map(row => Number(row.id)).filter(id => Number.isInteger(id) && id > 0);
-    if (employeeIds.length) {
-      const employeePlaceholders = employeeIds.map(() => '?').join(', ');
-      const employeeDocuments = await all(`SELECT relativePath FROM hr_employee_documents WHERE employeeId IN (${employeePlaceholders})`, employeeIds);
-      await removeArchivedFiles((employeeDocuments || []).map(row => row.relativePath));
-      for (const tableName of ['hr_document_signatures', 'hr_leave_requests', 'hr_attendance', 'hr_employee_documents']) {
-        const result = await run(`DELETE FROM ${tableName} WHERE employeeId IN (${employeePlaceholders})`, employeeIds);
-        addDeletedCount(tableName, result);
-      }
-      const assignmentResult = await run(`DELETE FROM project_assignments WHERE employeeId IN (${employeePlaceholders})`, employeeIds);
-      addDeletedCount('project_assignments_profiles', assignmentResult);
-    }
-    const removableUsers = await all(
-      `SELECT id FROM users WHERE LOWER(TRIM(username)) <> LOWER(TRIM(?))`,
-      [actor]
-    );
-    const userIds = (removableUsers || []).map(row => Number(row.id)).filter(id => Number.isInteger(id) && id > 0);
-    if (userIds.length) {
-      const userPlaceholders = userIds.map(() => '?').join(', ');
-      const assignmentResult = await run(`DELETE FROM project_assignments WHERE userId IN (${userPlaceholders})`, userIds);
-      addDeletedCount('project_assignments_users', assignmentResult);
-    }
-    for (const tableName of ['user_access_profile_audit', 'user_access_profiles']) {
-      const result = await run(`DELETE FROM ${tableName} WHERE LOWER(TRIM(username)) <> LOWER(TRIM(?))`, [actor]);
-      addDeletedCount(tableName, result);
-    }
-    const userResult = await run(`DELETE FROM users WHERE LOWER(TRIM(username)) <> LOWER(TRIM(?))`, [actor]);
-    addDeletedCount('users', userResult);
-    const employeeResult = await run(`DELETE FROM hr_employees WHERE LOWER(TRIM(COALESCE(username, ''))) <> LOWER(TRIM(?))`, [actor]);
-    addDeletedCount('hr_employees', employeeResult);
+  if (!process.env.DATABASE_URL) {
+    const sequenceTables = [...SELECTIVE_DATA_PURGE_TABLES, 'generated_documents'];
+    try {
+      await run(
+        `DELETE FROM sqlite_sequence WHERE name IN (${sequenceTables.map(() => '?').join(', ')})`,
+        sequenceTables
+      );
+    } catch (_error) {}
   }
 
   return {
     purgedAt: new Date().toISOString(),
-    groups: Array.from(selectedGroups),
-    preservedUsername: String(actorUsername || '').trim(),
+    tables: [...SELECTIVE_DATA_PURGE_TABLES, 'generated_documents'],
     deletedRows,
   };
 }
@@ -430,11 +369,10 @@ app.post('/api/admin/purge-selected-business-data', authenticateToken, async (re
       return res.status(400).json({ error: 'Confirmation manquante', details: 'Envoyer confirm=PURGE_SELECTED_BUSINESS_DATA' });
     }
 
-    const result = await purgeSelectedBusinessData(req.body?.groups, req.user?.username);
+    const result = await purgeSelectedBusinessData();
     res.json({ ok: true, ...result });
   } catch (error) {
-    const statusCode = Number(error?.statusCode || 500);
-    res.status(statusCode).json({ error: statusCode < 500 ? String(error.message || 'Selection invalide') : 'Erreur purge selective des donnees metier', details: statusCode < 500 ? undefined : String(error) });
+    res.status(500).json({ error: 'Erreur purge selective des donnees metier', details: String(error) });
   }
 });
 
@@ -706,31 +644,6 @@ async function ensureGuideDocumentAudienceColumns() {
   return getTableColumns('guide_documents');
 }
 
-const APP_STARTED_AT = new Date().toISOString();
-let cachedBuildInfo = null;
-function getBuildInfo() {
-  if (cachedBuildInfo) return cachedBuildInfo;
-  const crypto = require('crypto');
-  const hash = crypto.createHash('sha256');
-  for (const file of ['app.js', 'public/index.html', 'public/erp.html', 'public/sw.js', 'public/manifest.webmanifest']) {
-    try { hash.update(require('fs').readFileSync(path.join(__dirname, file))); } catch (_e) {}
-  }
-  let version = '';
-  try { version = require('./package.json').version; } catch (_e) {}
-  cachedBuildInfo = {
-    app: 'RyanERP',
-    version,
-    buildId: hash.digest('hex').slice(0, 10),
-    startedAt: APP_STARTED_AT,
-  };
-  return cachedBuildInfo;
-}
-
-app.get('/version.json', (_req, res) => {
-  res.set('Cache-Control', 'no-store');
-  res.json(getBuildInfo());
-});
-
 app.get('/healthz', (_req, res) => {
   if (isShuttingDown) {
     return res.status(503).json({ status: 'shutting-down' });
@@ -792,8 +705,6 @@ async function insertExpenseRecord({
   quantite,
   prixUnitaire,
   fournisseur = '',
-  note = '',
-  zoneName = '',
   categorie,
   statut = 'EN_ATTENTE',
   createdBy = 'system',
@@ -844,8 +755,6 @@ async function insertExpenseRecord({
   pushColumnIfExists('date', dateExpense);
   pushColumnIfExists('fournisseur', fournisseur);
   pushColumnIfExists('supplier', fournisseur);
-  pushColumnIfExists('note', String(note || '').trim());
-  pushColumnIfExists('zoneName', String(zoneName || '').trim());
   pushColumnIfExists('categorie', expenseCategory);
   pushColumnIfExists('category', expenseCategory);
   pushColumnIfExists('statut', statut);
@@ -2377,76 +2286,6 @@ async function initDb() {
     createdAt TEXT NOT NULL
   )`);
   console.log('[initDb] Table users créée');
-  try { await run("ALTER TABLE users ADD COLUMN passwordEnc TEXT NOT NULL DEFAULT ''"); } catch (_e) {}
-  await run(`CREATE TABLE IF NOT EXISTS push_subscriptions (
-    id INTEGER PRIMARY KEY,
-    userId INTEGER NOT NULL,
-    endpoint TEXT UNIQUE NOT NULL,
-    p256dh TEXT NOT NULL,
-    auth TEXT NOT NULL,
-    createdAt TEXT NOT NULL
-  )`);
-  await run('CREATE TABLE IF NOT EXISTS push_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
-  await ensurePushVapidKeys();
-
-  await run(`CREATE TABLE IF NOT EXISTS internal_mail_conversations (
-    id INTEGER PRIMARY KEY,
-    subject TEXT NOT NULL DEFAULT '',
-    category TEXT NOT NULL DEFAULT 'general',
-    priority TEXT NOT NULL DEFAULT 'normal',
-    status TEXT NOT NULL DEFAULT 'sent',
-    projectId INTEGER,
-    incidentZone TEXT NOT NULL DEFAULT '',
-    incidentSite TEXT NOT NULL DEFAULT '',
-    incidentLevel TEXT NOT NULL DEFAULT '',
-    createdBy INTEGER NOT NULL,
-    createdAt TEXT NOT NULL,
-    updatedAt TEXT NOT NULL,
-    deletedAt TEXT NOT NULL DEFAULT ''
-  )`);
-  await run(`CREATE TABLE IF NOT EXISTS internal_mail_messages (
-    id INTEGER PRIMARY KEY,
-    conversationId INTEGER NOT NULL,
-    senderId INTEGER NOT NULL,
-    body TEXT NOT NULL DEFAULT '',
-    createdAt TEXT NOT NULL,
-    FOREIGN KEY(conversationId) REFERENCES internal_mail_conversations(id) ON DELETE CASCADE
-  )`);
-  await run(`CREATE TABLE IF NOT EXISTS internal_mail_recipients (
-    id INTEGER PRIMARY KEY,
-    conversationId INTEGER NOT NULL,
-    messageId INTEGER NOT NULL,
-    userId INTEGER NOT NULL,
-    recipientType TEXT NOT NULL DEFAULT 'to',
-    isRead INTEGER NOT NULL DEFAULT 0,
-    isStarred INTEGER NOT NULL DEFAULT 0,
-    isImportant INTEGER NOT NULL DEFAULT 0,
-    deletedAt TEXT NOT NULL DEFAULT '',
-    FOREIGN KEY(conversationId) REFERENCES internal_mail_conversations(id) ON DELETE CASCADE,
-    FOREIGN KEY(messageId) REFERENCES internal_mail_messages(id) ON DELETE CASCADE
-  )`);
-  await run(`CREATE TABLE IF NOT EXISTS internal_mail_user_organization (
-    userId INTEGER NOT NULL,
-    conversationId INTEGER NOT NULL,
-    isStarred INTEGER NOT NULL DEFAULT 0,
-    folderCategory TEXT NOT NULL DEFAULT '',
-    PRIMARY KEY(userId, conversationId),
-    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY(conversationId) REFERENCES internal_mail_conversations(id) ON DELETE CASCADE
-  )`);
-  await run(`CREATE TABLE IF NOT EXISTS internal_mail_attachments (
-    id INTEGER PRIMARY KEY,
-    messageId INTEGER NOT NULL,
-    fileName TEXT NOT NULL,
-    mimeType TEXT NOT NULL DEFAULT 'application/octet-stream',
-    fileSize INTEGER NOT NULL DEFAULT 0,
-    contentBase64 TEXT NOT NULL,
-    createdAt TEXT NOT NULL,
-    FOREIGN KEY(messageId) REFERENCES internal_mail_messages(id) ON DELETE CASCADE
-  )`);
-  await run('CREATE INDEX IF NOT EXISTS idx_internal_mail_recipient_user ON internal_mail_recipients(userId, deletedAt)');
-  await run('CREATE INDEX IF NOT EXISTS idx_internal_mail_message_conversation ON internal_mail_messages(conversationId, createdAt)');
-  try { await run("ALTER TABLE internal_mail_conversations ADD COLUMN status TEXT NOT NULL DEFAULT 'sent'"); } catch (e) {}
 
   await run(`CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY,
@@ -2996,9 +2835,6 @@ async function initDb() {
     FOREIGN KEY(projetId) REFERENCES projects(id) ON DELETE CASCADE
   )`);
 
-  try { await run("ALTER TABLE expenses ADD COLUMN note TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE expenses ADD COLUMN zoneName TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-
   await run(`CREATE TABLE IF NOT EXISTS auto_vehicles (
     id INTEGER PRIMARY KEY,
     nomVehicule TEXT NOT NULL,
@@ -3014,22 +2850,6 @@ async function initDb() {
   try { await run("ALTER TABLE auto_vehicles ADD COLUMN immatriculation TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run("ALTER TABLE auto_vehicles ADD COLUMN chauffeurNom TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run('ALTER TABLE auto_vehicles ADD COLUMN gpsActif INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
-  try { await run('ALTER TABLE auto_vehicles ADD COLUMN chauffeurEmployeeId INTEGER'); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN annee TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN typeVehicule TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN numeroIdentification TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN description TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN couleur TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN photoDataUrl TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run('ALTER TABLE auto_vehicles ADD COLUMN kilometrage REAL NOT NULL DEFAULT 0'); } catch (error) {}
-  try { await run('ALTER TABLE auto_vehicles ADD COLUMN carburantPct REAL NOT NULL DEFAULT 0'); } catch (error) {}
-  try { await run('ALTER TABLE auto_vehicles ADD COLUMN heuresMoteur REAL NOT NULL DEFAULT 0'); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN projetNom TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN siteZone TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN photosExtra TEXT NOT NULL DEFAULT '[]'"); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN chauffeurPhotoDataUrl TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN permisNumero TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_vehicles ADD COLUMN permisExpiration TEXT NOT NULL DEFAULT ''"); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_vehicle_locations (
     id INTEGER PRIMARY KEY,
@@ -3063,7 +2883,6 @@ async function initDb() {
   try { await run("ALTER TABLE auto_vehicle_locations ADD COLUMN recordedAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run("ALTER TABLE auto_vehicle_locations ADD COLUMN created_by TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run("ALTER TABLE auto_vehicle_locations ADD COLUMN createdBy TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run('ALTER TABLE auto_vehicle_locations ADD COLUMN trackingSessionId INTEGER'); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_tracking_devices (
     id INTEGER PRIMARY KEY,
@@ -3089,70 +2908,9 @@ async function initDb() {
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN lastLatitude REAL'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN lastLongitude REAL'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN lastSpeedKph REAL NOT NULL DEFAULT 0'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN movingIntervalSeconds INTEGER NOT NULL DEFAULT 20'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN idleIntervalSeconds INTEGER NOT NULL DEFAULT 120'); } catch (error) {}
   try { await run('ALTER TABLE auto_tracking_devices ADD COLUMN createdBy TEXT NOT NULL DEFAULT "system"'); } catch (error) {}
   try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
   try { await run("ALTER TABLE auto_tracking_devices ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-
-  await run(`CREATE TABLE IF NOT EXISTS auto_tracking_sessions (
-    id INTEGER PRIMARY KEY,
-    vehicleId INTEGER NOT NULL,
-    chauffeurEmployeeId INTEGER NOT NULL,
-    deviceId INTEGER NOT NULL,
-    deviceName TEXT NOT NULL DEFAULT 'smartphone',
-    tokenHash TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'active',
-    startPlace TEXT NOT NULL DEFAULT '',
-    destinationPlace TEXT NOT NULL DEFAULT '',
-    arrivalPlace TEXT NOT NULL DEFAULT '',
-    startLatitude REAL,
-    startLongitude REAL,
-    endLatitude REAL,
-    endLongitude REAL,
-    startedAt TEXT NOT NULL,
-    endedAt TEXT,
-    expiresAt TEXT NOT NULL,
-    movingIntervalSeconds INTEGER NOT NULL DEFAULT 20,
-    idleIntervalSeconds INTEGER NOT NULL DEFAULT 120,
-    createdBy TEXT NOT NULL DEFAULT '',
-    FOREIGN KEY(vehicleId) REFERENCES auto_vehicles(id) ON DELETE CASCADE
-  )`);
-  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN startPlace TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN destinationPlace TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN arrivalPlace TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN startLatitude REAL'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN startLongitude REAL'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN destinationLatitude REAL'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN destinationLongitude REAL'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN arrivedAtDestination INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN endLatitude REAL'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN endLongitude REAL'); } catch (error) {}
-  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN status TEXT NOT NULL DEFAULT 'active'"); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN endedAt TEXT'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN expiresAt TEXT NOT NULL DEFAULT ""'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN movingIntervalSeconds INTEGER NOT NULL DEFAULT 20'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN idleIntervalSeconds INTEGER NOT NULL DEFAULT 120'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN chauffeurEmployeeId INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
-  try { await run('ALTER TABLE auto_tracking_sessions ADD COLUMN deviceId INTEGER NOT NULL DEFAULT 0'); } catch (error) {}
-  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN deviceName TEXT NOT NULL DEFAULT 'smartphone'"); } catch (error) {}
-  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN tokenHash TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN startedAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  try { await run("ALTER TABLE auto_tracking_sessions ADD COLUMN createdBy TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-  await run('CREATE INDEX IF NOT EXISTS idx_auto_tracking_sessions_vehicle_started ON auto_tracking_sessions(vehicleId, startedAt DESC)');
-  await run('CREATE INDEX IF NOT EXISTS idx_auto_tracking_sessions_status_expiry ON auto_tracking_sessions(status, expiresAt)');
-  try { await run('CREATE UNIQUE INDEX IF NOT EXISTS idx_auto_tracking_sessions_token_hash ON auto_tracking_sessions(tokenHash)'); } catch (error) {}
-
-  await run(`CREATE TABLE IF NOT EXISTS auto_driver_settings (
-    id INTEGER PRIMARY KEY,
-    chauffeurEmployeeId INTEGER NOT NULL UNIQUE,
-    movingIntervalSeconds INTEGER NOT NULL DEFAULT 10,
-    idleIntervalSeconds INTEGER NOT NULL DEFAULT 60,
-    updatedAt TEXT NOT NULL DEFAULT ''
-  )`);
-  try { await run('ALTER TABLE auto_driver_settings ADD COLUMN movingIntervalSeconds INTEGER NOT NULL DEFAULT 10'); } catch (error) {}
-  try { await run('ALTER TABLE auto_driver_settings ADD COLUMN idleIntervalSeconds INTEGER NOT NULL DEFAULT 60'); } catch (error) {}
-  try { await run("ALTER TABLE auto_driver_settings ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_transport_costs (
     id INTEGER PRIMARY KEY,
@@ -3176,50 +2934,16 @@ async function initDb() {
   } catch (error) {
     // Colonne deja presente ou table existante non compatible; ignore.
   }
-  try { await run('ALTER TABLE auto_transport_costs ADD COLUMN projectId INTEGER'); } catch (error) {}
-  try { await run("ALTER TABLE auto_transport_costs ADD COLUMN trajet TEXT NOT NULL DEFAULT ''"); } catch (error) {}
-
-  await run(`CREATE TABLE IF NOT EXISTS auto_maintenance_records (
-    id INTEGER PRIMARY KEY,
-    vehicleId INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    dateMaintenance TEXT NOT NULL,
-    mileage REAL NOT NULL DEFAULT 0,
-    cost REAL NOT NULL DEFAULT 0,
-    supplier TEXT NOT NULL DEFAULT '',
-    description TEXT NOT NULL DEFAULT '',
-    nextMaintenanceDate TEXT NOT NULL DEFAULT '',
-    partsReplaced TEXT NOT NULL DEFAULT '',
-    status TEXT NOT NULL DEFAULT 'Terminée',
-    createdBy TEXT NOT NULL,
-    createdAt TEXT NOT NULL,
-    updatedAt TEXT NOT NULL,
-    FOREIGN KEY(vehicleId) REFERENCES auto_vehicles(id) ON DELETE CASCADE
-  )`);
 
   await run(`CREATE TABLE IF NOT EXISTS revenues (
     id INTEGER PRIMARY KEY,
     projetId INTEGER NOT NULL,
     description TEXT NOT NULL,
-    type TEXT NOT NULL DEFAULT 'Autre revenu',
-    clientOrganisme TEXT NOT NULL DEFAULT '',
     amount REAL NOT NULL,
     dateRevenue TEXT NOT NULL,
-    reference TEXT NOT NULL DEFAULT '',
-    attachmentName TEXT NOT NULL DEFAULT '',
-    note TEXT NOT NULL DEFAULT '',
     createdBy TEXT NOT NULL,
     FOREIGN KEY(projetId) REFERENCES projects(id) ON DELETE CASCADE
   )`);
-  for (const column of [
-    ['type', "TEXT NOT NULL DEFAULT 'Autre revenu'"],
-    ['clientOrganisme', "TEXT NOT NULL DEFAULT ''"],
-    ['reference', "TEXT NOT NULL DEFAULT ''"],
-    ['attachmentName', "TEXT NOT NULL DEFAULT ''"],
-    ['note', "TEXT NOT NULL DEFAULT ''"],
-  ]) {
-    try { await run(`ALTER TABLE revenues ADD COLUMN ${column[0]} ${column[1]}`); } catch (error) {}
-  }
 
   await run(`CREATE TABLE IF NOT EXISTS generated_documents (
     id INTEGER PRIMARY KEY,
@@ -3557,7 +3281,6 @@ async function initDb() {
   await run('CREATE INDEX IF NOT EXISTS idx_stock_issues_project_date ON stock_issues(projetId, issuedAt)');
   await run('CREATE INDEX IF NOT EXISTS idx_generated_documents_section_updated ON generated_documents(sectionCode, updatedAt)');
   await run('CREATE INDEX IF NOT EXISTS idx_auto_vehicle_locations_vehicle_recorded ON auto_vehicle_locations(vehicle_id, recorded_at DESC)');
-  await run('CREATE INDEX IF NOT EXISTS idx_auto_maintenance_vehicle_date ON auto_maintenance_records(vehicleId, dateMaintenance DESC)');
   await run('CREATE UNIQUE INDEX IF NOT EXISTS idx_auto_tracking_devices_vehicle ON auto_tracking_devices(vehicleId)');
   await run('CREATE INDEX IF NOT EXISTS idx_auto_tracking_devices_token_active ON auto_tracking_devices(tokenHash, isActive)');
   } catch (e) { console.error('CREATE INDEX error:', e.message); }
@@ -3656,41 +3379,6 @@ async function initDb() {
     );
     console.log(`Utilisateur ${HR_DIRECTOR_USERNAME} mis a jour avec role directeur_rh`);
   }
-
-  // Gestionnaire de parc auto: mêmes droits que admin (maintenance, coûts du transport, maps)
-  const PARK_MANAGER_USERNAME = process.env.PARK_MANAGER_USERNAME || 'gestionnaire_parc';
-  const PARK_MANAGER_PASSWORD = process.env.PARK_MANAGER_PASSWORD || 'park123';
-  const parkManager = await get('SELECT id FROM users WHERE username = ?', [PARK_MANAGER_USERNAME]);
-  const parkManagerHashedPassword = await bcrypt.hash(PARK_MANAGER_PASSWORD, 10);
-  if (!parkManager) {
-    const nextUserId = await getNextUserId();
-    await run(
-      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
-      [nextUserId, PARK_MANAGER_USERNAME, parkManagerHashedPassword, 'admin', new Date().toISOString()]
-    );
-  } else {
-    await run('UPDATE users SET role = ? WHERE username = ?', ['admin', PARK_MANAGER_USERNAME]);
-  }
-
-  await ensureAccessProfileSchema();
-  const parkProfile = await get('SELECT id FROM user_access_profiles WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [PARK_MANAGER_USERNAME]);
-  if (!parkProfile) {
-    const nowIso = new Date().toISOString();
-    await run(
-      `INSERT INTO user_access_profiles
-       (id, username, roleSnapshot, accreditationLevel, allowedModules, deniedModules, forcedModule, notes, createdAt, updatedAt, updatedBy)
-       VALUES (?, ?, 'admin', 'standard', ?, '', 'vehicles', 'Gestionnaire de parc auto', ?, ?, 'system')`,
-      [await getNextTableId('user_access_profiles'), PARK_MANAGER_USERNAME, PARK_MANAGER_MODULES.join(','), nowIso, nowIso]
-    );
-  }
-
-  // Les employés au poste Chauffeur doivent avoir le rôle chauffeur
-  await run(
-    `UPDATE users SET role = 'chauffeur'
-     WHERE role = 'employe_standard' AND LOWER(TRIM(username)) IN (
-       SELECT LOWER(TRIM(username)) FROM hr_employees WHERE LOWER(jobTitle) LIKE '%chauffeur%' AND TRIM(COALESCE(username, '')) <> ''
-     )`
-  );
 
   // Garantir un compte commis_stock toujours opérationnel (local + Railway)
   const commis = await get('SELECT id FROM users WHERE username = ?', [COMMIS_STOCK_USERNAME]);
@@ -3804,19 +3492,6 @@ async function initDb() {
     console.log(`Utilisateur ${KOKAN_USERNAME} mis a jour avec role gestionnaire_stock_songon`);
   }
 
-  for (const [seedUser, seedPassword] of [
-    ['admin', 'admin123'], [EXECUTIVE_USERNAME, EXECUTIVE_PASSWORD], [HR_DIRECTOR_USERNAME, HR_DIRECTOR_PASSWORD],
-    [PARK_MANAGER_USERNAME, PARK_MANAGER_PASSWORD], [ACHAT_USERNAME, ACHAT_PASSWORD], [COMMIS_STOCK_USERNAME, COMMIS_STOCK_PASSWORD],
-    [PROCUREMENT_REVIEWER_USERNAME, PROCUREMENT_REVIEWER_PASSWORD], [KOKAN_USERNAME, KOKAN_PASSWORD],
-  ]) {
-    try {
-      const seeded = await get('SELECT id, password, passwordEnc FROM users WHERE username = ?', [seedUser]);
-      if (seeded && await bcrypt.compare(seedPassword, String(seeded.password || '')) && decryptStoredPassword(seeded.passwordEnc) !== seedPassword) {
-        await storeUserPasswordEnc(seeded.id, seedPassword);
-      }
-    } catch (_e) {}
-  }
-
   await ensureHrEmployeeProfile({
     username: KOKAN_USERNAME,
     fullName: 'KOKAN',
@@ -3873,84 +3548,11 @@ function runBackgroundReconciliationsOnce() {
   });
 }
 
-function getPasswordVaultKey() {
-  return crypto.createHash('sha256').update(String(process.env.PASSWORD_VAULT_KEY || JWT_SECRET)).digest();
-}
-
-function encryptStoredPassword(plain) {
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv('aes-256-gcm', getPasswordVaultKey(), iv);
-  const data = Buffer.concat([cipher.update(String(plain), 'utf8'), cipher.final()]);
-  return Buffer.concat([iv, cipher.getAuthTag(), data]).toString('base64');
-}
-
-function decryptStoredPassword(encoded) {
-  try {
-    const raw = Buffer.from(String(encoded || ''), 'base64');
-    if (raw.length < 29) return '';
-    const decipher = crypto.createDecipheriv('aes-256-gcm', getPasswordVaultKey(), raw.subarray(0, 12));
-    decipher.setAuthTag(raw.subarray(12, 28));
-    return Buffer.concat([decipher.update(raw.subarray(28)), decipher.final()]).toString('utf8');
-  } catch (_e) {
-    return '';
-  }
-}
-
-async function storeUserPasswordEnc(userId, plain) {
-  await run('UPDATE users SET passwordEnc = ? WHERE id = ?', [encryptStoredPassword(plain), userId]);
-}
-
-function verifyPasswordViewCode(code) {
-  const expected = Buffer.from(String(process.env.PASSWORD_VIEW_CODE || 'CHADA'));
-  const given = Buffer.from(String(code || ''));
-  return expected.length === given.length && crypto.timingSafeEqual(expected, given);
-}
-
-async function syncPasswordsFromProduction({ url, username, password }) {
-  const base = String(url || '').trim().replace(/\/+$/, '');
-  if (!base || !username || !password) throw new Error('URL, identifiant et mot de passe de production requis');
-  const code = process.env.PASSWORD_VIEW_CODE || 'CHADA';
-  const loginRes = await fetch(base + '/api/auth/login', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }),
-  });
-  if (!loginRes.ok) throw new Error('Connexion à la production refusée');
-  const { token } = await loginRes.json();
-  const exportRes = await fetch(base + '/api/admin/users/passwords-export', {
-    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ code }),
-  });
-  if (!exportRes.ok) throw new Error('Export des mots de passe refusé');
-  const remote = await exportRes.json();
-  let updated = 0;
-  for (const entry of remote) {
-    const local = await get('SELECT id, password, passwordEnc FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [entry.username]);
-    if (!local) continue;
-    if (!(await bcrypt.compare(entry.password, String(local.password || '')))) {
-      await run('UPDATE users SET password = ? WHERE id = ?', [await bcrypt.hash(entry.password, 10), local.id]);
-      await storeUserPasswordEnc(local.id, entry.password);
-      updated += 1;
-    } else if (decryptStoredPassword(local.passwordEnc) !== entry.password) {
-      await storeUserPasswordEnc(local.id, entry.password);
-    }
-  }
-  return { checked: remote.length, updated };
-}
-
-function startProductionPasswordSync() {
-  if (NODE_ENV === 'production' || !process.env.PROD_SYNC_URL || !process.env.PROD_SYNC_USER || !process.env.PROD_SYNC_PASSWORD) return;
-  const tick = () => syncPasswordsFromProduction({
-    url: process.env.PROD_SYNC_URL, username: process.env.PROD_SYNC_USER, password: process.env.PROD_SYNC_PASSWORD,
-  }).then(r => { if (r.updated) console.log('[sync-passwords] mots de passe mis à jour depuis la production:', r.updated); })
-    .catch(e => console.warn('[sync-passwords]', e.message || e));
-  setTimeout(tick, 15000);
-  setInterval(tick, 5 * 60 * 1000);
-}
-
 async function initializeDatabaseOnce() {
   try {
     await initDbWithTimeout();
     isReady = true;
     console.log('Initialisation base de donnees terminee. API ready.');
-    startProductionPasswordSync();
     runBackgroundReconciliationsOnce();
   } catch (error) {
     isReady = false;
@@ -4047,16 +3649,6 @@ function authenticateToken(req, res, next) {
 
 function authorizeRoleAccess(req, res, next) {
   const role = req.user && req.user.role;
-  if (role === 'chauffeur') {
-    const pathName = String(req.path || '');
-    const method = String(req.method || '').toUpperCase();
-    const allowed = (method === 'GET' && /^\/(auth\/me|driver\/vehicle|driver\/tracking-sessions)$/.test(pathName))
-      || (method === 'POST' && /^\/driver\/(tracking-device|tracking-sessions\/start|password)$/.test(pathName))
-      || (method === 'POST' && /^\/driver\/tracking-sessions\/\d+\/(?:resume|stop)$/.test(pathName))
-      || (method === 'PATCH' && /^\/driver\/settings$/.test(pathName))
-      || (method === 'DELETE' && /^\/driver\/tracking-device$/.test(pathName));
-    return allowed ? next() : res.status(403).json({ error: 'Accès limité au véhicule affecté' });
-  }
   if (
     role !== 'commis'
     && role !== 'gestionnaire_stock'
@@ -4091,10 +3683,6 @@ function authorizeRoleAccess(req, res, next) {
       return next();
     }
     return res.status(403).json({ error: 'Acces refuse pour ce role' });
-  }
-
-  if (/^\/internal-mail(?:\/|$)/.test(pathName)) {
-    return next();
   }
 
   const commisRules = [
@@ -4265,12 +3853,10 @@ function authorizeRoleAccess(req, res, next) {
     { method: 'GET', pattern: /^\/hr\/signature-requests\/\d+\/download$/ },
     { method: 'GET', pattern: /^\/expenses$/ },
     { method: 'GET', pattern: /^\/revenues$/ },
-    { method: 'GET', pattern: /^\/reports\/(financial|project|costs|activities|export)\.(pdf|xlsx)$/ },
     { method: 'GET', pattern: /^\/vehicles$/ },
     { method: 'GET', pattern: /^\/vehicles\/\d+\/locations$/ },
     { method: 'GET', pattern: /^\/vehicles\/\d+$/ },
     { method: 'GET', pattern: /^\/auto-vehicle-locations$/ },
-    { method: 'GET', pattern: /^\/auto-maintenance-records$/ },
     { method: 'GET', pattern: /^\/auto-transport-costs$/ },
   ];
 
@@ -4578,7 +4164,6 @@ async function insertAutoVehicleLocationRecord({
   note = '',
   recordedAt,
   createdBy = 'system',
-  trackingSessionId = null,
 }) {
   const lat = Number(latitude);
   const lng = Number(longitude);
@@ -4619,9 +4204,8 @@ async function insertAutoVehicleLocationRecord({
       recorded_at,
       recordedAt,
       created_by,
-      createdBy,
-      trackingSessionId
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+      createdBy
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       nextLocationId,
       Number(vehicleId),
@@ -4640,7 +4224,6 @@ async function insertAutoVehicleLocationRecord({
       effectiveRecordedAt,
       String(createdBy || 'system').trim() || 'system',
       String(createdBy || 'system').trim() || 'system',
-      Number(trackingSessionId || 0) || null,
     ]
   );
 
@@ -4681,10 +4264,6 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
     return res.status(401).json({ error: 'Utilisateur ou mot de passe invalide' });
   }
 
-  if (decryptStoredPassword(user.passwordEnc) !== password) {
-    try { await storeUserPasswordEnc(user.id, password); } catch (_e) {}
-  }
-
   const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, {
     expiresIn: '6h'
   });
@@ -4702,18 +4281,18 @@ async function buildAuthProfilePayload(user) {
       }
     : null;
 
-  const storedProfile = await getUserAccessProfileByUsername(user?.username);
-  const applyProfile = !roleCanBypassAccessProfile(role) || privilegedProfileIsRestricted(storedProfile);
-  const accessProfile = applyProfile ? storedProfile : null;
-  const effectiveModules = applyProfile
-    ? Array.from(computeEffectiveModulesForAccessProfile(accessProfile || {}, role))
-    : [];
+  const accessProfile = roleCanBypassAccessProfile(role)
+    ? null
+    : await getUserAccessProfileByUsername(user?.username);
+  const effectiveModules = roleCanBypassAccessProfile(role)
+    ? []
+    : Array.from(computeEffectiveModulesForAccessProfile(accessProfile || {}, role));
 
   return {
     username: user.username,
     role: user.role,
     scope,
-    accessProfile: !applyProfile
+    accessProfile: roleCanBypassAccessProfile(role)
       ? null
       : {
           accreditationLevel: String(accessProfile?.accreditationLevel || 'standard').trim() || 'standard',
@@ -4771,90 +4350,8 @@ app.get('/api/auth/profile-stream', async (req, res) => {
   });
 });
 
-let pushVapid = null;
-
-async function ensurePushVapidKeys() {
-  let publicKey = String(process.env.VAPID_PUBLIC_KEY || '').trim();
-  let privateKey = String(process.env.VAPID_PRIVATE_KEY || '').trim();
-  if (!publicKey || !privateKey) {
-    const rows = await all("SELECT key, value FROM push_settings WHERE key IN ('vapidPublic', 'vapidPrivate')");
-    const stored = Object.fromEntries((rows || []).map(row => [row.key, row.value]));
-    publicKey = stored.vapidPublic || '';
-    privateKey = stored.vapidPrivate || '';
-    if (!publicKey || !privateKey) {
-      const generated = webpush.generateVAPIDKeys();
-      publicKey = generated.publicKey;
-      privateKey = generated.privateKey;
-      await run("INSERT INTO push_settings (key, value) VALUES ('vapidPublic', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", [publicKey]);
-      await run("INSERT INTO push_settings (key, value) VALUES ('vapidPrivate', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", [privateKey]);
-    }
-  }
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:admin@ryanerp.local', publicKey, privateKey);
-  pushVapid = { publicKey };
-}
-
-async function sendPushToUsers(userIds, payload) {
-  if (!pushVapid) return;
-  const ids = Array.from(new Set((userIds || []).map(Number).filter(id => Number.isInteger(id) && id > 0)));
-  if (!ids.length) return;
-  const body = JSON.stringify(payload);
-  for (const userId of ids) {
-    let subscriptions = [];
-    try { subscriptions = await all('SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE userId = ?', [userId]); } catch (_e) { continue; }
-    for (const sub of subscriptions || []) {
-      try {
-        await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, body, { TTL: 86400, urgency: 'high' });
-      } catch (error) {
-        if (error?.statusCode === 404 || error?.statusCode === 410) {
-          await run('DELETE FROM push_subscriptions WHERE id = ?', [sub.id]).catch(() => {});
-        }
-      }
-    }
-  }
-}
-
-async function notifyInternalMailRecipients(senderId, userIds, conversationId, messageId, subject, body) {
-  try {
-    const sender = await get(`SELECT u.username, COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS senderName
-      FROM users u LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username)) WHERE u.id = ? LIMIT 1`, [Number(senderId)]);
-    const preview = String(body || '').replace(/\s+/g, ' ').trim().slice(0, 140);
-    await sendPushToUsers((userIds || []).filter(id => Number(id) !== Number(senderId)), {
-      title: `Nouveau message de ${String(sender?.senderName || 'Utilisateur')}`,
-      message: String(subject || '').trim() || preview || 'Vous avez reçu un message.',
-      module: 'internal-mail',
-      url: `/messaging.html?conversation=${Number(conversationId)}`,
-      tag: `internal-mail:${Number(messageId)}`,
-    });
-  } catch (_e) {
-    // Les notifications ne doivent jamais bloquer l'envoi du message.
-  }
-}
-
 app.get('/api/push/public-key', authenticateToken, async (_req, res) => {
-  res.json({ publicKey: pushVapid?.publicKey || '', enabled: Boolean(pushVapid) });
-});
-
-app.post('/api/push/subscribe', authenticateToken, async (req, res) => {
-  const sub = req.body?.subscription || {};
-  const endpoint = String(sub.endpoint || '').trim();
-  const p256dh = String(sub.keys?.p256dh || '').trim();
-  const auth = String(sub.keys?.auth || '').trim();
-  if (!endpoint || !p256dh || !auth) return res.status(400).json({ error: 'Abonnement push invalide' });
-  const userId = Number(req.user?.id || 0);
-  const existing = await get('SELECT id FROM push_subscriptions WHERE endpoint = ?', [endpoint]);
-  if (existing) {
-    await run('UPDATE push_subscriptions SET userId = ?, p256dh = ?, auth = ? WHERE id = ?', [userId, p256dh, auth, existing.id]);
-  } else {
-    await run('INSERT INTO push_subscriptions (id, userId, endpoint, p256dh, auth, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
-      [await getNextTableId('push_subscriptions'), userId, endpoint, p256dh, auth, new Date().toISOString()]);
-  }
-  return res.json({ subscribed: true });
-});
-
-app.post('/api/push/unsubscribe', authenticateToken, async (req, res) => {
-  const endpoint = String(req.body?.endpoint || '').trim();
-  if (endpoint) await run('DELETE FROM push_subscriptions WHERE endpoint = ? AND userId = ?', [endpoint, Number(req.user?.id || 0)]);
-  return res.json({ subscribed: false });
+  res.json({ publicKey: String(process.env.VAPID_PUBLIC_KEY || '').trim(), enabled: Boolean(process.env.VAPID_PUBLIC_KEY) });
 });
 
 app.post('/api/gps/ingest', async (req, res) => {
@@ -4889,20 +4386,6 @@ app.post('/api/gps/ingest', async (req, res) => {
     return res.status(401).json({ error: 'Token appareil invalide ou inactif' });
   }
 
-  const nowIso = new Date().toISOString();
-  const trackingSession = await get(
-    'SELECT id, status, expiresAt FROM auto_tracking_sessions WHERE tokenHash = ? AND deviceId = ? ORDER BY id DESC LIMIT 1',
-    [tokenHash, Number(device.id)]
-  );
-  if (trackingSession && (trackingSession.status !== 'active' || String(trackingSession.expiresAt || '') <= nowIso)) {
-    if (trackingSession.status === 'active') {
-      await run('UPDATE auto_tracking_sessions SET status = ?, endedAt = ? WHERE id = ?', ['expired', nowIso, Number(trackingSession.id)]);
-      await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE id = ?', [nowIso, Number(device.id)]);
-      await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(device.vehicleId)]);
-    }
-    return res.status(401).json({ error: 'Cette session de suivi est terminée ou expirée' });
-  }
-
   try {
     const location = await insertAutoVehicleLocationRecord({
       vehicleId: Number(device.vehicleId),
@@ -4916,20 +4399,7 @@ app.post('/api/gps/ingest', async (req, res) => {
       note,
       recordedAt,
       createdBy: `device:${String(device.deviceName || 'smartphone').trim()}`,
-      trackingSessionId: trackingSession?.id || null,
     });
-
-    if (trackingSession) {
-      const fallbackPlace = `Position GPS (${Number(location.latitude).toFixed(5)}, ${Number(location.longitude).toFixed(5)})`;
-      await run(
-        `UPDATE auto_tracking_sessions
-         SET startLatitude = COALESCE(startLatitude, ?),
-             startLongitude = COALESCE(startLongitude, ?),
-             startPlace = CASE WHEN TRIM(COALESCE(startPlace, '')) = '' THEN ? ELSE startPlace END
-         WHERE id = ?`,
-        [Number(location.latitude), Number(location.longitude), fallbackPlace, Number(trackingSession.id)]
-      );
-    }
 
     await run(
       'UPDATE auto_tracking_devices SET lastSeenAt = ?, lastLatitude = ?, lastLongitude = ?, lastSpeedKph = ?, updatedAt = ? WHERE id = ?',
@@ -4959,398 +4429,7 @@ app.post('/api/gps/ingest', async (req, res) => {
   }
 });
 
-app.post('/api/gps/stop', async (req, res) => {
-  const rawToken = String(req.headers['x-device-token'] || req.headers['x-tracking-token'] || req.body?.deviceToken || '').trim();
-  if (!rawToken) return res.status(401).json({ error: 'Token appareil manquant' });
-  const tokenHash = hashTrackingToken(rawToken);
-  const session = await get("SELECT id, vehicleId, deviceId FROM auto_tracking_sessions WHERE tokenHash = ? AND status = 'active' ORDER BY id DESC LIMIT 1", [tokenHash]);
-  if (!session) return res.status(404).json({ error: 'Aucune session de suivi active pour ce lien' });
-  const now = new Date().toISOString();
-  const last = await get('SELECT latitude, longitude FROM auto_vehicle_locations WHERE trackingSessionId = ? ORDER BY recorded_at DESC, id DESC LIMIT 1', [Number(session.id)]);
-  const hasEnd = last && Number.isFinite(Number(last.latitude)) && Number.isFinite(Number(last.longitude));
-  await run(
-    "UPDATE auto_tracking_sessions SET status = 'completed', endedAt = ?, arrivalPlace = ?, endLatitude = ?, endLongitude = ? WHERE id = ?",
-    [now, hasEnd ? `Position GPS (${Number(last.latitude).toFixed(5)}, ${Number(last.longitude).toFixed(5)})` : '', hasEnd ? Number(last.latitude) : null, hasEnd ? Number(last.longitude) : null, Number(session.id)]
-  );
-  await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE id = ?', [now, Number(session.deviceId)]);
-  await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(session.vehicleId)]);
-  return res.json({ stopped: true, endedAt: now });
-});
-
 app.use('/api', authenticateToken, authorizeRoleAccess);
-
-function normalizeInternalMailList(value) {
-  if (!Array.isArray(value)) return [];
-  return Array.from(new Set(value.map(item => Number(item)).filter(id => Number.isInteger(id) && id > 0)));
-}
-
-async function getInternalMailUser(userId) {
-  return get(`
-    SELECT u.id, u.username, u.role,
-           COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS fullName,
-           COALESCE(NULLIF(TRIM(he.jobTitle), ''), u.role) AS department
-    FROM users u
-    LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
-      AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(u.username)))
-    WHERE u.id = ?
-    LIMIT 1
-  `, [Number(userId)]);
-}
-
-async function getInternalMailAccess(conversationId, userId) {
-  return get(`
-    SELECT c.*
-    FROM internal_mail_conversations c
-    WHERE c.id = ? AND (
-      c.createdBy = ? OR EXISTS (
-        SELECT 1 FROM internal_mail_recipients r
-        WHERE r.conversationId = c.id AND r.userId = ?
-      )
-    )
-    LIMIT 1
-  `, [Number(conversationId), Number(userId), Number(userId)]);
-}
-
-async function getInternalMailRecipients(conversationId, messageId, excludeUserId = 0) {
-  const rows = await all(
-    "SELECT userId FROM internal_mail_recipients WHERE conversationId = ? AND messageId = ? AND userId <> ? AND LOWER(COALESCE(recipientType, 'to')) <> 'bcc'",
-    [Number(conversationId), Number(messageId), Number(excludeUserId)]
-  );
-  return normalizeInternalMailList((rows || []).map(row => row.userId));
-}
-
-app.get('/api/internal-mail/users', async (req, res) => {
-  try {
-    const rows = await all(`
-      SELECT u.id, u.username, u.role,
-             COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS fullName,
-             COALESCE(NULLIF(TRIM(he.jobTitle), ''), u.role) AS department
-      FROM users u
-      LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
-        AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(u.username)))
-      ORDER BY fullName ASC, u.id ASC
-    `);
-    return res.json((rows || []).map(row => ({
-      id: Number(row.id),
-      username: String(row.username || '').trim(),
-      fullName: String(row.fullName || row.username || '').trim(),
-      role: String(row.role || '').trim(),
-      department: String(row.department || '').trim(),
-    })));
-  } catch (error) {
-    return res.status(500).json({ error: 'Impossible de charger les profils de messagerie', details: String(error?.message || error) });
-  }
-});
-
-app.get('/api/internal-mail/projects', async (_req, res) => {
-  try {
-    const rows = await all('SELECT id, nomProjet, nomSite FROM projects ORDER BY nomProjet ASC, id ASC');
-    return res.json((rows || []).map(row => ({ id: Number(row.id), name: String(row.nomProjet || '').trim(), site: String(row.nomSite || '').trim() })));
-  } catch (error) {
-    return res.status(500).json({ error: 'Impossible de charger les projets pour la messagerie', details: String(error?.message || error) });
-  }
-});
-
-app.get('/api/internal-mail/conversations', async (req, res) => {
-  try {
-    const currentUserId = Number(req.user?.id || 0);
-    const folder = String(req.query.folder || 'inbox').trim().toLowerCase();
-    const category = String(req.query.category || '').trim().toLowerCase();
-    const query = String(req.query.q || '').trim().toLowerCase();
-    const baseRows = await all(`
-      SELECT c.id, c.subject, c.category, c.priority, c.status, c.projectId, c.updatedAt,
-             m.id AS messageId, m.body, m.senderId, m.createdAt,
-             su.username AS senderUsername,
-             COALESCE(NULLIF(TRIM(se.fullName), ''), su.username) AS senderName,
-             COALESCE(NULLIF(TRIM(se.jobTitle), ''), su.role) AS senderDepartment,
-             p.nomProjet AS projectName,
-             COALESCE(r.isRead, 1) AS isRead,
-             COALESCE(org.isStarred, r.isStarred, 0) AS isStarred,
-             COALESCE(r.isImportant, 0) AS isImportant,
-             COALESCE(NULLIF(r.deletedAt, ''), c.deletedAt, '') AS deletedAt,
-             COALESCE(org.folderCategory, '') AS userFolder,
-             (SELECT COUNT(*) FROM internal_mail_attachments a WHERE a.messageId = m.id) AS attachmentCount,
-             (SELECT COUNT(*) FROM internal_mail_messages cm WHERE cm.conversationId = c.id) AS messageCount
-      FROM internal_mail_conversations c
-      JOIN internal_mail_messages m ON m.id = (
-        SELECT cm.id FROM internal_mail_messages cm
-        WHERE cm.conversationId = c.id ORDER BY cm.createdAt DESC, cm.id DESC LIMIT 1
-      )
-      LEFT JOIN internal_mail_recipients r ON r.messageId = m.id AND r.userId = ?
-      LEFT JOIN internal_mail_user_organization org ON org.conversationId = c.id AND org.userId = ?
-      LEFT JOIN users su ON su.id = m.senderId
-      LEFT JOIN hr_employees se ON LOWER(TRIM(se.username)) = LOWER(TRIM(su.username))
-        AND se.id = (SELECT MAX(se2.id) FROM hr_employees se2 WHERE LOWER(TRIM(se2.username)) = LOWER(TRIM(su.username)))
-      LEFT JOIN projects p ON p.id = c.projectId
-      WHERE (
-        (? = 'sent' AND (c.createdBy = ? OR m.senderId = ?)) OR
-        (? = 'drafts' AND c.createdBy = ?) OR
-        (? NOT IN ('sent', 'drafts', 'starred') AND r.userId = ?) OR
-        (? = 'starred' AND (r.userId = ? OR c.createdBy = ?)) OR
-        (? <> '' AND (c.createdBy = ? OR r.userId = ?))
-      )
-      ORDER BY c.updatedAt DESC, c.id DESC
-    `, [currentUserId, currentUserId, folder, currentUserId, currentUserId, folder, currentUserId, folder, currentUserId, folder, currentUserId, currentUserId, category, currentUserId, currentUserId]);
-
-    const rows = (baseRows || []).filter(row => {
-      const deleted = String(row.deletedAt || '').trim();
-      if (category && row.category !== category && row.userFolder !== category) return false;
-      if (folder === 'trash') return Boolean(deleted);
-      if (folder === 'drafts') return row.status === 'draft';
-      if (folder === 'starred') return Number(row.isStarred) === 1;
-      if (folder === 'important') return Number(row.isImportant) === 1;
-      if (folder === 'unread') return Number(row.isRead) === 0;
-      return !deleted;
-    }).filter(row => {
-      if (!query) return true;
-      return [row.subject, row.body, row.senderName, row.senderUsername, row.projectName, row.category]
-        .some(value => String(value || '').toLowerCase().includes(query));
-    });
-    return res.json(rows);
-  } catch (error) {
-    return res.status(500).json({ error: 'Impossible de charger la messagerie', details: String(error?.message || error) });
-  }
-});
-
-app.get('/api/internal-mail/unread-count', async (req, res) => {
-  try {
-    const userId = Number(req.user?.id || 0);
-    const row = await get(`SELECT COUNT(*) AS count FROM internal_mail_recipients WHERE userId = ? AND isRead = 0 AND deletedAt = ''`, [userId]);
-    const items = await all(`
-      SELECT r.messageId, r.conversationId, c.subject, m.body, m.createdAt,
-             su.username AS senderUsername,
-             COALESCE(NULLIF(TRIM(he.fullName), ''), su.username) AS senderName
-      FROM internal_mail_recipients r
-      JOIN internal_mail_messages m ON m.id = r.messageId
-      JOIN internal_mail_conversations c ON c.id = r.conversationId
-      LEFT JOIN users su ON su.id = m.senderId
-      LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(su.username))
-        AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(su.username)))
-      WHERE r.userId = ? AND r.isRead = 0 AND r.deletedAt = ''
-      ORDER BY m.createdAt DESC, r.id DESC LIMIT 10
-    `, [userId]);
-    return res.json({ count: Number(row?.count || 0), items: (items || []).map(item => ({ messageId: Number(item.messageId), conversationId: Number(item.conversationId), subject: String(item.subject || ''), body: String(item.body || ''), createdAt: String(item.createdAt || ''), senderUsername: String(item.senderUsername || ''), senderName: String(item.senderName || item.senderUsername || 'Utilisateur') })) });
-  } catch (error) {
-    return res.status(500).json({ error: 'Impossible de charger le compteur de messages', details: String(error?.message || error) });
-  }
-});
-
-app.get('/api/internal-mail/conversations/:id', async (req, res) => {
-  try {
-    const conversationId = Number(req.params.id);
-    const currentUserId = Number(req.user?.id || 0);
-    const conversation = await getInternalMailAccess(conversationId, currentUserId);
-    if (!conversation) return res.status(404).json({ error: 'Conversation introuvable ou inaccessible' });
-
-    const messages = await all(`
-      SELECT m.id, m.body, m.senderId, m.createdAt, su.username AS senderUsername,
-             COALESCE(NULLIF(TRIM(se.fullName), ''), su.username) AS senderName,
-             COALESCE(NULLIF(TRIM(se.jobTitle), ''), su.role) AS senderDepartment
-      FROM internal_mail_messages m
-      LEFT JOIN users su ON su.id = m.senderId
-      LEFT JOIN hr_employees se ON LOWER(TRIM(se.username)) = LOWER(TRIM(su.username))
-        AND se.id = (SELECT MAX(se2.id) FROM hr_employees se2 WHERE LOWER(TRIM(se2.username)) = LOWER(TRIM(su.username)))
-      WHERE m.conversationId = ? ORDER BY m.createdAt ASC, m.id ASC
-    `, [conversationId]);
-    const hydrated = [];
-    for (const message of messages || []) {
-      const attachments = await all('SELECT id, fileName, mimeType, fileSize FROM internal_mail_attachments WHERE messageId = ? ORDER BY id ASC', [Number(message.id)]);
-      const recipients = await all(`
-        SELECT u.id, u.username, r.recipientType,
-               COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS fullName
-        FROM internal_mail_recipients r
-        JOIN users u ON u.id = r.userId
-        LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
-          AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(u.username)))
-        JOIN internal_mail_conversations c ON c.id = r.conversationId
-        WHERE r.messageId = ? AND (r.recipientType <> 'bcc' OR r.userId = ? OR c.createdBy = ?)
-        ORDER BY fullName ASC
-      `, [Number(message.id), currentUserId, currentUserId]);
-      hydrated.push({ ...message, attachments: attachments || [], recipients: recipients || [] });
-    }
-    const organization = await get('SELECT isStarred FROM internal_mail_user_organization WHERE userId = ? AND conversationId = ?', [currentUserId, conversationId]);
-    const recipientStar = await get('SELECT isStarred FROM internal_mail_recipients WHERE userId = ? AND conversationId = ? ORDER BY messageId DESC LIMIT 1', [currentUserId, conversationId]);
-    conversation.isStarred = Number(organization?.isStarred ?? recipientStar?.isStarred ?? 0);
-    await run('UPDATE internal_mail_recipients SET isRead = 1 WHERE conversationId = ? AND userId = ?', [conversationId, currentUserId]);
-    return res.json({ conversation, messages: hydrated });
-  } catch (error) {
-    return res.status(500).json({ error: 'Impossible de charger la conversation', details: String(error?.message || error) });
-  }
-});
-
-app.post('/api/internal-mail/conversations', async (req, res) => {
-  try {
-    const sender = await getInternalMailUser(req.user?.id);
-    if (!sender) return res.status(401).json({ error: 'Profil expéditeur introuvable' });
-    const payload = req.body || {};
-    const subject = String(payload.subject || '').trim();
-    const body = String(payload.body || '').trim();
-    const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
-    const status = String(payload.status || 'sent').trim().toLowerCase() === 'draft' ? 'draft' : 'sent';
-    const recipients = normalizeInternalMailList(payload.recipientIds);
-    const ccRecipients = normalizeInternalMailList(payload.ccRecipientIds);
-    const bccRecipients = normalizeInternalMailList(payload.bccRecipientIds);
-    if (!subject && status === 'sent') return res.status(400).json({ error: 'Le sujet est obligatoire' });
-    if (!body && !attachments.length && status === 'sent') return res.status(400).json({ error: 'Écrivez un texte ou ajoutez une pièce jointe.' });
-    if (status === 'sent' && !recipients.length && !ccRecipients.length && !bccRecipients.length && !payload.sendToAll) return res.status(400).json({ error: 'Sélectionne au moins un destinataire' });
-
-    let finalRecipients = recipients;
-    if (payload.sendToAll && (sender.role === 'admin' || sender.role === 'dirigeant')) {
-      const allUsers = await all('SELECT id FROM users WHERE id <> ?', [Number(sender.id)]);
-      finalRecipients = normalizeInternalMailList((allUsers || []).map(row => row.id));
-    }
-    const recipientTypes = new Map(finalRecipients.map(userId => [userId, 'to']));
-    for (const userId of ccRecipients) if (!recipientTypes.has(userId)) recipientTypes.set(userId, 'cc');
-    for (const userId of bccRecipients) if (!recipientTypes.has(userId)) recipientTypes.set(userId, 'bcc');
-    if (status === 'sent' && !recipientTypes.size) return res.status(400).json({ error: 'Aucun profil destinataire disponible' });
-
-    const projectId = Number(payload.projectId || 0) || null;
-    if (projectId && !(await get('SELECT id FROM projects WHERE id = ?', [projectId]))) {
-      return res.status(400).json({ error: 'Projet associé introuvable' });
-    }
-    const now = new Date().toISOString();
-    const conversationId = await getNextTableId('internal_mail_conversations');
-    const messageId = await getNextTableId('internal_mail_messages');
-    await run(`INSERT INTO internal_mail_conversations (id, subject, category, priority, status, projectId, incidentZone, incidentSite, incidentLevel, createdBy, createdAt, updatedAt, deletedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '')`, [
-      conversationId, subject, String(payload.category || 'general'), String(payload.priority || 'normal'), status,
-      projectId, String(payload.incidentZone || ''), String(payload.incidentSite || ''), String(payload.incidentLevel || ''),
-      Number(sender.id), now, now,
-    ]);
-    await run('INSERT INTO internal_mail_messages (id, conversationId, senderId, body, createdAt) VALUES (?, ?, ?, ?, ?)', [messageId, conversationId, Number(sender.id), body, now]);
-    for (const [userId, recipientType] of recipientTypes) {
-      if (userId === Number(sender.id)) continue;
-      await run('INSERT INTO internal_mail_recipients (id, conversationId, messageId, userId, recipientType, isRead, isStarred, isImportant, deletedAt) VALUES (?, ?, ?, ?, ?, 0, 0, 0, ?)', [await getNextTableId('internal_mail_recipients'), conversationId, messageId, userId, recipientType, '']);
-    }
-    for (const attachment of attachments) {
-      const content = String(attachment.contentBase64 || '').replace(/^data:[^;]+;base64,/, '');
-      if (!content) continue;
-      await run('INSERT INTO internal_mail_attachments (id, messageId, fileName, mimeType, fileSize, contentBase64, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)', [await getNextTableId('internal_mail_attachments'), messageId, String(attachment.fileName || 'document'), String(attachment.mimeType || 'application/octet-stream'), Number(attachment.fileSize || 0), content, now]);
-    }
-    if (status === 'sent') notifyInternalMailRecipients(sender.id, Array.from(recipientTypes.keys()), conversationId, messageId, subject, body);
-    return res.status(201).json({ id: conversationId, message: status === 'draft' ? 'Brouillon enregistré' : 'Message envoyé' });
-  } catch (error) {
-    return res.status(500).json({ error: 'Erreur lors de l’enregistrement du message', details: String(error?.message || error) });
-  }
-});
-
-app.post('/api/internal-mail/conversations/:id/replies', async (req, res) => {
-  try {
-    const conversationId = Number(req.params.id);
-    const senderId = Number(req.user?.id || 0);
-    const conversation = await getInternalMailAccess(conversationId, senderId);
-    if (!conversation) return res.status(404).json({ error: 'Conversation introuvable ou inaccessible' });
-    const body = String(req.body?.body || '').trim();
-    const attachments = Array.isArray(req.body?.attachments) ? req.body.attachments : [];
-    if (!body && !attachments.length) return res.status(400).json({ error: 'Le message ou une pièce jointe est obligatoire' });
-    const mode = String(req.body?.mode || 'reply-all').trim().toLowerCase() === 'reply' ? 'reply' : 'reply-all';
-    const latest = await get('SELECT id, senderId FROM internal_mail_messages WHERE conversationId = ? ORDER BY createdAt DESC, id DESC LIMIT 1', [conversationId]);
-    const recipients = await getInternalMailRecipients(conversationId, Number(latest?.id || 0), senderId);
-    const participants = await all('SELECT DISTINCT senderId AS userId FROM internal_mail_messages WHERE conversationId = ?', [conversationId]);
-    let finalRecipients;
-    if (mode === 'reply') {
-      const directRecipient = Number(latest?.senderId || 0) !== senderId ? Number(latest?.senderId || 0) : Number(recipients[0] || 0);
-      finalRecipients = normalizeInternalMailList([directRecipient]).filter(id => id !== senderId);
-    } else {
-      finalRecipients = normalizeInternalMailList(recipients.concat((participants || []).map(row => row.userId))).filter(id => id !== senderId);
-    }
-    const now = new Date().toISOString();
-    const messageId = await getNextTableId('internal_mail_messages');
-    await run('INSERT INTO internal_mail_messages (id, conversationId, senderId, body, createdAt) VALUES (?, ?, ?, ?, ?)', [messageId, conversationId, senderId, body, now]);
-    for (const userId of finalRecipients) {
-      await run('INSERT INTO internal_mail_recipients (id, conversationId, messageId, userId, recipientType, isRead, isStarred, isImportant, deletedAt) VALUES (?, ?, ?, ?, ?, 0, 0, 0, ?)', [await getNextTableId('internal_mail_recipients'), conversationId, messageId, userId, 'to', '']);
-    }
-    for (const attachment of attachments) {
-      const content = String(attachment.contentBase64 || '').replace(/^data:[^;]+;base64,/, '');
-      if (!content) continue;
-      await run('INSERT INTO internal_mail_attachments (id, messageId, fileName, mimeType, fileSize, contentBase64, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)', [await getNextTableId('internal_mail_attachments'), messageId, String(attachment.fileName || 'document'), String(attachment.mimeType || 'application/octet-stream'), Number(attachment.fileSize || 0), content, now]);
-    }
-    await run('UPDATE internal_mail_conversations SET updatedAt = ? WHERE id = ?', [now, conversationId]);
-    notifyInternalMailRecipients(senderId, finalRecipients, conversationId, messageId, conversation.subject, body);
-    return res.status(201).json({ message: 'Réponse envoyée' });
-  } catch (error) {
-    return res.status(500).json({ error: 'Erreur lors de l’envoi de la réponse', details: String(error?.message || error) });
-  }
-});
-
-app.patch('/api/internal-mail/conversations/:id', async (req, res) => {
-  try {
-    const conversationId = Number(req.params.id);
-    const userId = Number(req.user?.id || 0);
-    const conversation = await getInternalMailAccess(conversationId, userId);
-    if (!conversation) return res.status(404).json({ error: 'Conversation introuvable ou inaccessible' });
-    const action = String(req.body?.action || '').trim().toLowerCase();
-    if (action === 'read') await run('UPDATE internal_mail_recipients SET isRead = 1 WHERE conversationId = ? AND userId = ?', [conversationId, userId]);
-    else if (action === 'unread') await run('UPDATE internal_mail_recipients SET isRead = 0 WHERE conversationId = ? AND userId = ?', [conversationId, userId]);
-    else if (action === 'star' || action === 'unstar') {
-      await run(`INSERT INTO internal_mail_user_organization (userId, conversationId, isStarred)
-        VALUES (?, ?, ?)
-        ON CONFLICT(userId, conversationId) DO UPDATE SET isStarred = excluded.isStarred`, [userId, conversationId, action === 'star' ? 1 : 0]);
-    }
-    else if (action === 'copy-to-folder') {
-      const folderCategory = String(req.body?.category || '').trim().toLowerCase();
-      if (!['incident', 'general', 'project', 'meeting', 'administration'].includes(folderCategory)) {
-        return res.status(400).json({ error: 'Dossier de classement invalide' });
-      }
-      await run(`INSERT INTO internal_mail_user_organization (userId, conversationId, folderCategory)
-        VALUES (?, ?, ?)
-        ON CONFLICT(userId, conversationId) DO UPDATE SET folderCategory = excluded.folderCategory`, [userId, conversationId, folderCategory]);
-    }
-    else if (action === 'remove-from-folder') await run('UPDATE internal_mail_user_organization SET folderCategory = ? WHERE userId = ? AND conversationId = ?', ['', userId, conversationId]);
-    else if (action === 'important' || action === 'unimportant') await run('UPDATE internal_mail_recipients SET isImportant = ? WHERE conversationId = ? AND userId = ?', [action === 'important' ? 1 : 0, conversationId, userId]);
-    else if (action === 'trash' || action === 'restore') {
-      const deletedAt = action === 'trash' ? new Date().toISOString() : '';
-      if (Number(conversation.createdBy) === userId) await run('UPDATE internal_mail_conversations SET deletedAt = ? WHERE id = ?', [deletedAt, conversationId]);
-      else await run('UPDATE internal_mail_recipients SET deletedAt = ? WHERE conversationId = ? AND userId = ?', [deletedAt, conversationId, userId]);
-    }
-    else return res.status(400).json({ error: 'Action de messagerie inconnue' });
-    return res.json({ message: 'Conversation mise à jour' });
-  } catch (error) {
-    return res.status(500).json({ error: 'Erreur lors de la mise à jour de la conversation', details: String(error?.message || error) });
-  }
-});
-
-app.get('/api/internal-mail/attachments/:id/download', async (req, res) => {
-  try {
-    const attachmentId = Number(req.params.id);
-    const row = await get(`SELECT a.* FROM internal_mail_attachments a JOIN internal_mail_messages m ON m.id = a.messageId JOIN internal_mail_conversations c ON c.id = m.conversationId WHERE a.id = ? AND (c.createdBy = ? OR EXISTS (SELECT 1 FROM internal_mail_recipients r WHERE r.conversationId = c.id AND r.userId = ?))`, [attachmentId, Number(req.user?.id || 0), Number(req.user?.id || 0)]);
-    if (!row) return res.status(404).json({ error: 'Pièce jointe introuvable' });
-    res.setHeader('Content-Type', String(row.mimeType || 'application/octet-stream'));
-    res.setHeader('Content-Disposition', `attachment; filename="${String(row.fileName || 'document').replace(/["\\\r\n]/g, '_')}"`);
-    return res.send(Buffer.from(String(row.contentBase64 || ''), 'base64'));
-  } catch (error) {
-    return res.status(500).json({ error: 'Erreur téléchargement pièce jointe', details: String(error?.message || error) });
-  }
-});
-
-app.get('/api/internal-mail/conversations/:id/attachments/download-all', async (req, res) => {
-  try {
-    const conversationId = Number(req.params.id);
-    const userId = Number(req.user?.id || 0);
-    const conversation = await getInternalMailAccess(conversationId, userId);
-    if (!conversation) return res.status(404).json({ error: 'Conversation introuvable ou inaccessible' });
-    const attachments = await all(`
-      SELECT a.fileName, a.contentBase64
-      FROM internal_mail_attachments a
-      JOIN internal_mail_messages m ON m.id = a.messageId
-      WHERE m.conversationId = ? ORDER BY m.createdAt ASC, a.id ASC
-    `, [conversationId]);
-    if (!attachments?.length) return res.status(404).json({ error: 'Aucune pièce jointe à télécharger' });
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="conversation-${conversationId}-pieces-jointes.zip"`);
-    const archive = archiver('zip', { zlib: { level: 6 } });
-    archive.on('error', error => res.destroy(error));
-    archive.pipe(res);
-    for (const attachment of attachments) {
-      const fileName = String(attachment.fileName || 'document').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
-      archive.append(Buffer.from(String(attachment.contentBase64 || ''), 'base64'), { name: fileName });
-    }
-    await archive.finalize();
-  } catch (error) {
-    if (!res.headersSent) return res.status(500).json({ error: 'Erreur lors de la préparation du téléchargement', details: String(error?.message || error) });
-    res.destroy(error);
-  }
-});
 
 app.post('/api/material-requests/auto-stage', async (req, res) => {
   const {
@@ -5458,7 +4537,7 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
 
   pushCandidateFolder(requestedCatalogFolder);
   pushCandidateFolder(projectFolder);
-  (discoveredFolders || []).forEach(folderName => pushCandidateFolder(folderName));
+  (discoveredFolders || []).forEach(row => pushCandidateFolder(row?.projectFolder || ''));
 
   let resolvedProjectFolder = projectFolder;
   let stageCatalogRows = [];
@@ -5479,39 +4558,8 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
     }
   }
 
-  // Fallback 1: ignore the sub-stage and match on the main stage only. Some catalog
-  // entries are tagged with a sub-stage label that does not exactly match what the
-  // request form sent (e.g. free-text group names), which must not block the request.
-  if (!stageCatalogRows.length) {
-    const mainOnlyStage = parseCatalogStageLabels(stageRaw)[0] || stageRaw;
-    for (const folderName of candidateFolders) {
-      const folderKey = normalizeFolderKey(folderName);
-      const rows = (allCatalogRows || []).filter(entry => normalizeFolderKey(entry?.projectFolder || '') === folderKey);
-      if (!rows.length) continue;
-      const mainStageRows = rows.filter(entry => isCatalogStageMatching(entry.notes, mainOnlyStage));
-      if (mainStageRows.length) {
-        resolvedProjectFolder = folderName;
-        stageCatalogRows = mainStageRows;
-        break;
-      }
-    }
-  }
-
-  // Fallback 2: if the catalog exists for this project but nothing matches the stage
-  // at all, use every catalog row of the project rather than blocking the request.
-  if (!stageCatalogRows.length) {
-    for (const folderName of candidateFolders) {
-      const folderKey = normalizeFolderKey(folderName);
-      const rows = (allCatalogRows || []).filter(entry => normalizeFolderKey(entry?.projectFolder || '') === folderKey);
-      if (rows.length) {
-        resolvedProjectFolder = folderName;
-        stageCatalogRows = rows;
-        break;
-      }
-    }
-  }
-
   const stageCatalog = (stageCatalogRows || [])
+    .filter(entry => isCatalogStageMatching(entry.notes, stageRaw))
     .map(entry => ({
       materialName: String(entry.materialName || '').trim(),
       quantiteParBatiment: Number(entry.quantiteParBatiment || 0),
@@ -5681,13 +4729,16 @@ app.get('/api/users', async (req, res) => {
       COALESCE(NULLIF(TRIM(u.username), ''), NULLIF(TRIM(he.username), ''), '') AS username,
       COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
       COALESCE(NULLIF(TRIM(he.fullName), ''), '') AS linkedEmployeeName,
-      COALESCE(he.id, 0) AS linkedEmployeeId,
-      '-' AS initialPasswordHint,
+      CASE
+        WHEN u.id IS NULL THEN '-'
+        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' AND COALESCE(TRIM(u.role), '') = 'employe_standard' AND COALESCE(TRIM(u.username), '') <> '' THEN TRIM(u.username) || '@2026'
+        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' THEN '-'
+        ELSE COALESCE(NULLIF(TRIM(u.password), ''), '-')
+      END AS initialPasswordHint,
       0 AS hasLoggedIn,
       '' AS firstLoginAt,
       '' AS lastLoginAt,
-      CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END AS hasUserAccount,
-      CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword
+      CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END AS hasUserAccount
     FROM hr_employees he
     LEFT JOIN users u ON LOWER(TRIM(u.username)) = LOWER(TRIM(he.username))
 
@@ -5698,13 +4749,15 @@ app.get('/api/users', async (req, res) => {
       COALESCE(NULLIF(TRIM(u.username), ''), '') AS username,
       COALESCE(NULLIF(TRIM(u.role), ''), '-') AS role,
       '' AS linkedEmployeeName,
-      0 AS linkedEmployeeId,
-      '-' AS initialPasswordHint,
+      CASE
+        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' AND COALESCE(TRIM(u.role), '') = 'employe_standard' AND COALESCE(TRIM(u.username), '') <> '' THEN TRIM(u.username) || '@2026'
+        WHEN COALESCE(TRIM(u.password), '') LIKE '$2%' THEN '-'
+        ELSE COALESCE(NULLIF(TRIM(u.password), ''), '-')
+      END AS initialPasswordHint,
       0 AS hasLoggedIn,
       '' AS firstLoginAt,
       '' AS lastLoginAt,
-      1 AS hasUserAccount,
-      CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword
+      1 AS hasUserAccount
     FROM users u
     WHERE NOT EXISTS (
       SELECT 1
@@ -5716,217 +4769,11 @@ app.get('/api/users', async (req, res) => {
   res.json(rows);
 });
 
-function isAdminUser(req) {
-  return String(req.user?.role || '').trim().toLowerCase() === 'admin';
-}
-
-function getRoleForEmployeePosition(jobTitle, requestedRole) {
-  const title = normalizeTextValue(jobTitle || '');
-  if (title.includes('chauffeur')) return 'chauffeur';
-  const role = String(requestedRole || 'employe_standard').trim().toLowerCase();
-  const allowedRoles = new Set([
-    'admin', 'dirigeant', 'directeur_rh', 'achat', 'commis', 'controle_achat',
-    'controle_achat_global', 'chef_chantier_site', 'gestionnaire_stock',
-    'gestionnaire_stock_zone', 'gestionnaire_stock_songon', 'employe_standard',
-  ]);
-  return allowedRoles.has(role) ? role : 'employe_standard';
-}
-
-app.post('/api/admin/users', async (req, res) => {
-  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
-  const employeeId = Number(req.body?.employeeId || 0);
-  const username = String(req.body?.username || '').trim();
-  const password = String(req.body?.password || '');
-  if (!Number.isInteger(employeeId) || employeeId <= 0 || !/^[a-zA-Z0-9._-]{3,40}$/.test(username)) {
-    return res.status(400).json({ error: 'Employé et identifiant valide obligatoires' });
-  }
-  if (password.length < 6) return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
-
-  const employee = await get('SELECT id, fullName, jobTitle, username FROM hr_employees WHERE id = ?', [employeeId]);
-  if (!employee) return res.status(404).json({ error: 'Employé introuvable' });
-
-  const usernameOwner = await get('SELECT id FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [username]);
-  const linkedUser = String(employee.username || '').trim()
-    ? await get('SELECT id FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [employee.username])
-    : null;
-  if (usernameOwner && Number(usernameOwner.id) !== Number(linkedUser?.id || 0)) {
-    return res.status(409).json({ error: 'Cet identifiant est déjà utilisé par un autre compte' });
-  }
-  if (linkedUser && String(employee.username || '').trim().toLowerCase() !== username.toLowerCase()) {
-    return res.status(409).json({ error: 'Cet employé possède déjà un compte. Utilise l’action de changement de mot de passe.' });
-  }
-
-  const role = getRoleForEmployeePosition(employee.jobTitle, req.body?.role);
-  const passwordHash = await bcrypt.hash(password, 10);
-  const now = new Date().toISOString();
-  let userId = Number(linkedUser?.id || 0);
-  if (userId) {
-    await run('UPDATE users SET password = ?, role = ? WHERE id = ?', [passwordHash, role, userId]);
-  } else {
-    userId = await getNextTableId('users');
-    await run(
-      'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
-      [userId, username, passwordHash, role, now]
-    );
-  }
-  await storeUserPasswordEnc(userId, password);
-
-  await run('UPDATE hr_employees SET username = ?, updatedAt = ? WHERE id = ?', [username, now, employeeId]);
-  return res.status(linkedUser ? 200 : 201).json({
-    id: userId,
-    username,
-    role,
-    employeeId,
-    employeeName: String(employee.fullName || '').trim(),
-    message: linkedUser ? 'Compte mis à jour' : 'Compte créé',
-  });
-});
-
-app.patch('/api/admin/users/:id/password', async (req, res) => {
-  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
-  const userId = Number(req.params.id || 0);
-  const password = String(req.body?.password || '');
-  if (!Number.isInteger(userId) || userId <= 0) return res.status(400).json({ error: 'Compte invalide' });
-  if (password.length < 6) return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
-  const user = await get('SELECT id, username, role FROM users WHERE id = ?', [userId]);
-  if (!user) return res.status(404).json({ error: 'Compte utilisateur introuvable' });
-  const passwordHash = await bcrypt.hash(password, 10);
-  const employee = await get(
-    'SELECT jobTitle FROM hr_employees WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) ORDER BY id DESC LIMIT 1',
-    [String(user.username || '')]
-  );
-  const role = employee ? getRoleForEmployeePosition(employee.jobTitle, user.role) : user.role;
-  await run('UPDATE users SET password = ?, role = ? WHERE id = ?', [passwordHash, role, userId]);
-  await storeUserPasswordEnc(userId, password);
-  return res.json({ id: userId, role, message: 'Mot de passe modifié' });
-});
-
-app.post('/api/admin/auto-tracking/purge-history', authRateLimiter, async (req, res) => {
-  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
-  if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
-  const countOf = async table => Number((await get('SELECT COUNT(*) AS n FROM ' + table))?.n || 0);
-  const before = { positions: await countOf('auto_vehicle_locations'), sessions: await countOf('auto_tracking_sessions') };
-  await run('DELETE FROM auto_vehicle_locations');
-  await run('DELETE FROM auto_tracking_sessions');
-  await run("UPDATE auto_tracking_devices SET isActive = 0, lastLatitude = NULL, lastLongitude = NULL, lastSpeedKph = 0, lastSeenAt = NULL");
-  await run('UPDATE auto_vehicles SET gpsActif = 0');
-  return res.json({ deleted: before, message: 'Historique des trajets et positions supprimé' });
-});
-
-app.post('/api/admin/users/recover-passwords', authRateLimiter, async (req, res) => {
-  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
-  if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
-  const rows = await all("SELECT id, username, password, passwordEnc FROM users WHERE COALESCE(passwordEnc, '') = ''");
-  const recovered = [];
-  const unknown = [];
-  for (const row of rows || []) {
-    const name = String(row.username || '');
-    const normalized = normalizeHrUsernameCandidate(name);
-    const candidates = [...new Set([normalized + '@2026', name + '@2026', name.toLowerCase() + '@2026', name + '123', normalized + '123', 'chefsite15@123'])];
-    let found = '';
-    for (const candidate of candidates) {
-      if (await bcrypt.compare(candidate, String(row.password || ''))) { found = candidate; break; }
-    }
-    if (found) { await storeUserPasswordEnc(Number(row.id), found); recovered.push(name); } else unknown.push(name);
-  }
-  return res.json({ recovered, unknown });
-});
-
-app.post('/api/admin/users/:id/reveal-password', authRateLimiter, async (req, res) => {
-  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
-  if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
-  const user = await get('SELECT id, username, password, passwordEnc FROM users WHERE id = ?', [Number(req.params.id || 0)]);
-  if (!user) return res.status(404).json({ error: 'Compte utilisateur introuvable' });
-  const plain = decryptStoredPassword(user.passwordEnc);
-  if (!plain || !(await bcrypt.compare(plain, String(user.password || '')))) {
-    return res.json({ username: user.username, password: null, message: 'Mot de passe non enregistré. Il sera visible après la prochaine connexion de l’utilisateur ou un changement de mot de passe.' });
-  }
-  return res.json({ username: user.username, password: plain });
-});
-
-app.post('/api/admin/users/passwords-export', authRateLimiter, async (req, res) => {
-  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
-  if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
-  const rows = await all('SELECT username, password, passwordEnc FROM users');
-  const out = [];
-  for (const row of rows || []) {
-    const plain = decryptStoredPassword(row.passwordEnc);
-    if (plain && await bcrypt.compare(plain, String(row.password || ''))) out.push({ username: row.username, password: plain });
-  }
-  return res.json(out);
-});
-
-app.post('/api/admin/users/sync-passwords-from-production', authRateLimiter, async (req, res) => {
-  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
-  if (NODE_ENV === 'production') return res.status(400).json({ error: 'Synchronisation réservée à l’environnement local' });
-  if (!verifyPasswordViewCode(req.body?.code)) return res.status(403).json({ error: 'Code de sécurité invalide' });
-  try {
-    const result = await syncPasswordsFromProduction({
-      url: req.body?.url || process.env.PROD_SYNC_URL,
-      username: req.body?.username || process.env.PROD_SYNC_USER,
-      password: req.body?.password || process.env.PROD_SYNC_PASSWORD,
-    });
-    return res.json(result);
-  } catch (error) {
-    return res.status(502).json({ error: String(error?.message || error) });
-  }
-});
-
-async function getMaterialCatalogTemplates() {
-  const rows = await all(`
-    SELECT projectFolder, COUNT(*) AS itemCount
-    FROM building_material_catalog
-    WHERE TRIM(projectFolder) <> ''
-    GROUP BY projectFolder
-    ORDER BY projectFolder ASC
-  `);
-  const templates = new Map();
-  for (const row of rows || []) {
-    const sourceFolder = String(row.projectFolder || '').trim();
-    const match = sourceFolder.match(/\s-\s*(T\d+)$/i);
-    if (!match) continue;
-    const type = match[1].toUpperCase();
-    const itemCount = Number(row.itemCount || 0);
-    const current = templates.get(type);
-    if (!current || itemCount > current.itemCount) templates.set(type, { type, sourceFolder, itemCount });
-  }
-  return Array.from(templates.values()).sort((a, b) => a.type.localeCompare(b.type, 'fr', { numeric: true }));
-}
-
-app.get('/api/material-catalog/templates', async (_req, res) => {
-  try {
-    return res.json(await getMaterialCatalogTemplates());
-  } catch (error) {
-    return res.status(500).json({ error: 'Impossible de charger les modèles de catalogue', details: String(error?.message || error) });
-  }
-});
-
 app.post('/api/project-catalog', async (req, res) => {
-  const { nomProjet, typeProjet = '', description = '', catalogTemplateTypes = [] } = req.body || {};
+  const { nomProjet, typeProjet = '', description = '' } = req.body;
   const projectName = String(nomProjet || '').trim();
   if (!projectName) {
     return res.status(400).json({ error: 'Le nom du projet est obligatoire' });
-  }
-
-  const selectedTemplateTypes = Array.from(new Set((Array.isArray(catalogTemplateTypes) ? catalogTemplateTypes : [])
-    .map(type => String(type || '').trim().toUpperCase())
-    .filter(type => /^T\d+$/.test(type))));
-  const availableTemplates = await getMaterialCatalogTemplates();
-  const templateByType = new Map(availableTemplates.map(template => [template.type, template]));
-  const selectedTemplates = selectedTemplateTypes.map(type => templateByType.get(type));
-  if (selectedTemplates.some(template => !template)) {
-    return res.status(400).json({ error: 'Un des modèles de catalogue sélectionnés n’existe plus' });
-  }
-  const destinationFolders = selectedTemplates.map(template => `${projectName} - ${template.type}`);
-  for (const folder of destinationFolders) {
-    const existingCatalog = await get('SELECT id FROM building_material_catalog WHERE LOWER(projectFolder) = LOWER(?) LIMIT 1', [folder]);
-    if (existingCatalog) return res.status(409).json({ error: `Le catalogue ${folder} existe déjà` });
-  }
-  const templateRows = [];
-  for (const template of selectedTemplates) {
-    const rows = await all('SELECT materialName, unite, quantiteParBatiment, prixUnitaire, stageOrder, notes FROM building_material_catalog WHERE projectFolder = ? ORDER BY stageOrder ASC, materialName ASC', [template.sourceFolder]);
-    if (!rows?.length) return res.status(400).json({ error: `Le modèle ${template.type} ne contient aucun article à copier` });
-    templateRows.push({ ...template, rows });
   }
 
   const duplicate = await get(
@@ -5938,31 +4785,14 @@ app.post('/api/project-catalog', async (req, res) => {
   }
 
   const nextCatalogId = await getNextTableId('project_catalog');
-  const now = new Date().toISOString();
+
   const result = await run(
     'INSERT INTO project_catalog (id, nomProjet, typeProjet, description, createdAt) VALUES (?, ?, ?, ?, ?)',
-    [nextCatalogId, projectName, String(typeProjet || '').trim(), String(description || '').trim(), now]
+    [nextCatalogId, projectName, String(typeProjet || '').trim(), String(description || '').trim(), new Date().toISOString()]
   );
-  const projectId = Number(nextCatalogId || result.lastID);
-  try {
-    for (const template of templateRows) {
-      const destinationFolder = `${projectName} - ${template.type}`;
-      for (const row of template.rows) {
-        await run(`INSERT INTO building_material_catalog
-          (id, projectFolder, materialName, unite, quantiteParBatiment, prixUnitaire, stageOrder, notes, createdAt, updatedAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-          await getNextTableId('building_material_catalog'), destinationFolder, row.materialName, row.unite,
-          row.quantiteParBatiment, row.prixUnitaire, row.stageOrder, row.notes, now, now,
-        ]);
-      }
-    }
-  } catch (error) {
-    for (const folder of destinationFolders) await run('DELETE FROM building_material_catalog WHERE projectFolder = ?', [folder]).catch(() => {});
-    await run('DELETE FROM project_catalog WHERE id = ?', [projectId]).catch(() => {});
-    throw error;
-  }
-  const created = await get('SELECT * FROM project_catalog WHERE id = ?', [projectId]);
-  res.status(201).json({ ...created, copiedMaterialCatalogs: templateRows.map(template => ({ type: template.type, itemCount: template.rows.length })) });
+
+  const created = await get('SELECT * FROM project_catalog WHERE id = ?', [nextCatalogId || result.lastID]);
+  res.status(201).json(created);
 });
 
 app.get('/api/project-catalog', async (_req, res) => {
@@ -8944,10 +7774,7 @@ app.post('/api/expenses', async (req, res) => {
     quantite,
     prixUnitaire,
     fournisseur = '',
-    note = '',
-    dateExpense = '',
     categorie,
-    zoneName = '',
     item,
     category,
     quantity,
@@ -8964,9 +7791,6 @@ app.post('/api/expenses', async (req, res) => {
   if (!expenseDescription || !expenseQuantity || !expenseUnitPrice || !expenseCategory) {
     return res.status(400).json({ error: 'Champs obligatoires manquants' });
   }
-  if (dateExpense && !isValidIsoDate(dateExpense)) {
-    return res.status(400).json({ error: 'Date de dépense invalide' });
-  }
 
   const expense = await insertExpenseRecord({
     materialId: materialId || null,
@@ -8975,11 +7799,9 @@ app.post('/api/expenses', async (req, res) => {
     quantite: expenseQuantity,
     prixUnitaire: expenseUnitPrice,
     fournisseur,
-    note,
     categorie: expenseCategory,
-    zoneName: String(zoneName || '').trim(),
     createdBy: req.user.username,
-    dateExpense: dateExpense ? new Date(`${dateExpense}T12:00:00`).toISOString() : new Date().toISOString(),
+    dateExpense: new Date().toISOString(),
   });
 
   res.status(201).json(expense);
@@ -9014,17 +7836,7 @@ app.patch('/api/expenses/:id/status', async (req, res) => {
 });
 
 app.post('/api/revenues', async (req, res) => {
-  const {
-    projetId,
-    type = 'Autre revenu',
-    clientOrganisme = '',
-    description,
-    amount,
-    dateRevenue,
-    reference = '',
-    attachmentName = '',
-    note = '',
-  } = req.body;
+  const { projetId, description, amount, dateRevenue } = req.body;
   if (!projetId || !description || !amount) {
     return res.status(400).json({ error: 'Champs obligatoires manquants' });
   }
@@ -9037,8 +7849,8 @@ app.post('/api/revenues', async (req, res) => {
 
   const nextRevenueId = await getNextTableId('revenues');
   const result = await run(
-    'INSERT INTO revenues (id, projetId, description, type, clientOrganisme, amount, dateRevenue, reference, attachmentName, note, createdBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [nextRevenueId, numericProjectId, String(description).trim(), String(type || 'Autre revenu').trim(), String(clientOrganisme || '').trim(), numericAmount, dateRevenue ? new Date(dateRevenue).toISOString() : new Date().toISOString(), String(reference || '').trim(), String(attachmentName || '').trim(), String(note || '').trim(), req.user.username]
+    'INSERT INTO revenues (id, projetId, description, amount, dateRevenue, createdBy) VALUES (?, ?, ?, ?, ?, ?)',
+    [nextRevenueId, numericProjectId, String(description).trim(), numericAmount, dateRevenue ? new Date(dateRevenue).toISOString() : new Date().toISOString(), req.user.username]
   );
 
   await archiveRevenueInvoicePdf(result.lastID || nextRevenueId);
@@ -9057,910 +7869,41 @@ app.get('/api/revenues', async (_req, res) => {
   res.json(rows);
 });
 
-app.get('/api/reports/:reportType.:format', async (req, res) => {
-  const reportType = String(req.params.reportType || '').trim();
-  const reportFormat = String(req.params.format || '').trim().toLowerCase();
-  const titles = {
-    financial: 'Rapport financier global',
-    project: 'Rapport par projet',
-    costs: 'Rapport des couts',
-    activities: "Rapport d'activites",
-    export: 'Export des donnees ERP',
-  };
-  if (!Object.prototype.hasOwnProperty.call(titles, reportType)) {
-    return res.status(404).json({ error: 'Type de rapport inconnu' });
-  }
-  if (!['pdf', 'xlsx'].includes(reportFormat)) {
-    return res.status(404).json({ error: 'Format de rapport inconnu' });
-  }
-
-  try {
-    const [projects, expenses, revenues, activities] = await Promise.all([
-      all('SELECT * FROM projects ORDER BY nomProjet ASC, id ASC'),
-      all(`SELECT e.*, p.nomProjet as projetNom FROM expenses e LEFT JOIN projects p ON p.id = e.projetId ORDER BY e.dateExpense ASC, e.id ASC`),
-      all(`SELECT r.*, p.nomProjet as projetNom FROM revenues r LEFT JOIN projects p ON p.id = r.projetId ORDER BY r.dateRevenue ASC, r.id ASC`),
-      all(`SELECT ppu.*, p.nomProjet, p.nomSite FROM project_progress_updates ppu JOIN projects p ON p.id = ppu.projectId ORDER BY ppu.createdAt ASC, ppu.id ASC`),
-    ]);
-    const isScopedRole = ['chef_chantier_site', 'gestionnaire_stock_songon'].includes(String(req.user?.role || '').trim());
-    const visibleProjects = projects.filter(project => !isScopedRole || isInUserProjectScope(req.user, project));
-    const visibleProjectIds = new Set(visibleProjects.map(project => String(project.id)));
-    const visibleExpenses = expenses.filter(row => !isScopedRole || (row.projetId && visibleProjectIds.has(String(row.projetId))));
-    const visibleRevenues = revenues.filter(row => !isScopedRole || (row.projetId && visibleProjectIds.has(String(row.projetId))));
-    const visibleActivities = activities.filter(row => !isScopedRole || isInUserProjectScope(req.user, row));
-    const projectTotals = new Map();
-    const categoryTotals = new Map();
-    const monthlyTotals = new Map();
-    const activityTotals = new Map();
-    const ensureProject = (id, label) => {
-      const key = String(id || `manual:${label || 'Autre'}`);
-      if (!projectTotals.has(key)) projectTotals.set(key, { label: label || `Projet ${id || 'Autre'}`, expense: 0, revenue: 0 });
-      return projectTotals.get(key);
-    };
-    const ensureMonth = date => {
-      const match = String(date || '').match(/^(\d{4}-\d{2})/);
-      if (!match) return null;
-      if (!monthlyTotals.has(match[1])) monthlyTotals.set(match[1], { month: match[1], expense: 0, revenue: 0 });
-      return monthlyTotals.get(match[1]);
-    };
-    visibleExpenses.forEach(row => {
-      const amount = Number(row.montantTotal || row.totalPrice || 0);
-      const category = String(row.categorie || 'Autres').trim() || 'Autres';
-      const project = ensureProject(row.projetId, row.projetNom);
-      project.expense += amount;
-      categoryTotals.set(category, (categoryTotals.get(category) || 0) + amount);
-      const month = ensureMonth(row.dateExpense);
-      if (month) month.expense += amount;
-    });
-    visibleRevenues.forEach(row => {
-      const amount = Number(row.amount || 0);
-      ensureProject(row.projetId, row.projetNom).revenue += amount;
-      const month = ensureMonth(row.dateRevenue);
-      if (month) month.revenue += amount;
-    });
-    visibleProjects.forEach(project => ensureProject(project.id, project.nomProjet));
-    visibleActivities.forEach(row => {
-      const stage = String(row.stage || row.title || 'Autre').trim() || 'Autre';
-      activityTotals.set(stage, (activityTotals.get(stage) || 0) + 1);
-    });
-
-    const monthly = Array.from(monthlyTotals.values()).sort((a, b) => a.month.localeCompare(b.month));
-    const projectRows = Array.from(projectTotals.values()).sort((a, b) => b.expense - a.expense);
-    const expenseTotal = visibleExpenses.reduce((sum, row) => sum + Number(row.montantTotal || row.totalPrice || 0), 0);
-    const revenueTotal = visibleRevenues.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-    const netTotal = revenueTotal - expenseTotal;
-    let runningRevenue = 0;
-    let runningExpense = 0;
-    const cumulative = monthly.map(row => {
-      runningRevenue += row.revenue;
-      runningExpense += row.expense;
-      return { ...row, cumulativeRevenue: runningRevenue, cumulativeExpense: runningExpense };
-    });
-    const breakEven = cumulative.find(row => row.cumulativeRevenue > 0 && row.cumulativeRevenue >= row.cumulativeExpense);
-    const progressValues = visibleActivities.map(row => Number(row.progressPercent)).filter(Number.isFinite);
-    const averageProgress = progressValues.length ? progressValues.reduce((sum, value) => sum + value, 0) / progressValues.length : null;
-    const pdfText = value => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\xFF]/g, ' ').replace(/\s+/g, ' ').trim();
-    const money = value => `${Math.round(Number(value || 0)).toLocaleString('fr-FR')} FCFA`;
-    if (reportFormat === 'xlsx') {
-      const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'RyanERP';
-      workbook.created = new Date();
-      workbook.modified = new Date();
-      const titleStyle = { font: { bold: true, color: { argb: 'FFFFFFFF' }, size: 15 }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D69D8' } }, alignment: { vertical: 'middle' } };
-      const headerStyle = { font: { bold: true, color: { argb: 'FF24466F' } }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F2FF' } } };
-      const addDataSheet = (name, headers, rows) => {
-        const sheet = workbook.addWorksheet(name);
-        sheet.addRow(headers);
-        sheet.getRow(1).eachCell(cell => { cell.style = headerStyle; });
-        rows.forEach(row => sheet.addRow(row));
-        sheet.views = [{ state: 'frozen', ySplit: 1 }];
-        if (rows.length) sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
-        sheet.columns.forEach((column, index) => {
-          const maxLength = Math.max(String(headers[index] || '').length, ...rows.slice(0, 250).map(row => String(row[index] ?? '').length));
-          column.width = Math.min(Math.max(maxLength + 2, 12), 38);
-        });
-        return sheet;
-      };
-      if (['financial', 'export'].includes(reportType)) {
-        const summary = workbook.addWorksheet('Synthèse');
-        summary.mergeCells('A1:D1');
-        summary.getCell('A1').value = titles[reportType];
-        summary.getCell('A1').style = titleStyle;
-        summary.getRow(1).height = 28;
-        summary.addRow(['Généré le', new Date().toLocaleString('fr-FR')]);
-        summary.addRow(['Revenus enregistrés', revenueTotal]);
-        summary.addRow(['Dépenses enregistrées', expenseTotal]);
-        summary.addRow(['Solde observé', netTotal]);
-        summary.addRow(['Projets suivis', visibleProjects.length]);
-        summary.addRow(['Activités enregistrées', visibleActivities.length]);
-        summary.getColumn(1).width = 27;
-        summary.getColumn(2).width = 32;
-        [3, 4].forEach(column => { summary.getColumn(column).width = 18; });
-        summary.getCell('B3').numFmt = '#,##0 "FCFA"';
-        summary.getCell('B4').numFmt = '#,##0 "FCFA"';
-        summary.getCell('B5').numFmt = '#,##0 "FCFA"';
-        addDataSheet('Flux financiers', ['Type', 'Date', 'Projet', 'Catégorie', 'Description', 'Montant (FCFA)'], [
-          ...visibleRevenues.map(row => ['Revenu', row.dateRevenue, row.projetNom || '', row.type || '', row.description || '', Number(row.amount || 0)]),
-          ...visibleExpenses.map(row => ['Dépense', row.dateExpense, row.projetNom || '', row.categorie || '', row.description || '', Number(row.montantTotal || row.totalPrice || 0)]),
-        ]);
-        addDataSheet('Évolution mensuelle', ['Mois', 'Revenus (FCFA)', 'Dépenses (FCFA)', 'Solde (FCFA)'], monthly.map(row => [row.month, row.revenue, row.expense, row.revenue - row.expense]));
-      }
-      if (['project', 'export'].includes(reportType)) {
-        addDataSheet('Projets', ['Projet', 'Revenus (FCFA)', 'Dépenses (FCFA)', 'Solde (FCFA)'], projectRows.map(row => [row.label, row.revenue, row.expense, row.revenue - row.expense]));
-        addDataSheet('Dépenses catégories', ['Catégorie', 'Montant (FCFA)'], Array.from(categoryTotals, ([label, amount]) => [label, amount]).sort((a, b) => b[1] - a[1]));
-      }
-      if (['costs', 'export'].includes(reportType)) {
-        addDataSheet('Coûts et point mort', ['Mois', 'Revenus cumulés (FCFA)', 'Dépenses cumulées (FCFA)', 'Coût marginal (FCFA)', 'Solde cumulé (FCFA)'], cumulative.map(row => [row.month, row.cumulativeRevenue, row.cumulativeExpense, row.expense, row.cumulativeRevenue - row.cumulativeExpense]));
-      }
-      if (['activities', 'export'].includes(reportType)) {
-        addDataSheet('Activités', ['Date', 'Projet', 'Étape', 'Activité', 'Avancement (%)'], visibleActivities.map(row => [row.createdAt || '', row.nomProjet || '', row.stage || '', row.title || row.note || '', Number.isFinite(Number(row.progressPercent)) ? Number(row.progressPercent) : '']));
-        addDataSheet('Activités par étape', ['Étape', 'Nombre'], Array.from(activityTotals, ([stage, count]) => [stage, count]).sort((a, b) => b[1] - a[1]));
-      }
-      const workbookBuffer = await workbook.xlsx.writeBuffer();
-      const dateStamp = new Date().toISOString().slice(0, 10);
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename="rapport-${reportType}-${dateStamp}.xlsx"`);
-      return res.send(Buffer.from(workbookBuffer));
-    }
-    const pdfBuffer = await new Promise((resolve, reject) => {
-      const chunks = [];
-      const doc = new PDFDocument({ size: 'A4', margin: 42, bufferPages: true });
-      doc.on('data', chunk => chunks.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(chunks)));
-      doc.on('error', reject);
-
-      const pageWidth = 511;
-      const ensureRoom = height => {
-        if (doc.y + height > 755) doc.addPage();
-      };
-      const writeSectionTitle = label => {
-        ensureRoom(34);
-        doc.moveDown(0.8).font('Helvetica-Bold').fontSize(12).fillColor('#1e477f').text(pdfText(label), { width: pageWidth });
-        doc.moveDown(0.35);
-      };
-      const drawTable = (headers, rows) => {
-        const widths = headers.map(() => pageWidth / headers.length);
-        const rowHeight = headers.length > 4 ? 28 : 25;
-        ensureRoom(rowHeight * Math.min(rows.length + 1, 6) + 12);
-        let y = doc.y;
-        doc.rect(42, y, pageWidth, rowHeight).fill('#e8f2ff');
-        let x = 42;
-        headers.forEach((header, index) => {
-          doc.font('Helvetica-Bold').fontSize(8).fillColor('#254a78').text(pdfText(header).slice(0, 30), x + 5, y + 8, { width: widths[index] - 10, height: 14 });
-          x += widths[index];
-        });
-        y += rowHeight;
-        rows.forEach((row, rowIndex) => {
-          if (y + rowHeight > 755) {
-            doc.addPage();
-            y = doc.y;
-          }
-          if (rowIndex % 2 === 0) doc.rect(42, y, pageWidth, rowHeight).fill('#f8fbff');
-          x = 42;
-          row.forEach((value, index) => {
-            doc.font('Helvetica').fontSize(8).fillColor('#334155').text(pdfText(value).slice(0, headers.length > 4 ? 34 : 52), x + 5, y + 8, { width: widths[index] - 10, height: 14 });
-            x += widths[index];
-          });
-          y += rowHeight;
-        });
-        doc.y = y + 5;
-      };
-      const drawLineChart = (label, series) => {
-        if (!monthly.length) return;
-        ensureRoom(205);
-        writeSectionTitle(label);
-        const x = 65;
-        const y = doc.y + 8;
-        const width = 455;
-        const height = 128;
-        const values = series.flatMap(item => item.values);
-        const max = Math.max(...values, 1);
-        [0, 0.5, 1].forEach(ratio => {
-          const gy = y + height - ratio * height;
-          doc.moveTo(x, gy).lineTo(x + width, gy).lineWidth(0.5).strokeColor('#dce6f2').stroke();
-        });
-        series.forEach(item => {
-          const points = item.values.map((value, index) => ({
-            x: x + (monthly.length > 1 ? index / (monthly.length - 1) * width : width / 2),
-            y: y + height - value / max * height,
-          }));
-          doc.save().lineWidth(2).strokeColor(item.color);
-          points.forEach((point, index) => {
-            if (index === 0) doc.moveTo(point.x, point.y);
-            else doc.lineTo(point.x, point.y);
-          });
-          doc.stroke().restore();
-          points.forEach(point => doc.circle(point.x, point.y, 2.5).fill(item.color));
-        });
-        monthly.forEach((row, index) => {
-          if (monthly.length <= 10 || index % Math.ceil(monthly.length / 10) === 0) {
-            const px = x + (monthly.length > 1 ? index / (monthly.length - 1) * width : width / 2);
-            doc.font('Helvetica').fontSize(7).fillColor('#718096').text(row.month.slice(2), px - 12, y + height + 5, { width: 25, align: 'center' });
-          }
-        });
-        doc.y = y + height + 24;
-      };
-      const drawBars = (label, entries) => {
-        if (!entries.length) return;
-        ensureRoom(40 + Math.min(entries.length, 10) * 25);
-        writeSectionTitle(label);
-        const max = Math.max(...entries.map(item => item.value), 1);
-        entries.slice(0, 10).forEach((item, index) => {
-          const y = doc.y + index * 24;
-          const barWidth = Math.max(2, Math.min(290, item.value / max * 290));
-          doc.font('Helvetica').fontSize(8).fillColor('#475569').text(pdfText(item.label).slice(0, 26), 44, y + 5, { width: 135, height: 13 });
-          doc.roundedRect(184, y + 3, barWidth, 12, 3).fill(['#2587e8', '#16b88b', '#f2a044', '#9672df', '#19a4b8'][index % 5]);
-          doc.font('Helvetica').fontSize(8).fillColor('#475569').text(String(item.value), 484, y + 5, { width: 65, height: 13, align: 'right' });
-        });
-        doc.y += Math.min(entries.length, 10) * 24 + 5;
-      };
-
-      doc.rect(0, 0, 595, 102).fill('#eaf4ff');
-      doc.rect(0, 98, 595, 4).fill('#1684e8');
-      doc.font('Helvetica-Bold').fontSize(9).fillColor('#1880dc').text('RYANERP  /  ANALYSE', 42, 26);
-      doc.font('Helvetica-Bold').fontSize(22).fillColor('#183b6d').text(pdfText(titles[reportType]), 42, 46, { width: 500 });
-      doc.font('Helvetica').fontSize(9).fillColor('#60748e').text(`Genere le ${new Date().toLocaleDateString('fr-FR')}  |  Source : donnees ERP`, 42, 78);
-      doc.y = 122;
-
-      const tiles = [
-        ['REVENUS', money(revenueTotal), '#2087e8'],
-        ['DEPENSES', money(expenseTotal), '#ec9841'],
-        ['SOLDE OBSERVE', money(netTotal), '#1cac83'],
-      ];
-      const tileWidth = 159;
-      tiles.forEach((tile, index) => {
-        const x = 42 + index * (tileWidth + 10);
-        doc.roundedRect(x, doc.y, tileWidth, 54, 7).fill('#f5f9ff');
-        doc.rect(x, doc.y, 3, 54).fill(tile[2]);
-        doc.font('Helvetica-Bold').fontSize(7).fillColor('#708198').text(tile[0], x + 10, doc.y + 9);
-        doc.font('Helvetica-Bold').fontSize(11).fillColor('#24466f').text(tile[1], x + 10, doc.y + 25, { width: tileWidth - 18 });
-      });
-      doc.y += 70;
-
-      if (reportType === 'financial') {
-        writeSectionTitle('Synthese mensuelle des flux financiers');
-        drawTable(['Mois', 'Revenus', 'Depenses', 'Solde'], monthly.map(row => [row.month, money(row.revenue), money(row.expense), money(row.revenue - row.expense)]));
-        drawLineChart('Evolution des revenus et depenses', [
-          { values: monthly.map(row => row.revenue), color: '#1684e8' },
-          { values: monthly.map(row => row.expense), color: '#ec9841' },
-        ]);
-      } else if (reportType === 'project') {
-        writeSectionTitle('Revenus et depenses par projet');
-        drawTable(['Projet', 'Revenus', 'Depenses', 'Solde'], projectRows.map(row => [row.label, money(row.revenue), money(row.expense), money(row.revenue - row.expense)]));
-        drawBars('Depenses par projet', projectRows.map(row => ({ label: row.label, value: row.expense })).filter(row => row.value > 0));
-        writeSectionTitle('Depenses par categorie');
-        drawTable(['Categorie', 'Montant'], Array.from(categoryTotals, ([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).map(row => [row.label, money(row.value)]));
-      } else if (reportType === 'costs') {
-        writeSectionTitle('Couts marginaux et point mort observe');
-        drawTable(['Mois', 'Revenus cumules', 'Depenses cumulees', 'Solde cumule'], cumulative.map(row => [row.month, money(row.cumulativeRevenue), money(row.cumulativeExpense), money(row.cumulativeRevenue - row.cumulativeExpense)]));
-        drawLineChart('Revenus et depenses cumules', [
-          { values: cumulative.map(row => row.cumulativeRevenue), color: '#1684e8' },
-          { values: cumulative.map(row => row.cumulativeExpense), color: '#ec9841' },
-        ]);
-        doc.font('Helvetica-Bold').fontSize(9).fillColor('#334155').text(breakEven ? `Point mort observe : ${breakEven.month}` : 'Point mort non atteint sur les flux dates disponibles.', 42, doc.y + 4, { width: pageWidth });
-      } else if (reportType === 'activities') {
-        writeSectionTitle('Indicateurs de suivi');
-        doc.font('Helvetica').fontSize(10).fillColor('#334155').text(`Activites enregistrees : ${visibleActivities.length}   |   Projets suivis : ${visibleProjects.length}   |   Progression moyenne renseignee : ${averageProgress === null ? 'non disponible' : `${averageProgress.toFixed(1)} %`}`, { width: pageWidth });
-        doc.moveDown();
-        drawBars('Repartition des activites par etape', Array.from(activityTotals, ([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value));
-        writeSectionTitle('Activites recentes');
-        drawTable(['Date', 'Projet', 'Etape', 'Activite', 'Progression'], visibleActivities.slice(-35).reverse().map(row => [String(row.createdAt || '').slice(0, 10), row.nomProjet, row.stage, row.title || row.note, Number.isFinite(Number(row.progressPercent)) ? `${Number(row.progressPercent)} %` : '']));
-      } else {
-        writeSectionTitle('Export des donnees financieres');
-        drawTable(['Type', 'Date', 'Projet', 'Categorie', 'Description', 'Montant'], [
-          ...visibleRevenues.map(row => ['Revenu', String(row.dateRevenue || '').slice(0, 10), row.projetNom, row.type, row.description, money(row.amount)]),
-          ...visibleExpenses.map(row => ['Depense', String(row.dateExpense || '').slice(0, 10), row.projetNom, row.categorie, row.description, money(row.montantTotal)]),
-        ]);
-        writeSectionTitle('Activites enregistrees');
-        drawTable(['Date', 'Projet', 'Etape', 'Activite', 'Progression'], visibleActivities.map(row => [String(row.createdAt || '').slice(0, 10), row.nomProjet, row.stage, row.title || row.note, Number.isFinite(Number(row.progressPercent)) ? `${Number(row.progressPercent)} %` : '']));
-      }
-
-      const range = doc.bufferedPageRange();
-      for (let index = range.start; index < range.start + range.count; index += 1) {
-        doc.switchToPage(index);
-        doc.moveTo(42, 790).lineTo(553, 790).lineWidth(0.5).strokeColor('#dce6f2').stroke();
-        doc.font('Helvetica').fontSize(8).fillColor('#8291a5').text('RyanERP  •  Rapport genere a partir des donnees enregistrees', 42, 799, { width: 400 });
-        doc.text(`${index + 1} / ${range.count}`, 490, 799, { width: 63, align: 'right' });
-      }
-      doc.end();
-    });
-
-    const dateStamp = new Date().toISOString().slice(0, 10);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="rapport-${reportType}-${dateStamp}.pdf"`);
-    res.send(pdfBuffer);
-  } catch (error) {
-    console.error('Erreur lors de la generation du rapport PDF:', error?.message || error);
-    res.status(500).json({ error: 'Impossible de generer ce rapport' });
-  }
-});
-
-async function getDriverEmployeeAndVehicle(user) {
-  const username = String(user?.username || '').trim();
-  if (!username) return { employee: null, vehicle: null };
-  const employee = await get(
-    `SELECT id, fullName, jobTitle, phoneNumber, email, username
-     FROM hr_employees
-     WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))
-     ORDER BY id DESC LIMIT 1`,
-    [username]
-  );
-  if (!employee || !normalizeTextValue(employee.jobTitle || '').includes('chauffeur')) {
-    return { employee: employee || null, vehicle: null };
-  }
-  const vehicle = await get(
-    'SELECT * FROM auto_vehicles WHERE chauffeurEmployeeId = ? ORDER BY id DESC LIMIT 1',
-    [Number(employee.id)]
-  );
-  return { employee, vehicle: vehicle || null };
-}
-
-function normalizeDriverInterval(value, fallback, minimum, maximum) {
-  const number = Number(value);
-  return Number.isInteger(number) && number >= minimum && number <= maximum ? number : fallback;
-}
-
-async function getActiveDriverSession(vehicleId, employeeId) {
-  const now = new Date().toISOString();
-  const expired = await all(
-    `SELECT id, deviceId FROM auto_tracking_sessions
-     WHERE vehicleId = ? AND chauffeurEmployeeId = ? AND status = 'active' AND expiresAt <= ?`,
-    [Number(vehicleId), Number(employeeId), now]
-  );
-  for (const session of expired || []) {
-    await run('UPDATE auto_tracking_sessions SET status = ?, endedAt = ? WHERE id = ?', ['expired', now, Number(session.id)]);
-    await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE id = ?', [now, Number(session.deviceId)]);
-    await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(vehicleId)]);
-  }
-  return get(
-    `SELECT id, vehicleId, chauffeurEmployeeId, deviceId, deviceName, status, startPlace,
-            destinationPlace, destinationLatitude, destinationLongitude, arrivedAtDestination, arrivalPlace, startLatitude, startLongitude, endLatitude,
-            endLongitude, startedAt, endedAt, expiresAt, movingIntervalSeconds, idleIntervalSeconds
-     FROM auto_tracking_sessions
-     WHERE vehicleId = ? AND chauffeurEmployeeId = ? AND status = 'active' AND expiresAt > ?
-     ORDER BY startedAt DESC, id DESC LIMIT 1`,
-    [Number(vehicleId), Number(employeeId), now]
-  );
-}
-
-function getDriverDistanceKm(locations) {
-  const toRadians = value => value * Math.PI / 180;
-  let meters = 0;
-  for (let index = 1; index < locations.length; index += 1) {
-    const previous = locations[index - 1];
-    const current = locations[index];
-    const latDiff = toRadians(Number(current.latitude) - Number(previous.latitude));
-    const lngDiff = toRadians(Number(current.longitude) - Number(previous.longitude));
-    const a = Math.sin(latDiff / 2) ** 2
-      + Math.cos(toRadians(Number(previous.latitude))) * Math.cos(toRadians(Number(current.latitude))) * Math.sin(lngDiff / 2) ** 2;
-    meters += 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  }
-  return Math.round((meters / 1000) * 10) / 10;
-}
-
-app.post('/api/driver/tracking-sessions/start', async (req, res) => {
-  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
-  if (!employee) return res.status(403).json({ error: 'Aucune fiche employé liée à ce compte chauffeur' });
-  if (!vehicle) return res.status(404).json({ error: 'Aucun véhicule ne vous est affecté' });
-
-  const activeSession = await getActiveDriverSession(vehicle.id, employee.id);
-  if (activeSession) return res.status(409).json({ error: 'Un suivi est déjà actif pour ce véhicule' });
-
-  const payload = req.body || {};
-  const now = new Date();
-  const startedAt = now.toISOString();
-  const expiresAt = '9999-12-31T23:59:59.999Z';
-  const deviceName = String(payload.deviceName || req.headers['user-agent'] || 'Téléphone chauffeur').trim().slice(0, 120) || 'Téléphone chauffeur';
-  const movingIntervalSeconds = normalizeDriverInterval(payload.movingIntervalSeconds, 10, 5, 300);
-  const idleIntervalSeconds = normalizeDriverInterval(payload.idleIntervalSeconds, 60, 15, 900);
-  const token = generateTrackingToken();
-  const tokenHash = hashTrackingToken(token);
-  let device = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [Number(vehicle.id)]);
-  let deviceId = Number(device?.id || 0);
-
-  if (deviceId) {
-    await run(
-      `UPDATE auto_tracking_devices
-       SET deviceName = ?, tokenHash = ?, isActive = 1, movingIntervalSeconds = ?, idleIntervalSeconds = ?, updatedAt = ?
-       WHERE id = ?`,
-      [deviceName, tokenHash, movingIntervalSeconds, idleIntervalSeconds, startedAt, deviceId]
-    );
-  } else {
-    deviceId = await getNextTableId('auto_tracking_devices');
-    await run(
-      `INSERT INTO auto_tracking_devices
-       (id, vehicleId, deviceName, tokenHash, isActive, lastSpeedKph, movingIntervalSeconds, idleIntervalSeconds, createdBy, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, 1, 0, ?, ?, ?, ?, ?)`,
-      [deviceId, Number(vehicle.id), deviceName, tokenHash, movingIntervalSeconds, idleIntervalSeconds, String(req.user?.username || ''), startedAt, startedAt]
-    );
-  }
-
-  const sessionId = await getNextTableId('auto_tracking_sessions');
-  const startLatitude = Number.isFinite(Number(payload.latitude)) ? Number(payload.latitude) : null;
-  const startLongitude = Number.isFinite(Number(payload.longitude)) ? Number(payload.longitude) : null;
-  const startPlace = String(payload.startPlace || '').trim().slice(0, 180);
-  const destinationPlace = String(payload.destinationPlace || '').trim().slice(0, 180);
-  const hasDestinationCoords = destinationPlace && payload.destinationLatitude !== null && payload.destinationLatitude !== '' && payload.destinationLongitude !== null && payload.destinationLongitude !== '' && Number.isFinite(Number(payload.destinationLatitude)) && Number.isFinite(Number(payload.destinationLongitude));
-  const destinationLatitude = hasDestinationCoords ? Number(payload.destinationLatitude) : null;
-  const destinationLongitude = hasDestinationCoords ? Number(payload.destinationLongitude) : null;
-  await run(
-    `INSERT INTO auto_tracking_sessions
-     (id, vehicleId, chauffeurEmployeeId, deviceId, deviceName, tokenHash, status, startPlace, destinationPlace,
-      destinationLatitude, destinationLongitude, startLatitude, startLongitude, startedAt, expiresAt, movingIntervalSeconds, idleIntervalSeconds, createdBy)
-     VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [sessionId, Number(vehicle.id), Number(employee.id), deviceId, deviceName, tokenHash, startPlace, destinationPlace,
-      destinationLatitude, destinationLongitude, startLatitude, startLongitude, startedAt, expiresAt, movingIntervalSeconds, idleIntervalSeconds, String(req.user?.username || '')]
-  );
-  await run('UPDATE auto_vehicles SET gpsActif = 1 WHERE id = ?', [Number(vehicle.id)]);
-
-  return res.status(201).json({
-    session: { id: sessionId, vehicleId: Number(vehicle.id), chauffeurEmployeeId: Number(employee.id), deviceId, deviceName,
-      status: 'active', startPlace, destinationPlace, destinationLatitude, destinationLongitude, startedAt, expiresAt, movingIntervalSeconds, idleIntervalSeconds },
-    deviceToken: token,
-    ingestUrl: `${req.protocol}://${req.get('host')}/api/gps/ingest`,
-  });
-});
-
-app.post('/api/driver/tracking-sessions/:id/resume', async (req, res) => {
-  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
-  if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
-  const sessionId = Number(req.params.id || 0);
-  const now = new Date().toISOString();
-  const session = await get(
-    `SELECT id, vehicleId, chauffeurEmployeeId, deviceId, deviceName, status, expiresAt,
-            startPlace, destinationPlace, destinationLatitude, destinationLongitude, startedAt, movingIntervalSeconds, idleIntervalSeconds
-     FROM auto_tracking_sessions WHERE id = ? AND vehicleId = ? AND chauffeurEmployeeId = ? LIMIT 1`,
-    [sessionId, Number(vehicle.id), Number(employee.id)]
-  );
-  if (!session || session.status !== 'active' || String(session.expiresAt || '') <= now) {
-    if (session?.status === 'active') {
-      await run("UPDATE auto_tracking_sessions SET status = 'expired', endedAt = ? WHERE id = ?", [now, sessionId]);
-      await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE id = ?', [now, Number(session.deviceId)]);
-      await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(vehicle.id)]);
-    }
-    return res.status(410).json({ error: 'Cette session de suivi est terminée ou expirée' });
-  }
-  const token = generateTrackingToken();
-  const tokenHash = hashTrackingToken(token);
-  await run('UPDATE auto_tracking_sessions SET tokenHash = ? WHERE id = ?', [tokenHash, sessionId]);
-  await run('UPDATE auto_tracking_devices SET tokenHash = ?, isActive = 1, updatedAt = ? WHERE id = ?', [tokenHash, now, Number(session.deviceId)]);
-  return res.json({ session, deviceToken: token, ingestUrl: `${req.protocol}://${req.get('host')}/api/gps/ingest` });
-});
-
-app.post('/api/driver/tracking-sessions/:id/stop', async (req, res) => {
-  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
-  if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
-  const sessionId = Number(req.params.id || 0);
-  const session = await get(
-    `SELECT id, deviceId, status FROM auto_tracking_sessions
-     WHERE id = ? AND vehicleId = ? AND chauffeurEmployeeId = ? LIMIT 1`,
-    [sessionId, Number(vehicle.id), Number(employee.id)]
-  );
-  if (!session) return res.status(404).json({ error: 'Session de suivi introuvable' });
-  if (session.status !== 'active') return res.status(409).json({ error: 'Cette session est déjà terminée' });
-  const now = new Date().toISOString();
-  let endLatitude = Number(req.body?.latitude);
-  let endLongitude = Number(req.body?.longitude);
-  if (!Number.isFinite(endLatitude) || !Number.isFinite(endLongitude)) {
-    const last = await get(
-      `SELECT latitude, longitude FROM auto_vehicle_locations
-       WHERE trackingSessionId = ? ORDER BY recorded_at DESC, id DESC LIMIT 1`,
-      [sessionId]
-    );
-    endLatitude = Number(last?.latitude);
-    endLongitude = Number(last?.longitude);
-  }
-  const hasEndPosition = Number.isFinite(endLatitude) && Number.isFinite(endLongitude);
-  const arrivalPlace = String(req.body?.arrivalPlace || (hasEndPosition ? `Position GPS (${endLatitude.toFixed(5)}, ${endLongitude.toFixed(5)})` : '')).trim().slice(0, 180);
-  await run(
-    `UPDATE auto_tracking_sessions SET status = 'completed', endedAt = ?, arrivalPlace = ?,
-     endLatitude = ?, endLongitude = ?, arrivedAtDestination = ? WHERE id = ?`,
-    [now, arrivalPlace, hasEndPosition ? endLatitude : null, hasEndPosition ? endLongitude : null, req.body?.arrived === true ? 1 : 0, sessionId]
-  );
-  await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE id = ?', [now, Number(session.deviceId)]);
-  await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(vehicle.id)]);
-  return res.json({ message: 'Trajet terminé', sessionId, endedAt: now, arrivalPlace });
-});
-
-app.get('/api/driver/tracking-sessions', async (req, res) => {
-  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
-  if (!employee) return res.status(403).json({ error: 'Aucune fiche employé liée à ce compte chauffeur' });
-  if (!vehicle) return res.status(404).json({ error: 'Aucun véhicule ne vous est affecté' });
-  const from = String(req.query.from || '').trim();
-  const to = String(req.query.to || '').trim();
-  const sessions = await all(
-    `SELECT id, vehicleId, chauffeurEmployeeId, deviceName, status, startPlace, destinationPlace,
-            destinationLatitude, destinationLongitude, arrivedAtDestination, arrivalPlace, startLatitude, startLongitude, endLatitude, endLongitude, startedAt, endedAt,
-            expiresAt, movingIntervalSeconds, idleIntervalSeconds
-     FROM auto_tracking_sessions
-     WHERE vehicleId = ? AND chauffeurEmployeeId = ?
-       AND (? = '' OR substr(startedAt, 1, 10) >= ?)
-       AND (? = '' OR substr(startedAt, 1, 10) <= ?)
-     ORDER BY startedAt DESC, id DESC LIMIT 500`,
-    [Number(vehicle.id), Number(employee.id), from, from, to, to]
-  );
-  const results = [];
-  for (const session of sessions || []) {
-    const locations = await all(
-      `SELECT id, latitude, longitude, speed_kph AS speedKph, accuracy_meters AS accuracyMeters,
-              status, recorded_at AS recordedAt
-       FROM auto_vehicle_locations WHERE trackingSessionId = ? ORDER BY recorded_at ASC, id ASC LIMIT 10000`,
-      [Number(session.id)]
-    );
-    results.push({ ...session, locations: locations || [], distanceKm: getDriverDistanceKm(locations || []) });
-  }
-  return res.json({ employee, vehicle, sessions: results });
-});
-
-app.patch('/api/driver/settings', async (req, res) => {
-  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
-  if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
-  const movingIntervalSeconds = normalizeDriverInterval(req.body?.movingIntervalSeconds, 10, 5, 300);
-  const idleIntervalSeconds = normalizeDriverInterval(req.body?.idleIntervalSeconds, 60, 15, 900);
-  const now = new Date().toISOString();
-  const existingSettings = await get('SELECT id FROM auto_driver_settings WHERE chauffeurEmployeeId = ? LIMIT 1', [Number(employee.id)]);
-  if (existingSettings) {
-    await run('UPDATE auto_driver_settings SET movingIntervalSeconds = ?, idleIntervalSeconds = ?, updatedAt = ? WHERE chauffeurEmployeeId = ?',
-      [movingIntervalSeconds, idleIntervalSeconds, now, Number(employee.id)]);
-  } else {
-    await run('INSERT INTO auto_driver_settings (id, chauffeurEmployeeId, movingIntervalSeconds, idleIntervalSeconds, updatedAt) VALUES (?, ?, ?, ?, ?)',
-      [await getNextTableId('auto_driver_settings'), Number(employee.id), movingIntervalSeconds, idleIntervalSeconds, now]);
-  }
-  const device = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [Number(vehicle.id)]);
-  if (device) {
-    await run('UPDATE auto_tracking_devices SET movingIntervalSeconds = ?, idleIntervalSeconds = ?, updatedAt = ? WHERE id = ?',
-      [movingIntervalSeconds, idleIntervalSeconds, now, Number(device.id)]);
-    await run("UPDATE auto_tracking_sessions SET movingIntervalSeconds = ?, idleIntervalSeconds = ? WHERE vehicleId = ? AND chauffeurEmployeeId = ? AND status = 'active'",
-      [movingIntervalSeconds, idleIntervalSeconds, Number(vehicle.id), Number(employee.id)]);
-  }
-  return res.json({ movingIntervalSeconds, idleIntervalSeconds, saved: true });
-});
-
-app.post('/api/driver/password', async (req, res) => {
-  const userId = Number(req.user?.id || 0);
-  const currentPassword = String(req.body?.currentPassword || '');
-  const newPassword = String(req.body?.newPassword || '');
-  if (newPassword.length < 8) return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 8 caractères' });
-  const user = await get('SELECT id, password FROM users WHERE id = ? LIMIT 1', [userId]);
-  if (!user || !(await bcrypt.compare(currentPassword, String(user.password || '')))) {
-    return res.status(400).json({ error: 'Mot de passe actuel incorrect' });
-  }
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-  await run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
-  await storeUserPasswordEnc(userId, newPassword);
-  return res.json({ message: 'Mot de passe modifié' });
-});
-
-async function createAutoTrackingDevice(vehicle, createdBy, deviceName = 'smartphone', req) {
-  const vehicleId = Number(vehicle.id);
-  const rawToken = generateTrackingToken();
-  const tokenHash = hashTrackingToken(rawToken);
-  const now = new Date().toISOString();
-  const existing = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [vehicleId]);
-  if (existing) {
-    await run(
-      'UPDATE auto_tracking_devices SET deviceName = ?, tokenHash = ?, isActive = 1, updatedAt = ? WHERE vehicleId = ?',
-      [String(deviceName || 'smartphone').trim() || 'smartphone', tokenHash, now, vehicleId]
-    );
-  } else {
-    const nextDeviceId = await getNextTableId('auto_tracking_devices');
-    await run(
-      'INSERT INTO auto_tracking_devices (id, vehicleId, deviceName, tokenHash, isActive, createdBy, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [nextDeviceId, vehicleId, String(deviceName || 'smartphone').trim() || 'smartphone', tokenHash, 1, String(createdBy || 'admin'), now, now]
-    );
-  }
-  await run('UPDATE auto_vehicles SET gpsActif = 1 WHERE id = ?', [vehicleId]);
-  const baseUrl = `${req.protocol}://${req.get('host')}`;
-  const trackerUrl = `${baseUrl}/tracker.html?vehicleId=${vehicleId}&token=${encodeURIComponent(rawToken)}`;
-  return {
-    vehicleId,
-    deviceName: String(deviceName || 'smartphone').trim() || 'smartphone',
-    token: rawToken,
-    ingestUrl: `${baseUrl}/api/gps/ingest`,
-    trackerUrl,
-    note: 'Conserve ce token de manière sécurisée. Il ne sera plus affiché en clair.',
-  };
-}
-
-app.get('/api/driver/vehicle', async (req, res) => {
-  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
-  if (!employee) return res.status(403).json({ error: 'Aucune fiche employé liée à ce compte chauffeur' });
-  if (!vehicle) return res.status(404).json({ error: 'Aucun véhicule ne vous est affecté' });
-  const latest = await get(
-        `SELECT id, vehicle_id AS vehicleId, latitude, longitude, speed_kph AS speedKph,
-          heading, accuracy_meters AS accuracyMeters, source, status, note, recorded_at AS recordedAt,
-          trackingSessionId
-     FROM auto_vehicle_locations WHERE vehicle_id = ? ORDER BY recorded_at DESC, id DESC LIMIT 1`,
-    [Number(vehicle.id)]
-  );
-  const locations = await all(
-        `SELECT id, vehicle_id AS vehicleId, latitude, longitude, speed_kph AS speedKph,
-          heading, accuracy_meters AS accuracyMeters, source, status, note, recorded_at AS recordedAt,
-          trackingSessionId
-     FROM auto_vehicle_locations WHERE vehicle_id = ? ORDER BY recorded_at DESC, id DESC LIMIT 100`,
-    [Number(vehicle.id)]
-  );
-  const device = await get(
-    'SELECT id, deviceName, isActive, lastSeenAt, lastLatitude, lastLongitude, lastSpeedKph, movingIntervalSeconds, idleIntervalSeconds FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1',
-    [Number(vehicle.id)]
-  );
-  const activeSession = await getActiveDriverSession(vehicle.id, employee.id);
-  const settings = await get('SELECT movingIntervalSeconds, idleIntervalSeconds FROM auto_driver_settings WHERE chauffeurEmployeeId = ? LIMIT 1', [Number(employee.id)]);
-  return res.json({ employee, vehicle, lastLocation: latest || null, locations: locations || [], device: device || null,
-    activeSession: activeSession || null,
-    settings: settings || { movingIntervalSeconds: Number(device?.movingIntervalSeconds || 10), idleIntervalSeconds: Number(device?.idleIntervalSeconds || 60) } });
-});
-
-app.post('/api/driver/tracking-device', async (req, res) => {
-  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
-  if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
-  const payload = await createAutoTrackingDevice(vehicle, req.user?.username, 'smartphone', req);
-  return res.status(201).json(payload);
-});
-
-app.delete('/api/driver/tracking-device', async (req, res) => {
-  const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
-  if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
-  const device = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [Number(vehicle.id)]);
-  if (!device) return res.status(404).json({ error: 'Aucun suivi actif pour ce véhicule' });
-  const now = new Date().toISOString();
-  await run("UPDATE auto_tracking_sessions SET status = 'revoked', endedAt = ? WHERE vehicleId = ? AND chauffeurEmployeeId = ? AND status = 'active'",
-    [now, Number(vehicle.id), Number(employee.id)]);
-  await run('UPDATE auto_tracking_devices SET isActive = 0, updatedAt = ? WHERE vehicleId = ?', [now, Number(vehicle.id)]);
-  await run('UPDATE auto_vehicles SET gpsActif = 0 WHERE id = ?', [Number(vehicle.id)]);
-  return res.json({ message: 'Suivi désactivé' });
-});
-
 app.get('/api/auto-vehicles', async (_req, res) => {
   const rows = await all('SELECT * FROM auto_vehicles ORDER BY createdAt DESC, id DESC');
   res.json(rows);
 });
 
-app.get('/api/auto-maintenance-records', async (_req, res) => {
-  const rows = await all(`
-    SELECT amr.*, av.nomVehicule, av.marqueVehicule, av.immatriculation
-    FROM auto_maintenance_records amr
-    JOIN auto_vehicles av ON av.id = amr.vehicleId
-    ORDER BY amr.dateMaintenance DESC, amr.createdAt DESC, amr.id DESC
-  `);
-  res.json(rows);
-});
-
-app.post('/api/auto-maintenance-records', async (req, res) => {
-  const {
-    vehicleId,
-    type = '',
-    dateMaintenance = '',
-    mileage = 0,
-    cost = 0,
-    supplier = '',
-    description = '',
-    nextMaintenanceDate = '',
-    partsReplaced = '',
-    status = 'Terminée',
-  } = req.body || {};
-  const numericVehicleId = Number(vehicleId);
-  const numericMileage = Number(mileage || 0);
-  const numericCost = Number(cost || 0);
-  const maintenanceType = String(type).trim();
-  const maintenanceDate = String(dateMaintenance).trim();
-  const maintenanceStatus = String(status).trim();
-  const allowedStatuses = new Set(['Terminée', 'En attente', 'En cours', 'Annulée']);
-
-  if (!numericVehicleId || !maintenanceType || !maintenanceDate || !/^\d{4}-\d{2}-\d{2}$/.test(maintenanceDate)) {
-    return res.status(400).json({ error: 'Véhicule, type et date de maintenance sont obligatoires' });
-  }
-  if (!Number.isFinite(numericMileage) || numericMileage < 0 || !Number.isFinite(numericCost) || numericCost < 0) {
-    return res.status(400).json({ error: 'Le kilométrage et le coût doivent être des nombres positifs' });
-  }
-  if (!allowedStatuses.has(maintenanceStatus)) {
-    return res.status(400).json({ error: 'Statut de maintenance invalide' });
-  }
-
-  const vehicle = await get('SELECT id FROM auto_vehicles WHERE id = ?', [numericVehicleId]);
-  if (!vehicle) return res.status(404).json({ error: 'Véhicule introuvable' });
-
-  const nextIdRow = await get('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM auto_maintenance_records');
-  const nextId = Number(nextIdRow?.nextId || 1);
-  const now = new Date().toISOString();
-  await run(`
-    INSERT INTO auto_maintenance_records (
-      id, vehicleId, type, dateMaintenance, mileage, cost, supplier, description,
-      nextMaintenanceDate, partsReplaced, status, createdBy, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `, [
-    nextId,
-    numericVehicleId,
-    maintenanceType,
-    new Date(`${maintenanceDate}T12:00:00`).toISOString(),
-    numericMileage,
-    numericCost,
-    String(supplier || '').trim(),
-    String(description || '').trim(),
-    String(nextMaintenanceDate || '').trim(),
-    String(partsReplaced || '').trim(),
-    maintenanceStatus,
-    req.user.username,
-    now,
-    now,
-  ]);
-
-  const record = await get(`
-    SELECT amr.*, av.nomVehicule, av.marqueVehicule, av.immatriculation
-    FROM auto_maintenance_records amr
-    JOIN auto_vehicles av ON av.id = amr.vehicleId
-    WHERE amr.id = ?
-  `, [nextId]);
-  res.status(201).json(record);
-});
-
-app.delete('/api/auto-maintenance-records/:id', async (req, res) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    return res.status(400).json({ error: 'ID maintenance invalide' });
-  }
-  const record = await get('SELECT id FROM auto_maintenance_records WHERE id = ?', [id]);
-  if (!record) return res.status(404).json({ error: 'Intervention introuvable' });
-  await run('DELETE FROM auto_maintenance_records WHERE id = ?', [id]);
-  res.json({ message: 'Intervention supprimée' });
-});
-
-const VEHICLE_IMAGE_PATTERN = /^data:image\/(png|jpeg|webp);base64,/;
-
-function parseVehicleExtras(body, existing = {}) {
-  const has = key => Object.prototype.hasOwnProperty.call(body || {}, key);
-  const number = (key, max) => {
-    if (!has(key)) return Number(existing[key] || 0);
-    const value = Number(body[key] || 0);
-    if (Number.isNaN(value) || value < 0 || value > max) throw new Error('Valeur invalide : ' + key);
-    return value;
-  };
-  const text = (key, max = 200) => (has(key) ? String(body[key] || '').trim().slice(0, max) : String(existing[key] || ''));
-  const image = key => {
-    if (!has(key)) return String(existing[key] || '');
-    const value = String(body[key] || '').trim();
-    if (value && (value.length > 900000 || !VEHICLE_IMAGE_PATTERN.test(value))) throw new Error('Image invalide ou trop volumineuse');
-    return value;
-  };
-  let photosExtra = String(existing.photosExtra || '[]');
-  if (has('photosExtra')) {
-    const list = Array.isArray(body.photosExtra) ? body.photosExtra : [];
-    if (list.length > 6 || list.some(item => typeof item !== 'string' || item.length > 900000 || !VEHICLE_IMAGE_PATTERN.test(item))) throw new Error('Photos supplémentaires invalides');
-    photosExtra = JSON.stringify(list);
-  }
-  const carburantPct = number('carburantPct', 100);
-  return {
-    kilometrage: number('kilometrage', 100000000),
-    carburantPct,
-    heuresMoteur: number('heuresMoteur', 10000000),
-    projetNom: text('projetNom'),
-    siteZone: text('siteZone'),
-    photosExtra,
-    chauffeurPhotoDataUrl: image('chauffeurPhotoDataUrl'),
-    permisNumero: text('permisNumero', 60),
-    permisExpiration: text('permisExpiration', 30),
-  };
-}
-
 app.post('/api/auto-vehicles', async (req, res) => {
-  if (!isAdminUser(req)) return res.status(403).json({ error: 'Création de véhicule réservée à l’admin' });
   const {
     nomVehicule = '',
     marqueVehicule = '',
     immatriculation = '',
     chauffeurNom = '',
-    chauffeurEmployeeId = null,
     gpsActif = false,
     valeurVehicule,
     etatVehicule = '',
-    annee = '',
-    typeVehicule = '',
-    numeroIdentification = '',
-    description = '',
-    couleur = '',
-    photoDataUrl = '',
   } = req.body || {};
 
   const nom = String(nomVehicule).trim();
   const marque = String(marqueVehicule).trim();
   const plaque = String(immatriculation).trim();
   const chauffeur = String(chauffeurNom).trim();
-  const driverEmployeeId = Number(chauffeurEmployeeId || 0) || null;
   const etat = String(etatVehicule).trim();
-  const valeur = Number(valeurVehicule || 0);
+  const valeur = Number(valeurVehicule);
   const gpsEnabled = gpsActif ? 1 : 0;
-  const photo = String(photoDataUrl || '').trim();
 
-  if (!nom || !marque || Number.isNaN(valeur) || valeur < 0) {
+  if (!nom || !marque || !etat || Number.isNaN(valeur) || valeur < 0) {
     return res.status(400).json({ error: 'Nom, marque, valeur et etat du vehicule sont obligatoires' });
   }
-  if (photo.length > 900000 || (photo && !/^data:image\/(png|jpeg|webp);base64,/.test(photo))) {
-    return res.status(400).json({ error: 'Photo invalide ou trop volumineuse (max. 650 Ko)' });
-  }
-  if (driverEmployeeId) {
-    const driver = await get('SELECT id, fullName, jobTitle FROM hr_employees WHERE id = ?', [driverEmployeeId]);
-    if (!driver || !normalizeTextValue(driver.jobTitle || '').includes('chauffeur')) {
-      return res.status(400).json({ error: 'Sélectionne un employé dont le poste est Chauffeur' });
-    }
-    const existingAssignment = await get('SELECT id FROM auto_vehicles WHERE chauffeurEmployeeId = ? LIMIT 1', [driverEmployeeId]);
-    if (existingAssignment) return res.status(409).json({ error: 'Ce chauffeur est déjà affecté à un véhicule' });
-  }
 
-  const resolvedDriverName = driverEmployeeId
-    ? String((await get('SELECT fullName FROM hr_employees WHERE id = ?', [driverEmployeeId]))?.fullName || chauffeur).trim()
-    : chauffeur;
-  let extras;
-  try { extras = parseVehicleExtras(req.body); } catch (error) { return res.status(400).json({ error: error.message }); }
-  const vehicleId = await getNextTableId('auto_vehicles');
-  await run(
-    `INSERT INTO auto_vehicles
-      (id, nomVehicule, marqueVehicule, immatriculation, chauffeurNom, gpsActif, valeurVehicule, etatVehicule, createdAt,
-       chauffeurEmployeeId, annee, typeVehicule, numeroIdentification, description, couleur, photoDataUrl,
-       kilometrage, carburantPct, heuresMoteur, projetNom, siteZone, photosExtra, chauffeurPhotoDataUrl, permisNumero, permisExpiration)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [vehicleId, nom, marque, plaque, resolvedDriverName, gpsEnabled, valeur, etat || 'Disponible', new Date().toISOString(),
-      driverEmployeeId, String(annee || '').trim(), String(typeVehicule || '').trim(), String(numeroIdentification || '').trim(),
-      String(description || '').trim(), String(couleur || '').trim(), photo,
-      extras.kilometrage, extras.carburantPct, extras.heuresMoteur, extras.projetNom, extras.siteZone, extras.photosExtra,
-      extras.chauffeurPhotoDataUrl, extras.permisNumero, extras.permisExpiration]
+  const result = await run(
+    'INSERT INTO auto_vehicles (nomVehicule, marqueVehicule, immatriculation, chauffeurNom, gpsActif, valeurVehicule, etatVehicule, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [nom, marque, plaque, chauffeur, gpsEnabled, valeur, etat, new Date().toISOString()]
   );
 
-  const vehicle = await get('SELECT * FROM auto_vehicles WHERE id = ?', [vehicleId]);
+  const vehicle = await get('SELECT * FROM auto_vehicles WHERE id = ?', [result.lastID]);
   res.status(201).json(vehicle);
-});
-
-app.patch('/api/auto-vehicles/:id', async (req, res) => {
-  if (!isAdminUser(req)) return res.status(403).json({ error: 'Modification réservée à l’admin' });
-  const vehicleId = Number(req.params.id || 0);
-  if (!Number.isInteger(vehicleId) || vehicleId <= 0) return res.status(400).json({ error: 'Véhicule invalide' });
-  const current = await get('SELECT * FROM auto_vehicles WHERE id = ?', [vehicleId]);
-  if (!current) return res.status(404).json({ error: 'Véhicule introuvable' });
-  const body = req.body || {};
-  const has = key => Object.prototype.hasOwnProperty.call(body, key);
-  const text = (key, max = 200) => (has(key) ? String(body[key] || '').trim().slice(0, max) : String(current[key] || ''));
-  let extras;
-  try { extras = parseVehicleExtras(body, current); } catch (error) { return res.status(400).json({ error: error.message }); }
-  const value = has('valeurVehicule') ? Number(body.valeurVehicule || 0) : Number(current.valeurVehicule || 0);
-  if (Number.isNaN(value) || value < 0) return res.status(400).json({ error: 'Valeur invalide' });
-  let photo = String(current.photoDataUrl || '');
-  if (has('photoDataUrl')) {
-    photo = String(body.photoDataUrl || '').trim();
-    if (photo && (photo.length > 900000 || !VEHICLE_IMAGE_PATTERN.test(photo))) return res.status(400).json({ error: 'Photo invalide ou trop volumineuse' });
-  }
-  const nom = text('nomVehicule'); const marque = text('marqueVehicule');
-  if (!nom || !marque) return res.status(400).json({ error: 'Marque et modèle obligatoires' });
-  await run(
-    `UPDATE auto_vehicles SET nomVehicule = ?, marqueVehicule = ?, immatriculation = ?, valeurVehicule = ?, etatVehicule = ?,
-      annee = ?, typeVehicule = ?, numeroIdentification = ?, description = ?, couleur = ?, photoDataUrl = ?,
-      kilometrage = ?, carburantPct = ?, heuresMoteur = ?, projetNom = ?, siteZone = ?, photosExtra = ?,
-      chauffeurPhotoDataUrl = ?, permisNumero = ?, permisExpiration = ? WHERE id = ?`,
-    [nom, marque, text('immatriculation'), value, text('etatVehicule') || 'Disponible',
-      text('annee', 10), text('typeVehicule'), text('numeroIdentification'), text('description', 1000), text('couleur'), photo,
-      extras.kilometrage, extras.carburantPct, extras.heuresMoteur, extras.projetNom, extras.siteZone, extras.photosExtra,
-      extras.chauffeurPhotoDataUrl, extras.permisNumero, extras.permisExpiration, vehicleId]
-  );
-  res.json(await get('SELECT * FROM auto_vehicles WHERE id = ?', [vehicleId]));
-});
-
-app.patch('/api/auto-vehicles/:id/assignment', async (req, res) => {
-  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
-  const vehicleId = Number(req.params.id || 0);
-  const employeeId = Number(req.body?.chauffeurEmployeeId || 0) || null;
-  if (!Number.isInteger(vehicleId) || vehicleId <= 0) return res.status(400).json({ error: 'Véhicule invalide' });
-  const vehicle = await get('SELECT id FROM auto_vehicles WHERE id = ?', [vehicleId]);
-  if (!vehicle) return res.status(404).json({ error: 'Véhicule introuvable' });
-
-  let employee = null;
-  if (employeeId) {
-    employee = await get('SELECT id, fullName, jobTitle FROM hr_employees WHERE id = ?', [employeeId]);
-    if (!employee || !normalizeTextValue(employee.jobTitle || '').includes('chauffeur')) {
-      return res.status(400).json({ error: 'Sélectionne un employé dont le poste est Chauffeur' });
-    }
-    const assignedElsewhere = await get('SELECT id FROM auto_vehicles WHERE chauffeurEmployeeId = ? AND id <> ? LIMIT 1', [employeeId, vehicleId]);
-    if (assignedElsewhere) return res.status(409).json({ error: 'Ce chauffeur est déjà affecté à un autre véhicule' });
-  }
-
-  await run('UPDATE auto_vehicles SET chauffeurEmployeeId = ?, chauffeurNom = ? WHERE id = ?', [employeeId, String(employee?.fullName || '').trim(), vehicleId]);
-  return res.json({ vehicleId, chauffeurEmployeeId: employeeId, chauffeurNom: String(employee?.fullName || '').trim() });
 });
 
 app.get('/api/auto-vehicles/:id/tracking-device', async (req, res) => {
@@ -9993,8 +7936,41 @@ app.post('/api/auto-vehicles/:id/tracking-device', async (req, res) => {
   if (!vehicle) {
     return res.status(404).json({ error: 'Vehicule non trouve' });
   }
-  const payload = await createAutoTrackingDevice(vehicle, req.user?.username, deviceName, req);
-  res.status(201).json(payload);
+
+  const rawToken = generateTrackingToken();
+  const tokenHash = hashTrackingToken(rawToken);
+  const now = new Date().toISOString();
+  const existing = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [id]);
+
+  if (existing) {
+    await run(
+      'UPDATE auto_tracking_devices SET deviceName = ?, tokenHash = ?, isActive = 1, updatedAt = ? WHERE vehicleId = ?',
+      [deviceName, tokenHash, now, id]
+    );
+  } else {
+    const nextDeviceIdRow = await get('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM auto_tracking_devices');
+    const nextDeviceId = Number(nextDeviceIdRow?.nextId || 1);
+
+    await run(
+      'INSERT INTO auto_tracking_devices (id, vehicleId, deviceName, tokenHash, isActive, createdBy, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [nextDeviceId, id, deviceName, tokenHash, 1, req.user.username, now, now]
+    );
+  }
+
+  await run('UPDATE auto_vehicles SET gpsActif = 1 WHERE id = ?', [id]);
+
+  const trackerPath = '/tracker.html';
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  const trackerUrl = `${baseUrl}${trackerPath}?vehicleId=${id}&token=${encodeURIComponent(rawToken)}`;
+
+  res.status(201).json({
+    vehicleId: id,
+    deviceName,
+    token: rawToken,
+    ingestUrl: `${baseUrl}/api/gps/ingest`,
+    trackerUrl,
+    note: 'Conserve ce token de maniere securisee. Il ne sera plus affiché en clair.',
+  });
 });
 
 app.delete('/api/auto-vehicles/:id/tracking-device', async (req, res) => {
@@ -10013,7 +7989,7 @@ app.delete('/api/auto-vehicles/:id/tracking-device', async (req, res) => {
 });
 
 app.get('/api/auto-vehicle-locations', async (_req, res) => {
-  const [vehicles, rows, devices] = await Promise.all([
+  const [vehicles, rows] = await Promise.all([
     all('SELECT * FROM auto_vehicles ORDER BY createdAt DESC, id DESC'),
     all(`
       SELECT
@@ -10032,7 +8008,6 @@ app.get('/api/auto-vehicle-locations', async (_req, res) => {
       FROM auto_vehicle_locations
       ORDER BY recorded_at DESC, id DESC
     `),
-    all('SELECT id, vehicleId, deviceName, isActive, lastSeenAt, createdAt, updatedAt FROM auto_tracking_devices'),
   ]);
 
   const latestByVehicleId = new Map();
@@ -10042,78 +8017,16 @@ app.get('/api/auto-vehicle-locations', async (_req, res) => {
       latestByVehicleId.set(vehicleId, row);
     }
   });
-  const deviceByVehicleId = new Map((devices || []).map(device => [Number(device.vehicleId), device]));
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const pointsByVehicle = new Map();
-  rows.forEach(row => {
-    const list = pointsByVehicle.get(Number(row.vehicleId)) || [];
-    list.unshift(row);
-    pointsByVehicle.set(Number(row.vehicleId), list);
-  });
-  const toRad = deg => Number(deg) * Math.PI / 180;
-  const vehicleStats = vehicleId => {
-    const points = pointsByVehicle.get(Number(vehicleId)) || [];
-    let totalKm = 0;
-    let todayKm = 0;
-    let movingMs = 0;
-    for (let i = 1; i < points.length; i += 1) {
-      const dLat = toRad(points[i].latitude - points[i - 1].latitude);
-      const dLon = toRad(points[i].longitude - points[i - 1].longitude);
-      const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(points[i - 1].latitude)) * Math.cos(toRad(points[i].latitude)) * Math.sin(dLon / 2) ** 2;
-      const step = 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-      const gapMs = new Date(points[i].recordedAt).getTime() - new Date(points[i - 1].recordedAt).getTime();
-      if (step < 5 && step > 0.005) {
-        totalKm += step;
-        if (String(points[i].recordedAt || '').slice(0, 10) === todayKey) todayKm += step;
-        if (gapMs > 0 && gapMs <= 10 * 60 * 1000) movingMs += gapMs;
-      }
-    }
-    return {
-      distanceTodayKm: Math.round(todayKm * 10) / 10,
-      kilometrageGps: Math.round(totalKm * 10) / 10,
-      heuresGps: Math.round(movingMs / 3600000 * 10) / 10,
-    };
-  };
-  const activeAssignments = await all(`
-    SELECT pa.employeeId, p.nomProjet, p.nomSite
-    FROM project_assignments pa JOIN projects p ON p.id = pa.projectId
-    WHERE pa.employeeId IS NOT NULL AND UPPER(COALESCE(pa.status, '')) = 'ACTIF'
-    ORDER BY pa.assignedAt DESC, pa.id DESC
-  `);
-  const assignmentByEmployee = new Map();
-  activeAssignments.forEach(item => {
-    if (!assignmentByEmployee.has(Number(item.employeeId))) assignmentByEmployee.set(Number(item.employeeId), item);
-  });
 
   res.json(vehicles.map(vehicle => ({
     ...vehicle,
-    ...vehicleStats(vehicle.id),
-    projetAuto: assignmentByEmployee.get(Number(vehicle.chauffeurEmployeeId))?.nomProjet || '',
-    siteAuto: assignmentByEmployee.get(Number(vehicle.chauffeurEmployeeId))?.nomSite || '',
     lastLocation: latestByVehicleId.get(Number(vehicle.id)) || null,
-    trackingDevice: deviceByVehicleId.get(Number(vehicle.id)) || null,
   })));
-});
-
-app.get('/api/auto-vehicles/:id/tracking-sessions', async (req, res) => {
-  const id = Number(req.params.id);
-  if (!id) return res.status(400).json({ error: 'ID vehicule invalide' });
-  const sessions = await all(
-    `SELECT s.id, s.vehicleId, s.chauffeurEmployeeId, s.status, s.startedAt, s.endedAt, s.expiresAt,
-            s.startPlace, s.arrivalPlace, s.destinationPlace, s.deviceName,
-            e.fullName AS chauffeurName
-     FROM auto_tracking_sessions s
-     LEFT JOIN hr_employees e ON e.id = s.chauffeurEmployeeId
-     WHERE s.vehicleId = ? AND s.startedAt <> ''
-     ORDER BY s.startedAt DESC, s.id DESC LIMIT 200`,
-    [id]
-  );
-  return res.json({ sessions: sessions || [] });
 });
 
 app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
   const id = Number(req.params.id);
-  const limit = Math.min(Math.max(Number(req.query.limit || 25), 1), 5000);
+  const limit = Math.min(Math.max(Number(req.query.limit || 25), 1), 200);
 
   if (!id) {
     return res.status(400).json({ error: 'ID vehicule invalide' });
@@ -10124,12 +8037,6 @@ app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
     return res.status(404).json({ error: 'Vehicule non trouve' });
   }
 
-  const trackingDevice = await get(
-    'SELECT id, vehicleId, deviceName, isActive, lastSeenAt, createdAt, updatedAt FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1',
-    [id]
-  );
-  const trackingStartAt = String(trackingDevice?.createdAt || '').trim();
-  const fromTrackingStart = String(req.query.fromTrackingStart || '') === '1' && Boolean(trackingStartAt);
   const rows = await all(
     `SELECT
       id,
@@ -10146,15 +8053,13 @@ app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
       created_by AS createdBy
     FROM auto_vehicle_locations
     WHERE vehicle_id = ?
-      AND (? = 0 OR recorded_at >= ?)
     ORDER BY recorded_at DESC, id DESC
     LIMIT ?`,
-    [id, fromTrackingStart ? 1 : 0, trackingStartAt, limit]
+    [id, limit]
   );
 
   res.json({
     vehicle,
-    trackingDevice: trackingDevice || null,
     locations: rows,
   });
 });
@@ -10231,10 +8136,9 @@ app.delete('/api/auto-vehicles/:id', async (req, res) => {
 
 app.get('/api/auto-transport-costs', async (_req, res) => {
   const rows = await all(`
-    SELECT atc.*, av.nomVehicule, av.marqueVehicule, av.immatriculation, p.nomProjet AS projetNom
+    SELECT atc.*, av.nomVehicule, av.marqueVehicule
     FROM auto_transport_costs atc
     JOIN auto_vehicles av ON av.id = atc.vehicleId
-    LEFT JOIN projects p ON p.id = atc.projectId
     ORDER BY atc.dateTransport DESC, atc.createdAt DESC, atc.id DESC
   `);
   res.json(rows);
@@ -10247,8 +8151,6 @@ app.post('/api/auto-transport-costs', async (req, res) => {
     niveauEssenceSortie,
     prixLocalEssence,
     dateTransport,
-    projectId = null,
-    trajet = '',
     note = '',
   } = req.body || {};
 
@@ -10256,8 +8158,6 @@ app.post('/api/auto-transport-costs', async (req, res) => {
   const fuelIn = Number(niveauEssenceEntree);
   const fuelOut = Number(niveauEssenceSortie);
   const localFuelPrice = Number(prixLocalEssence);
-  const numericProjectId = projectId ? Number(projectId) : null;
-  const tripLabel = String(trajet || '').trim();
 
   if (!numericVehicleId || Number.isNaN(fuelIn) || Number.isNaN(fuelOut) || Number.isNaN(localFuelPrice)) {
     return res.status(400).json({ error: 'Vehicule, niveaux essence et prix local sont obligatoires' });
@@ -10271,10 +8171,6 @@ app.post('/api/auto-transport-costs', async (req, res) => {
     return res.status(400).json({ error: 'Le niveau de sortie ne peut pas etre superieur au niveau d\'entree' });
   }
 
-  if (projectId && (!Number.isInteger(numericProjectId) || numericProjectId <= 0)) {
-    return res.status(400).json({ error: 'Projet invalide' });
-  }
-
   const quantiteConsommee = fuelIn - fuelOut;
   if (quantiteConsommee <= 0) {
     return res.status(400).json({ error: 'La consommation doit etre superieure a zero' });
@@ -10285,15 +8181,10 @@ app.post('/api/auto-transport-costs', async (req, res) => {
     return res.status(404).json({ error: 'Vehicule introuvable' });
   }
 
-  const project = numericProjectId ? await get('SELECT id, nomProjet FROM projects WHERE id = ?', [numericProjectId]) : null;
-  if (numericProjectId && !project) {
-    return res.status(404).json({ error: 'Projet introuvable' });
-  }
-
   const effectiveDate = dateTransport ? new Date(dateTransport).toISOString() : new Date().toISOString();
-  const expenseDescription = [`Carburant - ${vehicle.nomVehicule} (${vehicle.marqueVehicule})`, tripLabel, project?.nomProjet].filter(Boolean).join(' • ');
+  const expenseDescription = `Carburant - ${vehicle.nomVehicule} (${vehicle.marqueVehicule})`;
   const expense = await insertExpenseRecord({
-    projetId: numericProjectId,
+    projetId: null,
     description: expenseDescription,
     quantite: quantiteConsommee,
     prixUnitaire: localFuelPrice,
@@ -10314,12 +8205,10 @@ app.post('/api/auto-transport-costs', async (req, res) => {
       quantiteConsommee,
       montantTotal,
       dateTransport,
-      projectId,
-      trajet,
       note,
       createdBy,
       createdAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       numericVehicleId,
       expense.id,
@@ -10329,8 +8218,6 @@ app.post('/api/auto-transport-costs', async (req, res) => {
       quantiteConsommee,
       montantTotal,
       effectiveDate,
-      numericProjectId,
-      tripLabel,
       String(note || '').trim(),
       req.user.username,
       new Date().toISOString(),
@@ -10338,10 +8225,9 @@ app.post('/api/auto-transport-costs', async (req, res) => {
   );
 
   const cost = await get(`
-    SELECT atc.*, av.nomVehicule, av.marqueVehicule, av.immatriculation, p.nomProjet AS projetNom
+    SELECT atc.*, av.nomVehicule, av.marqueVehicule
     FROM auto_transport_costs atc
     JOIN auto_vehicles av ON av.id = atc.vehicleId
-    LEFT JOIN projects p ON p.id = atc.projectId
     WHERE atc.id = ?
   `, [result.lastID]);
 
@@ -12142,9 +10028,8 @@ app.post('/api/project-assignments', async (req, res) => {
   });
 
   const result = await run(
-    'INSERT INTO project_assignments (id, projectId, userId, employeeId, assigneeName, phoneNumber, email, department, status, parentAssignmentId, role, assignedAt, endAt, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO project_assignments (projectId, userId, employeeId, assigneeName, phoneNumber, email, department, status, parentAssignmentId, role, assignedAt, endAt, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
-      await getNextTableId('project_assignments'),
       assignmentProjectId,
       effectiveUserId,
       linkedEmployeeId,
@@ -12973,13 +10858,6 @@ function roleCanBypassAccessProfile(role) {
   return PRIVILEGED_ACCESS_PROFILE_ROLES.has(String(role || '').trim().toLowerCase());
 }
 
-const RESTRICTED_DEFAULT_ALLOWED_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'guide-erp']);
-const PARK_MANAGER_MODULES = ['parc-auto-maintenance', 'parc-auto-transport', 'vehicles', 'maps'];
-
-function privilegedProfileIsRestricted(profile) {
-  return normalizeModuleList(profile?.allowedModules || '').size > 0 || normalizeModuleList(profile?.deniedModules || '').size > 0;
-}
-
 function parseCsvSet(value) {
   return new Set(
     String(value || '')
@@ -13003,7 +10881,7 @@ function serializeCsvSet(values) {
 function getAccessProfileBaselineModules(role) {
   const normalizedRole = String(role || '').trim().toLowerCase();
   const presets = {
-    admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'assignments', 'materials', 'material-requests-tracking', 'inventory', 'stock-management', 'sortie-autorisations', 'purchase-orders', 'purchase-orders-tracking', 'material-catalog', 'parc-auto-maintenance', 'parc-auto-transport', 'vehicles', 'maps', 'expenses', 'revenues', 'reports', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'users', 'settings', 'audit-log'],
+    admin: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'assignments', 'materials', 'material-requests-tracking', 'inventory', 'stock-management', 'sortie-autorisations', 'purchase-orders', 'purchase-orders-tracking', 'material-catalog', 'parc-auto-maintenance', 'parc-auto-transport', 'maps', 'expenses', 'revenues', 'reports', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'users', 'settings', 'audit-log'],
     directeur_rh: ['dashboard', 'hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-contracts', 'hr-calendar', 'hr-leave', 'hr-signatures', 'database', 'guide-erp'],
     dirigeant: ['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp'],
     commis: ['stock-management', 'inventory'],
@@ -13069,7 +10947,7 @@ function computeEffectiveModulesForAccessProfile(profileLike, fallbackRole = '')
     effective.delete(moduleKey);
   }
   const forcedModule = String(profileLike?.forcedModule || '').trim().toLowerCase();
-  if (forcedModule && !denied.has(forcedModule) && (!allowed.size || allowed.has(forcedModule))) {
+  if (forcedModule && !denied.has(forcedModule)) {
     effective.add(forcedModule);
   }
   return effective;
@@ -13208,7 +11086,7 @@ app.get('/api/admin/access-profiles', async (req, res) => {
 
       const profile = profileByUsername.get(username.toLowerCase()) || null;
       const baselineModules = Array.from(getAccessProfileBaselineModules(user?.role || profile?.roleSnapshot || ''));
-      const effectiveModules = roleCanBypassAccessProfile(user?.role) && !privilegedProfileIsRestricted(profile)
+      const effectiveModules = roleCanBypassAccessProfile(user?.role)
         ? baselineModules
         : Array.from(computeEffectiveModulesForAccessProfile(profile || {}, user?.role || ''));
 
@@ -13250,8 +11128,8 @@ app.patch('/api/admin/access-profiles/:username', async (req, res) => {
       return res.status(404).json({ error: 'Utilisateur introuvable' });
     }
 
-    if (String(target.username || '').trim().toLowerCase() === 'admin') {
-      return res.status(400).json({ error: 'Le compte admin principal ne peut pas etre restreint' });
+    if (roleCanBypassAccessProfile(target.role)) {
+      return res.status(400).json({ error: 'Profil privilegie non modifiable via ce module' });
     }
 
     const accreditationLevel = String(req.body?.accreditationLevel || 'standard').trim().toLowerCase() || 'standard';
@@ -13359,14 +11237,14 @@ app.post('/api/admin/access-profiles/restore-all', async (req, res) => {
           `UPDATE user_access_profiles
            SET roleSnapshot = ?, allowedModules = ?, deniedModules = '', forcedModule = '', accreditationLevel = ?, notes = ?, updatedAt = ?, updatedBy = ?
            WHERE id = ?`,
-          [String(user?.role || '').trim(), roleCanBypassAccessProfile(user?.role) ? '' : serializeCsvSet(baselineModules), accreditationLevel, notes, now, actor, Number(existing.id)]
+          [String(user?.role || '').trim(), serializeCsvSet(baselineModules), accreditationLevel, notes, now, actor, Number(existing.id)]
         );
       } else {
         await run(
           `INSERT INTO user_access_profiles
            (id, username, roleSnapshot, accreditationLevel, allowedModules, deniedModules, forcedModule, notes, createdAt, updatedAt, updatedBy)
            VALUES (?, ?, ?, ?, ?, '', '', ?, ?, ?, ?)`,
-          [await getNextTableId('user_access_profiles'), username, String(user?.role || '').trim(), accreditationLevel, roleCanBypassAccessProfile(user?.role) ? '' : serializeCsvSet(baselineModules), notes, now, now, actor]
+          [await getNextTableId('user_access_profiles'), username, String(user?.role || '').trim(), accreditationLevel, serializeCsvSet(baselineModules), notes, now, now, actor]
         );
       }
 
