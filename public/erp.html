@@ -13859,6 +13859,7 @@
     let autoMaintenanceCache = [];
     let autoVehicleLocationsCache = [];
     let autoLocationHistoryCache = [];
+    let autoLocationRouteCache = [];
     let selectedAutoLocationVehicleId = null;
     let mapsDetailOpen = false;
     let driverTrackerLatestLink = '';
@@ -14838,18 +14839,20 @@
         bounds.push([lat, lng]);
       });
 
-      const historyCoords = autoLocationHistoryCache
-        .slice()
-        .reverse()
+      const historyCoords = autoLocationRouteCache
         .map(location => [Number(location.latitude), Number(location.longitude)])
         .filter(([lat, lng]) => !Number.isNaN(lat) && !Number.isNaN(lng));
 
       if (historyCoords.length > 1) {
         autoVehicleMapHistoryLayer = L.polyline(historyCoords, {
-          color: '#0f766e',
-          weight: 4,
-          opacity: 0.75,
+          color: '#2878f5',
+          weight: 5,
+          opacity: 0.9,
         }).addTo(autoVehicleMap);
+        const rawLayer = autoVehicleMapHistoryLayer;
+        snapRouteToRoads(historyCoords).then(snapped => {
+          if (snapped?.length && autoVehicleMap.hasLayer(rawLayer)) rawLayer.setLatLngs(snapped);
+        }).catch(() => {});
         bounds.push(...historyCoords);
       }
 
@@ -15276,18 +15279,20 @@
         bounds.push([lat, lng]);
       });
 
-      const historyCoords = autoLocationHistoryCache
-        .slice()
-        .reverse()
+      const historyCoords = autoLocationRouteCache
         .map(location => [Number(location.latitude), Number(location.longitude)])
         .filter(([lat, lng]) => !Number.isNaN(lat) && !Number.isNaN(lng));
 
       if (historyCoords.length > 1) {
         mapsModuleLeafletHistoryLayer = L.polyline(historyCoords, {
-          color: '#1d4ed8',
-          weight: 4,
-          opacity: 0.75,
+          color: '#2878f5',
+          weight: 5,
+          opacity: 0.9,
         }).addTo(mapsModuleLeafletMap);
+        const rawLayer = mapsModuleLeafletHistoryLayer;
+        snapRouteToRoads(historyCoords).then(snapped => {
+          if (snapped?.length && mapsModuleLeafletMap.hasLayer(rawLayer)) rawLayer.setLatLngs(snapped);
+        }).catch(() => {});
         bounds.push(...historyCoords);
       }
 
@@ -15960,6 +15965,58 @@
       });
     }
 
+    const routeSnapChunkCache = new Map();
+    const ROUTE_SNAP_CHUNK = 80;
+
+    function routeSnapDistanceM(a, b) {
+      const toRad = Math.PI / 180;
+      const dLat = (b[0] - a[0]) * toRad;
+      const dLng = (b[1] - a[1]) * toRad;
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * toRad) * Math.cos(b[0] * toRad) * Math.sin(dLng / 2) ** 2;
+      return 12742000 * Math.asin(Math.min(1, Math.sqrt(h)));
+    }
+
+    async function snapChunkToRoads(chunk) {
+      const key = chunk.map(p => `${p[0].toFixed(5)},${p[1].toFixed(5)}`).join(';');
+      if (routeSnapChunkCache.has(key)) return routeSnapChunkCache.get(key);
+      const coords = chunk.map(p => `${p[1].toFixed(6)},${p[0].toFixed(6)}`).join(';');
+      const toLatLngs = geometry => geometry.coordinates.map(c => [c[1], c[0]]);
+      let snapped = null;
+      try {
+        const radiuses = chunk.map(() => 35).join(';');
+        const match = await fetch(`https://router.project-osrm.org/match/v1/driving/${coords}?geometries=geojson&overview=full&gaps=ignore&radiuses=${radiuses}`).then(r => r.json());
+        if (match.code === 'Ok' && match.matchings?.length) {
+          snapped = match.matchings.flatMap(m => toLatLngs(m.geometry));
+        }
+      } catch (_e) {}
+      if (!snapped) {
+        try {
+          const route = await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?geometries=geojson&overview=full&continue_straight=false`).then(r => r.json());
+          if (route.code === 'Ok' && route.routes?.length) snapped = toLatLngs(route.routes[0].geometry);
+        } catch (_e) {}
+      }
+      if (snapped?.length > 1) {
+        if (chunk.length === ROUTE_SNAP_CHUNK) routeSnapChunkCache.set(key, snapped);
+        return snapped;
+      }
+      return null;
+    }
+
+    async function snapRouteToRoads(latlngs) {
+      const points = latlngs.filter((p, i) => i === 0 || routeSnapDistanceM(latlngs[i - 1], p) >= 10 || i === latlngs.length - 1);
+      if (points.length < 2) return null;
+      const result = [];
+      for (let start = 0; start < points.length - 1; start += ROUTE_SNAP_CHUNK - 1) {
+        const chunk = points.slice(start, start + ROUTE_SNAP_CHUNK);
+        if (chunk.length < 2) break;
+        const snapped = await snapChunkToRoads(chunk);
+        result.push(...(snapped || chunk));
+      }
+      return result;
+    }
+
+    const driverRouteSnapState = new Map();
+
     function renderDriverRouteMap(containerId, locations, kind = 'vehicle', session = null) {
       const isHistory = kind === 'history';
       const map = driverEnsureLeafletMap(containerId, kind);
@@ -15968,7 +16025,7 @@
       driverClearMapLayers(map, layers);
       const points = (Array.isArray(locations) ? locations : []).filter(point =>
         Number.isFinite(Number(point?.latitude)) && Number.isFinite(Number(point?.longitude))
-      );
+      ).sort((a, b) => String(a.recordedAt || '').localeCompare(String(b.recordedAt || '')) || Number(a.id || 0) - Number(b.id || 0));
       if (!points.length) {
         map.setView([5.35, -4.02], 12);
         const container = document.getElementById(containerId);
@@ -15983,7 +16040,25 @@
       }
       document.getElementById(containerId)?.querySelector('.driver-map-empty-label')?.remove();
       const latlngs = points.map(point => [Number(point.latitude), Number(point.longitude)]);
-      if (latlngs.length > 1) layers.push(L.polyline(latlngs, { color: '#2878f5', weight: 5, opacity: 0.92, lineJoin: 'round' }).addTo(map));
+      if (latlngs.length > 1) {
+        const stateKey = `${containerId}:${session?.id || 'live'}`;
+        const state = driverRouteSnapState.get(stateKey) || {};
+        const rawLayer = L.polyline(state.snapped && state.snapped.length ? state.snapped : latlngs, { color: '#2878f5', weight: 5, opacity: 0.92, lineJoin: 'round' }).addTo(map);
+        layers.push(rawLayer);
+        const signature = `${latlngs.length}:${latlngs[latlngs.length - 1].join(',')}`;
+        if (state.signature !== signature && !state.pending && Date.now() - (state.lastAt || 0) > (state.snapped ? 15000 : 0)) {
+          state.pending = true;
+          state.lastAt = Date.now();
+          driverRouteSnapState.set(stateKey, state);
+          snapRouteToRoads(latlngs).then(snapped => {
+            state.pending = false;
+            if (!snapped?.length) return;
+            state.signature = signature;
+            state.snapped = snapped;
+            if (map.hasLayer(rawLayer)) rawLayer.setLatLngs(snapped);
+          }).catch(() => { state.pending = false; });
+        }
+      }
       const start = points[0];
       const end = points[points.length - 1];
       layers.push(L.circleMarker(latlngs[0], { radius: 7, color: '#fff', weight: 2, fillColor: '#14a968', fillOpacity: 1 }).addTo(map).bindTooltip(`Départ · ${escapeHtml(session?.startPlace || driverPointLabel(start))}`));
@@ -16082,7 +16157,7 @@
       const avatar = document.getElementById('driver-settings-avatar');
       if (avatar) avatar.textContent = internalMailInitials(employee.fullName || currentUserUsername);
       const activePoints = active
-        ? (result.locations || []).filter(point => Number(point.trackingSessionId) === Number(result.activeSession.id))
+        ? (Array.isArray(result.sessionLocations) ? result.sessionLocations : [])
         : (location ? [location] : []);
       renderDriverRouteMap('driver-map', activePoints, 'vehicle', result.activeSession);
       if (location && window.navigator?.getBattery) {
@@ -16240,6 +16315,11 @@
         const locations = Array.isArray(driverVehicleState.locations) ? driverVehicleState.locations : [];
         locations.push(driverLastPosition);
         driverVehicleState.locations = locations.slice(-100);
+        const sessionLocations = Array.isArray(driverVehicleState.sessionLocations) ? driverVehicleState.sessionLocations : [];
+        if (driverLastPosition && Number(driverLastPosition.trackingSessionId || driverTrackingSession?.id) === Number(driverTrackingSession?.id)) {
+          sessionLocations.push(driverLastPosition);
+        }
+        driverVehicleState.sessionLocations = sessionLocations.slice(-10000);
       }
       setDriverStatusMessage('Position transmise automatiquement.');
       driverUpdateVehicleSummary();
@@ -16486,6 +16566,7 @@
 
       if (!selectedAutoLocationVehicleId) {
         autoLocationHistoryCache = [];
+        autoLocationRouteCache = [];
         renderAutoVehicleLocationHistory();
         renderAutoVehicleMap();
         renderMapsModule();
@@ -16493,10 +16574,16 @@
       }
 
       try {
-        const payload = await fetchJson(`/api/auto-vehicles/${selectedAutoLocationVehicleId}/locations?limit=25`);
-        autoLocationHistoryCache = Array.isArray(payload.locations) ? payload.locations : [];
+        const payload = await fetchJson(`/api/auto-vehicles/${selectedAutoLocationVehicleId}/locations?limit=3000`);
+        const allLocations = Array.isArray(payload.locations) ? payload.locations : [];
+        autoLocationHistoryCache = allLocations.slice(0, 25);
+        const latestSessionId = Number(allLocations.find(l => Number(l.trackingSessionId) > 0)?.trackingSessionId || 0);
+        autoLocationRouteCache = (latestSessionId
+          ? allLocations.filter(l => Number(l.trackingSessionId) === latestSessionId)
+          : allLocations.slice(0, 25)).slice().reverse();
       } catch (err) {
         autoLocationHistoryCache = [];
+        autoLocationRouteCache = [];
         showMessage('Erreur chargement historique GPS: ' + err.message, 'error');
       }
 

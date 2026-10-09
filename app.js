@@ -9684,8 +9684,18 @@ app.get('/api/driver/vehicle', async (req, res) => {
     [Number(vehicle.id)]
   );
   const activeSession = await getActiveDriverSession(vehicle.id, employee.id);
+  const sessionLocations = activeSession
+    ? await all(
+      `SELECT id, vehicle_id AS vehicleId, latitude, longitude, speed_kph AS speedKph,
+          heading, accuracy_meters AS accuracyMeters, source, status, note, recorded_at AS recordedAt,
+          trackingSessionId
+       FROM auto_vehicle_locations WHERE trackingSessionId = ? ORDER BY recorded_at ASC, id ASC LIMIT 10000`,
+      [Number(activeSession.id)]
+    )
+    : [];
   const settings = await get('SELECT movingIntervalSeconds, idleIntervalSeconds FROM auto_driver_settings WHERE chauffeurEmployeeId = ? LIMIT 1', [Number(employee.id)]);
   return res.json({ employee, vehicle, lastLocation: latest || null, locations: locations || [], device: device || null,
+    sessionLocations: sessionLocations || [],
     activeSession: activeSession || null,
     settings: settings || { movingIntervalSeconds: Number(device?.movingIntervalSeconds || 10), idleIntervalSeconds: Number(device?.idleIntervalSeconds || 60) } });
 });
@@ -10143,6 +10153,7 @@ app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
       status,
       note,
       recorded_at AS recordedAt,
+      trackingSessionId,
       created_by AS createdBy
     FROM auto_vehicle_locations
     WHERE vehicle_id = ?
