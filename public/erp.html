@@ -14651,6 +14651,17 @@
       };
     }
 
+    let driverLiveStamp = null;
+    function renderDriverLiveStamp() {
+      if (!driverLiveStamp) { setText('driver-live-updated', 'En attente d’une position GPS'); return; }
+      const d = new Date(driverLiveStamp.at);
+      const sec = Math.max(0, Math.round((Date.now() - d.getTime()) / 1000));
+      const time = Number.isNaN(d.getTime()) ? '-' : d.toLocaleTimeString('fr-FR');
+      let state = '';
+      if (driverLiveStamp.active) state = sec <= 10 ? ' • en direct' : ' • signal perdu depuis ' + (sec < 120 ? sec + ' s' : Math.round(sec / 60) + ' min') + ' (le téléphone n’envoie plus)';
+      setText('driver-live-updated', 'Dernière mise à jour : ' + time + (Number.isNaN(d.getTime()) ? '' : ' (il y a ' + sec + ' s)') + state);
+    }
+    setInterval(renderDriverLiveStamp, 1000);
     function formatAutoLocationTimestamp(value) {
       if (!value) return 'Jamais';
       const date = new Date(value);
@@ -16247,7 +16258,8 @@
       setText('driver-kpi-speed', `${Math.round(speedKph)} km/h`);
       setText('driver-kpi-motion', speedKph > 2 ? 'En déplacement' : (location ? 'À l’arrêt' : 'En attente de position'));
       setText('driver-kpi-last-signal', location ? internalMailDate(location.recordedAt) : 'Aucun signal');
-      setText('driver-live-updated', location ? `Dernière mise à jour : ${formatAutoLocationTimestamp(location.recordedAt)}` : 'En attente d’une position GPS');
+      driverLiveStamp = location ? { at: location.recordedAt, active } : null;
+      renderDriverLiveStamp();
       setText('driver-device-signal', location ? getAutoLocationStatusLabel(location.status) : 'En attente');
       setText('driver-device-name', active ? (result.activeSession.deviceName || 'Appareil actuel') : (result.device?.deviceName || 'Appareil actuel'));
       const status = document.getElementById('driver-vehicle-status');
