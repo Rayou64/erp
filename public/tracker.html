@@ -138,11 +138,11 @@
     <div class="grid">
       <div class="field">
         <label for="movingInterval">Intervalle en mouvement (sec)</label>
-        <input id="movingInterval" type="number" min="5" value="20" />
+        <input id="movingInterval" type="number" min="1" value="1" />
       </div>
       <div class="field">
         <label for="idleInterval">Intervalle à l'arrêt (sec)</label>
-        <input id="idleInterval" type="number" min="20" value="120" />
+        <input id="idleInterval" type="number" min="1" value="1" />
       </div>
     </div>
 
@@ -203,8 +203,8 @@
     }
 
     function getIntervalsMs() {
-      const movingSec = Math.max(Number(movingIntervalInput.value || 20), 5);
-      const idleSec = Math.max(Number(idleIntervalInput.value || 120), 20);
+      const movingSec = Math.max(Number(movingIntervalInput.value || 1), 1);
+      const idleSec = Math.max(Number(idleIntervalInput.value || 1), 1);
       return {
         moving: movingSec * 1000,
         idle: idleSec * 1000,
@@ -439,7 +439,7 @@
             setStatus(gpsErrorText(error), error && error.code === 1);
             if (error && error.code !== 1 && highAccuracy) startWatch(false);
           },
-          { enableHighAccuracy: highAccuracy, maximumAge: 10000, timeout: highAccuracy ? 20000 : 60000 }
+          { enableHighAccuracy: highAccuracy, maximumAge: 0, timeout: highAccuracy ? 20000 : 60000 }
         );
       };
       navigator.geolocation.getCurrentPosition(
@@ -454,7 +454,7 @@
 
       sendTimer = setInterval(() => {
         sendLastPositionOnce(false);
-      }, 5000);
+      }, 1000);
 
       setStatus('Tracking lancé. Les positions seront envoyées automatiquement.', false);
     }

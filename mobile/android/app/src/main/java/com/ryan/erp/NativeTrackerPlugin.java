@@ -31,8 +31,8 @@ public class NativeTrackerPlugin extends Plugin {
             .putString(TrackerService.KEY_BASE_URL, baseUrl.replaceAll("/+$", ""))
             .putInt(TrackerService.KEY_VEHICLE, call.getInt("vehicleId", 0))
             .putString(TrackerService.KEY_STATUS, call.getString("status", "online"))
-            .putInt(TrackerService.KEY_MOVING, Math.max(call.getInt("movingSec", 20), 5))
-            .putInt(TrackerService.KEY_IDLE, Math.max(call.getInt("idleSec", 120), 20))
+            .putInt(TrackerService.KEY_MOVING, Math.max(call.getInt("movingSec", 1), 1))
+            .putInt(TrackerService.KEY_IDLE, Math.max(call.getInt("idleSec", 1), 1))
             .apply();
         try {
             TrackerService.start(getContext());

@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'ryanerp-static-v6';
+const STATIC_CACHE = 'ryanerp-static-v7';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

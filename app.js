@@ -621,6 +621,7 @@ app.use((req, res, next) => {
 const apiRateLimiter = rateLimit({
   windowMs: API_RATE_WINDOW_MS,
   max: API_RATE_MAX,
+  skip: req => req.path === '/gps/ingest' || req.path === '/gps/stop',
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Trop de requetes, reessaie dans quelques instants.' },
@@ -3153,6 +3154,7 @@ async function initDb() {
   try { await run('ALTER TABLE auto_driver_settings ADD COLUMN movingIntervalSeconds INTEGER NOT NULL DEFAULT 10'); } catch (error) {}
   try { await run('ALTER TABLE auto_driver_settings ADD COLUMN idleIntervalSeconds INTEGER NOT NULL DEFAULT 60'); } catch (error) {}
   try { await run("ALTER TABLE auto_driver_settings ADD COLUMN updatedAt TEXT NOT NULL DEFAULT ''"); } catch (error) {}
+  try { await run('UPDATE auto_driver_settings SET movingIntervalSeconds = 1, idleIntervalSeconds = 1 WHERE movingIntervalSeconds = 10 AND idleIntervalSeconds = 60'); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS auto_transport_costs (
     id INTEGER PRIMARY KEY,
@@ -9450,8 +9452,8 @@ app.post('/api/driver/tracking-sessions/start', async (req, res) => {
   const startedAt = now.toISOString();
   const expiresAt = '9999-12-31T23:59:59.999Z';
   const deviceName = String(payload.deviceName || req.headers['user-agent'] || 'Téléphone chauffeur').trim().slice(0, 120) || 'Téléphone chauffeur';
-  const movingIntervalSeconds = normalizeDriverInterval(payload.movingIntervalSeconds, 10, 5, 300);
-  const idleIntervalSeconds = normalizeDriverInterval(payload.idleIntervalSeconds, 60, 15, 900);
+  const movingIntervalSeconds = normalizeDriverInterval(payload.movingIntervalSeconds, 1, 1, 300);
+  const idleIntervalSeconds = normalizeDriverInterval(payload.idleIntervalSeconds, 1, 1, 900);
   const token = generateTrackingToken();
   const tokenHash = hashTrackingToken(token);
   let device = await get('SELECT id FROM auto_tracking_devices WHERE vehicleId = ? LIMIT 1', [Number(vehicle.id)]);
@@ -9594,8 +9596,8 @@ app.get('/api/driver/tracking-sessions', async (req, res) => {
 app.patch('/api/driver/settings', async (req, res) => {
   const { employee, vehicle } = await getDriverEmployeeAndVehicle(req.user);
   if (!employee || !vehicle) return res.status(403).json({ error: 'Aucun véhicule affecté à ce compte chauffeur' });
-  const movingIntervalSeconds = normalizeDriverInterval(req.body?.movingIntervalSeconds, 10, 5, 300);
-  const idleIntervalSeconds = normalizeDriverInterval(req.body?.idleIntervalSeconds, 60, 15, 900);
+  const movingIntervalSeconds = normalizeDriverInterval(req.body?.movingIntervalSeconds, 1, 1, 300);
+  const idleIntervalSeconds = normalizeDriverInterval(req.body?.idleIntervalSeconds, 1, 1, 900);
   const now = new Date().toISOString();
   const existingSettings = await get('SELECT id FROM auto_driver_settings WHERE chauffeurEmployeeId = ? LIMIT 1', [Number(employee.id)]);
   if (existingSettings) {
@@ -9689,15 +9691,15 @@ app.get('/api/driver/vehicle', async (req, res) => {
       `SELECT id, vehicle_id AS vehicleId, latitude, longitude, speed_kph AS speedKph,
           heading, accuracy_meters AS accuracyMeters, source, status, note, recorded_at AS recordedAt,
           trackingSessionId
-       FROM auto_vehicle_locations WHERE trackingSessionId = ? ORDER BY recorded_at ASC, id ASC LIMIT 10000`,
-      [Number(activeSession.id)]
+       FROM auto_vehicle_locations WHERE trackingSessionId = ? AND id > ? ORDER BY recorded_at ASC, id ASC LIMIT 20000`,
+      [Number(activeSession.id), Math.max(Number(req.query.afterId || 0), 0)]
     )
     : [];
   const settings = await get('SELECT movingIntervalSeconds, idleIntervalSeconds FROM auto_driver_settings WHERE chauffeurEmployeeId = ? LIMIT 1', [Number(employee.id)]);
   return res.json({ employee, vehicle, lastLocation: latest || null, locations: locations || [], device: device || null,
     sessionLocations: sessionLocations || [],
     activeSession: activeSession || null,
-    settings: settings || { movingIntervalSeconds: Number(device?.movingIntervalSeconds || 10), idleIntervalSeconds: Number(device?.idleIntervalSeconds || 60) } });
+    settings: settings || { movingIntervalSeconds: Number(device?.movingIntervalSeconds || 1), idleIntervalSeconds: Number(device?.idleIntervalSeconds || 1) } });
 });
 
 app.post('/api/driver/tracking-device', async (req, res) => {
@@ -10123,7 +10125,8 @@ app.get('/api/auto-vehicles/:id/tracking-sessions', async (req, res) => {
 
 app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
   const id = Number(req.params.id);
-  const limit = Math.min(Math.max(Number(req.query.limit || 25), 1), 5000);
+  const limit = Math.min(Math.max(Number(req.query.limit || 25), 1), 20000);
+  const afterId = Math.max(Number(req.query.afterId || 0), 0);
 
   if (!id) {
     return res.status(400).json({ error: 'ID vehicule invalide' });
@@ -10158,9 +10161,10 @@ app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
     FROM auto_vehicle_locations
     WHERE vehicle_id = ?
       AND (? = 0 OR recorded_at >= ?)
+      AND (? = 0 OR id > ?)
     ORDER BY recorded_at DESC, id DESC
     LIMIT ?`,
-    [id, fromTrackingStart ? 1 : 0, trackingStartAt, limit]
+    [id, fromTrackingStart ? 1 : 0, trackingStartAt, afterId, afterId, limit]
   );
 
   res.json({

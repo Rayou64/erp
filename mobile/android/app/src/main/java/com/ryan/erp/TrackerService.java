@@ -59,6 +59,7 @@ public class TrackerService extends Service implements LocationListener {
     private PowerManager.WakeLock wakeLock;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private long lastSentElapsed = 0;
+    private long lastGpsFixElapsed = 0;
     private boolean stopping = false;
 
     static void start(Context context) {
@@ -129,10 +130,10 @@ public class TrackerService extends Service implements LocationListener {
         try {
             locationManager.removeUpdates(this);
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, this, Looper.getMainLooper());
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this, Looper.getMainLooper());
             }
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 15000, 0, this, Looper.getMainLooper());
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000, 0, this, Looper.getMainLooper());
             }
         } catch (SecurityException ignored) {
             // Permission de localisation retirée : le service reste actif et réessaiera au prochain redémarrage.
@@ -143,10 +144,13 @@ public class TrackerService extends Service implements LocationListener {
     public void onLocationChanged(Location location) {
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         double speedKph = location.hasSpeed() ? location.getSpeed() * 3.6 : 0;
-        long intervalMs = (speedKph >= 5 ? prefs.getInt(KEY_MOVING, 20) : prefs.getInt(KEY_IDLE, 120)) * 1000L;
+        long intervalMs = (speedKph >= 5 ? prefs.getInt(KEY_MOVING, 1) : prefs.getInt(KEY_IDLE, 1)) * 1000L;
         long now = SystemClock.elapsedRealtime();
+        boolean isGps = LocationManager.GPS_PROVIDER.equals(location.getProvider());
+        if (isGps) lastGpsFixElapsed = now;
+        else if (lastGpsFixElapsed != 0 && now - lastGpsFixElapsed < 10000) return;
         boolean first = lastSentElapsed == 0;
-        if (!first && now - lastSentElapsed < intervalMs) return;
+        if (!first && now - lastSentElapsed < intervalMs - 200) return;
         lastSentElapsed = now;
 
         try {

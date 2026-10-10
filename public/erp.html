@@ -14126,6 +14126,7 @@
       return new Set(normalizeAccessProfileModuleList(presets[normalizedRole] || []));
     }
     const AUTO_MAP_REFRESH_MS = 10000;
+    const AUTO_MAP_FAST_MS = 1000;
     const AUTO_DASHBOARD_REFRESH_MS = 30000;
 
     function isCommis() {
@@ -14856,15 +14857,19 @@
           weight: 5,
           opacity: 0.9,
         }).addTo(autoVehicleMap);
-        const rawLayer = autoVehicleMapHistoryLayer;
-        snapRouteToRoads(historyCoords).then(snapped => {
-          if (snapped?.length && autoVehicleMap.hasLayer(rawLayer)) rawLayer.setLatLngs(snapped);
-        }).catch(() => {});
+        applyLiveRouteLine(`auto:${managerMapRouteKey()}`, autoVehicleMapHistoryLayer, autoVehicleMap, historyCoords);
         bounds.push(...historyCoords);
       }
 
+      const autoFitKey = managerMapRouteKey();
       if (bounds.length) {
-        autoVehicleMap.fitBounds(bounds, { padding: [30, 30], maxZoom: historyCoords.length > 1 ? 14 : 15 });
+        if (managerMapFitKeys.auto !== autoFitKey) {
+          managerMapFitKeys.auto = autoFitKey;
+          autoVehicleMap.fitBounds(bounds, { padding: [30, 30], maxZoom: historyCoords.length > 1 ? 14 : 15 });
+        } else if (historyCoords.length) {
+          const tip = historyCoords[historyCoords.length - 1];
+          if (!autoVehicleMap.getBounds().contains(tip)) autoVehicleMap.panTo(tip);
+        }
       } else {
         autoVehicleMap.setView([5.3364, -4.0267], 7);
       }
@@ -15297,15 +15302,14 @@
           weight: 5,
           opacity: 0.9,
         }).addTo(mapsModuleLeafletMap);
-        const rawLayer = mapsModuleLeafletHistoryLayer;
-        snapRouteToRoads(historyCoords).then(snapped => {
-          if (snapped?.length && mapsModuleLeafletMap.hasLayer(rawLayer)) rawLayer.setLatLngs(snapped);
-        }).catch(() => {});
+        applyLiveRouteLine(`maps:${managerMapRouteKey()}`, mapsModuleLeafletHistoryLayer, mapsModuleLeafletMap, historyCoords);
         bounds.push(...historyCoords);
       }
 
+      const mapsFitKey = managerMapRouteKey();
+      const mapsSelectionChanged = managerMapFitKeys.maps !== mapsFitKey;
       if (bounds.length) {
-        mapsModuleLeafletMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+        if (mapsSelectionChanged) mapsModuleLeafletMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
       } else {
         mapsModuleLeafletMap.setView([5.3364, -4.0267], 7);
       }
@@ -15313,10 +15317,15 @@
       const selectedMarker = mapsModuleLeafletMarkersByVehicleId.get(Number(selectedAutoLocationVehicleId));
       if (selectedMarker) {
         const selectedLatLng = selectedMarker.getLatLng();
-        const currentZoom = Number(mapsModuleLeafletMap.getZoom() || 0);
-        mapsModuleLeafletMap.setView(selectedLatLng, Math.max(currentZoom, 14), { animate: true });
-        selectedMarker.openPopup();
+        if (mapsSelectionChanged) {
+          const currentZoom = Number(mapsModuleLeafletMap.getZoom() || 0);
+          mapsModuleLeafletMap.setView(selectedLatLng, Math.max(currentZoom, 14), { animate: true });
+          selectedMarker.openPopup();
+        } else if (!mapsModuleLeafletMap.getBounds().contains(selectedLatLng)) {
+          mapsModuleLeafletMap.panTo(selectedLatLng);
+        }
       }
+      managerMapFitKeys.maps = mapsFitKey;
     }
 
     function setMapsModuleMapMode(mode) {
@@ -16040,6 +16049,34 @@
     }
 
     const driverRouteSnapState = new Map();
+    const managerRouteSnapState = new Map();
+    const managerMapFitKeys = { auto: '', maps: '' };
+
+    function applyLiveRouteLine(stateKey, layer, map, coords) {
+      const st = managerRouteSnapState.get(stateKey) || {};
+      if (st.snapped?.length && coords.length >= (st.count || 0)) {
+        layer.setLatLngs(st.snapped.concat(coords.slice(st.count || 0)));
+      } else if (st.snapped) {
+        st.snapped = null;
+        st.count = 0;
+      }
+      managerRouteSnapState.set(stateKey, st);
+      if (st.pending || Date.now() - (st.at || 0) < (st.snapped ? 15000 : 0)) return;
+      st.pending = true;
+      st.at = Date.now();
+      const count = coords.length;
+      snapRouteToRoads(coords).then(snapped => {
+        st.pending = false;
+        if (!snapped?.length) return;
+        st.snapped = snapped;
+        st.count = count;
+        if (map.hasLayer(layer)) layer.setLatLngs(snapped);
+      }).catch(() => { st.pending = false; });
+    }
+
+    function managerMapRouteKey() {
+      return `${selectedAutoLocationVehicleId}:${autoLocationRouteCache[0]?.trackingSessionId || ''}`;
+    }
 
     function renderDriverRouteMap(containerId, locations, kind = 'vehicle', session = null) {
       const isHistory = kind === 'history';
@@ -16131,8 +16168,15 @@
       if (driverCurrentView !== 'vehicle' || driverTrackingUiOverride) return;
       driverLivePollInFlight = true;
       try {
-        const result = await fetchJson('/api/driver/vehicle');
+        const prev = driverVehicleState;
+        const prevPoints = Array.isArray(prev?.sessionLocations) ? prev.sessionLocations : [];
+        const sameSession = prev?.activeSession && Number(prev.activeSession.id) === Number(driverTrackingSession?.id) && prevPoints.length;
+        const lastId = sameSession ? Math.max(...prevPoints.map(p => Number(p.id) || 0)) : 0;
+        const result = await fetchJson('/api/driver/vehicle' + (lastId ? '?afterId=' + lastId : ''));
         if (result?.activeSession) {
+          if (lastId && Number(result.activeSession.id) === Number(prev.activeSession.id)) {
+            result.sessionLocations = prevPoints.concat(result.sessionLocations || []);
+          }
           driverVehicleState = result;
           driverTrackingSession = result.activeSession;
           if (!driverGpsWatchId) driverLastPosition = null;
@@ -16150,7 +16194,7 @@
 
     function startDriverLivePolling() {
       if (driverLivePollTimer) return;
-      driverLivePollTimer = window.setInterval(driverLivePollTick, 5000);
+      driverLivePollTimer = window.setInterval(driverLivePollTick, 1000);
       document.addEventListener('visibilitychange', () => { if (!document.hidden) driverLivePollTick(); });
     }
 
@@ -16233,7 +16277,7 @@
       const authorized = active || Boolean(result.device?.isActive);
       setText('driver-settings-device-title', authorized ? 'Appareil autorisé' : 'Appareil non autorisé');
       setText('driver-settings-device-state', authorized ? 'Cet appareil est lié à votre compte et à votre véhicule.' : 'Démarrez un suivi depuis Mon véhicule pour autoriser cet appareil.');
-      setText('driver-settings-interval', `Intervalle : ${Number(settings.movingIntervalSeconds || 10)} secondes`);
+      setText('driver-settings-interval', `Intervalle : ${Number(settings.movingIntervalSeconds || 1)} seconde(s)`);
       const revokeButton = document.getElementById('driver-revoke-tracking');
       if (revokeButton) revokeButton.disabled = !authorized;
       const avatar = document.getElementById('driver-settings-avatar');
@@ -16368,7 +16412,7 @@
         driverLastPosition = point;
         const moving = point.speedKph >= 3;
         const configured = driverVehicleState?.settings || {};
-        const intervalMs = Number(moving ? configured.movingIntervalSeconds : configured.idleIntervalSeconds) * 1000 || (moving ? 10000 : 60000);
+        const intervalMs = Number(moving ? configured.movingIntervalSeconds : configured.idleIntervalSeconds) * 1000 || 1000;
         if (Date.now() - driverLastSentAt >= intervalMs) sendDriverPosition(position).catch(error => setDriverStatusMessage(error.message, true));
         driverUpdateVehicleSummary();
       }, error => {
@@ -16527,8 +16571,8 @@
               destinationPlace: driverDestination.text || document.getElementById('driver-destination-place')?.value.trim() || '',
               destinationLatitude: Number.isFinite(driverDestination.latitude) ? driverDestination.latitude : null,
               destinationLongitude: Number.isFinite(driverDestination.longitude) ? driverDestination.longitude : null,
-              movingIntervalSeconds: Number(driverVehicleState?.settings?.movingIntervalSeconds || 10),
-              idleIntervalSeconds: Number(driverVehicleState?.settings?.idleIntervalSeconds || 60),
+              movingIntervalSeconds: Number(driverVehicleState?.settings?.movingIntervalSeconds || 1),
+              idleIntervalSeconds: Number(driverVehicleState?.settings?.idleIntervalSeconds || 1),
             }),
           });
           driverTrackingSession = result.session;
@@ -16640,6 +16684,7 @@
 
     async function setSelectedAutoLocationVehicle(vehicleId) {
       const numericVehicleId = Number(vehicleId);
+      const sameVehicle = selectedAutoLocationVehicleId === numericVehicleId;
       selectedAutoLocationVehicleId = Number.isInteger(numericVehicleId) && numericVehicleId > 0 ? numericVehicleId : null;
 
       const select = document.getElementById('auto-location-vehicle');
@@ -16656,8 +16701,15 @@
         return;
       }
 
+      if (autoMapLiveRefreshInFlight && sameVehicle && autoLocationRouteCache.some(l => Number(l.trackingSessionId) > 0)) {
+        renderAutoVehicleLocationHistory();
+        renderAutoVehicleMap();
+        renderMapsModule();
+        return;
+      }
+
       try {
-        const payload = await fetchJson(`/api/auto-vehicles/${selectedAutoLocationVehicleId}/locations?limit=3000`);
+        const payload = await fetchJson(`/api/auto-vehicles/${selectedAutoLocationVehicleId}/locations?limit=20000`);
         const allLocations = Array.isArray(payload.locations) ? payload.locations : [];
         autoLocationHistoryCache = allLocations.slice(0, 25);
         const latestSessionId = Number(allLocations.find(l => Number(l.trackingSessionId) > 0)?.trackingSessionId || 0);
@@ -26212,8 +26264,47 @@
       }
     }
 
+    let autoMapFastTimer = null;
+    let autoMapFastInFlight = false;
+
+    async function autoMapFastTick() {
+      if (autoMapFastInFlight || document.hidden || !shouldAutoRefreshMaps() || !selectedAutoLocationVehicleId) return;
+      const vehicleId = selectedAutoLocationVehicleId;
+      const sessionId = Number(autoLocationRouteCache[0]?.trackingSessionId || 0);
+      if (!sessionId) return;
+      autoMapFastInFlight = true;
+      try {
+        const lastId = autoLocationRouteCache.reduce((max, l) => Math.max(max, Number(l.id) || 0), 0);
+        const payload = await fetchJson(`/api/auto-vehicles/${vehicleId}/locations?afterId=${lastId}&limit=5000`);
+        if (vehicleId !== selectedAutoLocationVehicleId) return;
+        const fresh = (Array.isArray(payload.locations) ? payload.locations : []).slice().reverse();
+        if (!fresh.length) return;
+        if (fresh.some(l => Number(l.trackingSessionId) !== sessionId)) {
+          await setSelectedAutoLocationVehicle(vehicleId);
+          return;
+        }
+        autoLocationRouteCache = autoLocationRouteCache.concat(fresh);
+        autoLocationHistoryCache = fresh.slice().reverse().concat(autoLocationHistoryCache).slice(0, 25);
+        const newest = fresh[fresh.length - 1];
+        const vehicle = autoVehicleLocationsCache.find(v => Number(v.id) === Number(vehicleId));
+        if (vehicle) vehicle.lastLocation = Object.assign({}, vehicle.lastLocation || {}, newest);
+        renderAutoVehicleLocationHistory();
+        renderAutoVehicleMap();
+        renderMapsModule();
+      } catch (_e) {
+      } finally {
+        autoMapFastInFlight = false;
+      }
+    }
+
     function syncAutoMapLiveRefresh() {
-      const shouldRun = shouldAutoRefreshMaps();
+      const fastShouldRun = shouldAutoRefreshMaps();
+      if (fastShouldRun && !autoMapFastTimer) {
+        autoMapFastTimer = window.setInterval(autoMapFastTick, AUTO_MAP_FAST_MS);
+      } else if (!fastShouldRun && autoMapFastTimer) {
+        window.clearInterval(autoMapFastTimer);
+        autoMapFastTimer = null;
+      }      const shouldRun = shouldAutoRefreshMaps();
 
       if (shouldRun && !autoMapLiveRefreshTimer) {
         autoMapLiveRefreshTimer = window.setInterval(() => {
