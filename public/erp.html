@@ -12518,6 +12518,12 @@
             #driver-tracker .driver-map-toolbar button.active { border-color:#2878f5; background:#2878f5; color:#fff; }
             #driver-tracker .driver-map { height:clamp(300px,42vh,430px); overflow:hidden; border:1px solid #e1eaf5; border-radius:8px; background:#eaf1f8; }
             #driver-tracker .driver-map .leaflet-container { width:100%; height:100%; font:11px 'DM Sans','Segoe UI',sans-serif; }
+            #driver-tracker .driver-map { position:relative; }
+            .driver-live-dot { background:transparent; border:0; }
+            .driver-live-dot .driver-live-core { position:absolute; left:3px; top:3px; width:16px; height:16px; border-radius:50%; background:#2878f5; border:3px solid #fff; box-shadow:0 1px 6px #0006; box-sizing:border-box; }
+            .driver-live-dot .driver-live-pulse { position:absolute; left:0; top:0; width:22px; height:22px; border-radius:50%; background:#2878f555; animation:driverPulse 1.8s ease-out infinite; }
+            @keyframes driverPulse { 0% { transform:scale(.6); opacity:.9; } 100% { transform:scale(2.6); opacity:0; } }
+            .driver-recenter { position:absolute; z-index:800; right:10px; bottom:10px; padding:7px 11px; border:0; border-radius:18px; background:#fff; color:#2878f5; font:600 12px 'DM Sans','Segoe UI',sans-serif; box-shadow:0 2px 8px #0003; cursor:pointer; }
             #driver-tracker .driver-detail-panel { display:flex; flex-direction:column; gap:10px; }
             #driver-tracker .driver-vehicle-summary { display:grid; grid-template-columns:96px minmax(0,1fr); align-items:center; gap:12px; padding-bottom:10px; border-bottom:1px solid #edf1f7; }
             #driver-tracker .driver-vehicle-photo { display:grid; place-items:center; width:96px; height:66px; overflow:hidden; border-radius:7px; background:#f2f6fb; }
@@ -14835,6 +14841,7 @@
           window.selectAutoVehicleOnMap(Number(vehicle.id));
         });
 
+        if (isSelected) { autoVehicleMapLayers.push(L.marker([lat, lng], { icon: L.divIcon({ className: 'driver-live-dot', html: '<span class="driver-live-pulse"></span><span class="driver-live-core"></span>', iconSize: [22, 22], iconAnchor: [11, 11] }), interactive: false, keyboard: false, zIndexOffset: 900 }).addTo(autoVehicleMap)); }
         autoVehicleMapLayers.push(marker);
         bounds.push([lat, lng]);
       });
@@ -15274,6 +15281,7 @@
           window.mapsSelectVehicle(Number(vehicle.id));
         });
 
+        if (Number(vehicle.id) === Number(selectedAutoLocationVehicleId)) { mapsModuleLeafletLayers.push(L.marker([lat, lng], { icon: L.divIcon({ className: 'driver-live-dot', html: '<span class="driver-live-pulse"></span><span class="driver-live-core"></span>', iconSize: [22, 22], iconAnchor: [11, 11] }), interactive: false, keyboard: false, zIndexOffset: 900 }).addTo(mapsModuleLeafletMap)); }
         mapsModuleLeafletLayers.push(marker);
         mapsModuleLeafletMarkersByVehicleId.set(Number(vehicle.id), marker);
         bounds.push([lat, lng]);
@@ -16043,18 +16051,21 @@
       if (latlngs.length > 1) {
         const stateKey = `${containerId}:${session?.id || 'live'}`;
         const state = driverRouteSnapState.get(stateKey) || {};
-        const rawLayer = L.polyline(state.snapped && state.snapped.length ? state.snapped : latlngs, { color: '#2878f5', weight: 5, opacity: 0.92, lineJoin: 'round' }).addTo(map);
+        const initialLine = state.snapped && state.snapped.length ? state.snapped.concat(latlngs.slice(state.snappedCount || 0)) : latlngs;
+        const rawLayer = L.polyline(initialLine, { color: '#2878f5', weight: 5, opacity: 0.92, lineJoin: 'round' }).addTo(map);
         layers.push(rawLayer);
         const signature = `${latlngs.length}:${latlngs[latlngs.length - 1].join(',')}`;
         if (state.signature !== signature && !state.pending && Date.now() - (state.lastAt || 0) > (state.snapped ? 15000 : 0)) {
           state.pending = true;
           state.lastAt = Date.now();
           driverRouteSnapState.set(stateKey, state);
+          const snapCount = latlngs.length;
           snapRouteToRoads(latlngs).then(snapped => {
             state.pending = false;
             if (!snapped?.length) return;
             state.signature = signature;
             state.snapped = snapped;
+            state.snappedCount = snapCount;
             if (map.hasLayer(rawLayer)) rawLayer.setLatLngs(snapped);
           }).catch(() => { state.pending = false; });
         }
@@ -16062,15 +16073,70 @@
       const start = points[0];
       const end = points[points.length - 1];
       layers.push(L.circleMarker(latlngs[0], { radius: 7, color: '#fff', weight: 2, fillColor: '#14a968', fillOpacity: 1 }).addTo(map).bindTooltip(`Départ · ${escapeHtml(session?.startPlace || driverPointLabel(start))}`));
-      if (points.length > 1) {
-        layers.push(L.circleMarker(latlngs[latlngs.length - 1], { radius: 7, color: '#fff', weight: 2, fillColor: session?.status === 'active' ? '#2878f5' : '#e74852', fillOpacity: 1 }).addTo(map).bindTooltip(`${session?.status === 'active' ? 'Position actuelle' : 'Arrivée'} · ${escapeHtml(session?.arrivalPlace || driverPointLabel(end))}`));
+      const isLive = !isHistory && session?.status === 'active';
+      if (isLive) {
+        const liveIcon = L.divIcon({ className: 'driver-live-dot', html: '<span class="driver-live-pulse"></span><span class="driver-live-core"></span>', iconSize: [22, 22], iconAnchor: [11, 11] });
+        layers.push(L.marker(latlngs[latlngs.length - 1], { icon: liveIcon, zIndexOffset: 1000, keyboard: false }).addTo(map).bindTooltip(`Position actuelle · ${escapeHtml(driverPointLabel(end))}`));
+      } else if (points.length > 1) {
+        layers.push(L.circleMarker(latlngs[latlngs.length - 1], { radius: 7, color: '#fff', weight: 2, fillColor: '#e74852', fillOpacity: 1 }).addTo(map).bindTooltip(`Arrivée · ${escapeHtml(session?.arrivalPlace || driverPointLabel(end))}`));
       }
-      if (latlngs.length > 1) map.fitBounds(L.latLngBounds(latlngs).pad(0.16));
+      if (isLive) {
+        if (!map._followBound) {
+          map._followBound = true;
+          map._follow = true;
+          map.on('dragstart zoomstart', () => { if (!map._programmatic) map._follow = false; });
+          const container = map.getContainer();
+          const recenter = L.DomUtil.create('button', 'driver-recenter', container);
+          recenter.type = 'button';
+          recenter.textContent = '◎ Suivre';
+          recenter.title = 'Recentrer sur le véhicule';
+          L.DomEvent.disableClickPropagation(recenter);
+          L.DomEvent.on(recenter, 'click', () => { map._follow = true; map._recenter?.(); });
+        }
+        map._recenter = () => {
+          map._programmatic = true;
+          map.setView(latlngs[latlngs.length - 1], Math.max(map.getZoom() || 0, 15), { animate: true });
+          window.setTimeout(() => { map._programmatic = false; }, 600);
+        };
+        if (map._follow) map._recenter();
+        else if (!map._fittedOnce) { map._fittedOnce = true; map.fitBounds(L.latLngBounds(latlngs).pad(0.16)); }
+      } else if (latlngs.length > 1) map.fitBounds(L.latLngBounds(latlngs).pad(0.16));
       else map.setView(latlngs[0], 14);
       window.requestAnimationFrame(() => map.invalidateSize());
     }
 
     let driverTrackingUiOverride = null;
+    let driverLivePollTimer = null;
+    let driverLivePollInFlight = false;
+
+    async function driverLivePollTick() {
+      if (driverLivePollInFlight || document.hidden) return;
+      if (currentModule !== 'driver-tracker' && !document.querySelector('#driver-tracker.active')) return;
+      if (driverCurrentView !== 'vehicle' || driverTrackingUiOverride) return;
+      driverLivePollInFlight = true;
+      try {
+        const result = await fetchJson('/api/driver/vehicle');
+        if (result?.activeSession) {
+          driverVehicleState = result;
+          driverTrackingSession = result.activeSession;
+          if (!driverGpsWatchId) driverLastPosition = null;
+          driverUpdateVehicleSummary();
+        } else if (driverTrackingSession) {
+          driverVehicleState = result;
+          driverTrackingSession = null;
+          driverUpdateVehicleSummary();
+        }
+      } catch (_e) {
+      } finally {
+        driverLivePollInFlight = false;
+      }
+    }
+
+    function startDriverLivePolling() {
+      if (driverLivePollTimer) return;
+      driverLivePollTimer = window.setInterval(driverLivePollTick, 5000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) driverLivePollTick(); });
+    }
 
     const VEHICLE_ICON_BRANDS = {
       pickup: ['toyota', 'ford', 'chevrolet', 'ram', 'nissan', 'gmc', 'isuzu', 'mitsubishi', 'mazda'],
@@ -16166,6 +16232,7 @@
     }
 
     async function loadDriverTrackerModule() {
+      startDriverLivePolling();
       const noVehicle = document.getElementById('driver-no-vehicle');
       const content = document.getElementById('driver-vehicle-content');
       try {
