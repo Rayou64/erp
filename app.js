@@ -3947,12 +3947,21 @@ function startProductionPasswordSync() {
   setInterval(tick, 5 * 60 * 1000);
 }
 
-async function initializeDatabaseOnce() {
-  try {
+function startGpsRetentionCleanup() {
+  const days = Number(process.env.GPS_RETENTION_DAYS || 90);
+  if (!(days > 0)) return;
+  const tick = () => run('DELETE FROM auto_vehicle_locations WHERE recorded_at < ?', [new Date(Date.now() - days * 86400000).toISOString()])
+    .catch(e => console.warn('[gps-retention]', e.message || e));
+  setTimeout(tick, 60000);
+  setInterval(tick, 6 * 60 * 60 * 1000);
+}
+
+async function initializeDatabaseOnce() {  try {
     await initDbWithTimeout();
     isReady = true;
     console.log('Initialisation base de donnees terminee. API ready.');
     startProductionPasswordSync();
+    startGpsRetentionCleanup();
     runBackgroundReconciliationsOnce();
   } catch (error) {
     isReady = false;
