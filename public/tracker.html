@@ -175,9 +175,8 @@
     let lastSentAt = 0;
     let wakeLock = null;
     let nativeStatusTimer = null;
-    const nativeTracker = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())
-      ? window.Capacitor.registerPlugin('NativeTracker')
-      : null;
+    const isNativeApp = !!(window.Capacitor && ((window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || (window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android')));
+    const nativeTracker = isNativeApp ? window.Capacitor.registerPlugin('NativeTracker') : null;
 
     function setStatus(message, isError) {
       statusBox.textContent = message;
