@@ -14653,6 +14653,7 @@
 
     let driverLiveStamp = null;
     function renderDriverLiveStamp() {
+      const setText = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = String(value ?? ''); };
       if (!driverLiveStamp) { setText('driver-live-updated', 'En attente d’une position GPS'); return; }
       const d = new Date(driverLiveStamp.at);
       const sec = Math.max(0, Math.round((Date.now() - d.getTime()) / 1000));
