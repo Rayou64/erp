@@ -5,6 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Connexion - RyanERP</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    body{margin:0}
+    .login-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:linear-gradient(135deg,#0f2a4a 0%,#1d4ed8 55%,#38bdf8 100%)}
+    .auth-card{width:100%;max-width:400px;padding:36px 32px;border-radius:18px;background:#fff;box-shadow:0 24px 60px rgba(0,0,0,.35);text-align:center}
+    .auth-card .brand-mark{width:64px;height:64px;margin:0 auto 14px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#38bdf8);color:#fff;font:700 32px/64px system-ui,sans-serif}
+    .auth-card h1{margin:4px 0 6px;font-size:26px;color:#0f172a}
+    .auth-card .sub{margin:0 0 22px;color:#64748b;font-size:14px}
+    .auth-card .field-group{text-align:left;margin-bottom:14px}
+    .auth-card label{display:block;margin-bottom:6px;font-size:13px;font-weight:600;color:#334155}
+    .auth-card input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:15px}
+    .auth-card input:focus{outline:2px solid #1d4ed8;border-color:#1d4ed8}
+    .pw-wrap{position:relative}
+    .pw-wrap input{padding-right:84px}
+    .pw-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:auto;margin:0;padding:6px 10px;border:0;background:none;color:#1d4ed8;font-size:13px;font-weight:600;cursor:pointer}
+    .auth-card button[type=submit]{width:100%;margin-top:6px;padding:13px;border:0;border-radius:10px;background:#1d4ed8;color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+    .auth-card button[type=submit]:disabled{opacity:.7;cursor:wait}
+    .auth-card .error{min-height:20px;margin-top:12px;color:#b91c1c;font-size:14px}
+    .auth-card .secure{margin:10px 0 0;font-size:12px;color:#94a3b8}
+  </style>
 </head>
 <body>
   <div class="page login-shell">
@@ -13,20 +32,24 @@
       <div class="auth-header">
         <span class="eyebrow">RyanERP</span>
         <h1>Connexion</h1>
+        <p class="sub">Accédez à votre espace de travail</p>
       </div>
-      <p class="hint">Profils : <strong>admin</strong> / admin123 &nbsp;|&nbsp; <strong>achat_user</strong> / achat@123 &nbsp;|&nbsp; <strong>chef_chantier_site15</strong> / chefsite15@123</p>
       <form id="login-form">
         <div class="field-group">
           <label for="username">Nom d’utilisateur</label>
-          <input type="text" id="username" required autocomplete="username" placeholder="Nom d’utilisateur" />
+          <input type="text" id="username" required autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Nom d’utilisateur" />
         </div>
         <div class="field-group">
           <label for="password">Mot de passe</label>
-          <input type="password" id="password" required autocomplete="current-password" placeholder="********" />
+          <div class="pw-wrap">
+            <input type="password" id="password" required autocomplete="current-password" placeholder="Mot de passe" />
+            <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Afficher le mot de passe">Afficher</button>
+          </div>
         </div>
         <button type="submit">Se connecter</button>
       </form>
       <div id="login-error" class="error" aria-live="polite"></div>
+      <p class="secure">🔒 Connexion sécurisée</p>
       <p class="hint" id="app-version" style="text-align:center;font-size:12px"></p>
     </div>
   </div>
@@ -45,31 +68,48 @@
       })
       .catch(() => {});
 
+    document.querySelector('#pw-toggle').addEventListener('click', event => {
+      const input = document.querySelector('#password');
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      event.target.textContent = show ? 'Masquer' : 'Afficher';
+    });
+
     const form = document.querySelector('#login-form');
     const errorBox = document.querySelector('#login-error');
+    const submitBtn = form.querySelector('button[type=submit]');
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
       errorBox.textContent = '';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Connexion…';
 
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: document.querySelector('#username').value,
-          password: document.querySelector('#password').value,
-        }),
-      });
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.querySelector('#username').value,
+            password: document.querySelector('#password').value,
+          }),
+        });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        errorBox.textContent = data.error || 'Erreur de connexion';
-        return;
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          errorBox.textContent = data.error || 'Erreur de connexion';
+          return;
+        }
+
+        const data = await response.json();
+        localStorage.setItem('erp_token', data.token);
+        window.location.href = 'erp.html';
+      } catch (_error) {
+        errorBox.textContent = 'Serveur injoignable. Vérifiez votre connexion.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Se connecter';
       }
-
-      const data = await response.json();
-      localStorage.setItem('erp_token', data.token);
-      window.location.href = 'erp.html';
     });
   </script>
 </body>
