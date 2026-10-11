@@ -299,6 +299,7 @@ const SELECTIVE_DATA_PURGE_GROUPS = {
   activities: ['project_progress_updates', 'project_assignments'],
   procurement: ['stock_issue_authorization_items', 'stock_issues', 'stock_issue_authorizations', 'purchase_order_items', 'purchase_orders', 'material_requests'],
   finance: ['expenses', 'revenues'],
+  trips: ['auto_vehicle_locations', 'auto_tracking_sessions'],
 };
 const SELECTIVE_DATA_PURGE_DOCUMENT_TYPES = ['material_request_authorization', 'purchase_order'];
 
@@ -332,9 +333,16 @@ async function purgeSelectedBusinessData(groups, actorUsername) {
   const addDeletedCount = (name, result) => {
     deletedRows[name] = Number(result?.changes || result?.rowCount || 0);
   };
+  if (selectedGroups.has('trips') && !process.env.DATABASE_URL) {
+    try {
+      const backupDir = process.env.BACKUP_DIR || path.join(APP_DATA_DIR, 'backups');
+      fs.mkdirSync(backupDir, { recursive: true });
+      const backupFile = path.join(backupDir, `data-before-trips-purge-${new Date().toISOString().replace(/[:.]/g, '-')}.db`);
+      await run(`VACUUM INTO '${backupFile.replace(/'/g, "''")}'`);
+    } catch (_backupError) {}
+  }
   for (const group of selectedGroups) {
-    for (const tableName of SELECTIVE_DATA_PURGE_GROUPS[group] || []) {
-      const result = await run(`DELETE FROM ${tableName}`);
+    for (const tableName of SELECTIVE_DATA_PURGE_GROUPS[group] || []) {      const result = await run(`DELETE FROM ${tableName}`);
       addDeletedCount(tableName, result);
     }
   }

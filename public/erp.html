@@ -13130,6 +13130,7 @@
                 <label class="users-purge-option option-blue"><input type="checkbox" value="activities" data-purge-option><span class="purge-option-icon">▤</span><span><strong>Journal de chantier et assignations de projet</strong><small>Supprimer les entrées de suivi et les assignations liées aux projets.</small></span></label>
                 <label class="users-purge-option option-green"><input type="checkbox" value="procurement" data-purge-option><span class="purge-option-icon">▣</span><span><strong>Demandes d’approvisionnement et bons de commande</strong><small>Supprimer les demandes et leurs bons de commande.</small></span></label>
                 <label class="users-purge-option option-orange"><input type="checkbox" value="finance" data-purge-option><span class="purge-option-icon">◉</span><span><strong>Dépenses, revenus et sorties de stock</strong><small>Supprimer les transactions financières et les mouvements de stock.</small></span></label>
+                <label class="users-purge-option option-blue"><input type="checkbox" value="trips" data-purge-option><span class="purge-option-icon">➤</span><span><strong>Historique des trajets GPS</strong><small>Supprimer toutes les sessions de suivi et positions GPS (app mobile et cartes). Une copie de la base est faite avant.</small></span></label>
                 <label class="users-purge-option option-violet"><input type="checkbox" value="documents" data-purge-option><span class="purge-option-icon">▧</span><span><strong>Documents liés aux demandes et bons de commande</strong><small>Supprimer les documents générés associés aux transactions choisies.</small></span></label>
                 <div class="users-purge-additional"><span>Options supplémentaires</span></div>
                 <label class="users-purge-option option-rose"><input type="checkbox" value="profiles" data-purge-option><span class="purge-option-icon">♟</span><span><strong>Utilisateurs et profils RH</strong><small>Supprimer les profils et comptes non administrateurs. Le compte actuel est conservé.</small></span></label>
@@ -15257,7 +15258,7 @@
       link.href = `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=15`;
 
       if (focus.vehicle) {
-        label.textContent = `${buildAutoVehicleLabel(focus.vehicle)} • ${formatAutoLocationTimestamp(focus.location.recordedAt)}`;
+        label.textContent = `${buildAutoVehicleLabel(focus.vehicle)} • ${formatAutoLocationTimestamp(focus.location.recordedAt)} • Trace bleue du trajet : voir Vue technique`;
       } else {
         label.textContent = 'Aucune position GPS enregistrée. Vue centrée sur Abidjan.';
       }
