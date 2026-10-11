@@ -26,6 +26,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(NativeTrackerPlugin.class);
         super.onCreate(savedInstanceState);
+        getBridge().getWebView().addJavascriptInterface(new NativeBridge(this), "RyanNative");
         ArrayList<String> missing = new ArrayList<>();
         String[] wanted = new String[] {
             Manifest.permission.ACCESS_FINE_LOCATION,

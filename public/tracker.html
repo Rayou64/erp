@@ -177,11 +177,22 @@
     let nativeStatusTimer = null;
     const cap = window.Capacitor;
     let nativeTracker = null;
+    if (window.RyanNative) {
+      const rn = window.RyanNative;
+      nativeTracker = {
+        start: (o) => new Promise((resolve, reject) => {
+          const err = rn.start(o.token, o.baseUrl, Number(o.vehicleId || 0), o.status || 'online', Number(o.movingSec || 1), Number(o.idleSec || 1));
+          err ? reject(new Error(err)) : resolve();
+        }),
+        stop: () => { rn.stop(); return Promise.resolve(); },
+        getStatus: () => { try { return Promise.resolve(JSON.parse(rn.getStatus())); } catch (e) { return Promise.reject(e); } },
+      };
+    }
     try {
-      if (cap) {
+      if (cap && !nativeTracker) {
         nativeTracker = (cap.Plugins && cap.Plugins.NativeTracker) || (typeof cap.registerPlugin === 'function' ? cap.registerPlugin('NativeTracker') : null);
       }
-    } catch (_e) { nativeTracker = null; }
+    } catch (_e) { /* plugin indisponible */ }
     if (!nativeTracker && /\bwv\b/.test(navigator.userAgent) && cap) {
       console.warn('Plugin natif introuvable');
     }
