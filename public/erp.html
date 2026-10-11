@@ -14800,6 +14800,18 @@
         : '<div class="empty-state"><p>Aucune position GPS enregistrée.</p></div>';
     }
 
+    let managerOpenPopupVehicleId = null;
+    let managerMapRebuilding = false;
+    function keepManagerPopup(marker, vehicleId) {
+      marker.on('popupopen', () => { managerOpenPopupVehicleId = Number(vehicleId); });
+      marker.on('popupclose', () => { if (!managerMapRebuilding && managerOpenPopupVehicleId === Number(vehicleId)) managerOpenPopupVehicleId = null; });
+    }
+    function restoreManagerPopup(markerById) {
+      const marker = managerOpenPopupVehicleId != null ? markerById.get(managerOpenPopupVehicleId) : null;
+      if (marker && !marker.isPopupOpen()) marker.openPopup();
+      managerMapRebuilding = false;
+    }
+
     function renderAutoVehicleMap() {
       if (autoMapMode === 'google') {
         renderAutoGoogleMap();
@@ -14809,6 +14821,8 @@
 
       if (!initializeAutoVehicleMap()) return;
 
+      managerMapRebuilding = true;
+      const autoMarkersById = new Map();
       autoVehicleMapLayers.forEach(layer => autoVehicleMap.removeLayer(layer));
       autoVehicleMapLayers = [];
 
@@ -14840,6 +14854,8 @@
           weight: isSelected ? 4 : 2,
         }).addTo(autoVehicleMap);
 
+        keepManagerPopup(marker, vehicle.id);
+        autoMarkersById.set(Number(vehicle.id), marker);
         marker.bindPopup(`
           <div style="min-width: 180px;">
             <strong>${escapeHtml(buildAutoVehicleLabel(vehicle))}</strong><br />
@@ -14848,7 +14864,7 @@
             Dernière position: ${escapeHtml(formatAutoLocationTimestamp(vehicle.lastLocation.recordedAt))}<br />
             Vitesse: ${Number(vehicle.lastLocation.speedKph || 0).toFixed(1)} km/h
           </div>
-        `);
+        `, { autoPan: false });
 
         marker.on('click', () => {
           window.selectAutoVehicleOnMap(Number(vehicle.id));
@@ -14886,6 +14902,7 @@
         autoVehicleMap.setView([5.3364, -4.0267], 7);
       }
 
+      restoreManagerPopup(autoMarkersById);
       renderAutoMapSummary();
     }
 
@@ -15268,6 +15285,7 @@
     function renderMapsModuleLeafletMap() {
       if (!initializeMapsModuleLeafletMap()) return;
 
+      managerMapRebuilding = true;
       mapsModuleLeafletLayers.forEach(layer => mapsModuleLeafletMap.removeLayer(layer));
       mapsModuleLeafletLayers = [];
       mapsModuleLeafletMarkersByVehicleId.clear();
@@ -15293,7 +15311,8 @@
           weight: Number(vehicle.id) === Number(selectedAutoLocationVehicleId) ? 4 : 2,
         }).addTo(mapsModuleLeafletMap);
 
-        marker.bindPopup(`<strong>${escapeHtml(buildAutoVehicleLabel(vehicle))}</strong><br>${escapeHtml(getAutoLocationStatusLabel(vehicle.lastLocation.status))}`);
+        marker.bindPopup(`<strong>${escapeHtml(buildAutoVehicleLabel(vehicle))}</strong><br>${escapeHtml(getAutoLocationStatusLabel(vehicle.lastLocation.status))}`, { autoPan: false });
+        keepManagerPopup(marker, vehicle.id);
         marker.on('click', () => {
           window.mapsSelectVehicle(Number(vehicle.id));
         });
@@ -15338,6 +15357,7 @@
         }
       }
       managerMapFitKeys.maps = mapsFitKey;
+      restoreManagerPopup(mapsModuleLeafletMarkersByVehicleId);
     }
 
     function setMapsModuleMapMode(mode) {
