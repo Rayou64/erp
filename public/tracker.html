@@ -175,8 +175,16 @@
     let lastSentAt = 0;
     let wakeLock = null;
     let nativeStatusTimer = null;
-    const isNativeApp = !!(window.Capacitor && ((window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || (window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android')));
-    const nativeTracker = isNativeApp ? window.Capacitor.registerPlugin('NativeTracker') : null;
+    const cap = window.Capacitor;
+    let nativeTracker = null;
+    try {
+      if (cap) {
+        nativeTracker = (cap.Plugins && cap.Plugins.NativeTracker) || (typeof cap.registerPlugin === 'function' ? cap.registerPlugin('NativeTracker') : null);
+      }
+    } catch (_e) { nativeTracker = null; }
+    if (!nativeTracker && /\bwv\b/.test(navigator.userAgent) && cap) {
+      console.warn('Plugin natif introuvable');
+    }
 
     function setStatus(message, isError) {
       statusBox.textContent = message;
@@ -306,7 +314,7 @@
 
       const data = await response.json();
       lastSentAt = now;
-      setStatus(`Position envoyée • véhicule ${data.vehicleId} • ${new Date().toLocaleTimeString('fr-FR')}`, false);
+      setStatus(`Position envoyée • véhicule ${data.vehicleId} • ${new Date().toLocaleTimeString('fr-FR')} • mode navigateur (écran allumé requis)`, false);
     }
 
     async function sendLastPositionOnce(force) {
