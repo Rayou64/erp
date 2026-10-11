@@ -314,7 +314,7 @@
 
       const data = await response.json();
       lastSentAt = now;
-      setStatus(`Position envoyée • véhicule ${data.vehicleId} • ${new Date().toLocaleTimeString('fr-FR')} • mode navigateur (écran allumé requis)`, false);
+      setStatus(`Position envoyée • véhicule ${data.vehicleId} • ${new Date().toLocaleTimeString('fr-FR')} • mode navigateur (écran allumé requis) [${window.Capacitor ? "appli Android, plugin natif absent" : "navigateur, pas l appli"}]`, false);
     }
 
     async function sendLastPositionOnce(force) {
