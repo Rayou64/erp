@@ -32,9 +32,10 @@ Depuis ce dossier (`mobile/`):
 
 ## Build APK/AAB
 
-À chaque démarrage ou retour dans l'application Android, la page de connexion publiée
-sur le serveur RyanERP est affichée et la session précédente est effacée. Le formulaire
-local reste disponible comme solution de repli lorsque le téléphone est hors ligne.
+Capacitor utilise directement la page de connexion publiée sur le serveur RyanERP comme
+page initiale. À chaque démarrage ou retour dans l'application Android, cette page est
+rechargée et la session précédente est effacée. Le fond de lancement et celui de la
+WebView utilisent le bleu nuit RyanERP afin d'éviter tout écran blanc au démarrage.
 
 L'application vérifie aussi `mobile-version.json` au démarrage et toutes les six heures.
 Lorsqu'une version plus récente est disponible, Android affiche une notification

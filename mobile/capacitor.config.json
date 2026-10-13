@@ -2,7 +2,13 @@
   "appId": "com.ryan.erp",
   "appName": "Ryan ERP",
   "webDir": "www",
+  "backgroundColor": "#060c18",
+  "android": {
+    "backgroundColor": "#060c18"
+  },
   "server": {
+    "url": "https://ryanerp-hn5zd.ondigitalocean.app/index.html?mobile=1",
+    "cleartext": false,
     "allowNavigation": ["ryanerp-hn5zd.ondigitalocean.app"]
   }
 }

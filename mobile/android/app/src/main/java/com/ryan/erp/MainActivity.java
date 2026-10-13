@@ -2,9 +2,6 @@ package com.ryan.erp;
 
 import android.Manifest;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -74,16 +71,7 @@ public class MainActivity extends BridgeActivity {
 
     private void showLogin() {
         if (getBridge() == null || getBridge().getWebView() == null) return;
-        getBridge().getWebView().loadUrl(isNetworkAvailable() ? LOGIN_URL : getBridge().getLocalUrl());
-    }
-
-    private boolean isNetworkAvailable() {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-        if (cm == null) return false;
-        Network network = cm.getActiveNetwork();
-        if (network == null) return false;
-        NetworkCapabilities caps = cm.getNetworkCapabilities(network);
-        return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        getBridge().getWebView().loadUrl(LOGIN_URL);
     }
 
     @Override
