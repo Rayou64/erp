@@ -1,7 +1,7 @@
 {
-  "versionCode": 12,
-  "versionName": "2.1",
+  "versionCode": 13,
+  "versionName": "2.2",
   "apkUrl": "https://ryanerp-hn5zd.ondigitalocean.app/app-release.apk",
-  "sha256": "f371d0d72b3b7c76b9fc8f557b48daa98d18110be9f81275347fcb13c87a39a3",
-  "releaseNotes": "La page de connexion RyanERP publiée sur le serveur est maintenant la page initiale de l'application. L'écran blanc de lancement est remplacé par le fond bleu nuit RyanERP."
+  "sha256": "f2174637318322cb82eb6dac8170e8d6e85038040dfe9263d8a0837fcf44ac52",
+  "releaseNotes": "Mise à jour de test : vérification de la notification et de l'installation automatique."
 }
