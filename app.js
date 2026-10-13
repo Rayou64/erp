@@ -737,6 +737,7 @@ function getBuildInfo() {
 
 app.get('/version.json', (_req, res) => {
   res.set('Cache-Control', 'no-store');
+  res.set('Access-Control-Allow-Origin', '*');
   res.json(getBuildInfo());
 });
 
@@ -2387,6 +2388,22 @@ async function initDb() {
   )`);
   console.log('[initDb] Table users créée');
   try { await run("ALTER TABLE users ADD COLUMN passwordEnc TEXT NOT NULL DEFAULT ''"); } catch (_e) {}
+  try { await run("ALTER TABLE users ADD COLUMN tokenVersion INTEGER NOT NULL DEFAULT 0"); } catch (_e) {}
+  try { await run("ALTER TABLE users ADD COLUMN passwordChangedAt TEXT NOT NULL DEFAULT ''"); } catch (_e) {}
+  await run(`CREATE TABLE IF NOT EXISTS password_reset_requests (
+    id INTEGER PRIMARY KEY,
+    userId INTEGER NOT NULL,
+    username TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    requestedAt TEXT NOT NULL,
+    reviewedAt TEXT NOT NULL DEFAULT '',
+    reviewedBy TEXT NOT NULL DEFAULT '',
+    expiresAt TEXT NOT NULL DEFAULT '',
+    completedAt TEXT NOT NULL DEFAULT '',
+    updatedAt TEXT NOT NULL
+  )`);
+  await run('CREATE INDEX IF NOT EXISTS idx_password_reset_user_status ON password_reset_requests (userId, status)');
+  await run('CREATE INDEX IF NOT EXISTS idx_password_reset_requested ON password_reset_requests (requestedAt)');
   await run(`CREATE TABLE IF NOT EXISTS push_subscriptions (
     id INTEGER PRIMARY KEY,
     userId INTEGER NOT NULL,
@@ -4055,12 +4072,27 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ error: 'Token manquant' });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
+  jwt.verify(token, JWT_SECRET, async (err, user) => {
     if (err) {
       return res.status(401).json({ error: 'Token invalide' });
     }
-    req.user = user;
-    next();
+    try {
+      const currentUser = await get('SELECT id, username, role, tokenVersion FROM users WHERE id = ?', [Number(user.id)]);
+      const issuedVersion = Number(user.tokenVersion || 0);
+      const currentVersion = Number(currentUser?.tokenVersion || 0);
+      if (!currentUser || issuedVersion !== currentVersion) {
+        return res.status(401).json({ error: 'Session expirée' });
+      }
+      req.user = {
+        ...user,
+        username: currentUser.username,
+        role: currentUser.role,
+        tokenVersion: currentVersion,
+      };
+      next();
+    } catch (error) {
+      next(error);
+    }
   });
 }
 
@@ -4684,6 +4716,131 @@ async function insertAutoVehicleLocationRecord({
   return location;
 }
 
+const PASSWORD_RESET_APPROVAL_MS = 24 * 60 * 60 * 1000;
+
+function normalizePasswordResetUsername(value) {
+  return String(value || '').trim().slice(0, 80);
+}
+
+async function expirePasswordResetRequests() {
+  const now = new Date().toISOString();
+  await run(
+    "UPDATE password_reset_requests SET status = 'expired', updatedAt = ? WHERE status = 'approved' AND expiresAt <> '' AND expiresAt <= ?",
+    [now, now]
+  );
+}
+
+app.post('/api/auth/password-reset/request', authRateLimiter, async (req, res) => {
+  const username = normalizePasswordResetUsername(req.body?.username);
+  const neutralResponse = {
+    message: 'Si ce compte existe, la demande a été transmise à un administrateur.',
+  };
+  if (!username) return res.status(400).json({ error: 'Le nom d’utilisateur est obligatoire' });
+
+  const user = await get(
+    'SELECT id, username FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))',
+    [username]
+  );
+  if (!user) return res.json(neutralResponse);
+
+  await expirePasswordResetRequests();
+  const activeRequest = await get(
+    "SELECT id FROM password_reset_requests WHERE userId = ? AND status IN ('pending', 'approved') ORDER BY id DESC LIMIT 1",
+    [Number(user.id)]
+  );
+  if (!activeRequest) {
+    const now = new Date().toISOString();
+    const requestId = await getNextTableId('password_reset_requests');
+    await run(
+      `INSERT INTO password_reset_requests
+       (id, userId, username, status, requestedAt, reviewedAt, reviewedBy, expiresAt, completedAt, updatedAt)
+       VALUES (?, ?, ?, 'pending', ?, '', '', '', '', ?)`,
+      [requestId, Number(user.id), String(user.username || username), now, now]
+    );
+  }
+
+  return res.json(neutralResponse);
+});
+
+app.post('/api/auth/password-reset/status', authRateLimiter, async (req, res) => {
+  const username = normalizePasswordResetUsername(req.body?.username);
+  if (!username) return res.status(400).json({ error: 'Le nom d’utilisateur est obligatoire' });
+
+  await expirePasswordResetRequests();
+  const approved = await get(
+    `SELECT pr.id
+     FROM password_reset_requests pr
+     JOIN users u ON u.id = pr.userId
+     WHERE LOWER(TRIM(u.username)) = LOWER(TRIM(?))
+       AND pr.status = 'approved'
+       AND pr.expiresAt > ?
+     ORDER BY pr.id DESC
+     LIMIT 1`,
+    [username, new Date().toISOString()]
+  );
+  return res.json({ resetApproved: Boolean(approved) });
+});
+
+app.post('/api/auth/password-reset/complete', authRateLimiter, async (req, res) => {
+  const username = normalizePasswordResetUsername(req.body?.username);
+  const newPassword = String(req.body?.newPassword || '');
+  const confirmPassword = String(req.body?.confirmPassword || '');
+  if (!username || !newPassword || !confirmPassword) {
+    return res.status(400).json({ error: 'Tous les champs sont obligatoires' });
+  }
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ error: 'Les deux mots de passe ne correspondent pas' });
+  }
+  if (newPassword.length < 6 || newPassword.length > 128) {
+    return res.status(400).json({ error: 'Le mot de passe doit contenir entre 6 et 128 caractères' });
+  }
+
+  await expirePasswordResetRequests();
+  const now = new Date().toISOString();
+  const approved = await get(
+    `SELECT pr.id AS requestId, u.id AS userId
+     FROM password_reset_requests pr
+     JOIN users u ON u.id = pr.userId
+     WHERE LOWER(TRIM(u.username)) = LOWER(TRIM(?))
+       AND pr.status = 'approved'
+       AND pr.expiresAt > ?
+     ORDER BY pr.id DESC
+     LIMIT 1`,
+    [username, now]
+  );
+  if (!approved) {
+    return res.status(403).json({ error: 'Aucune réinitialisation approuvée pour ce profil' });
+  }
+
+  const claimed = await run(
+    "UPDATE password_reset_requests SET status = 'processing', updatedAt = ? WHERE id = ? AND status = 'approved'",
+    [now, Number(approved.requestId)]
+  );
+  if (Number(claimed?.changes || 0) !== 1) {
+    return res.status(409).json({ error: 'Cette autorisation a déjà été utilisée' });
+  }
+
+  try {
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await run(
+      "UPDATE users SET password = ?, passwordEnc = '', tokenVersion = COALESCE(tokenVersion, 0) + 1, passwordChangedAt = ? WHERE id = ?",
+      [passwordHash, now, Number(approved.userId)]
+    );
+    await run(
+      "UPDATE password_reset_requests SET status = 'completed', completedAt = ?, updatedAt = ? WHERE id = ?",
+      [now, now, Number(approved.requestId)]
+    );
+  } catch (error) {
+    await run(
+      "UPDATE password_reset_requests SET status = 'approved', updatedAt = ? WHERE id = ? AND status = 'processing'",
+      [new Date().toISOString(), Number(approved.requestId)]
+    );
+    throw error;
+  }
+
+  return res.json({ message: 'Votre mot de passe a été modifié. Vous pouvez maintenant vous connecter.' });
+});
+
 app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
@@ -4704,7 +4861,12 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
     try { await storeUserPasswordEnc(user.id, password); } catch (_e) {}
   }
 
-  const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, {
+  const token = jwt.sign({
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    tokenVersion: Number(user.tokenVersion || 0),
+  }, JWT_SECRET, {
     expiresIn: '6h'
   });
 
@@ -5705,6 +5867,7 @@ app.get('/api/users', async (req, res) => {
       0 AS hasLoggedIn,
       '' AS firstLoginAt,
       '' AS lastLoginAt,
+      COALESCE(u.passwordChangedAt, '') AS passwordChangedAt,
       CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END AS hasUserAccount,
       CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword
     FROM hr_employees he
@@ -5722,6 +5885,7 @@ app.get('/api/users', async (req, res) => {
       0 AS hasLoggedIn,
       '' AS firstLoginAt,
       '' AS lastLoginAt,
+      COALESCE(u.passwordChangedAt, '') AS passwordChangedAt,
       1 AS hasUserAccount,
       CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword
     FROM users u
@@ -5738,6 +5902,82 @@ app.get('/api/users', async (req, res) => {
 function isAdminUser(req) {
   return String(req.user?.role || '').trim().toLowerCase() === 'admin';
 }
+
+app.get('/api/admin/password-reset-requests', async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  await expirePasswordResetRequests();
+  const rows = await all(`
+    SELECT
+      pr.id,
+      pr.userId,
+      pr.username,
+      pr.status,
+      pr.requestedAt,
+      pr.reviewedAt,
+      pr.reviewedBy,
+      pr.expiresAt,
+      pr.completedAt,
+      pr.updatedAt,
+      COALESCE(NULLIF(TRIM(he.fullName), ''), '') AS linkedEmployeeName
+    FROM password_reset_requests pr
+    LEFT JOIN hr_employees he
+      ON LOWER(TRIM(he.username)) = LOWER(TRIM(pr.username))
+      AND he.id = (
+        SELECT MAX(he2.id)
+        FROM hr_employees he2
+        WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(pr.username))
+      )
+    ORDER BY
+      CASE pr.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END,
+      pr.requestedAt DESC,
+      pr.id DESC
+    LIMIT 100
+  `);
+  return res.json(rows || []);
+});
+
+app.patch('/api/admin/password-reset-requests/:id', async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  const requestId = Number(req.params.id || 0);
+  const decision = String(req.body?.decision || '').trim().toLowerCase();
+  if (!Number.isInteger(requestId) || requestId <= 0) {
+    return res.status(400).json({ error: 'Demande invalide' });
+  }
+  if (!['approve', 'reject'].includes(decision)) {
+    return res.status(400).json({ error: 'Décision invalide' });
+  }
+
+  await expirePasswordResetRequests();
+  const request = await get('SELECT id, status FROM password_reset_requests WHERE id = ?', [requestId]);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable' });
+  if (String(request.status) !== 'pending') {
+    return res.status(409).json({ error: 'Cette demande a déjà été traitée' });
+  }
+
+  const now = new Date().toISOString();
+  const nextStatus = decision === 'approve' ? 'approved' : 'rejected';
+  const expiresAt = decision === 'approve'
+    ? new Date(Date.now() + PASSWORD_RESET_APPROVAL_MS).toISOString()
+    : '';
+  const updated = await run(
+    `UPDATE password_reset_requests
+     SET status = ?, reviewedAt = ?, reviewedBy = ?, expiresAt = ?, updatedAt = ?
+     WHERE id = ? AND status = 'pending'`,
+    [nextStatus, now, String(req.user?.username || ''), expiresAt, now, requestId]
+  );
+  if (Number(updated?.changes || 0) !== 1) {
+    return res.status(409).json({ error: 'Cette demande a déjà été traitée' });
+  }
+
+  return res.json({
+    id: requestId,
+    status: nextStatus,
+    expiresAt,
+    message: decision === 'approve'
+      ? 'La réinitialisation a été autorisée pour 24 heures.'
+      : 'La demande de réinitialisation a été refusée.',
+  });
+});
 
 function getRoleForEmployeePosition(jobTitle, requestedRole) {
   const title = normalizeTextValue(jobTitle || '');
@@ -5780,7 +6020,11 @@ app.post('/api/admin/users', async (req, res) => {
   const now = new Date().toISOString();
   let userId = Number(linkedUser?.id || 0);
   if (userId) {
-    await run('UPDATE users SET password = ?, role = ? WHERE id = ?', [passwordHash, role, userId]);
+    const passwordChangedAt = new Date().toISOString();
+    await run(
+      'UPDATE users SET password = ?, role = ?, tokenVersion = COALESCE(tokenVersion, 0) + 1, passwordChangedAt = ? WHERE id = ?',
+      [passwordHash, role, passwordChangedAt, userId]
+    );
   } else {
     userId = await getNextTableId('users');
     await run(
@@ -5815,7 +6059,11 @@ app.patch('/api/admin/users/:id/password', async (req, res) => {
     [String(user.username || '')]
   );
   const role = employee ? getRoleForEmployeePosition(employee.jobTitle, user.role) : user.role;
-  await run('UPDATE users SET password = ?, role = ? WHERE id = ?', [passwordHash, role, userId]);
+  const passwordChangedAt = new Date().toISOString();
+  await run(
+    'UPDATE users SET password = ?, role = ?, tokenVersion = COALESCE(tokenVersion, 0) + 1, passwordChangedAt = ? WHERE id = ?',
+    [passwordHash, role, passwordChangedAt, userId]
+  );
   await storeUserPasswordEnc(userId, password);
   return res.json({ id: userId, role, message: 'Mot de passe modifié' });
 });
@@ -13438,10 +13686,6 @@ app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, r
     return res.status(500).json({ error: 'Erreur creation profil RH', details: String(err?.message || err) });
   }
 });
-
-
-
-
 
 
 

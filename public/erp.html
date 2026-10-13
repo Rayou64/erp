@@ -7879,6 +7879,25 @@
     .users-toolbar .users-sync { border-color:#cfe0f8; background:#f6faff; color:#2d67ae; }
     .users-toolbar .users-reset { border-color:#dbe7f7; background:#f8fbff; color:#35699f; }
     .users-toolbar .users-purge { border-color:#d5294b; background:linear-gradient(110deg,#dc3454,#c51239); color:#fff; }
+    .users-reset-requests { margin-bottom:10px; padding:12px; border:1px solid #f2d7a7; border-radius:9px; background:linear-gradient(145deg,#fffdf7,#fff8e9); box-shadow:0 5px 18px rgba(122,83,18,.06); }
+    .users-reset-requests[hidden] { display:none!important; }
+    .users-reset-requests-header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:9px; }
+    .users-reset-requests-header h2 { color:#805614; font-size:15px; }
+    .users-reset-requests-header p { margin-top:3px; color:#9a7a45; font-size:11px; }
+    .users-reset-count { padding:5px 9px; border-radius:12px; background:#f59e0b; color:#fff; font-size:11px; font-weight:800; }
+    .users-reset-request-list { display:grid; gap:7px; }
+    .users-reset-request { display:grid; grid-template-columns:minmax(130px,1fr) minmax(125px,.8fr) auto auto; align-items:center; gap:10px; padding:9px 10px; border:1px solid #f1e2c5; border-radius:8px; background:#fff; color:#5f6f84; font-size:11px; }
+    .users-reset-request strong { display:block; color:#34506f; font-size:12px; }
+    .users-reset-request small { display:block; margin-top:2px; color:#8c98a8; }
+    .users-reset-actions { display:flex; gap:6px; }
+    .users-reset-action { padding:6px 9px; border:0; border-radius:6px; color:#fff; font-size:10px; font-weight:800; cursor:pointer; }
+    .users-reset-approve { background:#159b76; }
+    .users-reset-reject { background:#d94b62; }
+    .users-reset-status { justify-self:start; padding:5px 8px; border-radius:12px; font-size:10px; font-weight:700; }
+    .users-reset-status.pending { background:#fff1cc; color:#98620a; }
+    .users-reset-status.approved { background:#dcf6ec; color:#08795a; }
+    .users-reset-status.completed { background:#e3edff; color:#356bb4; }
+    .users-reset-status.rejected,.users-reset-status.expired { background:#f3f4f6; color:#6b7280; }
     .users-metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; margin-bottom:10px; }
     .users-metric { display:flex; align-items:center; gap:10px; min-width:0; min-height:76px; padding:10px; border:1px solid #e4edf8; border-radius:9px; background:linear-gradient(145deg,#fff,#fafdff); box-shadow:0 5px 14px rgba(28,77,141,.06); }
     .users-metric-icon { display:grid; place-items:center; width:39px; height:39px; flex:none; border-radius:11px; font-size:18px; }
@@ -7943,7 +7962,7 @@
     .users-dialog-cancel { border:1px solid #dce6f2; background:#fff; color:#456483; }
     .users-dialog-confirm { border:1px solid #c91f42; background:linear-gradient(110deg,#dc3454,#c51239); color:#fff; }
     @media(max-width:1050px) { .reports-quick-item { min-height:45px; }.reports-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    @media(max-width:760px) { .users-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }.users-metric:last-child { grid-column:span 2; }.users-filters { grid-template-columns:repeat(2,minmax(0,1fr)); }.users-search { grid-column:span 2; }.users-toolbar { justify-content:flex-start; }.users-page-header { align-items:flex-start; } }
+    @media(max-width:760px) { .users-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }.users-metric:last-child { grid-column:span 2; }.users-filters { grid-template-columns:repeat(2,minmax(0,1fr)); }.users-search { grid-column:span 2; }.users-toolbar { justify-content:flex-start; }.users-page-header { align-items:flex-start; }.users-reset-request { grid-template-columns:1fr auto; }.users-reset-request>div:nth-child(2) { display:none; } }
     @media(max-width:760px) { .reports-chart-pair { grid-template-columns:minmax(0,1fr); }.reports-graph-explainer { min-height:0; padding:14px; } }
     @media(max-width:640px) { .reports-page-header { align-items:flex-start; }.reports-page-header h1 { font-size:23px; }.reports-generate-controls { width:100%; }.reports-generate-controls select:first-child { flex:1; }.reports-generate-controls select:nth-child(2) { width:100px; }.reports-generate-button { flex:1; justify-content:center; }.reports-filter { display:block; }.reports-filter label { display:block; margin-bottom:6px; }.reports-chart-grid,.reports-secondary-grid { grid-template-columns:1fr; }.reports-chart-wide { grid-column:auto; }.reports-kpis { gap:7px; }.reports-kpi { padding:10px; }.reports-kpi strong { font-size:15px; }.users-page-title h1 { font-size:18px; }.users-toolbar-button { flex:1; min-width:130px; }.users-filters { grid-template-columns:1fr; }.users-search { grid-column:auto; }.users-metric { min-height:70px; padding:8px; }.users-metric-icon { width:31px; height:31px; }.users-metric strong { font-size:14px; }.users-list-panel { padding:9px; }.users-purge-dialog { padding:12px; } }
 
@@ -13075,6 +13094,13 @@
             <article class="users-metric"><span class="users-metric-icon metric-violet">⬡</span><div><small>Rôles différents</small><strong id="users-metric-roles">—</strong><span id="users-metric-role-detail">Rôles présents dans les profils</span></div></article>
             <article class="users-metric"><span class="users-metric-icon metric-cyan">▣</span><div><small>Dernière actualisation</small><strong id="users-metric-updated">—</strong><span id="users-metric-updated-detail">Lecture des comptes ERP</span></div></article>
           </div>
+          <section id="users-reset-requests" class="users-reset-requests" hidden>
+            <div class="users-reset-requests-header">
+              <div><h2>Demandes de réinitialisation</h2><p>Acceptez ou refusez les demandes envoyées depuis l’application mobile.</p></div>
+              <span id="users-reset-count" class="users-reset-count">0 en attente</span>
+            </div>
+            <div id="users-reset-request-list" class="users-reset-request-list"></div>
+          </section>
           <section class="users-list-panel">
             <div class="users-filter-header"><div class="users-filter-title"><span aria-hidden="true">▽</span><h2>Filtres</h2></div><button type="button" id="users-reset-filters" class="users-reset-filters">Réinitialiser les filtres</button></div>
             <div class="users-filters">
@@ -13815,6 +13841,7 @@
     let hrLeaveRequestsCache = [];
     let hrSignatureRequestsCache = [];
     let usersAdminCache = [];
+    let passwordResetRequestsCache = [];
     let usersEmployeeCache = [];
     let hrChauffeursCache = [];
     let usersCurrentPage = 1;
@@ -17018,6 +17045,71 @@
       return `${dayPart} à ${timePart}`;
     }
 
+    function renderPasswordResetRequests() {
+      const panel = document.getElementById('users-reset-requests');
+      const list = document.getElementById('users-reset-request-list');
+      const count = document.getElementById('users-reset-count');
+      if (!panel || !list || !count) return;
+
+      if (!isAdmin()) {
+        panel.hidden = true;
+        return;
+      }
+
+      const rows = Array.isArray(passwordResetRequestsCache) ? passwordResetRequestsCache : [];
+      const pendingCount = rows.filter(row => String(row?.status || '') === 'pending').length;
+      count.textContent = `${pendingCount} en attente`;
+      panel.hidden = false;
+
+      if (!rows.length) {
+        list.innerHTML = '<div class="users-empty-row">Aucune demande de réinitialisation.</div>';
+        return;
+      }
+
+      const labels = {
+        pending: 'En attente',
+        approved: 'Acceptée',
+        rejected: 'Refusée',
+        expired: 'Expirée',
+        completed: 'Terminée',
+      };
+      list.innerHTML = rows.slice(0, 20).map(row => {
+        const status = String(row?.status || 'pending');
+        const reviewedBy = String(row?.reviewedBy || '').trim();
+        const expiry = status === 'approved' && row?.expiresAt
+          ? `Valide jusqu’au ${formatDateWithTime(row.expiresAt)}`
+          : reviewedBy
+            ? `Traitée par ${reviewedBy}`
+            : 'Décision requise';
+        const actions = status === 'pending'
+          ? `<div class="users-reset-actions"><button type="button" class="users-reset-action users-reset-approve" onclick="handlePasswordResetDecision(${Number(row?.id || 0)}, 'approve')">Accepter</button><button type="button" class="users-reset-action users-reset-reject" onclick="handlePasswordResetDecision(${Number(row?.id || 0)}, 'reject')">Refuser</button></div>`
+          : '<div></div>';
+        return `
+          <article class="users-reset-request">
+            <div><strong>${escapeHtml(String(row?.username || '-'))}</strong><small>${escapeHtml(String(row?.linkedEmployeeName || 'Compte utilisateur'))}</small></div>
+            <div>Demandée le ${escapeHtml(formatDateWithTime(row?.requestedAt))}<small>${escapeHtml(expiry)}</small></div>
+            <span class="users-reset-status ${escapeHtml(status)}">${escapeHtml(labels[status] || status)}</span>
+            ${actions}
+          </article>`;
+      }).join('');
+    }
+
+    async function handlePasswordResetDecision(requestId, decision) {
+      const approve = decision === 'approve';
+      const verb = approve ? 'accepter' : 'refuser';
+      if (!window.confirm(`Voulez-vous ${verb} cette demande de réinitialisation ?`)) return;
+      try {
+        const result = await fetchJson(`/api/admin/password-reset-requests/${Number(requestId)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ decision }),
+        });
+        showMessage(result.message || 'Demande traitée.');
+        await loadUsersModule();
+      } catch (error) {
+        showMessage(error.message || 'Impossible de traiter la demande.', 'error');
+      }
+    }
+
     function renderUsersModuleTable() {
       const tbody = document.getElementById('users-table-body');
       const summary = document.getElementById('users-summary');
@@ -17104,7 +17196,7 @@
 
         return `
           <tr>
-            <td><span class="users-profile-name">${escapeHtml(username)}</span><small class="users-profile-meta">Mot de passe protégé</small></td>
+            <td><span class="users-profile-name">${escapeHtml(username)}</span><small class="users-profile-meta">${row?.passwordChangedAt ? `Mot de passe modifié le ${escapeHtml(formatDateWithTime(row.passwordChangedAt))}` : 'Mot de passe protégé'}</small></td>
             <td>${escapeHtml(employeeName || 'Compte autonome')}</td>
             <td><span class="users-role-badge">${escapeHtml(getRoleDisplayLabel(row?.role || ''))}</span></td>
             <td>${employeeName ? '<span class="users-status-pill users-status-connected">Lié RH</span>' : '<span class="users-status-pill users-status-missing">Autonome</span>'}</td>
@@ -17134,8 +17226,12 @@
       }
 
       try {
-        const users = await fetchJson('/api/users');
+        const [users, resetRequests] = await Promise.all([
+          fetchJson('/api/users'),
+          isAdmin() ? fetchJson('/api/admin/password-reset-requests') : Promise.resolve([]),
+        ]);
         usersAdminCache = Array.isArray(users) ? users : [];
+        passwordResetRequestsCache = Array.isArray(resetRequests) ? resetRequests : [];
         usersLastLoadedAt = new Date();
         usersCurrentPage = 1;
         const filterPanel = document.getElementById('users');
@@ -17164,9 +17260,12 @@
           document.getElementById('users-password-overlay')?.addEventListener('click', event => { if (event.target.id === 'users-password-overlay') closeUserPasswordDialog(); });
           document.getElementById('users-password-form')?.addEventListener('submit', submitUserPasswordForm);
         }
+        renderPasswordResetRequests();
         renderUsersModuleTable();
       } catch (err) {
         usersAdminCache = [];
+        passwordResetRequestsCache = [];
+        renderPasswordResetRequests();
         if (tbody) {
           tbody.innerHTML = '<tr><td colspan="8" class="users-empty-row">Erreur de chargement des utilisateurs.</td></tr>';
         }
@@ -39160,10 +39259,6 @@
   </script>
 </body>
 </html>
-
-
-
-
 
 
 

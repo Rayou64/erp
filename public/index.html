@@ -1,116 +1,1165 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#060c18" />
   <title>Connexion - RyanERP</title>
-  <link rel="stylesheet" href="style.css" />
   <style>
-    body{margin:0}
-    .login-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:linear-gradient(135deg,#0f2a4a 0%,#1d4ed8 55%,#38bdf8 100%)}
-    .auth-card{width:100%;max-width:400px;padding:36px 32px;border-radius:18px;background:#fff;box-shadow:0 24px 60px rgba(0,0,0,.35);text-align:center}
-    .auth-card .brand-mark{width:64px;height:64px;margin:0 auto 14px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#38bdf8);color:#fff;font:700 32px/64px system-ui,sans-serif}
-    .auth-card h1{margin:4px 0 6px;font-size:26px;color:#0f172a}
-    .auth-card .sub{margin:0 0 22px;color:#64748b;font-size:14px}
-    .auth-card .field-group{text-align:left;margin-bottom:14px}
-    .auth-card label{display:block;margin-bottom:6px;font-size:13px;font-weight:600;color:#334155}
-    .auth-card input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:15px}
-    .auth-card input:focus{outline:2px solid #1d4ed8;border-color:#1d4ed8}
-    .pw-wrap{position:relative}
-    .pw-wrap input{padding-right:84px}
-    .pw-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:auto;margin:0;padding:6px 10px;border:0;background:none;color:#1d4ed8;font-size:13px;font-weight:600;cursor:pointer}
-    .auth-card button[type=submit]{width:100%;margin-top:6px;padding:13px;border:0;border-radius:10px;background:#1d4ed8;color:#fff;font-size:16px;font-weight:600;cursor:pointer}
-    .auth-card button[type=submit]:disabled{opacity:.7;cursor:wait}
-    .auth-card .error{min-height:20px;margin-top:12px;color:#b91c1c;font-size:14px}
-    .auth-card .secure{margin:10px 0 0;font-size:12px;color:#94a3b8}
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    [hidden] { display: none !important; }
+    html, body { height: 100%; }
+
+    :root {
+      --accent: #2f7dff;
+      --accent-2: #1d4ed8;
+      --text: #e8eefc;
+      --muted: #9aaac4;
+      --card: rgba(13, 20, 34, 0.72);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --input: rgba(255, 255, 255, 0.06);
+      --input-border: rgba(255, 255, 255, 0.14);
+      --danger-bg: rgba(239, 68, 68, 0.16);
+      --danger-border: rgba(239, 68, 68, 0.4);
+      --danger-text: #fca5a5;
+      --ok-bg: rgba(47, 125, 255, 0.14);
+      --ok-border: rgba(47, 125, 255, 0.4);
+      --ok-text: #bcd4ff;
+    }
+
+    body {
+      font-family: "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: #060c18;
+      overflow-x: hidden;
+    }
+
+    /* ---------- Fond chantier (SVG + dégradés) ---------- */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(115% 34% at 50% 46%, rgba(255, 170, 80, 0.55) 0%, rgba(255, 120, 55, 0.18) 46%, rgba(255, 110, 50, 0) 74%),
+        linear-gradient(180deg, #04070f 0%, #0a1530 18%, #1d3057 33%, #6b5468 42%, #b06a4a 47%, #5a3340 55%, #241c2b 70%, #0c0a13 100%);
+    }
+
+    .bg-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      opacity: 0.85;
+    }
+
+    .bg-veil {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      background:
+        radial-gradient(120% 60% at 50% 40%, rgba(5, 10, 20, 0.34) 0%, rgba(5, 10, 20, 0.2) 55%, rgba(5, 10, 20, 0.1) 100%),
+        linear-gradient(180deg, rgba(5, 10, 20, 0.4) 0%, rgba(5, 10, 20, 0.14) 42%, rgba(5, 10, 20, 0.5) 100%);
+    }
+
+    /* ---------- Mise en page ---------- */
+    .shell {
+      position: relative;
+      z-index: 3;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: calc(14px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      width: min(420px, 100%);
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 12px;
+    }
+
+    .lang {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: rgba(13, 20, 34, 0.7);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .lang select {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      padding-right: 2px;
+      outline: none;
+    }
+
+    .lang select option { color: #0f172a; }
+
+    .brand {
+      text-align: center;
+      margin: 2px 0 14px;
+    }
+
+    .brand-logo {
+      width: 66px;
+      height: 66px;
+      margin: 0 auto 10px;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .brand-logo img { width: 100%; height: 100%; object-fit: contain; }
+
+    .brand-name {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      line-height: 1.1;
+    }
+
+    .brand-name span { color: #3b8bff; }
+
+    .brand-tagline {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .card {
+      width: min(420px, 100%);
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      background: var(--card);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 26px 60px rgba(0, 0, 0, 0.5);
+      padding: 20px 18px;
+    }
+
+    .card h1 {
+      font-size: 25px;
+      font-weight: 700;
+    }
+
+    .card .sub {
+      margin: 4px 0 15px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .alert {
+      display: none;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .alert.visible { display: block; }
+    .alert.error { background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger-text); }
+    .alert.info { background: var(--ok-bg); border: 1px solid var(--ok-border); color: var(--ok-text); }
+
+    .field {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 0 12px;
+      height: 52px;
+      border-radius: 12px;
+      border: 1px solid var(--input-border);
+      background: var(--input);
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .field:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(47, 125, 255, 0.18);
+    }
+
+    .field .ic { color: #9fb2d1; display: flex; flex: 0 0 auto; }
+
+    .field input {
+      flex: 1 1 auto;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 16px;
+      outline: none;
+    }
+
+    .field input::placeholder { color: #7e8ea9; }
+
+    .eye {
+      border: 0;
+      background: transparent;
+      color: #9fb2d1;
+      padding: 6px;
+      display: flex;
+      cursor: pointer;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 6px 0 16px;
+      font-size: 13px;
+    }
+
+    .remember {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .remember input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .link {
+      border: 0;
+      background: transparent;
+      color: #4d93ff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .btn {
+      width: 100%;
+      height: 52px;
+      border: 0;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+      box-shadow: 0 14px 28px rgba(29, 78, 216, 0.35);
+    }
+
+    .btn-primary .arrow { position: absolute; right: 18px; display: flex; }
+    .btn:disabled { opacity: .7; cursor: progress; }
+
+    .btn-ghost {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--input-border);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .features > div { padding: 0 4px; }
+    .features > div + div { border-left: 1px solid rgba(255, 255, 255, 0.09); }
+
+    .features .ic { display: block; margin: 0 auto 8px; color: #b8c6de; }
+
+    .footer {
+      margin: 12px 0 2px;
+      font-size: 11px;
+      color: #6f80a0;
+      text-align: center;
+    }
+
+    /* ---------- Colonne marketing (grand ecran) ---------- */
+    .col-auth {
+      width: min(420px, 100%);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero { display: none; }
+
+    .hero h2 {
+      font-size: 40px;
+      font-weight: 800;
+      line-height: 1.14;
+      letter-spacing: -0.3px;
+    }
+
+    .hero h2 .accent { color: #4d93ff; }
+
+    .hero .lead {
+      margin-top: 16px;
+      max-width: 46ch;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .hero-grid {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .hero-tile {
+      padding: 16px 16px 18px;
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      background: rgba(13, 20, 34, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .hero-tile .ic { display: flex; margin-bottom: 10px; color: #6ea8ff; }
+    .hero-tile h3 { font-size: 15px; font-weight: 700; }
+    .hero-tile p { margin-top: 4px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+
+    .hero-quote {
+      margin-top: 26px;
+      padding-left: 14px;
+      border-left: 2px solid rgba(77, 147, 255, 0.6);
+      font-size: 13px;
+      font-style: italic;
+      color: #9fb2d1;
+    }
+
+    @media (min-width: 1000px) {
+      .shell {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 64px;
+        padding: 48px 40px;
+      }
+
+      .topbar {
+        position: absolute;
+        top: 24px;
+        right: 28px;
+        width: auto;
+        margin: 0;
+      }
+
+      .hero { display: block; width: min(560px, 46vw); }
+    }
+
+    @media (max-height: 680px) {
+      .brand { margin: 2px 0 14px; }
+      .brand-logo { width: 60px; height: 60px; border-radius: 16px; }
+      .brand-name { font-size: 26px; }
+      .features { margin-top: 16px; padding-top: 14px; }
+    }
   </style>
 </head>
 <body>
-  <div class="page login-shell">
-    <div class="card auth-card">
-      <div class="brand-mark" aria-hidden="true">R</div>
-      <div class="auth-header">
-        <span class="eyebrow">RyanERP</span>
-        <h1>Connexion</h1>
-        <p class="sub">Accédez à votre espace de travail</p>
+  <div class="bg"></div>
+
+  <svg class="bg-scene" id="scene" viewBox="0 0 390 780" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs>
+      <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ffd09a" stop-opacity="0.72" />
+        <stop offset="38%" stop-color="#ff9a4d" stop-opacity="0.34" />
+        <stop offset="100%" stop-color="#ff7a2f" stop-opacity="0" />
+      </radialGradient>
+      <radialGradient id="sunCore" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ffe6c0" stop-opacity="0.8" />
+        <stop offset="100%" stop-color="#ffb060" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="towerFar" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1d2b46" />
+        <stop offset="100%" stop-color="#0a1120" />
+      </linearGradient>
+      <linearGradient id="towerMid" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#121d31" />
+        <stop offset="100%" stop-color="#070d18" />
+      </linearGradient>
+      <linearGradient id="towerNear" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0a1120" />
+        <stop offset="100%" stop-color="#03060c" />
+      </linearGradient>
+      <linearGradient id="groundGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0a0f1b" />
+        <stop offset="100%" stop-color="#04060c" />
+      </linearGradient>
+    </defs>
+    <g id="sceneLayers"></g>
+  </svg>
+
+  <div class="bg-veil"></div>
+
+  <main class="shell">
+    <div class="topbar">
+      <label class="lang" for="lang">
+        <select id="lang" aria-label="Langue">
+          <option value="fr">FR</option>
+          <option value="en">EN</option>
+        </select>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+      </label>
+    </div>
+
+    <div class="col-auth">
+    <div class="brand">
+      <div class="brand-logo">
+        <img src="assets/icons/icon-512.png" alt="RyanERP" />
       </div>
-      <form id="login-form">
-        <div class="field-group">
-          <label for="username">Nom d’utilisateur</label>
-          <input type="text" id="username" required autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Nom d’utilisateur" />
+      <div class="brand-name">Ryan<span>ERP</span></div>
+      <div class="brand-tagline" data-i18n="tagline">Projets. Ressources. Résultats.</div>
+    </div>
+
+    <section class="card">
+      <h1 id="loginTitle" data-i18n="title">Connexion</h1>
+      <p class="sub" id="loginSubtitle" data-i18n="subtitle">Accédez à votre espace de travail</p>
+
+      <div id="alert" class="alert"></div>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <span class="ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+          </span>
+          <input type="text" id="username" autocomplete="username" autocapitalize="none" spellcheck="false" data-i18n-ph="username" placeholder="Nom d'utilisateur" />
         </div>
-        <div class="field-group">
-          <label for="password">Mot de passe</label>
-          <div class="pw-wrap">
-            <input type="password" id="password" required autocomplete="current-password" placeholder="Mot de passe" />
-            <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Afficher le mot de passe">Afficher</button>
+
+        <div class="field" id="loginPasswordField">
+          <span class="ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+          </span>
+          <input type="password" id="password" autocomplete="current-password" data-i18n-ph="password" placeholder="Mot de passe" />
+          <button type="button" class="eye" id="pwToggle" aria-label="Afficher le mot de passe">
+            <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+          </button>
+        </div>
+
+        <div id="resetFields" hidden>
+          <div class="field">
+            <span class="ic">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+            </span>
+            <input type="password" id="newPassword" autocomplete="new-password" data-i18n-ph="newPassword" placeholder="Nouveau mot de passe" />
+          </div>
+          <div class="field">
+            <span class="ic">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6" /><rect x="3" y="3" width="18" height="18" rx="3" /></svg>
+            </span>
+            <input type="password" id="confirmPassword" autocomplete="new-password" data-i18n-ph="confirmPassword" placeholder="Confirmer le mot de passe" />
           </div>
         </div>
-        <button type="submit">Se connecter</button>
+
+        <div class="row" id="loginOptionsRow">
+          <label class="remember">
+            <input type="checkbox" id="remember" />
+            <span data-i18n="remember">Se souvenir de moi</span>
+          </label>
+          <button type="button" class="link" id="forgotBtn" data-i18n="forgot">Mot de passe oublié ?</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          <span id="submitLabel" data-i18n="signin">Se connecter</span>
+          <span class="arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </span>
+        </button>
+        <button type="button" class="link" id="backToLoginBtn" data-i18n="backToLogin" hidden style="display:block;margin:14px auto 0;">Retour à la connexion</button>
       </form>
-      <div id="login-error" class="error" aria-live="polite"></div>
-      <p class="secure">🔒 Connexion sécurisée</p>
-      <p class="hint" id="app-version" style="text-align:center;font-size:12px"></p>
+
+      <div class="divider"><span data-i18n="or">ou</span></div>
+
+      <button type="button" class="btn btn-ghost" id="ssoBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v16M14 9h4a1 1 0 0 1 1 1v11" /><path d="M8 8h2M8 12h2M8 16h2M17 13h0M17 17h0" /></svg>
+        <span data-i18n="sso">Connexion avec votre compte entreprise</span>
+      </button>
+
+      <div class="features">
+        <div>
+          <span class="ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.4 3 8.1 7 9 4-0.9 7-4.6 7-9V6l-7-3Z" /></svg>
+          </span>
+          <span data-i18n="f1">Connexion sécurisée</span>
+        </div>
+        <div>
+          <span class="ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7" ry="3" /><path d="M5 5.5v13c0 1.7 3.1 3 7 3s7-1.3 7-3v-13" /><path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3" /></svg>
+          </span>
+          <span data-i18n="f2">Données protégées</span>
+        </div>
+        <div>
+          <span class="ic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 .3-9 6 6 0 0 0-11.5 1.4A3.8 3.8 0 0 0 7 19h10.5Z" /></svg>
+          </span>
+          <span data-i18n="f3">Accès global</span>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer" id="version"></p>
     </div>
-  </div>
+
+    <aside class="hero">
+      <h2>
+        <span data-i18n="heroTitle1">Des projets d’aujourd’hui</span><br />
+        <span class="accent" data-i18n="heroTitle2">pour demain.</span>
+      </h2>
+      <p class="lead" data-i18n="heroLead">RyanERP réunit vos chantiers, vos équipes, vos équipements et vos finances dans une seule plateforme, du devis à la livraison.</p>
+
+      <div class="hero-grid">
+        <div class="hero-tile">
+          <span class="ic">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3" /><path d="M8 2v4M16 2v4M3 10h18" /></svg>
+          </span>
+          <h3 data-i18n="heroT1">Planifier</h3>
+          <p data-i18n="heroD1">Devis, échéanciers et affectations en un coup d’œil.</p>
+        </div>
+        <div class="hero-tile">
+          <span class="ic">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h7v7H3zM14 3h7v11h-7zM3 17h18v4H3z" /></svg>
+          </span>
+          <h3 data-i18n="heroT2">Organiser</h3>
+          <p data-i18n="heroD2">Équipes, véhicules et matériaux coordonnés sans effort.</p>
+        </div>
+        <div class="hero-tile">
+          <span class="ic">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16" /><path d="m7 15 4-5 3 3 5-7" /></svg>
+          </span>
+          <h3 data-i18n="heroT3">Suivre</h3>
+          <p data-i18n="heroD3">Heures, coûts et avancement mis à jour en temps réel.</p>
+        </div>
+        <div class="hero-tile">
+          <span class="ic">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4" /><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" /></svg>
+          </span>
+          <h3 data-i18n="heroT4">Réussir</h3>
+          <p data-i18n="heroD4">Des livrables conformes, rentables et dans les délais.</p>
+        </div>
+      </div>
+
+      <p class="hero-quote" data-i18n="heroQuote">« La construction se gère mieux quand tout se trouve au même endroit. »</p>
+    </aside>
+  </main>
 
   <script>
-    if (localStorage.getItem('erp_token')) {
-      window.location.href = 'erp.html';
-    }
+    (function () {
+      const API_BASE = '';
+      const ERP_URL = 'erp.html';
+      const LOGIN_KEY = 'ryanerp_web_auth';
+      const ERP_TOKEN_KEY = 'erp_token';
+      const ERP_USER_KEY = 'erp_username';
+      const REMEMBER_KEY = 'ryanerp_web_remember';
+      const LANG_KEY = 'ryanerp_web_lang';
+      const MAX_SESSION_MS = 6 * 60 * 60 * 1000;
+      const REMEMBER_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 
-    fetch('/version.json', { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : null)
-      .then(v => {
-        if (!v) return;
-        document.querySelector('#app-version').textContent =
-          'Version ' + v.version + ' · build ' + v.buildId + ' · ' + new Date(v.startedAt).toLocaleString('fr-CA');
-      })
-      .catch(() => {});
+      const I18N = {
+        fr: {
+          tagline: 'Projets. Ressources. Résultats.',
+          heroTitle1: 'Des projets d’aujourd’hui',
+          heroTitle2: 'pour demain.',
+          heroLead: 'RyanERP réunit vos chantiers, vos équipes, vos équipements et vos finances dans une seule plateforme, du devis à la livraison.',
+          heroT1: 'Planifier',
+          heroD1: 'Devis, échéanciers et affectations en un coup d’œil.',
+          heroT2: 'Organiser',
+          heroD2: 'Équipes, véhicules et matériaux coordonnés sans effort.',
+          heroT3: 'Suivre',
+          heroD3: 'Heures, coûts et avancement mis à jour en temps réel.',
+          heroT4: 'Réussir',
+          heroD4: 'Des livrables conformes, rentables et dans les délais.',
+          heroQuote: '« La construction se gère mieux quand tout se trouve au même endroit. »',
+          title: 'Connexion',
+          subtitle: 'Accédez à votre espace de travail',
+          username: "Nom d'utilisateur",
+          password: 'Mot de passe',
+          newPassword: 'Nouveau mot de passe',
+          confirmPassword: 'Confirmer le nouveau mot de passe',
+          remember: 'Se souvenir de moi',
+          forgot: 'Mot de passe oublié ?',
+          signin: 'Se connecter',
+          signingIn: 'Connexion…',
+          requestTitle: 'Mot de passe oublié',
+          requestSubtitle: 'Saisissez votre nom d’utilisateur pour envoyer une demande à un administrateur.',
+          requestReset: 'Envoyer la demande',
+          sendingRequest: 'Envoi…',
+          resetTitle: 'Nouveau mot de passe',
+          resetSubtitle: 'Votre demande a été acceptée. Choisissez maintenant un nouveau mot de passe.',
+          savePassword: 'Enregistrer le mot de passe',
+          savingPassword: 'Enregistrement…',
+          backToLogin: 'Retour à la connexion',
+          resetDetected: 'Votre demande a été acceptée. Définissez votre nouveau mot de passe.',
+          requestRequired: 'Saisissez votre nom d’utilisateur.',
+          passwordMismatch: 'Les deux mots de passe ne correspondent pas.',
+          passwordLength: 'Le mot de passe doit contenir au moins 6 caractères.',
+          or: 'ou',
+          sso: 'Connexion avec votre compte entreprise',
+          f1: 'Connexion sécurisée',
+          f2: 'Données protégées',
+          f3: 'Accès global',
+          errRequired: 'Utilisateur et mot de passe obligatoires.',
+          errRefused: 'Connexion refusée. Vérifiez vos identifiants.',
+          errNetwork: 'Erreur réseau. Réessayez dans quelques instants.',
+          ssoInfo: "La connexion avec un compte entreprise n'est pas encore activée sur ce serveur.",
+          showPw: 'Afficher le mot de passe',
+          hidePw: 'Masquer le mot de passe',
+          version: 'Version',
+          build: 'build',
+        },
+        en: {
+          tagline: 'Projects. Resources. Results.',
+          heroTitle1: 'Today’s projects,',
+          heroTitle2: 'built for tomorrow.',
+          heroLead: 'RyanERP brings your sites, crews, equipment and finances together in a single platform, from quote to handover.',
+          heroT1: 'Plan',
+          heroD1: 'Quotes, schedules and assignments at a glance.',
+          heroT2: 'Organise',
+          heroD2: 'Crews, vehicles and materials coordinated effortlessly.',
+          heroT3: 'Track',
+          heroD3: 'Hours, costs and progress updated in real time.',
+          heroT4: 'Deliver',
+          heroD4: 'Compliant, profitable projects delivered on time.',
+          heroQuote: '“Construction runs better when everything lives in one place.”',
+          title: 'Sign in',
+          subtitle: 'Access your workspace',
+          username: 'Username',
+          password: 'Password',
+          newPassword: 'New password',
+          confirmPassword: 'Confirm new password',
+          remember: 'Remember me',
+          forgot: 'Forgot password?',
+          signin: 'Sign in',
+          signingIn: 'Signing in…',
+          requestTitle: 'Forgot password',
+          requestSubtitle: 'Enter your username to send a request to an administrator.',
+          requestReset: 'Send request',
+          sendingRequest: 'Sending…',
+          resetTitle: 'New password',
+          resetSubtitle: 'Your request was approved. Choose a new password.',
+          savePassword: 'Save password',
+          savingPassword: 'Saving…',
+          backToLogin: 'Back to sign in',
+          resetDetected: 'Your request was approved. Set your new password.',
+          requestRequired: 'Enter your username.',
+          passwordMismatch: 'The two passwords do not match.',
+          passwordLength: 'The password must contain at least 6 characters.',
+          or: 'or',
+          sso: 'Sign in with your company account',
+          f1: 'Secure sign-in',
+          f2: 'Protected data',
+          f3: 'Global access',
+          errRequired: 'Username and password are required.',
+          errRefused: 'Sign-in refused. Check your credentials.',
+          errNetwork: 'Network error. Please try again shortly.',
+          ssoInfo: 'Company account sign-in is not enabled on this server yet.',
+          showPw: 'Show password',
+          hidePw: 'Hide password',
+          version: 'Version',
+          build: 'build',
+        },
+      };
 
-    document.querySelector('#pw-toggle').addEventListener('click', event => {
-      const input = document.querySelector('#password');
-      const show = input.type === 'password';
-      input.type = show ? 'text' : 'password';
-      event.target.textContent = show ? 'Masquer' : 'Afficher';
-    });
+      const form = document.getElementById('loginForm');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const newPasswordInput = document.getElementById('newPassword');
+      const confirmPasswordInput = document.getElementById('confirmPassword');
+      const rememberInput = document.getElementById('remember');
+      const submitBtn = document.getElementById('submitBtn');
+      const submitLabel = document.getElementById('submitLabel');
+      const pwToggle = document.getElementById('pwToggle');
+      const eyeIcon = document.getElementById('eyeIcon');
+      const forgotBtn = document.getElementById('forgotBtn');
+      const ssoBtn = document.getElementById('ssoBtn');
+      const alertBox = document.getElementById('alert');
+      const versionBox = document.getElementById('version');
+      const langSelect = document.getElementById('lang');
+      const loginTitle = document.getElementById('loginTitle');
+      const loginSubtitle = document.getElementById('loginSubtitle');
+      const loginPasswordField = document.getElementById('loginPasswordField');
+      const resetFields = document.getElementById('resetFields');
+      const loginOptionsRow = document.getElementById('loginOptionsRow');
+      const backToLoginBtn = document.getElementById('backToLoginBtn');
 
-    const form = document.querySelector('#login-form');
-    const errorBox = document.querySelector('#login-error');
-    const submitBtn = form.querySelector('button[type=submit]');
+      let lang = localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'fr';
+      let versionData = null;
+      let formMode = 'login';
+      let statusCheckSequence = 0;
+      let statusCheckTimer = null;
 
-    form.addEventListener('submit', async event => {
-      event.preventDefault();
-      errorBox.textContent = '';
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Connexion…';
+      const t = key => (I18N[lang] && I18N[lang][key]) || I18N.fr[key] || key;
 
-      try {
-        const response = await fetch('/api/auth/login', {
+      function applyLang() {
+        document.documentElement.lang = lang;
+        langSelect.value = lang;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          el.textContent = t(el.dataset.i18n);
+        });
+        document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+          el.placeholder = t(el.dataset.i18nPh);
+        });
+        pwToggle.setAttribute('aria-label', passwordInput.type === 'password' ? t('showPw') : t('hidePw'));
+        renderFormMode();
+        renderVersion();
+      }
+
+      function renderFormMode() {
+        const isLogin = formMode === 'login';
+        const isRequest = formMode === 'request';
+        const isReset = formMode === 'reset';
+        loginPasswordField.hidden = !isLogin;
+        loginOptionsRow.hidden = !isLogin;
+        resetFields.hidden = !isReset;
+        backToLoginBtn.hidden = isLogin;
+        usernameInput.readOnly = isReset;
+        document.querySelector('.divider').hidden = !isLogin;
+        ssoBtn.hidden = !isLogin;
+
+        if (isRequest) {
+          loginTitle.textContent = t('requestTitle');
+          loginSubtitle.textContent = t('requestSubtitle');
+          submitLabel.textContent = t('requestReset');
+        } else if (isReset) {
+          loginTitle.textContent = t('resetTitle');
+          loginSubtitle.textContent = t('resetSubtitle');
+          submitLabel.textContent = t('savePassword');
+        } else {
+          loginTitle.textContent = t('title');
+          loginSubtitle.textContent = t('subtitle');
+          submitLabel.textContent = t('signin');
+        }
+      }
+
+      function setFormMode(nextMode) {
+        formMode = nextMode;
+        submitBtn.disabled = false;
+        passwordInput.value = '';
+        if (nextMode !== 'reset') {
+          newPasswordInput.value = '';
+          confirmPasswordInput.value = '';
+        }
+        hideAlert();
+        renderFormMode();
+      }
+
+      async function postJson(path, payload) {
+        const response = await fetch(`${API_BASE}${path}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: document.querySelector('#username').value,
-            password: document.querySelector('#password').value,
-          }),
+          body: JSON.stringify(payload),
         });
-
+        const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          errorBox.textContent = data.error || 'Erreur de connexion';
+          throw new Error(data.error || t('errNetwork'));
+        }
+        return data;
+      }
+
+      async function checkApprovedReset() {
+        const username = usernameInput.value.trim();
+        if (!username || formMode !== 'login') return false;
+        const sequence = ++statusCheckSequence;
+        try {
+          const data = await postJson('/api/auth/password-reset/status', { username });
+          if (sequence !== statusCheckSequence || formMode !== 'login') return false;
+          if (data.resetApproved) {
+            setFormMode('reset');
+            showAlert(t('resetDetected'), 'info');
+            newPasswordInput.focus();
+            return true;
+          }
+        } catch (error) {
+          console.error('Échec de la vérification de réinitialisation', error);
+        }
+        return false;
+      }
+
+      function renderVersion() {
+        if (!versionData) return;
+        const date = new Date(versionData.startedAt).toLocaleString(lang === 'en' ? 'en-CA' : 'fr-CA');
+        versionBox.textContent = `${t('version')} ${versionData.version} · ${t('build')} ${versionData.buildId} · ${date}`;
+      }
+
+      function showAlert(message, type) {
+        alertBox.textContent = message;
+        alertBox.className = 'alert visible ' + (type || 'error');
+      }
+
+      function hideAlert() {
+        alertBox.textContent = '';
+        alertBox.className = 'alert';
+      }
+
+      function readMobileAuth() {
+        try {
+          const raw = localStorage.getItem(LOGIN_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function isAuthValid(auth) {
+        if (!auth || !auth.token || !auth.timestamp) return false;
+        const maxAge = auth.remember ? REMEMBER_SESSION_MS : MAX_SESSION_MS;
+        return (Date.now() - Number(auth.timestamp)) < maxAge;
+      }
+
+      function saveAuth(token, username, remember) {
+        localStorage.setItem(LOGIN_KEY, JSON.stringify({ token, username, remember, timestamp: Date.now() }));
+        localStorage.setItem(ERP_TOKEN_KEY, token);
+        localStorage.setItem(ERP_USER_KEY, username);
+        if (remember) {
+          localStorage.setItem(REMEMBER_KEY, username);
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
+        }
+      }
+
+      function clearAuth() {
+        localStorage.removeItem(LOGIN_KEY);
+        localStorage.removeItem(ERP_TOKEN_KEY);
+        localStorage.removeItem(ERP_USER_KEY);
+      }
+
+      function redirectToApp() {
+        window.location.replace(ERP_URL);
+      }
+
+      if (localStorage.getItem(ERP_TOKEN_KEY) && isAuthValid(readMobileAuth())) {
+        redirectToApp();
+      } else if (!localStorage.getItem(ERP_TOKEN_KEY)) {
+        clearAuth();
+      }
+
+      const rememberedUser = localStorage.getItem(REMEMBER_KEY);
+      if (rememberedUser) {
+        usernameInput.value = rememberedUser;
+        rememberInput.checked = true;
+      }
+
+      langSelect.addEventListener('change', () => {
+        lang = langSelect.value === 'en' ? 'en' : 'fr';
+        localStorage.setItem(LANG_KEY, lang);
+        hideAlert();
+        applyLang();
+      });
+
+      pwToggle.addEventListener('click', () => {
+        const show = passwordInput.type === 'password';
+        passwordInput.type = show ? 'text' : 'password';
+        pwToggle.setAttribute('aria-label', show ? t('hidePw') : t('showPw'));
+        eyeIcon.innerHTML = show
+          ? '<path d="M3 3l18 18M10.6 10.7a3 3 0 0 0 4.2 4.2M9.9 5.2A9.6 9.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.3 4.2M6.6 6.7A17 17 0 0 0 2 12s3.6 7 10 7a9.9 9.9 0 0 0 4.1-.9"/>'
+          : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>';
+      });
+
+      usernameInput.addEventListener('input', () => {
+        if (formMode !== 'login') return;
+        window.clearTimeout(statusCheckTimer);
+        statusCheckTimer = window.setTimeout(checkApprovedReset, 650);
+      });
+      usernameInput.addEventListener('blur', checkApprovedReset);
+
+      forgotBtn.addEventListener('click', () => {
+        setFormMode('request');
+        usernameInput.focus();
+      });
+      backToLoginBtn.addEventListener('click', () => {
+        setFormMode('login');
+        usernameInput.focus();
+      });
+      ssoBtn.addEventListener('click', () => showAlert(t('ssoInfo'), 'info'));
+
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        hideAlert();
+
+        const username = usernameInput.value.trim();
+        if (!username) {
+          showAlert(t('requestRequired'), 'error');
           return;
         }
 
-        const data = await response.json();
-        localStorage.setItem('erp_token', data.token);
-        window.location.href = 'erp.html';
-      } catch (_error) {
-        errorBox.textContent = 'Serveur injoignable. Vérifiez votre connexion.';
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Se connecter';
+        if (formMode === 'request') {
+          submitBtn.disabled = true;
+          submitLabel.textContent = t('sendingRequest');
+          try {
+            const data = await postJson('/api/auth/password-reset/request', { username });
+            setFormMode('login');
+            showAlert(data.message, 'info');
+          } catch (error) {
+            showAlert(error.message || t('errNetwork'), 'error');
+          } finally {
+            submitBtn.disabled = false;
+            renderFormMode();
+          }
+          return;
+        }
+
+        if (formMode === 'reset') {
+          const newPassword = newPasswordInput.value;
+          const confirmPassword = confirmPasswordInput.value;
+          if (newPassword.length < 6) {
+            showAlert(t('passwordLength'), 'error');
+            return;
+          }
+          if (newPassword !== confirmPassword) {
+            showAlert(t('passwordMismatch'), 'error');
+            return;
+          }
+
+          submitBtn.disabled = true;
+          submitLabel.textContent = t('savingPassword');
+          try {
+            const data = await postJson('/api/auth/password-reset/complete', {
+              username,
+              newPassword,
+              confirmPassword,
+            });
+            setFormMode('login');
+            showAlert(data.message, 'info');
+            passwordInput.focus();
+          } catch (error) {
+            showAlert(error.message || t('errNetwork'), 'error');
+          } finally {
+            submitBtn.disabled = false;
+            renderFormMode();
+          }
+          return;
+        }
+
+        if (await checkApprovedReset()) return;
+        const password = passwordInput.value;
+        if (!password) {
+          showAlert(t('errRequired'), 'error');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitLabel.textContent = t('signingIn');
+
+        try {
+          const data = await postJson('/api/auth/login', { username, password });
+          if (!data.token) throw new Error(t('errRefused'));
+          saveAuth(data.token, data.username || username, rememberInput.checked);
+          redirectToApp();
+        } catch (error) {
+          showAlert(error.message || t('errNetwork'), 'error');
+        } finally {
+          submitBtn.disabled = false;
+          renderFormMode();
+        }
+      });
+
+      fetch(`${API_BASE}/version.json`, { cache: 'no-store' })
+        .then(r => (r.ok ? r.json() : null))
+        .then(v => {
+          if (!v) return;
+          versionData = v;
+          renderVersion();
+        })
+        .catch(() => {});
+
+      function buildScene() {
+        const layers = document.getElementById('sceneLayers');
+        const svg = document.getElementById('scene');
+        if (!layers || !svg) return;
+
+        const tiles = Math.min(4, Math.max(1, Math.ceil(window.innerWidth / 390)));
+        svg.setAttribute('viewBox', `0 0 ${tiles * 390} 780`);
+
+        let seed = 20261010;
+        const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+        const r = (min, max) => min + rnd() * (max - min);
+        const n = value => Math.round(value * 10) / 10;
+        const HORIZON = 356;
+        const markup = [];
+
+        const windows = (bx, by, bw, bh, step, chance, size, opacity) => {
+          const cells = [];
+          for (let wy = by + 10; wy < by + bh - 6; wy += step) {
+            for (let wx = bx + 6; wx < bx + bw - 8; wx += step) {
+              if (rnd() < chance) {
+                cells.push(`<rect x="${n(wx)}" y="${n(wy)}" width="${size}" height="${n(size * 0.78)}" />`);
+              }
+            }
+          }
+          return `<g fill="#ffc482" opacity="${opacity}">${cells.join('')}</g>`;
+        };
+
+        const scaffold = (bx, by, bw, bh) => {
+          const lines = [];
+          for (let sy = by + 16; sy < by + bh; sy += 20) lines.push(`M${n(bx)} ${n(sy)} H${n(bx + bw)}`);
+          for (let sx = bx + 13; sx < bx + bw - 4; sx += 13) lines.push(`M${n(sx)} ${n(by)} V${n(by + bh)}`);
+          return `<path d="${lines.join(' ')}" stroke="#30405c" stroke-width="0.85" fill="none" opacity="0.45" />`;
+        };
+
+        const mast = (cx, top, bottom, w, stroke, sw) => {
+          const half = w / 2;
+          const d = [`M${n(cx - half)} ${n(bottom)} V${n(top)}`, `M${n(cx + half)} ${n(bottom)} V${n(top)}`];
+          let left = true;
+          for (let y = bottom; y > top; y -= w) {
+            const ny = Math.max(top, y - w);
+            d.push(`M${n(left ? cx - half : cx + half)} ${n(y)} L${n(left ? cx + half : cx - half)} ${n(ny)}`);
+            left = !left;
+          }
+          for (let y = bottom; y > top; y -= w * 2) d.push(`M${n(cx - half)} ${n(y)} H${n(cx + half)}`);
+          return `<path d="${d.join(' ')}" stroke="${stroke}" stroke-width="${sw}" fill="none" />`;
+        };
+
+        const beam = (x1, x2, y, h, stroke, sw) => {
+          const dir = x2 > x1 ? 1 : -1;
+          const d = [`M${n(x1)} ${n(y)} H${n(x2)}`, `M${n(x1)} ${n(y + h)} H${n(x2)}`];
+          let up = true;
+          for (let bx = x1; dir > 0 ? bx < x2 : bx > x2; bx += dir * h) {
+            const nx = dir > 0 ? Math.min(x2, bx + h) : Math.max(x2, bx - h);
+            d.push(`M${n(bx)} ${n(up ? y : y + h)} L${n(nx)} ${n(up ? y + h : y)}`);
+            up = !up;
+          }
+          return `<path d="${d.join(' ')}" stroke="${stroke}" stroke-width="${sw}" fill="none" />`;
+        };
+
+        const crane = (opts, stroke, sw, offset) => {
+          const cx = opts.cx + offset;
+          const jibY = opts.jibY + offset;
+          const apex = jibY - opts.apex;
+          const half = opts.w / 2;
+          const g = [];
+          g.push(mast(cx, jibY, opts.baseY, opts.w, stroke, sw));
+          g.push(beam(cx + half, opts.jibR + offset, jibY, opts.beamH, stroke, sw * 0.8));
+          g.push(beam(cx - half, opts.jibL + offset, jibY, opts.beamH, stroke, sw * 0.8));
+          g.push(`<path d="M${n(cx - half)} ${n(jibY)} L${n(cx)} ${n(apex)} L${n(cx + half)} ${n(jibY)}" stroke="${stroke}" stroke-width="${sw * 0.8}" fill="none" />`);
+          g.push(`<path d="M${n(cx)} ${n(apex)} L${n(opts.jibR + offset - 8)} ${n(jibY)} M${n(cx)} ${n(apex)} L${n(opts.jibL + offset + 8)} ${n(jibY)}" stroke="${stroke}" stroke-width="${sw * 0.55}" fill="none" />`);
+          g.push(`<rect x="${n(opts.jibL + offset)}" y="${n(jibY + 1)}" width="${n(opts.w * 2.4)}" height="${n(opts.beamH + 3)}" fill="${stroke}" />`);
+          g.push(`<rect x="${n(cx - half - 3)}" y="${n(jibY + opts.beamH)}" width="${n(opts.w + 6)}" height="${n(opts.beamH + 2)}" fill="${stroke}" />`);
+          g.push(`<path d="M${n(opts.trolley + offset)} ${n(jibY + opts.beamH)} V${n(opts.hookY + offset)}" stroke="${stroke}" stroke-width="${sw * 0.5}" fill="none" />`);
+          g.push(`<rect x="${n(opts.trolley + offset - 5)}" y="${n(opts.hookY + offset)}" width="10" height="7" fill="${stroke}" />`);
+          return g.join('');
+        };
+
+        for (let tile = 0; tile < tiles; tile += 1) {
+        const out = [];
+        const dx = tile === 0 ? 0 : Math.round(r(-34, 34));
+
+        // Couchant
+        out.push(`<ellipse cx="196" cy="${HORIZON}" rx="268" ry="152" fill="url(#sunGlow)" />`);
+        out.push(`<ellipse cx="196" cy="${HORIZON}" rx="112" ry="46" fill="url(#sunCore)" />`);
+
+        // Nuages
+        [[60, 188, 132, 7], [268, 158, 150, 6], [150, 244, 200, 9], [336, 214, 118, 6], [34, 296, 150, 8], [258, 312, 170, 7]]
+          .forEach(([cx, cy, rx, ry]) => out.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#2a2235" opacity="0.42" />`));
+
+        // Oiseaux
+        out.push('<g stroke="#1b1626" stroke-width="1.4" fill="none" opacity="0.6"><path d="M96 166q4-4 8 0 4-4 8 0" /><path d="M122 150q3-3 6 0 3-3 6 0" /><path d="M302 132q3.5-3.5 7 0 3.5-3.5 7 0" /></g>');
+
+        // Horizon urbain lointain
+        const far = [];
+        for (let x = -14; x < 404;) {
+          const w = r(12, 30);
+          const h = r(14, 54);
+          far.push(`<rect x="${n(x)}" y="${n(HORIZON - h)}" width="${n(w)}" height="${n(h + 12)}" />`);
+          x += w + r(1, 6);
+        }
+        out.push(`<g fill="#17253e" opacity="0.72">${far.join('')}</g>`);
+
+        // Immeubles intermediaires
+        [[-16, 386, 78], [72, 422, 54], [138, 368, 68], [216, 414, 58], [284, 378, 72], [360, 408, 54]].forEach(([bx, by, bw]) => {
+          out.push(`<rect x="${bx}" y="${by}" width="${bw}" height="${780 - by}" fill="url(#towerFar)" />`);
+          out.push(windows(bx, by, bw, 230, 17, 0.4, 6, 0.46));
+        });
+
+        // Immeubles en chantier (premier plan)
+        [[-20, 452, 92], [96, 486, 74], [196, 466, 86], [304, 496, 96]].forEach(([bx, by, bw]) => {
+          out.push(`<rect x="${bx}" y="${by}" width="${bw}" height="${780 - by}" fill="url(#towerNear)" />`);
+          out.push(scaffold(bx, by, bw, 780 - by));
+          out.push(windows(bx, by + 20, bw, 230, 19, 0.26, 7, 0.4));
+        });
+
+        // Grues
+        const cranes = [
+          { cx: 78, jibY: 118, baseY: 700, jibR: 268, jibL: 14, w: 11, beamH: 9, apex: 46, trolley: 212, hookY: 268 },
+          { cx: 308, jibY: 206, baseY: 724, jibR: 388, jibL: 182, w: 10, beamH: 8, apex: 40, trolley: 216, hookY: 326 },
+          { cx: 186, jibY: 292, baseY: 470, jibR: 272, jibL: 126, w: 6, beamH: 5, apex: 24, trolley: 244, hookY: 356 },
+        ].map(opts => ({ ...opts, cx: opts.cx + dx, jibR: opts.jibR + dx, jibL: opts.jibL + dx, trolley: opts.trolley + dx }));
+        cranes.forEach((opts, index) => {
+          const opacity = index === 2 ? 0.5 : 1;
+          out.push(`<g opacity="${opacity}">`);
+          out.push(crane(opts, 'rgba(255, 186, 120, 0.3)', index === 2 ? 1.6 : 2.4, 2));
+          out.push(crane(opts, '#060b14', index === 2 ? 1.5 : 2.2, 0));
+          out.push('</g>');
+          out.push(`<circle cx="${opts.cx}" cy="${opts.jibY - opts.apex - 3}" r="${index === 2 ? 1.8 : 2.6}" fill="#ff8f6a" opacity="0.85" />`);
+        });
+
+        // Sol et lumieres de chantier
+        out.push('<rect x="0" y="712" width="390" height="68" fill="url(#groundGrad)" />');
+        out.push('<g stroke="#0c1424" stroke-width="2" fill="none" opacity="0.9"><path d="M0 714 H390" /><path d="M24 714 v-14 M86 714 v-10 M158 714 v-16 M232 714 v-11 M306 714 v-15 M366 714 v-9" /></g>');
+        out.push('<g fill="#ffd9a0" opacity="0.65"><circle cx="24" cy="698" r="2.4" /><circle cx="158" cy="696" r="2.4" /><circle cx="306" cy="697" r="2.4" /></g>');
+
+        markup.push(`<g transform="translate(${tile * 390},0)" opacity="${tile === 0 ? 1 : 0.94}">${out.join('')}</g>`);
+        }
+
+        layers.innerHTML = markup.join('');
       }
-    });
+
+      let sceneResizeTimer = null;
+      window.addEventListener('resize', () => {
+        window.clearTimeout(sceneResizeTimer);
+        sceneResizeTimer = window.setTimeout(buildScene, 250);
+      });
+
+      buildScene();
+      applyLang();
+    })();
   </script>
 </body>
 </html>

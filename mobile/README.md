@@ -2,12 +2,16 @@
 
 Ce dossier contient l'application mobile Android (Capacitor) pour Ryan ERP.
 
-## Profils inclus
+## Connexion
 
-- Profil 1: `gestionnaire_stock_zone`
-- Profil 2: `chef_chantier_site`
+L'application utilise les comptes du module **Utilisateurs** de Ryan ERP.
 
-Le choix du profil dans l'ecran mobile est un raccourci. La connexion reste geree par l'ecran login ERP (identifiants + mot de passe).
+Le parcours « Mot de passe oublié » est validé par un administrateur :
+
+1. l'utilisateur envoie une demande avec son identifiant depuis l'écran mobile ;
+2. l'administrateur accepte ou refuse la demande dans le module **Utilisateurs** ;
+3. après acceptation, la saisie de l'identifiant affiche automatiquement les deux champs de nouveau mot de passe ;
+4. l'enregistrement met à jour le compte, termine la demande et invalide les anciennes sessions.
 
 ## Prerequis
 
