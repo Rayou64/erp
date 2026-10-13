@@ -10,6 +10,8 @@ public class BootReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        AppUpdateManager.schedule(context);
+        AppUpdateManager.checkForUpdate(context, null);
         boolean active = context.getSharedPreferences(TrackerService.PREFS, Context.MODE_PRIVATE)
             .getBoolean(TrackerService.KEY_ACTIVE, false);
         if (!active) return;

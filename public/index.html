@@ -875,7 +875,10 @@
         window.location.replace(ERP_URL);
       }
 
-      if (localStorage.getItem(ERP_TOKEN_KEY) && isAuthValid(readMobileAuth())) {
+      const isMobileEntry = new URLSearchParams(window.location.search).get('mobile') === '1';
+      if (isMobileEntry) {
+        clearAuth();
+      } else if (localStorage.getItem(ERP_TOKEN_KEY) && isAuthValid(readMobileAuth())) {
         redirectToApp();
       } else if (!localStorage.getItem(ERP_TOKEN_KEY)) {
         clearAuth();

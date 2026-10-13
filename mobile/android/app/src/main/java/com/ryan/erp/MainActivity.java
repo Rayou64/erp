@@ -2,6 +2,9 @@ package com.ryan.erp;
 
 import android.Manifest;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +20,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     private static final int REQ_BASE = 7001;
     private static final int REQ_BACKGROUND = 7002;
+    private static final String LOGIN_URL = "https://ryanerp-hn5zd.ondigitalocean.app/index.html?mobile=1";
     private boolean firstStart = true;
 
     private boolean granted(String permission) {
@@ -29,6 +33,9 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         getBridge().getWebView().addJavascriptInterface(new NativeBridge(this), "RyanNative");
         showLogin();
+        AppUpdateManager.schedule(this);
+        AppUpdateManager.checkForUpdate(this, null);
+        AppUpdateManager.promptFromIntent(this, getIntent());
         ArrayList<String> missing = new ArrayList<>();
         String[] wanted = new String[] {
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -62,11 +69,27 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         showLogin();
+        AppUpdateManager.promptFromIntent(this, intent);
     }
 
     private void showLogin() {
         if (getBridge() == null || getBridge().getWebView() == null) return;
-        getBridge().getWebView().loadUrl(getBridge().getLocalUrl());
+        getBridge().getWebView().loadUrl(isNetworkAvailable() ? LOGIN_URL : getBridge().getLocalUrl());
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
+        Network network = cm.getActiveNetwork();
+        if (network == null) return false;
+        NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+        return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        AppUpdateManager.resumePendingInstall(this);
     }
 
     // Android demande la localisation « Toujours » dans une demande séparée, après la localisation normale.
