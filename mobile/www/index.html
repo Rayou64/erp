@@ -482,8 +482,6 @@
       const ERP_USER_KEY = 'erp_username';
       const REMEMBER_KEY = 'ryanerp_mobile_remember';
       const LANG_KEY = 'ryanerp_mobile_lang';
-      const MAX_SESSION_MS = 6 * 60 * 60 * 1000;
-      const REMEMBER_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 
       const I18N = {
         fr: {
@@ -697,21 +695,6 @@
         alertBox.className = 'alert';
       }
 
-      function readMobileAuth() {
-        try {
-          const raw = localStorage.getItem(LOGIN_KEY);
-          return raw ? JSON.parse(raw) : null;
-        } catch {
-          return null;
-        }
-      }
-
-      function isAuthValid(auth) {
-        if (!auth || !auth.token || !auth.timestamp) return false;
-        const maxAge = auth.remember ? REMEMBER_SESSION_MS : MAX_SESSION_MS;
-        return (Date.now() - Number(auth.timestamp)) < maxAge;
-      }
-
       function saveAuth(token, username, remember) {
         localStorage.setItem(LOGIN_KEY, JSON.stringify({ token, username, remember, timestamp: Date.now() }));
         localStorage.setItem(ERP_TOKEN_KEY, token);
@@ -733,12 +716,7 @@
         window.location.replace(authToken ? ERP_URL + '?mobileAuth=' + encodeURIComponent(authToken) : ERP_URL);
       }
 
-      const existingAuth = readMobileAuth();
-      if (isAuthValid(existingAuth)) {
-        redirectToApp(existingAuth.token);
-      } else {
-        clearAuth();
-      }
+      clearAuth();
 
       const rememberedUser = localStorage.getItem(REMEMBER_KEY);
       if (rememberedUser) {

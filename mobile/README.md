@@ -32,6 +32,10 @@ Depuis ce dossier (`mobile/`):
 
 ## Build APK/AAB
 
+À chaque démarrage ou retour dans l'application Android, l'écran de connexion local est
+réaffiché et la session précédente est effacée. L'utilisateur doit donc s'authentifier
+avant d'accéder à RyanERP, même s'il n'a pas utilisé le bouton de déconnexion.
+
 Dans Android Studio:
 
 1. `Build` -> `Build Bundle(s) / APK(s)` -> `Build APK(s)` pour un APK test.

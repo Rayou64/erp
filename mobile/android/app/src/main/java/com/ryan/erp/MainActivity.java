@@ -17,6 +17,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     private static final int REQ_BASE = 7001;
     private static final int REQ_BACKGROUND = 7002;
+    private boolean firstStart = true;
 
     private boolean granted(String permission) {
         return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
@@ -27,6 +28,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(NativeTrackerPlugin.class);
         super.onCreate(savedInstanceState);
         getBridge().getWebView().addJavascriptInterface(new NativeBridge(this), "RyanNative");
+        showLogin();
         ArrayList<String> missing = new ArrayList<>();
         String[] wanted = new String[] {
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -43,6 +45,28 @@ public class MainActivity extends BridgeActivity {
         } else {
             requestBackgroundLocation();
         }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (firstStart) {
+            firstStart = false;
+            return;
+        }
+        showLogin();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        showLogin();
+    }
+
+    private void showLogin() {
+        if (getBridge() == null || getBridge().getWebView() == null) return;
+        getBridge().getWebView().loadUrl(getBridge().getLocalUrl());
     }
 
     // Android demande la localisation « Toujours » dans une demande séparée, après la localisation normale.
