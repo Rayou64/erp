@@ -17,6 +17,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     private static final int REQ_BASE = 7001;
     private static final int REQ_BACKGROUND = 7002;
+    private static final int REQ_NOTIFICATIONS = 7003;
     private static final String LOGIN_URL = "https://ryanerp-hn5zd.ondigitalocean.app/index.html?mobile=1";
     private boolean firstStart = true;
 
@@ -31,8 +32,28 @@ public class MainActivity extends BridgeActivity {
         getBridge().getWebView().addJavascriptInterface(new NativeBridge(this), "RyanNative");
         showLogin();
         AppUpdateManager.schedule(this);
-        AppUpdateManager.checkForUpdate(this, null);
         AppUpdateManager.promptFromIntent(this, getIntent());
+        requestNotificationPermission();
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= 33 && !granted(Manifest.permission.POST_NOTIFICATIONS)) {
+            ActivityCompat.requestPermissions(
+                this,
+                new String[] { Manifest.permission.POST_NOTIFICATIONS },
+                REQ_NOTIFICATIONS
+            );
+            return;
+        }
+        checkForUpdateAndRequestLocation();
+    }
+
+    private void checkForUpdateAndRequestLocation() {
+        AppUpdateManager.checkForUpdate(this, null);
+        requestLocationPermissions();
+    }
+
+    private void requestLocationPermissions() {
         ArrayList<String> missing = new ArrayList<>();
         String[] wanted = new String[] {
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -40,9 +61,6 @@ public class MainActivity extends BridgeActivity {
         };
         for (String p : wanted) {
             if (!granted(p)) missing.add(p);
-        }
-        if (Build.VERSION.SDK_INT >= 33 && !granted(Manifest.permission.POST_NOTIFICATIONS)) {
-            missing.add(Manifest.permission.POST_NOTIFICATIONS);
         }
         if (!missing.isEmpty()) {
             ActivityCompat.requestPermissions(this, missing.toArray(new String[0]), REQ_BASE);
@@ -59,6 +77,9 @@ public class MainActivity extends BridgeActivity {
             return;
         }
         showLogin();
+        if (Build.VERSION.SDK_INT < 33 || granted(Manifest.permission.POST_NOTIFICATIONS)) {
+            AppUpdateManager.checkForUpdate(this, null);
+        }
     }
 
     @Override
@@ -106,7 +127,9 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQ_BASE) {
+        if (requestCode == REQ_NOTIFICATIONS) {
+            checkForUpdateAndRequestLocation();
+        } else if (requestCode == REQ_BASE) {
             requestBackgroundLocation();
         } else if (requestCode == REQ_BACKGROUND) {
             requestIgnoreBatteryOptimizations();

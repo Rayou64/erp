@@ -37,7 +37,9 @@ page initiale. À chaque démarrage ou retour dans l'application Android, cette 
 rechargée et la session précédente est effacée. Le fond de lancement et celui de la
 WebView utilisent le bleu nuit RyanERP afin d'éviter tout écran blanc au démarrage.
 
-L'application vérifie aussi `mobile-version.json` au démarrage et toutes les six heures.
+L'application demande d'abord l'autorisation Android d'afficher les notifications, puis
+vérifie `mobile-version.json`. Elle effectue aussi une nouvelle vérification à chaque
+retour dans l'application et toutes les six heures.
 Lorsqu'une version plus récente est disponible, Android affiche une notification
 « Mise à jour RyanERP disponible ». L'action « Mettre à jour » télécharge l'APK depuis
 le serveur, vérifie son empreinte SHA-256 et son identifiant d'application, puis ouvre
