@@ -4496,6 +4496,10 @@ function isInUserProjectScope(user, projectLikeRow) {
     return isInChefSiteScope(user, projectLikeRow);
   }
   if (isSongonStockManagerRole(user)) {
+    if (normalizeScopeText(user?.username) === 'kokan_sk') {
+      const projectName = normalizeScopeText(projectLikeRow?.nomProjet || projectLikeRow?.projetNom);
+      return /^songon[\s_-]+kassemble(?:$|[\s_-])/.test(projectName);
+    }
     return isInSongonZoneScope(projectLikeRow);
   }
   return true;
@@ -4879,6 +4883,7 @@ async function buildAuthProfilePayload(user) {
     ? {
         warehouseId: 'entrepot-songon-2',
         zoneName: 'Songon',
+        projectName: normalizeScopeText(user?.username) === 'kokan_sk' ? 'Songon Kassemble' : '',
         siteNumber: '',
       }
     : null;
@@ -6236,7 +6241,7 @@ app.get('/api/project-catalog', async (_req, res) => {
   const rows = await all('SELECT * FROM project_catalog WHERE isHidden = 0 ORDER BY id DESC');
   const role = String(_req.user?.role || '').trim();
   if (role === 'gestionnaire_stock_songon') {
-    return res.json(rows.filter(row => isInSongonZoneScope(row)));
+    return res.json(rows.filter(row => isInUserProjectScope(_req.user, row)));
   }
   res.json(rows);
 });
@@ -6343,7 +6348,7 @@ app.get('/api/project-folders', async (_req, res) => {
   const rows = await all('SELECT pf.*, pc.typeProjet FROM project_folders pf LEFT JOIN project_catalog pc ON pc.id = pf.projectId WHERE pf.isHidden = 0 ORDER BY pf.id DESC');
   const role = String(_req.user?.role || '').trim();
   if (role === 'gestionnaire_stock_songon') {
-    return res.json(rows.filter(row => isInSongonZoneScope(row)));
+    return res.json(rows.filter(row => isInUserProjectScope(_req.user, row)));
   }
   res.json(rows);
 });
@@ -6875,7 +6880,8 @@ app.post('/api/material-requests', async (req, res) => {
 
 app.get('/api/material-requests', async (req, res) => {
   const rows = await all(`
-    SELECT mr.*, COALESCE(p.nomProjet, 'Projet supprime') as projetNom, p.numeroMaison, p.typeMaison, pomax.dateProduitRecu,
+    SELECT mr.*, COALESCE(p.nomProjet, 'Projet supprime') as projetNom,
+      p.nomProjet, p.nomSite, p.prefecture, p.numeroMaison, p.typeMaison, pomax.dateProduitRecu,
       COALESCE(NULLIF(TRIM(mr.warehouseId), ''), po.warehouseId) as warehouseId,
       CASE WHEN EXISTS (
         SELECT 1
@@ -13686,7 +13692,6 @@ app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, r
     return res.status(500).json({ error: 'Erreur creation profil RH', details: String(err?.message || err) });
   }
 });
-
 
 
 

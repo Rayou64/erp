@@ -41,6 +41,15 @@ Cette version utilise une base de données SQLite locale et une page de connexio
 - Garde le terminal ouvert tant que tu utilises l'application.
 - Pour partager en ligne, tu peux déployer ce projet sur Railway, Render ou Vercel.
 
+## Stock par lot
+
+- Dans **Inventaire > Stock par lot**, les produits transférés au chantier restent visibles, même après consommation complète.
+- Les quantités sont regroupées par produit, lot et étape : commandé, transféré, utilisé au chantier, restant en entrepôt et restant sur le lot.
+- Le restant sur le lot est calculé automatiquement : **transféré - utilisé dans le journal de chantier**, avec un minimum de zéro. Une consommation ne déduit pas une seconde fois le stock de l'entrepôt.
+- Après l'enregistrement du journal, l'inventaire est rechargé automatiquement. Les filtres de stock et de statut de cette vue portent sur le restant du lot.
+- Vérification ciblée : `node --test scripts/test-inventory-site.js scripts/test-kokan-inventory.js`.
+- Le compte **Kokan_SK** consulte l'inventaire du projet **Songon Kassemble**, y compris ses types de bâtiments et ses lots. Les demandes, mouvements et filtres de projet respectent ce périmètre.
+
 ## Sauvegardes fiables (DB + archives)
 
 Pour garantir que tout est bien sauvegarde (base + PDF archives), utilise ces commandes:

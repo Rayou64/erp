@@ -10339,7 +10339,7 @@
             <div class="inv-kpis"><div class="inv-kpi"><div class="inv-icon blue">▦</div><div><div class="inv-value" id="inv-kpi-products">0</div><div class="inv-label">Total matériaux</div><div class="inv-note">Références</div></div></div><div class="inv-kpi"><div class="inv-icon green">▣</div><div><div class="inv-value" id="inv-kpi-stock">0</div><div class="inv-label">Stock total</div><div class="inv-note">Quantité totale</div></div></div><div class="inv-kpi"><div class="inv-icon orange">▥</div><div><div class="inv-value" id="inv-kpi-value">0</div><div class="inv-label">Valeur totale</div><div class="inv-note">FCFA</div></div></div><div class="inv-kpi"><div class="inv-icon red">⚠</div><div><div class="inv-value" id="inv-kpi-low">0</div><div class="inv-label">Stocks faibles</div><div class="inv-note">Références</div></div></div><div class="inv-kpi"><div class="inv-icon purple">▱</div><div><div class="inv-value" id="inv-kpi-transit">0</div><div class="inv-label">En transit</div><div class="inv-note">Références</div></div></div></div>
             <div class="card inv-filter-card"><div class="inv-filter-title"><span>⚱ Filtres de recherche</span><span style="color:#5a70ed;font-size:10px;">× Filtres avancés　⌃</span></div><div class="inv-filter-grid"><div class="inv-field" id="inventory-project-filter-field"><label>Projet</label><select id="inventory-project-quick-filter"></select></div><div class="inv-field" id="inventory-zone-filter-field"><label>Zone</label><select id="inventory-project-filter"></select></div><div class="inv-field" id="inventory-lot-filter-field"><label>Lot</label><select id="inventory-house-filter"></select></div><div class="inv-field" id="inventory-warehouse-filter-field"><label>Entrepôt</label><select id="inventory-warehouse-filter"></select></div><div class="inv-field"><label>Catégorie</label><select id="inventory-filter-category"><option value="">Toutes les catégories</option></select></div><div class="inv-field"><label>Famille</label><select id="inventory-filter-family"><option value="">Toutes les familles</option></select></div><div class="inv-field"><label>Statut</label><select id="inventory-filter-status"><option value="">Tous</option></select></div><div class="inv-field"><label>Stock</label><select id="inventory-filter-stock"><option value="">Tous</option><option value="available">Disponible</option><option value="low">Faible</option><option value="empty">Épuisé</option></select></div><div class="inv-field"><label>Recherche par mot clé</label><input id="inventory-filter-search" type="search" placeholder="Rechercher par mot clé..." /></div><div class="inv-actions"><button type="button" id="inventory-filter-reset">↻ Réinitialiser</button><button type="button" id="inventory-filter-apply" class="primary">⌕ Rechercher</button></div></div></div>
             <div class="card inv-table-card"><div class="inv-tabs"><button type="button" class="active" data-inventory-tab="product">Stock par produit total</button><button type="button" data-inventory-tab="warehouse">Stock par entrepôt</button><button type="button" data-inventory-tab="site">Stock par lot</button><button type="button" data-inventory-tab="movements">Mouvements récents</button><button type="button" data-inventory-tab="low">Alerte stock faible</button></div><div id="inventory-project-view-card" style="margin-top:12px;"><div class="inv-table-wrap"><table class="inv-table"><thead id="inventory-main-table-head"><tr><th>Produit</th><th>Catégorie</th><th>Entrepôt</th><th>Projet / Lot</th><th>Unité</th><th>Stock total</th><th>EN STOCK</th><th>Stock réservé</th><th>Valeur totale</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="inventory-list"></tbody></table></div><div class="inv-pagination"><span id="inventory-pagination-meta">Affichage des données réelles</span><div class="inv-page-controls"><button type="button">Précédent</button><button type="button" class="selected">1</button><button type="button">Suivant</button></div></div></div>
-            <div id="inventory-site-view" style="display:none;margin-top:12px;"><h3 id="inventory-site-view-title">Stock par lot</h3><div class="inv-table-wrap"><table class="inv-table"><thead><tr><th>Produit</th><th>Commandé</th><th>Sorti vers le lot</th><th>Restant entrepôt</th><th>Restant sur le lot</th><th>Statut entrepôt</th><th>Statut lot</th><th>Alerte</th></tr></thead><tbody id="inventory-site-list"></tbody></table></div></div></div>
+            <div id="inventory-site-view" style="display:none;margin-top:12px;"><h3 id="inventory-site-view-title">Stock par lot</h3><p>Le stock restant est calculé automatiquement : quantités transférées moins quantités utilisées dans le journal de chantier. Les produits épuisés restent visibles.</p><div class="inv-table-wrap"><table class="inv-table"><thead><tr><th>Produit</th><th>Projet / Lot</th><th>Étape</th><th>Unité</th><th>Commandé</th><th>Sorti vers le lot</th><th>Utilisé au chantier</th><th>Restant entrepôt</th><th>Restant sur le lot</th><th>Statut entrepôt</th><th>Statut lot</th><th>Alerte</th></tr></thead><tbody id="inventory-site-list"></tbody></table></div></div></div>
             <div id="inventory-movements-view" style="display:none;margin-top:12px;"><div class="inv-table-wrap"><table class="inv-table"><thead><tr><th>Date / heure</th><th>Matériau</th><th>Quantité</th><th>Entrepôt source</th><th>Lot destinataire</th><th>Sortie par</th><th>Statut</th></tr></thead><tbody id="inventory-movements-list"></tbody></table></div></div>
             <div id="inventory-global-view-card" style="display:none;"><h3 id="inventory-global-view-title">Inventaire total</h3><tbody id="inventory-summary-list"></tbody></div>
             <div id="inventory-legacy-controls" style="display:none"><button id="inventory-mode-warehouse"></button><button id="inventory-mode-site"></button><div id="inventory-focus-banner"><span id="inventory-focus-title"></span><span id="inventory-focus-subtitle"></span><span id="inventory-kpi-products"></span><span id="inventory-kpi-remaining"></span><span id="inventory-kpi-used"></span></div><select id="inventory-view-search"><option value="product_warehouse">Entrepôt précis</option><option value="building">Site précis</option></select><label id="inventory-warehouse-label"></label><label id="inventory-project-label"></label><label id="inventory-house-label"></label><th id="inventory-col-stage"></th><th id="inventory-col-used"></th></div>
@@ -14340,6 +14340,7 @@
         projectIds,
         warehouseId: String(raw.warehouseId || defaultWarehouseId).trim(),
         zoneName: String(raw.zoneName || defaultZoneName).trim(),
+        projectName: String(raw.projectName || (isKokanSkUsername(currentUserUsername) ? 'Songon Kassemble' : '')).trim(),
         siteNumber: null, // Zone manager can see all sites in zone
       };
     }
@@ -14434,6 +14435,11 @@
           // If explicit project ids are provided, enforce them.
           const projectId = Number(project?.id || 0);
           if (scopedIds.size && !scopedIds.has(projectId)) return false;
+          const scopeProjectName = normalizeText(zoneManagerScope.projectName).trim().replace(/[\s_-]+/g, ' ');
+          if (scopeProjectName) {
+            const projectName = normalizeText(project?.nomProjet).trim().replace(/[\s_-]+/g, ' ');
+            if (projectName !== scopeProjectName && !projectName.startsWith(`${scopeProjectName} `)) return false;
+          }
           
           // Then apply zone scoping when available.
           if (scopeZoneName) {
@@ -27536,8 +27542,8 @@
         const [materials, projects, stockIssues, purchaseOrders, stockAuthorizations, materialCatalog] = await Promise.all([
           fetchJson('/api/material-requests'),
           fetchJson('/api/projects').catch(() => projectsCache),
-          fetchJson('/api/stock-management/issues').catch(() => []),
-          fetchJson('/api/stock-management/orders').catch(() => []),
+          fetchJson('/api/stock-management/issues'),
+          fetchJson('/api/stock-management/orders'),
           fetchJson('/api/stock-issue-authorizations').catch(() => []),
           fetchJson('/api/materials').catch(() => []),
         ]);
@@ -27635,6 +27641,7 @@
         const locationFilters = populateInventoryLocationFilters(projectsCache, inventoryMaterials);
 
         const list = document.getElementById('inventory-list');
+        const siteList = document.getElementById('inventory-site-list');
         const summaryList = document.getElementById('inventory-summary-list');
         const projectView = document.getElementById('inventory-project-view-card');
         const siteView = document.getElementById('inventory-site-view');
@@ -27693,10 +27700,12 @@
           const keyword = normalizeText([item.itemName, item.nomProjet, item.demandeur, item.etapeApprovisionnement].join(' '));
           if (categoryFilter && category !== categoryFilter) return false;
           if (familyFilter && family !== familyFilter) return false;
-          if (statusFilter && status !== statusFilter) return false;
-          if (stockFilter === 'available' && available <= 0) return false;
-          if (stockFilter === 'low' && !(available > 0 && available < requested)) return false;
-          if (stockFilter === 'empty' && available > 0) return false;
+          if (!isSiteTab) {
+            if (statusFilter && status !== statusFilter) return false;
+            if (stockFilter === 'available' && available <= 0) return false;
+            if (stockFilter === 'low' && !(available > 0 && available < requested)) return false;
+            if (stockFilter === 'empty' && available > 0) return false;
+          }
           if (keywordFilter && !keyword.includes(keywordFilter)) return false;
           return true;
         });
@@ -27723,6 +27732,9 @@
                 buildingLabels: new Set(),
                 totalDemande: 0,
                 totalRestant: 0,
+                totalOrdered: 0,
+                totalWarehouseRemaining: 0,
+                totalConsumed: 0,
                 hasStockArrival: false,
                 isOnSite: false,
               };
@@ -27738,6 +27750,9 @@
 
             grouped[key].totalDemande += Number(quantities.totalDemande || 0);
             grouped[key].totalRestant += Number(quantities.totalRestant || 0);
+            grouped[key].totalOrdered += Number(quantities.totalOrdered || 0);
+            grouped[key].totalWarehouseRemaining += Number(quantities.totalWarehouseRemaining || 0);
+            grouped[key].totalConsumed += Number(quantities.totalConsumed || 0);
             grouped[key].unitPrice = grouped[key].unitPrice || Number(item.prixMoyen || item.prixUnitaire || materialCatalogByName.get(normalizeText(item.itemName))?.prixMoyen || 0);
             if (quantities.hasStockArrival) {
               grouped[key].hasStockArrival = true;
@@ -27822,30 +27837,54 @@
               const issueTotals = issueTotalsByRequestId[Number(item.id)] || { transferredQty: 0, consumedQty: 0 };
               const transferredQty = Number(issueTotals.transferredQty || 0);
               const consumedQty = Number(issueTotals.consumedQty || 0);
-              const requestDemande = Number(item.quantiteDemandee || 0);
-              const requestRestant = Number(item.quantiteRestante || 0);
-              const baseQty = transferredQty > 0
-                ? transferredQty
-                : (consumedQty > 0 ? consumedQty : requestDemande);
-              const remainingQty = transferredQty > 0
-                ? Math.max(baseQty - consumedQty, 0)
-                : (consumedQty > 0 ? 0 : Math.max(requestRestant, 0));
               return {
-                totalDemande: baseQty,
-                totalRestant: remainingQty,
-                hasStockArrival: baseQty > 0,
+                totalDemande: transferredQty,
+                totalRestant: Math.max(transferredQty - consumedQty, 0),
+                totalOrdered: Number(orderedQtyByRequestId.get(Number(item.id)) || 0),
+                totalWarehouseRemaining: Math.max(Number(item.quantiteRestante || 0), 0),
+                totalConsumed: consumedQty,
+                hasStockArrival: transferredQty > 0,
                 isOnSite: transferredQty > 0,
               };
             }
           ).map(row => {
-            const statut = row.isOnSite ? 'SUR_SITE' : 'EN_STOCK';
+            const statut = row.totalRestant <= 0 ? 'EPUISE' : 'EN_STOCK';
             return { ...row, statut };
           });
         }
 
+        if (isSiteTab) {
+          detailedRows = detailedRows.filter(row => {
+            if (statusFilter && row.statut !== statusFilter) return false;
+            if (stockFilter === 'available' && row.totalRestant <= 0) return false;
+            if (stockFilter === 'low' && !(row.totalRestant > 0 && row.totalRestant < row.totalDemande)) return false;
+            if (stockFilter === 'empty' && row.totalRestant > 0) return false;
+            return true;
+          });
+        }
         const visibleRows = inventoryActiveTab === 'low'
           ? detailedRows.filter(row => Number(row.totalRestant || 0) <= 0 || Number(row.totalRestant || 0) < Number(row.totalDemande || 0))
           : detailedRows;
+        if (siteList && isSiteTab) {
+          siteList.innerHTML = visibleRows.length
+            ? visibleRows.map(row => `
+                <tr>
+                  <td><div class="inv-product">${escapeHtml(row.materialName)}</div></td>
+                  <td>${escapeHtml(`${row.projectLabel} / ${row.buildingLabel}`)}</td>
+                  <td>${escapeHtml(row.stageLabel)}</td>
+                  <td>${escapeHtml(row.unit)}</td>
+                  <td class="inv-num">${row.totalOrdered.toFixed(2)}</td>
+                  <td class="inv-num">${row.totalDemande.toFixed(2)}</td>
+                  <td class="inv-reserved">${row.totalConsumed.toFixed(2)}</td>
+                  <td class="inv-num">${row.totalWarehouseRemaining.toFixed(2)}</td>
+                  <td class="inv-available">${row.totalRestant.toFixed(2)}</td>
+                  <td><span class="inv-status ${row.totalWarehouseRemaining > 0 ? 'ok' : 'critical'}">${row.totalWarehouseRemaining > 0 ? 'En stock' : 'Épuisé'}</span></td>
+                  <td><span class="inv-status ${row.statut === 'EPUISE' ? 'critical' : 'ok'}">${formatInventoryStatusLabel(row.statut)}</span></td>
+                  <td>${row.totalRestant <= 0 ? 'Stock épuisé sur le lot' : row.totalRestant < row.totalDemande ? 'Stock entamé' : '-'}</td>
+                </tr>
+              `).join('')
+            : '<tr><td colspan="12" style="text-align:center;padding:20px;">Aucun produit transféré sur ce lot pour les filtres sélectionnés</td></tr>';
+        }
         if (list && !isMovementTab) {
           list.innerHTML = visibleRows.length
             ? visibleRows.map(row => `
@@ -27867,8 +27906,8 @@
         }
 
         const summaryMap = {};
-        scopedMaterials.forEach(m => {
-          const produit = m.itemName || 'Materiel';
+        (isSiteTab ? visibleRows : scopedMaterials).forEach(m => {
+          const produit = (isSiteTab ? m.materialName : m.itemName) || 'Materiel';
           const key = normalizeText(produit);
 
           if (!summaryMap[key]) {
@@ -27879,8 +27918,8 @@
             };
           }
 
-          const demande = Number(m.quantiteDemandee || 0);
-          const restant = Number(m.quantiteRestante || 0);
+          const demande = Number((isSiteTab ? m.totalDemande : m.quantiteDemandee) || 0);
+          const restant = Number((isSiteTab ? m.totalRestant : m.quantiteRestante) || 0);
 
           summaryMap[key].totalDemande += demande;
           summaryMap[key].totalRestant += restant;
@@ -27935,7 +27974,7 @@
             : '<tr><td colspan="5" style="text-align: center; padding: 20px;">Aucune donnée</td></tr>';
         }
       } catch (err) {
-        showMessage('Erreur', 'error');
+        showMessage('Erreur de chargement du stock : ' + err.message, 'error');
       }
     }
 
@@ -39259,9 +39298,6 @@
   </script>
 </body>
 </html>
-
-
-
 
 
 
