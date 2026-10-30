@@ -50,6 +50,13 @@ Cette version utilise une base de données SQLite locale et une page de connexio
 - Vérification ciblée : `node --test scripts/test-inventory-site.js scripts/test-kokan-inventory.js`.
 - Le compte **Kokan_SK** consulte l'inventaire du projet **Songon Kassemble**, y compris ses types de bâtiments et ses lots. Les demandes, mouvements et filtres de projet respectent ce périmètre.
 
+## Messagerie interne et dossiers profils
+
+- La **Messagerie interne** est accessible dans tous les profils, y compris les comptes restreints et les chauffeurs.
+- Dans **Admin > Dossiers profils**, elle apparaît comme toujours autorisée et ne peut pas être interdite. Les anciennes restrictions sur ce module sont sans effet ; les autres restrictions sont conservées.
+- Chaque compte conserve sa propre boîte de réception et les contrôles d'accès aux conversations restent inchangés.
+- Vérification ciblée : `node --test scripts/test-internal-mail-access.js`.
+
 ## Sauvegardes fiables (DB + archives)
 
 Pour garantir que tout est bien sauvegarde (base + PDF archives), utilise ces commandes:

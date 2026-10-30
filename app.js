@@ -4098,6 +4098,9 @@ function authenticateToken(req, res, next) {
 
 function authorizeRoleAccess(req, res, next) {
   const role = req.user && req.user.role;
+  if (/^\/internal-mail(?:\/|$)/.test(String(req.path || ''))) {
+    return next();
+  }
   if (role === 'chauffeur') {
     const pathName = String(req.path || '');
     const method = String(req.method || '').toUpperCase();
@@ -4142,10 +4145,6 @@ function authorizeRoleAccess(req, res, next) {
       return next();
     }
     return res.status(403).json({ error: 'Acces refuse pour ce role' });
-  }
-
-  if (/^\/internal-mail(?:\/|$)/.test(pathName)) {
-    return next();
   }
 
   const commisRules = [
@@ -13300,7 +13299,7 @@ function getAccessProfileBaselineModules(role) {
     controle_achat_global: ['purchase-orders', 'sortie-autorisations', 'inventory', 'projects', 'material-catalog', 'stock-management', 'database', 'trash'],
     achat: ['purchase-orders', 'material-catalog', 'expenses', 'reports', 'inventory', 'database', 'trash'],
   };
-  return new Set((presets[normalizedRole] || []).map(item => String(item || '').trim().toLowerCase()));
+  return new Set(['admin-mail', ...(presets[normalizedRole] || []).map(item => String(item || '').trim().toLowerCase())]);
 }
 
 const STANDARD_ACCESS_PROFILE_MODULES = new Set([
@@ -13318,6 +13317,7 @@ function computeEffectiveModulesForAccessProfile(profileLike, fallbackRole = '')
   const accreditationLevel = String(profileLike?.accreditationLevel || '').trim().toLowerCase();
   const effectiveRole = String(profileLike?.roleSnapshot || profileLike?.role || fallbackRole || '').trim().toLowerCase();
   const roleBaseline = getAccessProfileBaselineModules(effectiveRole);
+  roleBaseline.delete('admin-mail');
   const hasStoredProfile = Boolean(
     profileLike
     && (
@@ -13358,6 +13358,7 @@ function computeEffectiveModulesForAccessProfile(profileLike, fallbackRole = '')
   if (forcedModule && !denied.has(forcedModule) && (!allowed.size || allowed.has(forcedModule))) {
     effective.add(forcedModule);
   }
+  effective.add('admin-mail');
   return effective;
 }
 
@@ -13543,6 +13544,7 @@ app.patch('/api/admin/access-profiles/:username', async (req, res) => {
     const accreditationLevel = String(req.body?.accreditationLevel || 'standard').trim().toLowerCase() || 'standard';
     const allowedModules = normalizeModuleList(Array.isArray(req.body?.allowedModules) ? req.body.allowedModules : String(req.body?.allowedModules || '').split(','));
     const deniedModules = normalizeModuleList(Array.isArray(req.body?.deniedModules) ? req.body.deniedModules : String(req.body?.deniedModules || '').split(','));
+    deniedModules.delete('admin-mail');
     const forcedModule = String(req.body?.forcedModule || '').trim().toLowerCase();
     const notes = String(req.body?.notes || '').trim();
     const now = new Date().toISOString();
@@ -13692,8 +13694,6 @@ app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, r
     return res.status(500).json({ error: 'Erreur creation profil RH', details: String(err?.message || err) });
   }
 });
-
-
 
 
 

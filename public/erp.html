@@ -13177,7 +13177,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
               <div>
                 <h3 style="margin:0;">Gouvernance d'accès</h3>
-                <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Module pour piloter les droits de tous les profils. Admin et directeur RH peuvent restreindre les modules.</p>
+                <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Module pour piloter les droits de tous les profils. La messagerie interne est toujours autorisée pour tous les comptes, même avec un profil restreint.</p>
               </div>
               <div class="action-buttons" style="gap:8px;">
                 <button type="button" class="button button-small" onclick="loadAccessProfilesModule()">Actualiser</button>
@@ -14041,7 +14041,7 @@
     const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'purchase-orders-tracking', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp']);
       const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'purchase-orders-tracking', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
     const RESTRICTED_DEFAULT_ALLOWED_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'guide-erp']);
-    const ADMIN_ONLY_MODULES = new Set(['access-profiles', 'admin-mail']);
+    const ADMIN_ONLY_MODULES = new Set(['access-profiles']);
     const ACCESS_PROFILE_MODULE_OPTIONS = [
       'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'purchase-orders-tracking', 'stock-management', 'sortie-autorisations',
       'material-catalog', 'material-requests-tracking', 'parc-auto', 'vehicles', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees',
@@ -14054,6 +14054,7 @@
       const normalized = key.toLowerCase();
       const fallbackLabels = {
         'access-profiles': 'Dossiers profils',
+        'admin-mail': 'Messagerie interne',
         'audit-log': 'Journal audit',
         'assignments': 'Affectations',
         'database': 'Base de donnée',
@@ -14148,10 +14149,10 @@
       };
 
       if (normalizedRole === 'gestionnaire_stock_songon' && normalizedUsername === 'kokan_sk') {
-        return new Set(normalizeAccessProfileModuleList(Array.from(KOKAN_ALLOWED_MODULES)));
+        return new Set(['admin-mail', ...normalizeAccessProfileModuleList(Array.from(KOKAN_ALLOWED_MODULES))]);
       }
 
-      return new Set(normalizeAccessProfileModuleList(presets[normalizedRole] || []));
+      return new Set(['admin-mail', ...normalizeAccessProfileModuleList(presets[normalizedRole] || [])]);
     }
     const AUTO_MAP_REFRESH_MS = 10000;
     const AUTO_MAP_FAST_MS = 1000;
@@ -16840,6 +16841,7 @@
         ADMIN_ONLY_MODULES.forEach(moduleKey => allowed.delete(moduleKey));
       }
 
+      allowed.add('admin-mail');
       return allowed;
     }
 
@@ -17472,6 +17474,8 @@
         normalizeAccessProfileModuleList(row.effectiveModules).forEach(moduleKey => allowedSet.add(moduleKey));
       }
       const deniedSet = new Set(normalizeAccessProfileModuleList(row?.deniedModules || ''));
+      allowedSet.add('admin-mail');
+      deniedSet.delete('admin-mail');
       const baselineSet = getAccessProfileBaselineModules(row?.role || '', row?.username || '');
       if (String(row?.role || '').trim().toLowerCase() === 'admin' && !normalizeAccessProfileModuleList(row?.allowedModules || '').length) {
         baselineSet.forEach(moduleKey => allowedSet.add(moduleKey));
@@ -17479,14 +17483,14 @@
 
       const renderChoice = (item, kind) => {
         const checked = kind === 'allowed' ? allowedSet.has(item.key) : deniedSet.has(item.key);
-        const disabled = kind === 'allowed' && deniedSet.has(item.key) || kind === 'denied' && allowedSet.has(item.key);
+        const disabled = item.key === 'admin-mail' || kind === 'allowed' && deniedSet.has(item.key) || kind === 'denied' && allowedSet.has(item.key);
         const inputId = `access-profile-${kind}-${item.key}`;
         return `
           <label for="${escapeHtml(inputId)}" style="display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border:1px solid ${kind === 'allowed' ? '#dbeafe' : '#fed7aa'}; border-radius:10px; background:${kind === 'allowed' ? '#eff6ff' : '#fffaf0'}; opacity:${disabled ? '0.55' : '1'}; cursor:${disabled ? 'not-allowed' : 'pointer'};">
             <input type="checkbox" id="${escapeHtml(inputId)}" data-kind="${kind}" data-module-key="${escapeHtml(item.key)}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} style="margin-top:2px;" />
             <span>
               <span style="display:block; font-weight:600;">${escapeHtml(item.label)}</span>
-              <span style="display:block; font-size:12px; color:#64748b;">${escapeHtml(item.key)}</span>
+              <span style="display:block; font-size:12px; color:#64748b;">${item.key === 'admin-mail' ? 'Toujours autorisée pour tous les profils' : escapeHtml(item.key)}</span>
             </span>
           </label>
         `;
@@ -17502,13 +17506,13 @@
         allowedHost.querySelectorAll('input[type="checkbox"][data-kind="allowed"]').forEach(input => {
           const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
           const other = deniedChecked.has(key);
-          input.disabled = other;
+          input.disabled = key === 'admin-mail' || other;
           input.closest('label')?.style && (input.closest('label').style.opacity = other ? '0.55' : '1');
         });
         deniedHost.querySelectorAll('input[type="checkbox"][data-kind="denied"]').forEach(input => {
           const key = String(input.dataset.moduleKey || '').trim().toLowerCase();
           const other = allowedChecked.has(key);
-          input.disabled = other;
+          input.disabled = key === 'admin-mail' || other;
           input.closest('label')?.style && (input.closest('label').style.opacity = other ? '0.55' : '1');
         });
       };
@@ -26336,7 +26340,7 @@
         database: ['Admin', 'Base de donnée'],
         'guide-erp': ['Admin', 'Guide ERP'],
         'access-profiles': ['Admin', 'Dossiers profils'],
-        'admin-mail': ['Admin', 'Courriels'],
+        'admin-mail': ['Communication', 'Messagerie interne'],
         trash: ['Admin', 'Corbeille'],
         'audit-log': ['Admin', 'Historique'],
         users: ['Admin', 'Utilisateurs'],
@@ -39298,7 +39302,6 @@
   </script>
 </body>
 </html>
-
 
 
 
