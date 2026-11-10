@@ -645,6 +645,7 @@ const authRateLimiter = rateLimit({
 
 
 
+
 app.use('/api', apiRateLimiter);
 
 const dbClient = createDbClient({
@@ -2390,6 +2391,16 @@ async function initDb() {
   try { await run("ALTER TABLE users ADD COLUMN passwordEnc TEXT NOT NULL DEFAULT ''"); } catch (_e) {}
   try { await run("ALTER TABLE users ADD COLUMN tokenVersion INTEGER NOT NULL DEFAULT 0"); } catch (_e) {}
   try { await run("ALTER TABLE users ADD COLUMN passwordChangedAt TEXT NOT NULL DEFAULT ''"); } catch (_e) {}
+  const addUserLoginTimestampColumn = async columnName => {
+    try {
+      await run(`ALTER TABLE users ADD COLUMN ${columnName} TEXT NOT NULL DEFAULT ''`);
+    } catch (error) {
+      if (error?.code === '42701' || /duplicate column name/i.test(String(error?.message || ''))) return;
+      throw error;
+    }
+  };
+  await addUserLoginTimestampColumn('firstLoginAt');
+  await addUserLoginTimestampColumn('lastLoginAt');
   await run(`CREATE TABLE IF NOT EXISTS password_reset_requests (
     id INTEGER PRIMARY KEY,
     userId INTEGER NOT NULL,
@@ -4864,6 +4875,15 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
     try { await storeUserPasswordEnc(user.id, password); } catch (_e) {}
   }
 
+  const loggedInAt = new Date().toISOString();
+  await run(
+    `UPDATE users
+     SET firstLoginAt = CASE WHEN COALESCE(firstLoginAt, '') = '' THEN ? ELSE firstLoginAt END,
+         lastLoginAt = ?
+     WHERE id = ?`,
+    [loggedInAt, loggedInAt, user.id]
+  );
+
   const token = jwt.sign({
     id: user.id,
     username: user.username,
@@ -5868,9 +5888,9 @@ app.get('/api/users', async (req, res) => {
       COALESCE(NULLIF(TRIM(he.fullName), ''), '') AS linkedEmployeeName,
       COALESCE(he.id, 0) AS linkedEmployeeId,
       '-' AS initialPasswordHint,
-      0 AS hasLoggedIn,
-      '' AS firstLoginAt,
-      '' AS lastLoginAt,
+      CASE WHEN COALESCE(u.firstLoginAt, '') <> '' THEN 1 ELSE 0 END AS hasLoggedIn,
+      COALESCE(u.firstLoginAt, '') AS firstLoginAt,
+      COALESCE(u.lastLoginAt, '') AS lastLoginAt,
       COALESCE(u.passwordChangedAt, '') AS passwordChangedAt,
       CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END AS hasUserAccount,
       CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword
@@ -5886,9 +5906,9 @@ app.get('/api/users', async (req, res) => {
       '' AS linkedEmployeeName,
       0 AS linkedEmployeeId,
       '-' AS initialPasswordHint,
-      0 AS hasLoggedIn,
-      '' AS firstLoginAt,
-      '' AS lastLoginAt,
+      CASE WHEN COALESCE(u.firstLoginAt, '') <> '' THEN 1 ELSE 0 END AS hasLoggedIn,
+      COALESCE(u.firstLoginAt, '') AS firstLoginAt,
+      COALESCE(u.lastLoginAt, '') AS lastLoginAt,
       COALESCE(u.passwordChangedAt, '') AS passwordChangedAt,
       1 AS hasUserAccount,
       CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword
@@ -5906,6 +5926,37 @@ app.get('/api/users', async (req, res) => {
 function isAdminUser(req) {
   return String(req.user?.role || '').trim().toLowerCase() === 'admin';
 }
+
+app.patch('/api/users/reset-login-state/all', async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+
+  const counts = await get(`
+    SELECT
+      COUNT(*) AS totalUsers,
+      SUM(CASE WHEN COALESCE(firstLoginAt, '') <> '' OR COALESCE(lastLoginAt, '') <> '' THEN 1 ELSE 0 END) AS previouslyConnectedUsers
+    FROM users
+  `);
+  await run("UPDATE users SET firstLoginAt = '', lastLoginAt = ''");
+
+  return res.json({
+    resetUsers: Number(counts?.totalUsers || 0),
+    previouslyConnectedUsers: Number(counts?.previouslyConnectedUsers || 0),
+  });
+});
+
+app.patch('/api/users/:id/reset-login-state', async (req, res) => {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  const userId = Number(req.params.id || 0);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ error: 'Compte utilisateur invalide' });
+  }
+
+  const user = await get('SELECT id FROM users WHERE id = ?', [userId]);
+  if (!user) return res.status(404).json({ error: 'Compte utilisateur introuvable' });
+
+  await run("UPDATE users SET firstLoginAt = '', lastLoginAt = '' WHERE id = ?", [userId]);
+  return res.json({ id: userId, message: 'Statut de première connexion réinitialisé' });
+});
 
 app.get('/api/admin/password-reset-requests', async (req, res) => {
   if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
@@ -13694,6 +13745,4 @@ app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, r
     return res.status(500).json({ error: 'Erreur creation profil RH', details: String(err?.message || err) });
   }
 });
-
-
 
