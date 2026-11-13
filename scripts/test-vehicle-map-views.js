@@ -43,6 +43,44 @@ function positions(first, last, session = 0) {
   }));
 }
 
+test('both technical maps use policy-compliant OSM tiles without exposing the page path', () => {
+  const layers = [];
+  const errors = [];
+  const L = {
+    map: () => ({ setView() { return this; }, invalidateSize() {} }),
+    tileLayer(url, options) {
+      const layer = {
+        url, options,
+        once(event, handler) { this.errorHandler = handler; assert.equal(event, 'tileerror'); return this; },
+        addTo() { return this; },
+      };
+      layers.push(layer);
+      return layer;
+    },
+  };
+  const context = vm.createContext({
+    L, window: { L, setTimeout: handler => handler() },
+    document: { getElementById: () => ({}) },
+    autoVehicleMap: null, mapsModuleLeafletMap: null,
+    console: { error() {} },
+    showMessage: (message, severity) => errors.push({ message, severity }),
+  });
+  vm.runInContext(extract(html, '    function createVehicleMapTileLayer()', '    function setAutoMapMode('), context);
+  vm.runInContext(extract(html, '    function initializeMapsModuleLeafletMap()', '    function renderMapsModuleLeafletMap('), context);
+  assert.equal(context.initializeAutoVehicleMap(), true);
+  assert.equal(context.initializeMapsModuleLeafletMap(), true);
+  assert.equal(layers.length, 2);
+  for (const layer of layers) {
+    assert.equal(layer.url, 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
+    assert.equal(layer.options.referrerPolicy, 'strict-origin-when-cross-origin');
+    assert.match(layer.options.attribution, /openstreetmap.org\/copyright/);
+    assert.equal(layer.options.maxZoom, 19);
+  }
+  layers[0].errorHandler({ error: new Error('403') });
+  assert.equal(errors[0].severity, 'error');
+  assert.match(errors[0].message, /fond de carte/);
+});
+
 test('all pages contribute to the chronological blue route, including unassigned GPS sessions', async () => {
   const calls = [];
   const context = selectionContext(async url => {

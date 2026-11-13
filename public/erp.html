@@ -14733,6 +14733,19 @@
       return colors[String(status || '').trim()] || '#64748b';
     }
 
+    function createVehicleMapTileLayer() {
+      const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+        referrerPolicy: 'strict-origin-when-cross-origin',
+      });
+      tiles.once('tileerror', event => {
+        console.error('Chargement du fond de carte OpenStreetMap impossible', event.error);
+        showMessage('Le fond de carte ne peut pas être chargé. Le trajet GPS reste disponible. Vérifiez votre connexion et actualisez la vue.', 'error');
+      });
+      return tiles;
+    }
+
     function initializeAutoVehicleMap() {
       const container = document.getElementById('auto-vehicles-map');
       if (!container) return false;
@@ -14744,10 +14757,7 @@
 
       if (!autoVehicleMap) {
         autoVehicleMap = L.map(container, { preferCanvas: true }).setView([5.3364, -4.0267], 7);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; OpenStreetMap',
-        }).addTo(autoVehicleMap);
+        createVehicleMapTileLayer().addTo(autoVehicleMap);
       }
 
       window.setTimeout(() => {
@@ -15314,10 +15324,7 @@
 
       if (!mapsModuleLeafletMap) {
         mapsModuleLeafletMap = L.map(container, { preferCanvas: true }).setView([5.3364, -4.0267], 7);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; OpenStreetMap',
-        }).addTo(mapsModuleLeafletMap);
+        createVehicleMapTileLayer().addTo(mapsModuleLeafletMap);
       }
 
       window.setTimeout(() => {
@@ -39377,7 +39384,6 @@
   </script>
 </body>
 </html>
-
 
 
 
