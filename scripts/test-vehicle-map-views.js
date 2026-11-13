@@ -81,6 +81,52 @@ test('both technical maps use policy-compliant OSM tiles without exposing the pa
   assert.match(errors[0].message, /fond de carte/);
 });
 
+test('overview and detail hiding rules target the real section IDs', () => {
+  for (const id of ['maps-overview-view', 'maps-detail-view']) {
+    assert.match(html, new RegExp(`id="${id}"`));
+    assert.match(html, new RegExp(`#maps #${id}\\[hidden\\]`));
+  }
+  assert.doesNotMatch(html, /#maps \.maps-overview-view\[hidden\]/);
+});
+
+test('the shared technical map returns to the main card when leaving vehicle detail', () => {
+  const node = () => ({ style: {}, classList: { toggle() {} }, setAttribute() {} });
+  const canvas = node();
+  const nodes = Object.fromEntries([
+    'maps-google-wrapper', 'maps-leaflet-wrapper', 'maps-map-mode-google',
+    'maps-map-mode-leaflet', 'maps-detail-google-frame', 'maps-detail-leaflet-wrapper',
+    'maps-detail-mode-google', 'maps-detail-mode-leaflet',
+  ].map(id => [id, node()]));
+  for (const host of [nodes['maps-leaflet-wrapper'], nodes['maps-detail-leaflet-wrapper']]) {
+    host.append = child => { child.parentElement = host; };
+  }
+  nodes['maps-main-leaflet-map'] = canvas;
+  canvas.parentElement = nodes['maps-leaflet-wrapper'];
+  const context = vm.createContext({
+    document: { getElementById: id => nodes[id] },
+    mapsModuleMapMode: 'google', mapsDetailOpen: false,
+    managerMapFitKeys: { maps: '' }, managerMapRebuilding: false,
+    mapsModuleLeafletMap: { invalidateSize() {} }, window: { L: {} },
+    renderMapsModuleLeafletMap() {}, renderMapsModuleGoogleMap() {},
+    showMessage() { throw new Error('Unexpected map error'); }, console,
+  });
+  vm.runInContext(extract(html, '    function setMapsModuleMapMode(', '    function syncMapsLocationInputsWithSelection('), context);
+  context.setMapsModuleMapMode('leaflet');
+  assert.equal(canvas.parentElement, nodes['maps-leaflet-wrapper']);
+  assert.equal(nodes['maps-leaflet-wrapper'].style.display, 'block');
+  context.mapsDetailOpen = true;
+  context.setMapsModuleMapMode('leaflet');
+  assert.equal(canvas.parentElement, nodes['maps-detail-leaflet-wrapper']);
+  assert.equal(canvas.style.height, '100%');
+  context.mapsDetailOpen = false;
+  context.setMapsModuleMapMode('leaflet');
+  assert.equal(canvas.parentElement, nodes['maps-leaflet-wrapper']);
+  assert.equal(canvas.style.height, '');
+  context.setMapsModuleMapMode('google');
+  assert.equal(nodes['maps-google-wrapper'].style.display, 'block');
+  assert.equal(nodes['maps-leaflet-wrapper'].style.display, 'none');
+});
+
 test('all pages contribute to the chronological blue route, including unassigned GPS sessions', async () => {
   const calls = [];
   const context = selectionContext(async url => {

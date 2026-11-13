@@ -12185,7 +12185,7 @@
             #maps .maps-status-pill.maintenance { background:#eeeaff; color:#7056cd; }
             #maps .maps-view-position { min-height:26px; padding:0 8px; border:0; border-radius:5px; background:#2878f5; color:#fff; font-size:7px; font-weight:700; white-space:nowrap; cursor:pointer; }
             #maps .maps-more-button { width:25px; height:25px; border:1px solid #e1e9f3; border-radius:6px; background:#fff; color:#536985; cursor:pointer; }
-            #maps .maps-detail-view[hidden],#maps .maps-overview-view[hidden] { display:none!important; }
+            #maps #maps-detail-view[hidden],#maps #maps-overview-view[hidden] { display:none!important; }
             #maps .maps-detail-top { display:flex; align-items:center; gap:13px; margin-bottom:9px; padding:9px 11px; border:1px solid #e2eaf5; border-radius:8px; background:#fff; }
             #maps .maps-detail-photo { width:94px; height:55px; display:grid; flex:none; place-items:center; overflow:hidden; border-radius:6px; background:#f0f4fa; font-size:29px; }
             #maps .maps-detail-photo img { width:100%; height:100%; object-fit:cover; }
@@ -12435,7 +12435,7 @@
 
           <section id="maps-detail-view" class="maps-detail-view" hidden>
             <header class="maps-detail-top">
-              <button type="button" id="maps-back-to-overview" class="button button-secondary button-small">‹ Retour à la carte</button>
+              <button type="button" id="maps-back-to-overview" class="button button-secondary button-small" aria-label="Retour à la carte principale">‹ Retour à la carte</button>
               <div id="maps-detail-photo" class="maps-detail-photo" aria-label="Photo du véhicule"><svg class="maps-vehicle-placeholder" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h12v11H3zM15 11h4l3 3v4h-7zM7 18a2 2 0 1 0 0 .01M18 18a2 2 0 1 0 0 .01"/></svg></div>
               <div class="maps-detail-ident"><h2 id="maps-detail-name">Véhicule</h2><p id="maps-detail-plate">—</p><p id="maps-detail-driver">Chauffeur non affecté</p><div class="maps-driver-assignment"><select id="maps-detail-driver-select" aria-label="Affecter un chauffeur"><option value="">Aucun chauffeur</option></select><button type="button" id="maps-save-driver-assignment">Affecter</button></div></div>
               <div class="maps-detail-stats">
@@ -39384,8 +39384,6 @@
   </script>
 </body>
 </html>
-
-
 
 
 
