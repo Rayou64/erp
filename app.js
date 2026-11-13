@@ -10446,11 +10446,19 @@ app.get('/api/auto-vehicles/:id/tracking-sessions', async (req, res) => {
 
 app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
   const id = Number(req.params.id);
-  const limit = Math.min(Math.max(Number(req.query.limit || 25), 1), 20000);
+  const requestedLimit = Number(req.query.limit || 25);
+  const limit = Math.min(Math.max(requestedLimit, 1), 20000);
   const afterId = Math.max(Number(req.query.afterId || 0), 0);
+  const beforeRecordedAt = String(req.query.beforeRecordedAt || '');
+  const beforeId = Number(req.query.beforeId || 0);
 
   if (!id) {
     return res.status(400).json({ error: 'ID vehicule invalide' });
+  }
+  if (!Number.isInteger(requestedLimit) || !Number.isInteger(afterId) ||
+      (Boolean(beforeRecordedAt) !== Boolean(beforeId)) ||
+      (beforeRecordedAt && (!Number.isFinite(Date.parse(beforeRecordedAt)) || !Number.isInteger(beforeId) || beforeId < 1))) {
+    return res.status(400).json({ error: 'Pagination GPS invalide' });
   }
 
   const vehicle = await get('SELECT * FROM auto_vehicles WHERE id = ?', [id]);
@@ -10483,15 +10491,20 @@ app.get('/api/auto-vehicles/:id/locations', async (req, res) => {
     WHERE vehicle_id = ?
       AND (? = 0 OR recorded_at >= ?)
       AND (? = 0 OR id > ?)
+      AND (? = '' OR recorded_at < ? OR (recorded_at = ? AND id < ?))
     ORDER BY recorded_at DESC, id DESC
     LIMIT ?`,
-    [id, fromTrackingStart ? 1 : 0, trackingStartAt, afterId, afterId, limit]
+    [id, fromTrackingStart ? 1 : 0, trackingStartAt, afterId, afterId,
+      beforeRecordedAt, beforeRecordedAt, beforeRecordedAt, beforeId, limit + 1]
   );
 
+  const locations = rows.slice(0, limit);
+  const last = locations[locations.length - 1];
   res.json({
     vehicle,
     trackingDevice: trackingDevice || null,
-    locations: rows,
+    locations,
+    nextCursor: rows.length > limit && last ? { recordedAt: last.recordedAt, id: last.id } : null,
   });
 });
 
@@ -13745,4 +13758,3 @@ app.post('/api/admin/access-profiles/:username/ensure-hr-profile', async (req, r
     return res.status(500).json({ error: 'Erreur creation profil RH', details: String(err?.message || err) });
   }
 });
-

@@ -55,7 +55,19 @@ Cette version utilise une base de données SQLite locale et une page de connexio
 - La **Messagerie interne** est accessible dans tous les profils, y compris les comptes restreints et les chauffeurs.
 - Dans **Admin > Dossiers profils**, elle apparaît comme toujours autorisée et ne peut pas être interdite. Les anciennes restrictions sur ce module sont sans effet ; les autres restrictions sont conservées.
 - Chaque compte conserve sa propre boîte de réception et les contrôles d'accès aux conversations restent inchangés.
-- Vérification ciblée : `node --test scripts/test-internal-mail-access.js`.
+- Dans l'application de messagerie, les dossiers colorés classent les messages : Rapports d'incidents, Informations générales, Documents projets, Réunions et Administration.
+- Les équipes destinataires RH, Direction, Chantiers et Achats sont présentées séparément des dossiers. Elles restent indisponibles tant que leur gestion et leurs membres ne sont pas raccordés au module **Liste des employés** ; les rôles utilisateurs ne sont pas utilisés comme équipes.
+- Sur téléphone (jusqu'à 780 px), la messagerie reprend la maquette validée : enveloppe unique, retour ERP, recherche arrondie, dossiers colorés défilants, menu latéral, lecture et rédaction plein écran, bouton Nouveau. L'ordinateur conserve sa présentation à trois panneaux ; les deux interfaces utilisent les mêmes API et données réelles.
+- La rédaction conserve À/Cc/Cci, le gras, l'italique, le souligné, les brouillons, les pièces jointes avec retrait et les images. Les limites existantes restent applicables : 600 Ko par fichier, 250 Ko par image intégrée et 900 Ko pour la requête JSON.
+- Le client Android charge le site distant configuré dans [mobile/capacitor.config.json](mobile/capacitor.config.json). Une publication web actualise cette interface sans reconstruire l'APK ; la messagerie s'ouvre dans la WebView courante sur mobile.
+- Vérification ciblée : `node --test scripts/test-internal-mail-access.js scripts/test-messaging-teams.js scripts/test-messaging-mobile.js`.
+
+## Cartes du profil Gestion du parc auto
+
+- Dans la fiche d'un véhicule, **Vue Google** et **Vue technique · trajet bleu** ouvrent directement le véhicule correspondant dans les cartes. Les deux vues restent accessibles depuis le détail.
+- Google affiche la dernière position enregistrée. La vue technique affiche en bleu toutes les positions de la dernière session GPS, ou tout l'historique disponible en l'absence de session, sans limiter le trajet aux 25 derniers points. Une trace GPS superposée à Google nécessiterait une intégration Google Maps JavaScript API configurée ; l'iframe actuelle ne la fournit pas.
+- L'historique GPS est paginé par le couple `recordedAt/id` : `GET /api/auto-vehicles/:id/locations` renvoie `nextCursor` ; les pages suivantes utilisent `beforeRecordedAt` et `beforeId`. Les paramètres existants `afterId`, `fromTrackingStart` et `limit` restent disponibles. Les réponses d'une ancienne sélection ne remplacent pas le trajet d'un autre véhicule.
+- Vérification ciblée : `node --test scripts/test-vehicle-map-views.js` (pagination SQLite, session de plus de 20 000 points, changements rapides de véhicule, trace et accès aux deux vues).
 
 ## Sauvegardes fiables (DB + archives)
 

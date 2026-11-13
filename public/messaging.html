@@ -56,6 +56,12 @@
       .badge { min-width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; padding:0 6px; border-radius:6px; background:#dbeaff; color:#1d5fd1; text-align:center; font-size:12px; font-weight:700; }
       .folder.active .badge { background:#1472ed; color:#fff; }
       .side-heading { margin:12px 0 8px; padding:15px 10px 0; border-top:1px solid #e4ecf7; color:#30496d; font-size:12px; font-weight:700; letter-spacing:0; text-transform:none; }
+    .mail-teams { display:grid; gap:5px; }
+    .team-placeholder { width:100%; min-height:42px; display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid #e4ecf7; border-radius:7px; background:#f5f8fc; color:#7186a3; text-align:left; cursor:not-allowed; }
+    .team-placeholder svg { width:19px; height:19px; flex:none; }
+    .team-placeholder strong { display:block; font-size:12px; font-weight:600; }
+    .team-placeholder small { display:block; margin-top:3px; font-size:10px; color:#8799b1; }
+    .team-note { padding:8px 10px; color:#7d90ab; font-size:11px; line-height:1.5; }
     .list-panel { min-width:0; border-right:1px solid var(--line); }
     .list-head { position:relative; display:flex; flex-direction:column; padding:10px 20px 12px; border-bottom:1px solid var(--line); }
     .list-title { display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -293,13 +299,15 @@
     @media (max-width:1050px) { .workspace { grid-template-columns:190px minmax(290px,.8fr) minmax(360px,1.2fr); margin:10px; } .brand { min-width:180px; } }
     @media (max-width:780px) { .app { grid-template-rows:58px 1fr; } .topbar { gap:10px; padding:0 12px; } .brand { min-width:auto; } .brand small,.profile small { display:none; } .profile { min-width:auto; } .profile div:last-child { display:none; } .workspace { display:flex; flex-direction:column; margin:0; border:0; border-radius:0; } .sidebar { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:9px; border-right:0; border-bottom:1px solid var(--line); } .compose { grid-column:1/-1; } .side-heading { display:none; } .folder { padding:8px 6px; font-size:10px; } .folder-label { gap:4px; } .list-panel { border-right:0; border-bottom:1px solid var(--line); } .messages { max-height:330px; } .reader { min-height:440px; } .reader-head,.reader-actions,.thread,.reply { padding-left:16px; padding-right:16px; } .form-grid { grid-template-columns:1fr; } }
   </style>
+  <link rel="stylesheet" href="/messaging-mobile.css?v=1">
 </head>
 <body>
   <div class="app">
     <header class="topbar">
       <div class="brand"><div class="brand-mark"><img src="/assets/Messagerie%20interne.png" alt="Messagerie interne"></div><div>Ryan ERP<small>Messagerie interne</small></div></div>
       <a class="erp-home-link" href="/erp.html" title="Retour à l’accueil ERP" aria-label="Retour à l’accueil ERP"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7"></path><path d="M5 9v11h14V9M9 20v-7h6v7"></path></svg></a>
-      <label class="search-wrap"><span class="search-icon" data-lucide="search"></span><input id="global-search" type="search" placeholder="Rechercher un message, un utilisateur, un document…" aria-label="Rechercher"></label>
+      <button type="button" class="mobile-only mobile-menu" id="mobile-menu" aria-label="Ouvrir les dossiers" aria-expanded="false" aria-controls="mail-sidebar">☰</button>
+      <label class="search-wrap"><span class="search-icon" data-lucide="search"></span><input id="global-search" type="search" placeholder="Rechercher un message…" aria-label="Rechercher"></label>
       <div class="profile"><div class="avatar" id="profile-avatar">--</div><div><strong id="profile-name">Utilisateur</strong><small id="profile-role">Profil RyanERP</small></div></div>
     </header>
     <main class="workspace">
@@ -308,6 +316,7 @@
         <p>Échangez des informations, rapports et documents avec les utilisateurs de Ryan ERP</p>
       </header>
       <aside class="sidebar">
+        <button type="button" class="mobile-only mobile-drawer-close" id="mobile-drawer-close">‹ Fermer les dossiers</button>
         <button class="compose" id="compose-button"><span data-lucide="plus"></span> Nouveau message</button>
         <div class="folders">
           <button class="folder active" data-folder="inbox"><span class="folder-label"><span class="folder-icon" data-lucide="inbox"></span>Boîte de réception</span><span class="badge" id="unread-badge">0</span></button>
@@ -325,21 +334,34 @@
           <button class="folder" data-category="meeting"><span class="folder-label"><span class="folder-icon" data-lucide="folder"></span>Réunions</span></button>
           <button class="folder" data-category="administration"><span class="folder-label"><span class="folder-icon" data-lucide="folder"></span>Administration</span></button>
         </div>
+        <div class="side-heading">Équipes destinataires</div>
+        <div class="mail-teams" id="mail-teams" aria-label="Équipes destinataires à configurer"></div>
+        <p class="team-note">Groupes d’envoi à configurer dans « Liste des employés ». Ce ne sont pas des dossiers.</p>
       </aside>
       <section class="list-panel">
-        <div class="list-head"><div class="list-title"><h1 id="folder-title">Boîte de réception</h1><button class="refresh" id="refresh-button">Actualiser</button></div><input class="list-search" id="message-search" type="search" placeholder="Rechercher dans vos messages…"><div class="tabs"><button class="active" data-filter="all">Tous</button><button data-filter="unread">Non lus</button><button data-filter="groups">Groupes</button><button data-filter="starred">Favoris</button></div></div>
+        <nav class="mobile-only mobile-folder-strip" id="mobile-folder-strip" aria-label="Dossiers de classement"></nav>
+        <div class="list-head">
+          <div class="list-title"><div><h1 id="folder-title">Boîte de réception</h1><p class="mobile-only mobile-list-subtitle">Vos échanges, au même endroit</p></div><button class="refresh" id="refresh-button">Actualiser</button></div>
+          <input class="list-search" id="message-search" type="search" placeholder="Rechercher dans vos messages…">
+          <div class="tabs"><button class="active" data-filter="all">Tous</button><button data-filter="unread">Non lus</button><button data-filter="groups">Groupes</button><button data-filter="starred">Suivis</button></div>
+        </div>
+        <div class="mobile-only mobile-section-label">Messages récents</div>
         <div class="messages" id="message-list"><div class="empty">Chargement de la messagerie…</div></div>
       </section>
+      <div class="mobile-only mobile-reader-toolbar"><button type="button" id="mobile-reader-back" aria-label="Retour aux messages">‹</button><strong>Message</strong></div>
       <section class="reader empty" id="reader"><div class="empty-state"><span class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m4 7 8 6 8-6"></path></svg></span><strong>Aucune conversation sélectionnée</strong><span>Choisissez un message dans la liste pour afficher son contenu.</span></div></section>
     </main>
   </div>
+  <button type="button" class="mobile-only mobile-drawer-backdrop" id="mobile-drawer-backdrop" aria-label="Fermer les dossiers" tabindex="-1"></button>
+  <button type="button" class="mobile-only mobile-compose-fab" id="mobile-compose-button"><span aria-hidden="true">＋</span>Nouveau</button>
   <div class="overlay" id="composer-overlay"><section class="composer" role="dialog" aria-modal="true" aria-labelledby="composer-title"><div class="composer-head"><h2 id="composer-title">Nouveau message</h2><button class="close" id="close-composer" aria-label="Fermer">×</button></div><form class="composer-form" id="composer-form">
     <div class="recipient-composition"><div class="recipient-caption"><span>À <b>*</b></span><div class="recipient-carbon-buttons"><button type="button" id="show-cc">Cc</button><button type="button" id="show-bcc">Cci</button></div></div><div id="to-picker-host"></div><div id="cc-field" class="recipient-field" hidden></div><div id="bcc-field" class="recipient-field" hidden></div><label class="send-all-control"><input type="checkbox" id="send-all"> Envoyer à tous les utilisateurs RyanERP</label></div>
     <select id="recipient-select" class="recipient-source-select" multiple aria-hidden="true" tabindex="-1"></select><select id="cc-recipient-select" class="recipient-source-select" multiple aria-hidden="true" tabindex="-1"></select><select id="bcc-recipient-select" class="recipient-source-select" multiple aria-hidden="true" tabindex="-1"></select>
+    <div class="mobile-only mobile-compose-teams"><small>Équipes destinataires · à configurer</small><div id="mobile-compose-teams"></div></div>
     <label class="subject-field">Sujet<input id="subject" required placeholder="Ex. : Information importante"></label>
     <div class="form-grid"><label>Catégorie<select id="category"><option value="general">Général</option><option value="incident">Rapport d'incident</option><option value="project">Projet</option><option value="logistics">Logistique</option><option value="finance">Finance</option><option value="administration">Administration</option><option value="meeting">Réunion</option><option value="other">Autre</option></select></label><label>Priorité<select id="priority"><option value="normal">Normale</option><option value="important">Importante</option><option value="urgent">Urgente</option></select></label></div>
     <label class="project-field">Projet associé<select id="project"><option value="">Aucun projet</option></select></label>
-    <label>Message
+    <label id="composer-message-field">Message
       <div class="editor-toolbar" data-editor-toolbar>
         <button type="button" data-editor-target="body-editor" data-file-picker="files" title="Joindre un fichier" aria-label="Joindre un fichier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.1-8.5 8.5a5 5 0 0 1-7.1-7.1l9.2-9.2a3.5 3.5 0 0 1 5 5L10.8 17.5a2 2 0 0 1-2.8-2.8l8.5-8.5"></path></svg></button>
         <button type="button" data-editor-target="body-editor" data-file-picker="image-files" title="Insérer une image" aria-label="Insérer une image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg></button>
@@ -359,7 +381,7 @@
     </label>
     <div class="composer-attachments"><span class="field-label">Pièces jointes</span><input type="file" id="files" class="hidden-editor-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.webp,.txt"><input type="file" id="image-files" class="hidden-editor-input" multiple accept="image/*"><input type="file" id="document-files" class="hidden-editor-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"><button type="button" id="file-dropzone" class="file-dropzone"><span><strong>Cliquez pour ajouter des fichiers ou glissez-déposez ici</strong><small>PDF, Word, Excel, images (max. 600 Ko par fichier)</small></span></button><span id="file-list" class="file-list"></span></div>
     <div class="form-actions"><button type="button" id="save-draft">Enregistrer comme brouillon</button><button class="primary" type="submit">Envoyer</button></div>
-  </form></section></div>
+  </form><div class="mobile-only mobile-toolbar-host" id="mobile-toolbar-host"></div></section></div>
   <div class="toast" id="toast"></div>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script>
@@ -369,6 +391,12 @@
     const headers = { 'Content-Type':'application/json', Authorization:'Bearer ' + token };
     const $ = id => document.getElementById(id);
     const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const mailTeams = ['RH', 'Direction', 'Chantiers', 'Achats'];
+    function mailTeamMarkup(filter = '') {
+      const teams = mailTeams.filter(name => name.toLowerCase().includes(filter));
+      return teams.length ? teams.map(name => `<button type="button" class="team-placeholder" disabled title="Équipe et membres à configurer dans Liste des employés"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="7" r="3"></circle><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 4a3 3 0 0 1 0 6M21 20v-2a6 6 0 0 0-4-5"></path></svg><span><strong>${esc(name)}</strong><small>À configurer</small></span></button>`).join('') : '<div class="empty">Aucune équipe correspondant à la recherche.</div>';
+    }
+    $('mail-teams').innerHTML = mailTeamMarkup();
     const initials = name => String(name || '?').trim().split(/\s+/).slice(0,2).map(part => part[0]).join('').toUpperCase() || '?';
     const avatarPalettes = [['#dbeafe','#1762c4'],['#ffe0e6','#d73552'],['#d8f5e8','#138456'],['#eee2ff','#7041c4'],['#ffeadb','#c45a24'],['#d9f3f3','#147d83'],['#fff2c6','#986b00'],['#e4e8ff','#4f55bd'],['#f9dff2','#a63782'],['#e4f1d2','#587c25'],['#dcecff','#2464a9'],['#ffe4d8','#b34e39']];
     const avatarStyle = identity => { const value = String(identity || '?').trim().toLowerCase(); let hash = 0; for (let index = 0; index < value.length; index++) hash = (hash * 31 + value.charCodeAt(index)) | 0; const [background, foreground] = avatarPalettes[(hash >>> 0) % avatarPalettes.length]; return `--avatar-bg:${background};--avatar-fg:${foreground}`; };
@@ -381,12 +409,34 @@
     function selectedRecipientIds(type) { return Array.from($(recipientSelectId(type)).selectedOptions).map(option=>Number(option.value)); }
     function updateRecipientChips(type) { const host=document.querySelector(`[data-recipient-chips="${type}"]`);if(!host)return;const chips=selectedRecipientIds(type).map(id=>{const user=state.users.find(item=>Number(item.id)===id);if(!user)return '';return `<span class="recipient-chip"><span class="recipient-chip-avatar" style="${avatarStyle(user.username)}">${esc(initials(user.fullName))}</span><span class="recipient-chip-name">${esc(user.fullName||user.username)}</span><button type="button" class="recipient-chip-remove" data-recipient-remove="${type}" data-recipient-id="${id}" aria-label="Retirer ${esc(user.fullName||user.username)}">×</button></span>`;});if(type==='to'&&$('send-all').checked)chips.unshift('<span class="recipient-chip"><span class="recipient-chip-avatar" style="--avatar-bg:#dbeafe;--avatar-fg:#1762c4">♙</span><span class="recipient-chip-name">Tous les utilisateurs</span><button type="button" class="recipient-chip-remove" data-clear-send-all aria-label="Retirer tous les utilisateurs">×</button></span>');host.innerHTML=chips.join(''); }
     function updateRecipientSelection(type,userId,selected) { const select=$(recipientSelectId(type));const option=Array.from(select.options).find(item=>Number(item.value)===Number(userId));if(!option)return;option.selected=selected;updateRecipientChips(type);if(selected){const user=state.users.find(item=>Number(item.id)===Number(userId));if(user){const recent=recentRecipientIds().filter(id=>id!==Number(userId));recent.unshift(Number(userId));localStorage.setItem('erp-mail-recent',JSON.stringify(recent.slice(0,12)));}}renderRecipientOptions(type); }
-    function renderRecipientOptions(type) { const host=document.querySelector(`[data-recipient-options="${type}"]`);if(!host)return;const filter=(document.querySelector(`[data-recipient-filter="${type}"]`)?.value||document.querySelector(`[data-recipient-query="${type}"]`)?.value||'').trim().toLowerCase();const selected=new Set(selectedRecipientIds(type));const view=state.recipientView;const userMarkup=user=>`<button type="button" class="recipient-option" role="option" aria-selected="${selected.has(Number(user.id))}" data-recipient-toggle="${type}" data-recipient-id="${Number(user.id)}"><input type="checkbox" tabindex="-1" ${selected.has(Number(user.id))?'checked':''}><span class="recipient-option-avatar" style="${avatarStyle(user.username)}">${esc(initials(user.fullName||user.username))}</span><span class="recipient-option-copy"><strong>${esc(user.fullName||user.username)}</strong><small>${esc(user.department||user.role||user.username)}</small></span></button>`;const allUsersOption=type==='to'&&['admin','dirigeant'].includes(state.currentUserRole)?`<button type="button" class="recipient-option" data-recipient-all><input type="checkbox" tabindex="-1" ${$('send-all').checked?'checked':''}><span class="recipient-option-avatar" style="--avatar-bg:#dbeafe;--avatar-fg:#1762c4">♙</span><span class="recipient-option-copy"><strong>Tous les utilisateurs</strong><small>Envoyer à l’ensemble des profils RyanERP</small></span></button>`:'';if(view==='projects'){const projects=state.projects.filter(project=>`${project.name} ${project.site||''}`.toLowerCase().includes(filter));host.innerHTML=projects.length?projects.map(project=>`<button type="button" class="recipient-option" data-recipient-project="${Number(project.id)}"><span class="recipient-option-avatar" style="--avatar-bg:#dbeafe;--avatar-fg:#1762c4">▣</span><span class="recipient-option-copy"><strong>${esc(project.name)}</strong><small>${esc(project.site||'Projet')} · Associer au message</small></span></button>`).join(''):'<div class="empty">Aucun projet correspondant.</div>';return;}let users=state.users.filter(user=>`${user.fullName} ${user.username} ${user.department} ${user.role}`.toLowerCase().includes(filter));if(view==='recent'){const recent=recentRecipientIds();users=recent.map(id=>users.find(user=>Number(user.id)===id)).filter(Boolean);host.innerHTML=users.length?users.map(userMarkup).join(''):'<div class="empty">Aucun destinataire récent.</div>';return;}if(view==='departments'||view==='teams'){const key=view==='departments'?'department':'role';const groups=new Map();for(const user of users){const label=String(user[key]||'Autres').trim()||'Autres';if(!groups.has(label))groups.set(label,[]);groups.get(label).push(user);}host.innerHTML=allUsersOption+(groups.size?[...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0],'fr')).map(([label,members])=>`<div class="recipient-section-title">${esc(label)} · ${members.length}</div>${members.map(userMarkup).join('')}`).join(''):'<div class="empty">Aucun profil correspondant.</div>');return;}host.innerHTML=allUsersOption+(users.length?users.map(userMarkup).join(''):'<div class="empty">Aucun profil correspondant.</div>'); }
+    function renderRecipientOptions(type) {
+      const host=document.querySelector(`[data-recipient-options="${type}"]`);if(!host)return;
+      const filter=(document.querySelector(`[data-recipient-filter="${type}"]`)?.value||document.querySelector(`[data-recipient-query="${type}"]`)?.value||'').trim().toLowerCase();
+      const selected=new Set(selectedRecipientIds(type));const view=state.recipientView;
+      if(view==='teams'){
+        host.innerHTML='<p class="team-note">Envoi collectif indisponible : les équipes et leurs membres doivent être configurés dans « Liste des employés ».</p>'+mailTeamMarkup(filter);
+        return;
+      }
+      const userMarkup=user=>`<button type="button" class="recipient-option" role="option" aria-selected="${selected.has(Number(user.id))}" data-recipient-toggle="${type}" data-recipient-id="${Number(user.id)}"><input type="checkbox" tabindex="-1" ${selected.has(Number(user.id))?'checked':''}><span class="recipient-option-avatar" style="${avatarStyle(user.username)}">${esc(initials(user.fullName||user.username))}</span><span class="recipient-option-copy"><strong>${esc(user.fullName||user.username)}</strong><small>${esc(user.department||user.role||user.username)}</small></span></button>`;
+      const allUsersOption=type==='to'&&['admin','dirigeant'].includes(state.currentUserRole)?`<button type="button" class="recipient-option" data-recipient-all><input type="checkbox" tabindex="-1" ${$('send-all').checked?'checked':''}><span class="recipient-option-avatar" style="--avatar-bg:#dbeafe;--avatar-fg:#1762c4">♙</span><span class="recipient-option-copy"><strong>Tous les utilisateurs</strong><small>Envoyer à l’ensemble des profils RyanERP</small></span></button>`:'';
+      if(view==='projects'){const projects=state.projects.filter(project=>`${project.name} ${project.site||''}`.toLowerCase().includes(filter));host.innerHTML=projects.length?projects.map(project=>`<button type="button" class="recipient-option" data-recipient-project="${Number(project.id)}"><span class="recipient-option-avatar" style="--avatar-bg:#dbeafe;--avatar-fg:#1762c4">▣</span><span class="recipient-option-copy"><strong>${esc(project.name)}</strong><small>${esc(project.site||'Projet')} · Associer au message</small></span></button>`).join(''):'<div class="empty">Aucun projet correspondant.</div>';return;}
+      let users=state.users.filter(user=>`${user.fullName} ${user.username} ${user.department} ${user.role}`.toLowerCase().includes(filter));
+      if(view==='recent'){const recent=recentRecipientIds();users=recent.map(id=>users.find(user=>Number(user.id)===id)).filter(Boolean);host.innerHTML=users.length?users.map(userMarkup).join(''):'<div class="empty">Aucun destinataire récent.</div>';return;}
+      if(view==='departments'){const groups=new Map();for(const user of users){const label=String(user.department||'Autres').trim()||'Autres';if(!groups.has(label))groups.set(label,[]);groups.get(label).push(user);}host.innerHTML=allUsersOption+(groups.size?[...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0],'fr')).map(([label,members])=>`<div class="recipient-section-title">${esc(label)} · ${members.length}</div>${members.map(userMarkup).join('')}`).join(''):'<div class="empty">Aucun profil correspondant.</div>');return;}
+      host.innerHTML=allUsersOption+(users.length?users.map(userMarkup).join(''):'<div class="empty">Aucun profil correspondant.</div>');
+    }
     function openRecipientPicker(type) { state.recipientOpenType=type;state.recipientView='all';document.querySelectorAll('[data-recipient-dropdown]').forEach(dropdown=>dropdown.hidden=dropdown.dataset.recipientDropdown!==type);document.querySelectorAll('[data-recipient-open]').forEach(button=>button.setAttribute('aria-expanded',String(button.dataset.recipientOpen===type)));document.querySelectorAll('[data-recipient-view]').forEach(button=>button.classList.toggle('active',button.dataset.recipientView==='all'));const search=document.querySelector(`[data-recipient-filter="${type}"]`);if(search)search.value='';renderRecipientOptions(type);search?.focus(); }
     function sanitizeMailMarkup(value) { const template=document.createElement('template'); template.innerHTML=String(value||''); const allowed=new Set(['A','B','BLOCKQUOTE','BR','DIV','EM','I','IMG','LI','OL','P','STRONG','U','UL']); const clean=node=>{[...node.childNodes].forEach(child=>{if(child.nodeType===Node.TEXT_NODE)return;if(child.nodeType!==Node.ELEMENT_NODE){child.remove();return;}const tag=child.tagName;if(['SCRIPT','STYLE','IFRAME','OBJECT','SVG','MATH'].includes(tag)){child.remove();return;}const originalHref=tag==='A'?(child.getAttribute('href')||'').trim():'';const originalImageSrc=tag==='IMG'?(child.getAttribute('src')||'').trim():'';const originalImageAlt=tag==='IMG'?(child.getAttribute('alt')||'').trim():'';clean(child);if(!allowed.has(tag)){child.replaceWith(...child.childNodes);return;}for(const attribute of [...child.attributes])child.removeAttribute(attribute.name);if(tag==='A'&&/^(https?:|mailto:)/i.test(originalHref)){child.setAttribute('href',originalHref);child.setAttribute('target','_blank');child.setAttribute('rel','noopener noreferrer');}if(tag==='IMG'&&originalImageSrc.length<400000&&/^data:image\/(png|jpeg|gif|webp);base64,[a-z0-9+/=]+$/i.test(originalImageSrc)){child.setAttribute('src',originalImageSrc);child.setAttribute('alt',originalImageAlt.slice(0,160));}});}; clean(template.content); return template.innerHTML; }
     function editorText(value) { const template=document.createElement('template'); template.innerHTML=sanitizeMailMarkup(value); const images=[...template.content.querySelectorAll('img')].map(image=>image.alt).join(' '); return `${template.content.textContent||''} ${images}`.trim(); }
     function editorHasText(editor,markup) { return Boolean(editorText(markup)||String(editor?.innerText||editor?.textContent||'').replace(/[\u200B\uFEFF]/g,'').trim()); }
-    function fileChipMarkup(files) { return files.map(file=>`<span class="file-chip">${esc(file.fileName)} · ${Math.max(1,Math.round(Number(file.fileSize||0)/1024))} Ko</span>`).join(''); }
+    function fileChipMarkup(files, isReply = false) {
+      return files.map((file, index) => {
+        const preview = /^image\/(png|jpeg|webp|gif)$/.test(file.mimeType)
+          ? `<img src="data:${esc(file.mimeType)};base64,${esc(file.contentBase64)}" alt="${esc(file.fileName)}" width="38" height="38" style="object-fit:cover;border-radius:6px">`
+          : '';
+        return `<span class="file-chip">${preview}<span>${esc(file.fileName)} · ${Math.max(1,Math.round(Number(file.fileSize||0)/1024))} Ko</span><button type="button" data-attachment-remove="${index}" data-reply-file="${isReply}" aria-label="Retirer ${esc(file.fileName)}">×</button></span>`;
+      }).join('');
+    }
     function insertAtEditorRange(editor,text) { editor.focus(); const selection=window.getSelection(); if(state.editorRange){selection.removeAllRanges();selection.addRange(state.editorRange);state.editorRange=null;} document.execCommand('insertText',false,text); }
     function showEmojiPicker(button,editor) { const toolbar=button.closest('.editor-toolbar'); let picker=toolbar.querySelector('.emoji-picker'); if(!picker){picker=document.createElement('div');picker.className='emoji-picker';picker.hidden=true;picker.innerHTML=['😊','👍','🙏','✅','📎','🎉','❤️','😄','📅','⚠️','👏','✨'].map(emoji=>`<button type="button" aria-label="Insérer ${emoji}">${emoji}</button>`).join('');picker.addEventListener('click',event=>{const choice=event.target.closest('button');if(choice)insertAtEditorRange(editor,choice.textContent);picker.hidden=true;});toolbar.appendChild(picker);} const selection=window.getSelection();if(selection?.rangeCount)state.editorRange=selection.getRangeAt(0).cloneRange();picker.hidden=!picker.hidden; }
     function showAlignmentPicker(button,editor) { const toolbar=button.closest('.editor-toolbar');let picker=toolbar.querySelector('.alignment-picker');if(!picker){picker=document.createElement('div');picker.className='alignment-picker';picker.hidden=true;picker.innerHTML=[['justifyLeft','Gauche','M4 6h16M4 10h10M4 14h16M4 18h10'],['justifyCenter','Centrer','M4 6h16M7 10h10M4 14h16M7 18h10'],['justifyRight','Droite','M4 6h16M10 10h10M4 14h16M10 18h10'],['justifyFull','Justifier','M4 6h16M4 10h16M4 14h16M4 18h16']].map(([command,label,lines])=>`<button type="button" data-alignment="${command}" aria-label="Aligner à ${label.toLowerCase()}" title="Aligner à ${label.toLowerCase()}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="${lines}"></path></svg></button>`).join('');picker.addEventListener('click',event=>{const choice=event.target.closest('[data-alignment]');if(!choice)return;editor.focus();if(state.editorRange){const selection=getSelection();selection.removeAllRanges();selection.addRange(state.editorRange);state.editorRange=null;}document.execCommand(choice.dataset.alignment,false,null);picker.hidden=true;});toolbar.appendChild(picker);}const selection=getSelection();if(selection?.rangeCount)state.editorRange=selection.getRangeAt(0).cloneRange();picker.hidden=!picker.hidden; }
@@ -404,6 +454,7 @@
     async function openConversation(id) { state.selectedId=Number(id); renderRows(); const reader=$('reader'); try { const payload=await api('/api/internal-mail/conversations/'+Number(id)); const conversation=payload.conversation || {}; reader.classList.remove('empty'); reader.innerHTML=`<div class="reader-head"><h2>${esc(conversation.subject || '(Sans sujet)')}</h2><div class="tags"><span class="tag">${esc(categoryLabel(conversation.category))}</span><span class="tag ${conversation.priority==='urgent'?'urgent':''}">${conversation.priority==='urgent'?'Urgente':conversation.priority==='important'?'Importante':'Normale'}</span>${conversation.projectName?'<span class="tag">Projet: '+esc(conversation.projectName)+'</span>':''}</div></div><div class="reader-actions"><button data-action="star">☆ Favori</button><button data-action="important">⚑ Important</button><button data-action="trash">Supprimer</button><button data-action="restore">Restaurer</button></div><div class="thread">${(payload.messages||[]).map(message=>`<article class="thread-message"><div class="message-meta"><span><strong>${esc(message.senderName || message.senderUsername || 'Utilisateur')}</strong> · ${esc(message.senderDepartment || '')}</span><time>${esc(new Date(message.createdAt).toLocaleString('fr-FR'))}</time></div><div class="message-body">${esc(message.body || '')}</div>${(message.attachments||[]).length?'<div class="attachments">'+message.attachments.map(file=>`<div class="attachment"><span>📄</span><div><strong>${esc(file.fileName)}</strong><small>${Math.max(1,Math.round(Number(file.fileSize||0)/1024))} Ko</small></div><a href="/api/internal-mail/attachments/${Number(file.id)}/download" target="_blank" rel="noopener">Ouvrir</a></div>`).join('')+'</div>':''}</article>`).join('')}</div><form class="reply" id="reply-form"><textarea id="reply-body" placeholder="Répondre à cette conversation…" required></textarea><button class="send-reply" type="submit">Envoyer</button></form>`; reader.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>updateConversation(button.dataset.action,Number(id)))); $('reply-form').addEventListener('submit',async event=>{event.preventDefault(); const body=$('reply-body').value.trim(); if(!body)return; try{await api('/api/internal-mail/conversations/'+Number(id)+'/replies',{method:'POST',body:JSON.stringify({body})}); toast('Réponse envoyée'); await load(); await openConversation(id);}catch(error){toast(error.message);}}); } catch(error) { reader.className='reader empty'; reader.textContent=error.message; } }
     function editorToolbarMarkup(target,prefix) { return `<div class="editor-toolbar" data-editor-toolbar><button type="button" data-editor-target="${target}" data-file-picker="${prefix}files" title="Joindre un fichier" aria-label="Joindre un fichier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.1-8.5 8.5a5 5 0 0 1-7.1-7.1l9.2-9.2a3.5 3.5 0 0 1 5 5L10.8 17.5a2 2 0 0 1-2.8-2.8l8.5-8.5"></path></svg></button><button type="button" data-editor-target="${target}" data-file-picker="${prefix}image-files" title="Insérer une image" aria-label="Insérer une image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg></button><button type="button" data-editor-target="${target}" data-file-picker="${prefix}document-files" title="Ajouter un document" aria-label="Ajouter un document"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6M8 13h8M8 17h8"></path></svg></button><button type="button" data-editor-target="${target}" data-editor-command="link" title="Insérer un lien" aria-label="Insérer un lien"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.1 0l-3 3A5 5 0 0 0 11 21.1l1.7-1.7"></path></svg></button><button type="button" data-editor-target="${target}" data-editor-command="emoji" title="Ajouter un emoji" aria-label="Ajouter un emoji">☺</button><span class="editor-spacer"></span><button type="button" data-editor-target="${target}" data-editor-command="bold" title="Gras" aria-label="Gras"><strong>B</strong></button><button type="button" data-editor-target="${target}" data-editor-command="italic" title="Italique" aria-label="Italique"><em>I</em></button><button type="button" data-editor-target="${target}" data-editor-command="underline" title="Souligner" aria-label="Souligner"><u>U</u></button><button type="button" data-editor-target="${target}" data-editor-command="insertUnorderedList" title="Liste à puces" aria-label="Liste à puces">•</button><button type="button" data-editor-target="${target}" data-editor-command="insertOrderedList" title="Liste numérotée" aria-label="Liste numérotée">1.</button><button type="button" data-editor-target="${target}" data-editor-command="justifyLeft" title="Aligner le paragraphe" aria-label="Aligner le paragraphe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"></path></svg></button></div>`; }
     async function openConversation(id) {
+      document.body.classList.add('mobile-reader-open');
       state.selectedId=Number(id); renderRows(); const reader=$('reader');
       try {
         const payload=await api('/api/internal-mail/conversations/'+Number(id)); const conversation=payload.conversation||{}; const messages=payload.messages||[]; const latest=messages[messages.length-1]||{};
@@ -425,7 +476,7 @@
     function openComposer(options={}) { $('composer-form').reset();resetRecipientPicker();state.attachments=[];$('file-list').innerHTML='';$('body-editor').innerHTML='';state.replyMode='reply';document.querySelectorAll('[data-reply-mode]').forEach(tab=>{const active=tab.dataset.replyMode==='reply';tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));});$('composer-title').textContent=options.forward?'Transférer le message':'Nouveau message';if(options.subject)$('subject').value=options.subject;if(options.body)$('body-editor').innerHTML=sanitizeMailMarkup(options.body);$('composer-overlay').classList.add('open');$('subject').focus(); }
     function closeComposer() { $('composer-overlay').classList.remove('open'); $('composer-form').reset(); resetRecipientPicker(); state.attachments=[]; $('file-list').innerHTML=''; $('body-editor').innerHTML=''; $('composer-title').textContent='Nouveau message'; state.replyMode='reply'; document.querySelectorAll('[data-reply-mode]').forEach(tab=>{const active=tab.dataset.replyMode==='reply';tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));}); }
     function readFiles(files) { return Promise.all(Array.from(files||[]).map(file=>new Promise((resolve,reject)=>{ if(file.size>600000){reject(new Error(file.name+' dépasse 600 Ko'));return;} const reader=new FileReader(); reader.onload=()=>resolve({fileName:file.name,mimeType:file.type||'application/octet-stream',fileSize:file.size,contentBase64:String(reader.result).split(',')[1]||''}); reader.onerror=reject; reader.readAsDataURL(file);}))); }
-    async function addSelectedFiles(input) { const files=Array.from(input.files||[]); if(!files.length)return; const isReply=input.id.startsWith('reply-'); try { if(input.id.endsWith('image-files')){if(files.some(file=>file.size>250000))throw new Error('Chaque image intégrée doit faire au maximum 250 Ko');const loaded=await readFiles(files);const editor=$(isReply?'reply-editor':'body-editor');editor.focus();if(state.editorRange){const selection=getSelection();selection.removeAllRanges();selection.addRange(state.editorRange);state.editorRange=null;}for(const file of loaded)document.execCommand('insertHTML',false,`<img src="data:${esc(file.mimeType)};base64,${file.contentBase64}" alt="${esc(file.fileName)}">`);const body=$(isReply?'reply-body':'body');if(body)body.value=sanitizeMailMarkup(editor.innerHTML);return;}const loaded=await readFiles(files);const collection=isReply?state.replyAttachments:state.attachments;collection.push(...loaded);const preview=$(isReply?'reply-attachments':'file-list');if(preview)preview.innerHTML=fileChipMarkup(collection); } catch(error) { toast(error.message); } finally { input.value=''; } }
+    async function addSelectedFiles(input) { const files=Array.from(input.files||[]); if(!files.length)return; const isReply=input.id.startsWith('reply-'); try { if(input.id.endsWith('image-files')){if(files.some(file=>file.size>250000))throw new Error('Chaque image intégrée doit faire au maximum 250 Ko');const loaded=await readFiles(files);const editor=$(isReply?'reply-editor':'body-editor');editor.focus();if(state.editorRange){const selection=getSelection();selection.removeAllRanges();selection.addRange(state.editorRange);state.editorRange=null;}for(const file of loaded)document.execCommand('insertHTML',false,`<img src="data:${esc(file.mimeType)};base64,${file.contentBase64}" alt="${esc(file.fileName)}">`);const body=$(isReply?'reply-body':'body');if(body)body.value=sanitizeMailMarkup(editor.innerHTML);return;}const loaded=await readFiles(files);const collection=isReply?state.replyAttachments:state.attachments;collection.push(...loaded);const preview=$(isReply?'reply-attachments':'file-list');if(preview)preview.innerHTML=fileChipMarkup(collection,isReply); } catch(error) { toast(error.message); } finally { input.value=''; } }
     document.addEventListener('change',event=>{if(event.target.matches('#files,#image-files,#document-files,#reply-files,#reply-image-files,#reply-document-files')){event.stopImmediatePropagation();addSelectedFiles(event.target);}},true);
     document.addEventListener('input',event=>{const editor=event.target.closest('.message-editor,.reply-editor');if(!editor)return;const target=$(editor.id==='body-editor'?'body':'reply-body');if(target)target.value=sanitizeMailMarkup(editor.innerHTML);});
     document.addEventListener('focusin',event=>{const query=event.target.closest('[data-recipient-query]');if(query&&state.recipientOpenType!==query.dataset.recipientQuery)openRecipientPicker(query.dataset.recipientQuery);});
@@ -448,6 +499,93 @@
       const paths = { search:'<circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path>', plus:'<path d="M5 12h14"></path><path d="M12 5v14"></path>', inbox:'<path d="M4 4h16v16H4z"></path><path d="M4 13h4l2 3h4l2-3h4"></path>', send:'<path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path>', 'file-pen-line':'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v6h6"></path><path d="m10 18 6-6 2 2-6 6H10Z"></path>', star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"></path>', flag:'<path d="M5 22V4"></path><path d="M5 4c5-3 9 3 14 0v10c-5 3-9-3-14 0"></path>', 'trash-2':'<path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="m19 6-1 15H6L5 6"></path><path d="M10 11v6M14 11v6"></path>', folder:'<path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path>' };
       document.querySelectorAll('[data-lucide]').forEach(element => { const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none'); svg.setAttribute('stroke','currentColor'); svg.setAttribute('stroke-width','1.9'); svg.setAttribute('stroke-linecap','round'); svg.setAttribute('stroke-linejoin','round'); if (element.classList.length) svg.setAttribute('class',element.className); svg.innerHTML = paths[element.dataset.lucide] || ''; element.replaceWith(svg); });
     }
+    function initializeMobileMailbox() {
+      document.addEventListener('click', event => {
+        const remove = event.target.closest('[data-attachment-remove]');
+        if (!remove) return;
+        const isReply = remove.dataset.replyFile === 'true';
+        const files = isReply ? state.replyAttachments : state.attachments;
+        files.splice(Number(remove.dataset.attachmentRemove), 1);
+        $(isReply ? 'reply-attachments' : 'file-list').innerHTML = fileChipMarkup(files, isReply);
+      });
+      const sidebar = document.querySelector('.sidebar');
+      sidebar.id = 'mail-sidebar';
+      const strip = $('mobile-folder-strip');
+      const inboxSource = sidebar.querySelector('[data-folder="inbox"]');
+      const inboxChip = inboxSource.cloneNode(true);
+      inboxChip.removeAttribute('data-folder');
+      inboxChip.dataset.mobileCategory = '';
+      inboxChip.id = 'mobile-inbox-chip';
+      inboxChip.querySelector('.badge').remove();
+      inboxChip.querySelector('.folder-label').lastChild.textContent = 'Réception';
+      inboxChip.addEventListener('click', () => inboxSource.click());
+      strip.append(inboxChip);
+      sidebar.querySelectorAll('[data-category]').forEach(source => {
+        const chip = source.cloneNode(true);
+        chip.removeAttribute('data-category');
+        chip.dataset.mobileCategory = source.dataset.category;
+        chip.setAttribute('aria-pressed', 'false');
+        chip.addEventListener('click', () => source.click());
+        strip.append(chip);
+      });
+      const syncCategories = () => {
+        strip.querySelectorAll('[data-mobile-category]').forEach(chip => {
+          chip.setAttribute('aria-pressed', String(state.folder === 'inbox' && state.category === chip.dataset.mobileCategory));
+        });
+      };
+      const setDrawer = open => {
+        document.body.classList.toggle('mobile-drawer-open', open);
+        $('mobile-menu').setAttribute('aria-expanded', String(open));
+        if (open) $('mobile-drawer-close').focus();
+        else $('mobile-menu').focus();
+      };
+      $('mobile-menu').addEventListener('click', () => setDrawer(!document.body.classList.contains('mobile-drawer-open')));
+      $('mobile-drawer-close').addEventListener('click', () => setDrawer(false));
+      $('mobile-drawer-backdrop').addEventListener('click', () => setDrawer(false));
+      sidebar.addEventListener('click', event => {
+        if (event.target.closest('[data-folder],[data-category],#compose-button')) {
+          if (document.body.classList.contains('mobile-drawer-open')) setDrawer(false);
+          document.body.classList.remove('mobile-reader-open');
+          syncCategories();
+        }
+      });
+      $('mobile-reader-back').addEventListener('click', () => document.body.classList.remove('mobile-reader-open'));
+      $('mobile-compose-button').addEventListener('click', () => openComposer());
+      $('mobile-compose-teams').innerHTML = mailTeamMarkup();
+      const homeLabel = document.createElement('span');
+      homeLabel.className = 'mobile-only';
+      homeLabel.textContent = 'ERP';
+      document.querySelector('.erp-home-link').append(homeLabel);
+      const send = document.createElement('button');
+      send.type = 'submit';
+      send.className = 'mobile-only mobile-send';
+      send.setAttribute('form', 'composer-form');
+      send.textContent = 'Envoyer';
+      document.querySelector('.composer-head').append(send);
+      const toolbar = $('composer-message-field').querySelector('[data-editor-toolbar]');
+      const media = window.matchMedia('(max-width:780px)');
+      const resize = () => {
+        if (media.matches) $('mobile-toolbar-host').append(toolbar);
+        else {
+          $('composer-message-field').insertBefore(toolbar, $('body-editor'));
+          document.body.classList.remove('mobile-drawer-open');
+          $('mobile-menu').setAttribute('aria-expanded', 'false');
+        }
+      };
+      media.addEventListener('change', resize);
+      resize();
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && document.body.classList.contains('mobile-drawer-open')) setDrawer(false);
+        if (event.key === 'Tab' && media.matches && document.body.classList.contains('mobile-drawer-open')) {
+          const controls = [...sidebar.querySelectorAll('button:not(:disabled),a[href]')];
+          const first = controls[0], last = controls[controls.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
+      });
+      syncCategories();
+    }
+    initializeMobileMailbox();
     bootstrap().then(async()=>{const conversationId=Number(new URLSearchParams(window.location.search).get('conversation')||0);if(conversationId>0){state.folder='inbox';await load();await openConversation(conversationId);}});
     if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.9 } }); else renderLocalIcons();
   </script>

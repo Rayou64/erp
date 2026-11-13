@@ -12453,8 +12453,13 @@
                 <ul id="maps-history-list" class="maps-detail-history"></ul>
               </section>
               <section class="maps-detail-panel">
-                <div class="maps-panel-head"><div><h2>Trajet du jour</h2><p id="maps-detail-map-subtitle">Position GPS du véhicule</p></div><a id="maps-detail-google-link" target="_blank" rel="noopener noreferrer">Ouvrir dans Google Maps ↗</a></div>
-                <div id="maps-detail-map" class="maps-detail-map"><iframe id="maps-detail-google-frame" title="Carte du véhicule sélectionné" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+                <div class="maps-panel-head"><div><h2>Position et trajet GPS</h2><p id="maps-detail-map-subtitle">Position GPS du véhicule</p></div><a id="maps-detail-google-link" target="_blank" rel="noopener noreferrer">Ouvrir dans Google Maps ↗</a></div>
+                <div class="maps-toolbar" style="padding:0 16px 12px;flex-wrap:wrap" aria-label="Vue du véhicule sélectionné">
+                  <button type="button" id="maps-detail-mode-google" class="button button-primary button-small">Vue Google · position</button>
+                  <button type="button" id="maps-detail-mode-leaflet" class="button button-secondary button-small">Vue technique · trajet bleu</button>
+                </div>
+                <div id="maps-detail-map" class="maps-detail-map"><iframe id="maps-detail-google-frame" title="Carte Google du véhicule sélectionné" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe><div id="maps-detail-leaflet-wrapper" style="display:none;height:100%"></div></div>
+                <p id="maps-detail-route-status" role="status" style="padding:8px 16px;font-size:12px;color:#526b91"></p>
                 <div class="maps-detail-summary"><div><small>Distance totale</small><strong id="maps-summary-distance">—</strong></div><div><small>Temps de conduite</small><strong id="maps-summary-duration">—</strong></div><div><small>Vitesse moyenne</small><strong id="maps-summary-speed">—</strong></div><div><small>Arrêts</small><strong id="maps-summary-stops">—</strong></div></div>
               </section>
             </div>
@@ -13894,6 +13899,7 @@
     let autoVehicleLocationsCache = [];
     let autoLocationHistoryCache = [];
     let autoLocationRouteCache = [];
+    let autoLocationSelectionRequest = 0;
     let selectedAutoLocationVehicleId = null;
     let mapsDetailOpen = false;
     let driverTrackerLatestLink = '';
@@ -15263,6 +15269,10 @@
       const frame = document.getElementById('maps-detail-google-frame');
       const link = document.getElementById('maps-detail-google-link');
       const subtitle = document.getElementById('maps-detail-map-subtitle');
+      const routeStatus = document.getElementById('maps-detail-route-status');
+      if (routeStatus) routeStatus.textContent = autoLocationRouteCache.length > 1
+        ? `${autoLocationRouteCache.length.toLocaleString('fr-FR')} positions GPS · trace complète de la dernière session en bleu dans la vue technique. Google affiche la dernière position.`
+        : 'Pas encore assez de positions GPS pour tracer un trajet. Google affiche la dernière position disponible.';
       if (last && frame) {
         const query = `${Number(last.latitude)},${Number(last.longitude)}`;
         frame.src = `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=14&hl=fr&output=embed`;
@@ -15331,7 +15341,10 @@
       }
 
       const bounds = [];
-      getMapsModuleFilteredVehicles().forEach(vehicle => {
+      const visibleVehicles = mapsDetailOpen
+        ? autoVehicleLocationsCache.filter(vehicle => Number(vehicle.id) === Number(selectedAutoLocationVehicleId))
+        : getMapsModuleFilteredVehicles();
+      visibleVehicles.forEach(vehicle => {
         if (!vehicle.lastLocation) return;
         const lat = Number(vehicle.lastLocation.latitude);
         const lng = Number(vehicle.lastLocation.longitude);
@@ -15372,7 +15385,7 @@
         bounds.push(...historyCoords);
       }
 
-      const mapsFitKey = managerMapRouteKey();
+      const mapsFitKey = `${mapsDetailOpen ? 'detail' : 'overview'}:${managerMapRouteKey()}`;
       const mapsSelectionChanged = managerMapFitKeys.maps !== mapsFitKey;
       if (bounds.length) {
         if (mapsSelectionChanged) mapsModuleLeafletMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
@@ -15383,7 +15396,7 @@
       const selectedMarker = mapsModuleLeafletMarkersByVehicleId.get(Number(selectedAutoLocationVehicleId));
       if (selectedMarker) {
         const selectedLatLng = selectedMarker.getLatLng();
-        if (mapsSelectionChanged) {
+        if (mapsSelectionChanged && !(mapsDetailOpen && historyCoords.length > 1)) {
           const currentZoom = Number(mapsModuleLeafletMap.getZoom() || 0);
           mapsModuleLeafletMap.setView(selectedLatLng, Math.max(currentZoom, 14), { animate: true });
           selectedMarker.openPopup();
@@ -15405,6 +15418,25 @@
 
       if (googleWrapper) googleWrapper.style.display = mapsModuleMapMode === 'google' ? 'block' : 'none';
       if (leafletWrapper) leafletWrapper.style.display = mapsModuleMapMode === 'leaflet' ? 'block' : 'none';
+      const detailFrame = document.getElementById('maps-detail-google-frame');
+      const detailWrapper = document.getElementById('maps-detail-leaflet-wrapper');
+      if (detailFrame) detailFrame.style.display = mapsModuleMapMode === 'google' ? 'block' : 'none';
+      if (detailWrapper) detailWrapper.style.display = mapsModuleMapMode === 'leaflet' ? 'block' : 'none';
+      const canvas = document.getElementById('maps-main-leaflet-map');
+      const host = mapsDetailOpen ? detailWrapper : leafletWrapper;
+      if (canvas && host && canvas.parentElement !== host) {
+        host.append(canvas);
+        managerMapFitKeys.maps = '';
+      }
+      if (canvas) canvas.style.height = mapsDetailOpen ? '100%' : '';
+      ['google', 'leaflet'].forEach(view => {
+        const button = document.getElementById(`maps-detail-mode-${view}`);
+        if (!button) return;
+        const active = view === mapsModuleMapMode;
+        button.classList.toggle('button-primary', active);
+        button.classList.toggle('button-secondary', !active);
+        button.setAttribute('aria-pressed', String(active));
+      });
 
       if (googleButton) {
         googleButton.classList.toggle('button-primary', mapsModuleMapMode === 'google');
@@ -15418,7 +15450,14 @@
       if (mapsModuleMapMode === 'google') {
         renderMapsModuleGoogleMap();
       } else {
-        try { renderMapsModuleLeafletMap(); } catch (error) { console.error(error); } finally { managerMapRebuilding = false; }
+        try {
+          if (!window.L) throw new Error('La carte technique n’a pas pu être chargée. Vérifiez votre connexion puis actualisez.');
+          if (mapsModuleLeafletMap) mapsModuleLeafletMap.invalidateSize();
+          renderMapsModuleLeafletMap();
+        } catch (error) {
+          console.error(error);
+          showMessage(error.message, 'error');
+        } finally { managerMapRebuilding = false; }
       }
     }
 
@@ -15743,6 +15782,10 @@
           <div class="veh-panel"><div class="veh-bigphoto" id="vehicles-bigphoto">${vehicleImageHtml(vehicle)}</div>${vehicleThumbsHtml(vehicle)}</div>
           <div class="veh-panel">
             <h2>${escapeHtml(vehicleTitle(vehicle))}</h2><span class="veh-code">${vehicleCode(vehicle)}</span>
+            <div class="maps-toolbar" style="margin:14px 0;flex-wrap:wrap" aria-label="Cartes du véhicule">
+              <button type="button" class="veh-btn light" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)}, 'google')">${vi('pin')}Vue Google</button>
+              <button type="button" class="veh-btn light" onclick="vehiclesOpenOnMaps(${Number(vehicle.id)}, 'leaflet')">${vi('route')}Vue technique · trajet bleu</button>
+            </div>
             <div class="veh-tabs">${tabs.map(([key, label]) => `<button type="button" data-tab="${key}" class="${key === 'overview' ? 'active' : ''}" onclick="vehiclesDetailTab(${Number(vehicle.id)}, '${key}')">${label}</button>`).join('')}</div>
             <div id="vehicles-tab-content"></div>
           </div>
@@ -15784,10 +15827,17 @@
       openMapsCreateDialog(vehicle);
     };
 
-    window.vehiclesOpenOnMaps = async vehicleId => {
-      document.querySelector('.menu-item[data-module="maps"]')?.click();
-      await loadMapsModule();
-      await window.mapsSelectVehicle(vehicleId);
+    window.vehiclesOpenOnMaps = async (vehicleId, mode = 'google') => {
+      if (!getAllowedModules().has('maps')) return showMessage('Votre profil ne permet pas l’accès aux cartes.', 'error');
+      try {
+        showModule('maps');
+        await loadMapsModule();
+        await window.mapsSelectVehicle(vehicleId);
+        setMapsModuleMapMode(mode);
+        document.getElementById('maps-detail-map')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (error) {
+        showMessage('Chargement de la carte impossible : ' + error.message, 'error');
+      }
     };
 
     async function loadVehiclesModule() {
@@ -16750,7 +16800,8 @@
       );
     }
 
-    async function setSelectedAutoLocationVehicle(vehicleId) {
+    async function setSelectedAutoLocationVehicle(vehicleId, { force = false } = {}) {
+      const selectionRequest = ++autoLocationSelectionRequest;
       const numericVehicleId = Number(vehicleId);
       const sameVehicle = selectedAutoLocationVehicleId === numericVehicleId;
       selectedAutoLocationVehicleId = Number.isInteger(numericVehicleId) && numericVehicleId > 0 ? numericVehicleId : null;
@@ -16769,7 +16820,7 @@
         return;
       }
 
-      if (autoMapLiveRefreshInFlight && sameVehicle && autoLocationRouteCache.some(l => Number(l.trackingSessionId) > 0)) {
+      if (!force && autoMapLiveRefreshInFlight && sameVehicle && autoLocationRouteCache.some(l => Number(l.trackingSessionId) > 0)) {
         renderAutoVehicleLocationHistory();
         renderAutoVehicleMap();
         renderMapsModule();
@@ -16777,14 +16828,30 @@
       }
 
       try {
-        const payload = await fetchJson(`/api/auto-vehicles/${selectedAutoLocationVehicleId}/locations?limit=20000`);
-        const allLocations = Array.isArray(payload.locations) ? payload.locations : [];
-        autoLocationHistoryCache = allLocations.slice(0, 25);
-        const latestSessionId = Number(allLocations.find(l => Number(l.trackingSessionId) > 0)?.trackingSessionId || 0);
+        const allLocations = [];
+        let cursor = null;
+        do {
+          const query = new URLSearchParams({ limit: '20000' });
+          if (cursor) {
+            query.set('beforeRecordedAt', cursor.recordedAt);
+            query.set('beforeId', String(cursor.id));
+          }
+          const payload = await fetchJson(`/api/auto-vehicles/${numericVehicleId}/locations?${query}`);
+          if (selectionRequest !== autoLocationSelectionRequest) return;
+          allLocations.push(...(Array.isArray(payload.locations) ? payload.locations : []));
+          const next = payload.nextCursor || null;
+          if (next && cursor && next.recordedAt === cursor.recordedAt && Number(next.id) === Number(cursor.id)) {
+            throw new Error('La pagination GPS ne progresse pas. Actualisez le suivi.');
+          }
+          cursor = next;
+        } while (cursor);
+        autoLocationHistoryCache = allLocations;
+        const latestSessionId = Number(allLocations[0]?.trackingSessionId || 0);
         autoLocationRouteCache = (latestSessionId
           ? allLocations.filter(l => Number(l.trackingSessionId) === latestSessionId)
-          : allLocations.slice(0, 25)).slice().reverse();
+          : allLocations).slice().reverse();
       } catch (err) {
+        if (selectionRequest !== autoLocationSelectionRequest) return;
         autoLocationHistoryCache = [];
         autoLocationRouteCache = [];
         showMessage('Erreur chargement historique GPS: ' + err.message, 'error');
@@ -26236,6 +26303,10 @@
     }
 
     function openInternalMailApp() {
+      if (window.matchMedia('(max-width:780px)').matches || window.Capacitor?.isNativePlatform?.()) {
+        window.location.assign('/messaging.html');
+        return;
+      }
       const mailWindow = window.open('/messaging.html', '_blank');
       if (!mailWindow) {
         showMessage('Autorisez les fenêtres ouvertes par RyanERP pour accéder à la messagerie', 'warning');
@@ -26422,19 +26493,21 @@
         if (vehicleId !== selectedAutoLocationVehicleId) return;
         const fresh = (Array.isArray(payload.locations) ? payload.locations : []).slice().reverse();
         if (!fresh.length) return;
-        if (fresh.some(l => Number(l.trackingSessionId) !== sessionId)) {
-          await setSelectedAutoLocationVehicle(vehicleId);
+        if (payload.nextCursor || fresh.some(l => Number(l.trackingSessionId) !== sessionId)) {
+          await setSelectedAutoLocationVehicle(vehicleId, { force: true });
           return;
         }
         autoLocationRouteCache = autoLocationRouteCache.concat(fresh);
-        autoLocationHistoryCache = fresh.slice().reverse().concat(autoLocationHistoryCache).slice(0, 25);
+        autoLocationHistoryCache = fresh.slice().reverse().concat(autoLocationHistoryCache);
         const newest = fresh[fresh.length - 1];
         const vehicle = autoVehicleLocationsCache.find(v => Number(v.id) === Number(vehicleId));
         if (vehicle) vehicle.lastLocation = Object.assign({}, vehicle.lastLocation || {}, newest);
         renderAutoVehicleLocationHistory();
         renderAutoVehicleMap();
         renderMapsModule();
-      } catch (_e) {
+      } catch (error) {
+        console.error('Actualisation du trajet GPS impossible', error);
+        showMessage('Actualisation du trajet GPS impossible : ' + error.message, 'error');
       } finally {
         autoMapFastInFlight = false;
       }
@@ -35771,6 +35844,8 @@
     });
     document.getElementById('maps-detail-history')?.addEventListener('click', () => document.getElementById('maps-history-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     document.getElementById('maps-detail-center')?.addEventListener('click', () => document.getElementById('maps-detail-map')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    document.getElementById('maps-detail-mode-google')?.addEventListener('click', () => setMapsModuleMapMode('google'));
+    document.getElementById('maps-detail-mode-leaflet')?.addEventListener('click', () => setMapsModuleMapMode('leaflet'));
     document.getElementById('maps-detail-start-tracking')?.addEventListener('click', () => showMessage('Le suivi GPS se démarre depuis le compte du chauffeur affecté.', 'error'));
     document.getElementById('maps-save-driver-assignment')?.addEventListener('click', async () => {
       if (!isAdmin()) return showMessage('Accès réservé à l’admin', 'error');
@@ -39302,9 +39377,6 @@
   </script>
 </body>
 </html>
-
-
-
 
 
 
