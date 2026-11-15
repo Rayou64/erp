@@ -7932,6 +7932,20 @@
     .users-status-pill::before { width:6px; height:6px; border-radius:50%; background:currentColor; content:''; }
     .users-status-connected,.users-status-account { background:#e5f8f2; color:#119c7d; }.users-status-first { background:#fff0f1; color:#dc3c5d; }.users-status-missing { background:#fff6e7; color:#b67821; }
     .users-row-action { width:27px; height:26px; border:1px solid #dce8f6; border-radius:6px; background:#fff; color:#3378cb; cursor:pointer; }
+    .users-table th:nth-last-child(-n+2),.users-table td:nth-last-child(-n+2) { padding-left:6px; padding-right:6px; }
+    .users-status-stack { display:flex; flex-direction:column; align-items:flex-start; gap:7px; min-width:105px; }
+    .users-lifecycle-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:30px; padding:6px 10px; border:1px solid; border-radius:8px; font-size:11px; font-weight:600; line-height:1.2; white-space:nowrap; cursor:pointer; transition:background .15s,box-shadow .15s; }
+    .users-lifecycle-button svg { width:14px; height:14px; flex:none; }
+    .users-lifecycle-button:focus-visible { outline:2px solid #2563eb; outline-offset:3px; }
+    .users-lifecycle-button:disabled { opacity:.45; cursor:not-allowed; }
+    .users-lifecycle-deactivate { border-color:#f5d6a5; background:#fff8ed; color:#9a5a10; }
+    .users-lifecycle-deactivate:hover:not(:disabled) { background:#ffedd5; box-shadow:0 2px 6px #b4530914; }
+    .users-lifecycle-restore { border-color:#a7dfca; background:#edfaf4; color:#087857; }
+    .users-lifecycle-restore:hover:not(:disabled) { background:#d4f5e6; box-shadow:0 2px 6px #04785714; }
+    .users-lifecycle-delete { border-color:#fecdd3; background:#fff1f2; color:#be123c; }
+    .users-lifecycle-delete:hover:not(:disabled) { background:#ffe4e6; box-shadow:0 2px 6px #be123c14; }
+    .users-row-actions { display:flex; align-items:center; flex-wrap:wrap; gap:6px; min-width:110px; }
+    .users-shared-profile { display:inline-block; margin-top:5px; padding:3px 6px; border:1px solid #dce8f6; border-radius:5px; color:#526781; background:#f1f6fc; font-size:9px; }
     .users-empty-row { height:60px!important; color:#8292a8!important; text-align:center; }
     .users-purge-overlay[hidden] { display:none!important; }
     .users-purge-overlay { position:fixed; inset:0; z-index:11000; display:grid; place-items:center; padding:15px; background:rgba(19,39,74,.36); backdrop-filter:blur(3px); }
@@ -13110,7 +13124,7 @@
             <div class="users-filter-header"><div class="users-filter-title"><span aria-hidden="true">▽</span><h2>Filtres</h2></div><button type="button" id="users-reset-filters" class="users-reset-filters">Réinitialiser les filtres</button></div>
             <div class="users-filters">
               <label>Rôle<select id="users-role-filter"><option value="">Tous les rôles</option></select></label>
-              <label>Statut<select id="users-status-filter"><option value="">Tous les profils</option><option value="linked">Employé RH lié</option><option value="unlinked">Compte autonome</option><option value="account">Compte créé</option><option value="missing-account">Compte à créer</option></select></label>
+              <label>Statut<select id="users-status-filter"><option value="">Tous les profils</option><option value="active">Profils actifs</option><option value="deactivated">Désactivés — restauration 30 jours</option><option value="linked">Employé RH lié</option><option value="unlinked">Compte autonome</option><option value="account">Compte créé</option><option value="missing-account">Compte à créer</option></select></label>
               <label class="users-search">Recherche<input type="search" id="users-search" placeholder="Rechercher un profil, nom, email…" /></label>
             </div>
             <div class="users-list-heading"><div><h2>Profils utilisateurs</h2><p id="users-summary">Chargement des profils…</p></div><span class="users-count-badge" id="users-visible-count">0 profil</span></div>
@@ -13255,6 +13269,7 @@
         </div>
 
         <div id="admin-mail" class="module">
+          <div data-push-settings-host></div>
           <div class="page-header">
             <img class="internal-mail-logo" src="/assets/Messagerie%20interne.png" alt="Messagerie interne" />
             <h1>Messagerie interne</h1>
@@ -13728,6 +13743,7 @@
     </div>
   </div>
 
+  <script src="/push-notifications.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script>
@@ -13951,8 +13967,6 @@
     const DEFAULT_PAGE_SIZE = 10;
     let notifications = [];
     let lastNotifToggleAt = 0;
-    let pushSetupStarted = false;
-    let pushSetupReady = false;
     let profileStreamSource = null;
     let profileStreamRetryTimer = null;
     let auditLogEntries = [];
@@ -17216,6 +17230,8 @@
         const hasAccount = Boolean(Number(row?.hasUserAccount));
         const matchesRole = !roleFilter?.value || String(row?.role || '') === roleFilter.value;
         const matchesStatus = !statusFilter?.value
+          || (statusFilter.value === 'active' && hasAccount && !row.deactivatedAt)
+          || (statusFilter.value === 'deactivated' && Boolean(row.deactivatedAt))
           || (statusFilter.value === 'linked' && linked)
           || (statusFilter.value === 'unlinked' && !linked)
           || (statusFilter.value === 'account' && hasAccount)
@@ -17272,23 +17288,66 @@
         const lastLoginAt = String(row?.lastLoginAt || '').trim();
         const username = String(row?.username || '-').trim() || '-';
         const hasAccount = Boolean(Number(row?.hasUserAccount));
-        const statusClass = hasAccount ? 'users-status-account' : 'users-status-missing';
-        const statusLabel = hasAccount ? 'Compte créé' : 'Compte à créer';
+        const deactivated = Boolean(row.deactivatedAt);
+        const statusClass = deactivated ? 'users-status-missing' : hasAccount ? 'users-status-account' : 'users-status-missing';
+        const statusLabel = deactivated ? 'Désactivé' : hasAccount ? 'Compte créé' : 'Compte à créer';
         const employeeName = String(row?.linkedEmployeeName || '').trim();
+        const ownAccount = username.toLowerCase() === String(currentUserUsername || '').trim().toLowerCase();
+        const profileLabel = `${username}${row.linkedEmployeeId ? ` — fiche RH ${Number(row.linkedEmployeeId)}` : ''}`;
+        const lifecycleAction = isAdmin() && hasAccount
+          ? `<button type="button" class="users-lifecycle-button users-lifecycle-${deactivated ? 'restore' : 'deactivate'}" title="${ownAccount && !deactivated ? 'Votre propre profil est protégé' : deactivated ? 'Réhabiliter avant la fin des 30 jours' : 'Bloquer ce profil, avec réhabilitation possible pendant 30 jours'}" aria-label="${deactivated ? 'Réhabiliter' : 'Désactiver'} ${escapeHtml(profileLabel)}" data-user-lifecycle="${deactivated ? 'restore' : 'deactivate'}" data-user-id="${Number(row.id)}" data-employee-id="${Number(row.linkedEmployeeId || 0)}" ${ownAccount && !deactivated ? 'disabled' : ''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${deactivated ? '<path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7"/>' : '<rect x="4" y="3" width="6" height="18" rx="2"/><rect x="14" y="3" width="6" height="18" rx="2"/>'}</svg>${deactivated ? 'Réhabiliter' : 'Désactiver'}</button>`
+          : '';
+        const deleteAction = isAdmin() && hasAccount
+          ? `<button type="button" class="users-lifecycle-button users-lifecycle-delete" title="${ownAccount ? 'Votre propre profil est protégé' : 'Supprimer définitivement, sans possibilité de réhabilitation'}" aria-label="Supprimer ${escapeHtml(profileLabel)}" data-user-lifecycle="delete" data-user-id="${Number(row.id)}" data-employee-id="${Number(row.linkedEmployeeId || 0)}" ${ownAccount ? 'disabled' : ''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>Supprimer</button>`
+          : '';
 
         return `
           <tr>
-            <td><span class="users-profile-name">${escapeHtml(username)}</span><small class="users-profile-meta">${row?.passwordChangedAt ? `Mot de passe modifié le ${escapeHtml(formatDateWithTime(row.passwordChangedAt))}` : 'Mot de passe protégé'}</small></td>
+            <td><span class="users-profile-name">${escapeHtml(username)}</span><small class="users-profile-meta">${row?.passwordChangedAt ? `Mot de passe modifié le ${escapeHtml(formatDateWithTime(row.passwordChangedAt))}` : 'Mot de passe protégé'}</small>${Number(row.linkedProfileCount) > 1 ? `<span class="users-shared-profile">Compte partagé · fiche RH ${Number(row.linkedEmployeeId)}</span>` : ''}</td>
             <td>${escapeHtml(employeeName || 'Compte autonome')}</td>
             <td><span class="users-role-badge">${escapeHtml(getRoleDisplayLabel(row?.role || ''))}</span></td>
             <td>${employeeName ? '<span class="users-status-pill users-status-connected">Lié RH</span>' : '<span class="users-status-pill users-status-missing">Autonome</span>'}</td>
             <td>${firstLoginAt ? escapeHtml(formatDateWithTime(firstLoginAt)) : 'Non suivi'}</td>
             <td>${lastLoginAt ? escapeHtml(formatDateWithTime(lastLoginAt)) : 'Non suivi'}</td>
-            <td><span class="users-status-pill ${statusClass}">${statusLabel}</span></td>
-            <td>${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Modifier le mot de passe de ${escapeHtml(username)}" title="Modifier le mot de passe" onclick="openUserPasswordDialog(${Number(row?.id || 0)}, '${escapeHtml(username)}')">⌑</button>` : (!hasAccount && isAdmin() ? `<button type="button" class="users-row-action" aria-label="Créer le compte de ${escapeHtml(employeeName || username)}" title="Créer le compte lié" onclick="openUsersAccountDialog(${Number(row?.linkedEmployeeId || 0)})">＋</button>` : '—')} ${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Voir le mot de passe de ${escapeHtml(username)}" title="Voir le mot de passe" onclick="openUserRevealDialog(${Number(row?.id || 0)}, '${escapeHtml(username)}')">👁</button>` : ''} ${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Réinitialiser la première connexion de ${escapeHtml(username)}" title="Réinitialiser la première connexion" onclick="resetUserLoginState(${Number(row?.id || 0)})">↻</button>` : ''}</td>
+            <td><div class="users-status-stack"><span class="users-status-pill ${statusClass}">${statusLabel}</span>${lifecycleAction}${deactivated ? `<small class="users-profile-meta">Réhabilitation jusqu’au<br>${escapeHtml(formatDateWithTime(row.deleteAfter))}</small>` : ''}</div></td>
+            <td><div class="users-row-actions">${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Modifier le mot de passe de ${escapeHtml(username)}" title="Modifier le mot de passe" onclick="openUserPasswordDialog(${Number(row?.id || 0)}, '${escapeHtml(username)}')">⌑</button>` : (!hasAccount && isAdmin() ? `<button type="button" class="users-row-action" aria-label="Créer le compte de ${escapeHtml(employeeName || username)}" title="Créer le compte lié" onclick="openUsersAccountDialog(${Number(row?.linkedEmployeeId || 0)})">＋</button>` : '—')} ${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Voir le mot de passe de ${escapeHtml(username)}" title="Voir le mot de passe" onclick="openUserRevealDialog(${Number(row?.id || 0)}, '${escapeHtml(username)}')">👁</button>` : ''} ${isAdmin() && hasAccount ? `<button type="button" class="users-row-action" aria-label="Réinitialiser la première connexion de ${escapeHtml(username)}" title="Réinitialiser la première connexion" onclick="resetUserLoginState(${Number(row?.id || 0)})">↻</button>` : ''}${deleteAction}</div></td>
           </tr>
         `;
       }).join('');
+      tbody.querySelectorAll('[data-user-lifecycle]').forEach(button => {
+        button.addEventListener('click', () => changeUserLifecycle(Number(button.dataset.userId), Number(button.dataset.employeeId), button.dataset.userLifecycle));
+      });
+    }
+
+    async function changeUserLifecycle(userId, employeeId, action) {
+      const row = usersAdminCache.find(user => Number(user.id) === userId && Number(user.linkedEmployeeId || 0) === employeeId);
+      if (!row) {
+        showMessage('Ce profil n’est plus disponible. Actualisez la liste.', 'error');
+        return;
+      }
+      const name = row.linkedEmployeeName || row.username;
+      const target = `${name} (${row.username}${employeeId ? `, fiche RH ${employeeId}` : ''})`;
+      const sharedNotice = Number(row.linkedProfileCount) > 1
+        ? '\n\nCe compte est partagé par plusieurs fiches RH. Seule la ligne choisie sera modifiée ; le compte restera accessible tant qu’un autre profil lié est actif.'
+        : '';
+      const message = action === 'restore' ? `Réhabiliter le profil de ${target} ?`
+        : action === 'delete'
+          ? `SUPPRESSION DÉFINITIVE\n\nSupprimer le profil de ${target} immédiatement ? Cette action est irréversible : aucune réhabilitation ne sera possible. Les dossiers RH et historiques seront conservés.${sharedNotice}`
+          : `Désactiver le profil de ${target} ? Vous disposerez de 30 jours pour le réhabiliter avant sa suppression définitive. Sans autre profil actif lié, l’accès et les sessions seront bloqués immédiatement.${sharedNotice}`;
+      if (!window.confirm(message)) return;
+      try {
+        const result = await fetchJson(`/api/admin/users/${userId}${action === 'delete' ? '' : `/${action}`}`, {
+          method: action === 'delete' ? 'DELETE' : 'PATCH',
+          body: JSON.stringify({ employeeId, ...(action === 'delete' ? { confirm: 'DELETE_USER_PERMANENTLY' } : {}) }),
+        });
+        const feedback = action === 'restore' ? 'Profil réhabilité.' : action === 'delete'
+          ? 'Profil supprimé définitivement, sans réhabilitation possible.'
+          : 'Profil désactivé. Réhabilitation possible pendant 30 jours.';
+        showMessage(feedback + (result.sharedAccountActive && action !== 'restore' ? ' Les autres profils liés restent actifs.' : ''));
+        await loadUsersModule();
+      } catch (error) {
+        showMessage(error.message || 'Impossible de modifier ce profil.', 'error');
+      }
     }
 
     async function loadUsersModule() {
@@ -35376,10 +35435,7 @@
 
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
-      logoutButton.addEventListener('click', () => {
-        localStorage.removeItem('erp_token');
-        window.location.href = 'index.html';
-      });
+      logoutButton.addEventListener('click', performLogout);
     }
 
     document.getElementById('project-search').addEventListener('input', e => {
@@ -36629,7 +36685,13 @@
       });
     }
 
-    function performLogout() {
+    async function performLogout() {
+      try {
+        await window.ERPPush.unsubscribe();
+      } catch (error) {
+        console.error('[push] Désabonnement impossible', error);
+        window.alert('Les alertes n’ont pas pu être désactivées. Retirez l’autorisation de notifications dans les réglages de cet appareil partagé.');
+      }
       closeProfileStreamConnection();
       localStorage.removeItem('erp_token');
       window.location.href = 'index.html';
@@ -38537,27 +38599,7 @@
     }
 
     async function triggerNotificationTest() {
-      pushNotification(
-        'Test notification',
-        'Le panneau notifications fonctionne. Ce message confirme la lisibilite.',
-        'dashboard'
-      );
-      try {
-        await fetchJson('/api/push/test', { method: 'POST' });
-      } catch (_) {
-        // Keep local test visible even if server push test fails.
-      }
-    }
-
-    function urlBase64ToUint8Array(base64String) {
-      const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-      const rawData = window.atob(base64);
-      const outputArray = new Uint8Array(rawData.length);
-      for (let i = 0; i < rawData.length; i += 1) {
-        outputArray[i] = rawData.charCodeAt(i);
-      }
-      return outputArray;
+      if (await window.ERPPush.enable({ requestPermission: true })) await window.ERPPush.test();
     }
 
     async function ensureAppServiceWorkerRegistration() {
@@ -38581,53 +38623,7 @@
     }
 
     async function setupPushNotifications(options = {}) {
-      if (pushSetupReady) return true;
-      if (pushSetupStarted) return false;
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-
-      const requestPermission = options && options.requestPermission === true;
-
-      try {
-        pushSetupStarted = true;
-
-        const keyResult = await fetchJson('/api/push/public-key').catch(() => null);
-        const publicKey = String(keyResult?.publicKey || '').trim();
-        if (!publicKey) return false;
-
-        const registration = await ensureAppServiceWorkerRegistration();
-        if (!registration) return false;
-
-        if (typeof Notification !== 'undefined') {
-          if (Notification.permission === 'default' && requestPermission) {
-            await Notification.requestPermission();
-          }
-          if (Notification.permission !== 'granted') {
-            return false;
-          }
-        } else {
-          return false;
-        }
-
-        let subscription = await registration.pushManager.getSubscription();
-        if (!subscription) {
-          subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(publicKey),
-          });
-        }
-
-        await fetchJson('/api/push/subscribe', {
-          method: 'POST',
-          body: JSON.stringify({ subscription }),
-        });
-
-        pushSetupReady = true;
-        return true;
-      } catch (_) {
-        return false;
-      } finally {
-        pushSetupStarted = false;
-      }
+      return window.ERPPush.enable(options);
     }
 
     async function dispatchSystemNotification(payload) {
@@ -38671,7 +38667,7 @@
       if (notifications.length > 120) notifications = notifications.slice(0, 120);
       saveNotificationsToStorage();
       updateNotificationsUI();
-      dispatchSystemNotification({ id, title, message, module, url: options.url, tag: options.sourceKey });
+      if (module !== 'internal-mail') dispatchSystemNotification({ id, title, message, module, url: options.url, tag: options.sourceKey });
     }
 
     function updateNotificationsUI() {
@@ -39384,11 +39380,6 @@
   </script>
 </body>
 </html>
-
-
-
-
-
 
 
 

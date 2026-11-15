@@ -23,6 +23,10 @@ const archiver = require('archiver');
 const { spawn } = require('child_process');
 const { createDbClient } = require('./db/client');
 const { normalizeHrUsernameCandidate, ensureHrEmployeeUserAccount } = require('./lib/hr-user-account');
+const {
+  USER_RESTORE_WINDOW_MS, linkedEmployeeJoin, INTERNAL_MAIL_IDENTITIES, ensureProjectAssignmentRetention,
+  withUserProfileChanges, setUserProfileState, deleteUserAccount, syncUserProfileAccess, purgeExpiredUserAccounts,
+} = require('./lib/user-lifecycle');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -237,6 +241,7 @@ const DATA_PURGE_TABLES = [
   'hr_employee_documents',
   'hr_leave_requests',
   'hr_attendance',
+  'user_profile_states',
   'hr_employees',
   'project_progress_updates',
   'project_assignments',
@@ -372,7 +377,7 @@ async function purgeSelectedBusinessData(groups, actorUsername) {
       const employeePlaceholders = employeeIds.map(() => '?').join(', ');
       const employeeDocuments = await all(`SELECT relativePath FROM hr_employee_documents WHERE employeeId IN (${employeePlaceholders})`, employeeIds);
       await removeArchivedFiles((employeeDocuments || []).map(row => row.relativePath));
-      for (const tableName of ['hr_document_signatures', 'hr_leave_requests', 'hr_attendance', 'hr_employee_documents']) {
+      for (const tableName of ['hr_document_signatures', 'hr_leave_requests', 'hr_attendance', 'hr_employee_documents', 'user_profile_states']) {
         const result = await run(`DELETE FROM ${tableName} WHERE employeeId IN (${employeePlaceholders})`, employeeIds);
         addDeletedCount(tableName, result);
       }
@@ -676,6 +681,12 @@ async function getTableColumns(tableName) {
 }
 
 async function getNextTableId(tableName) {
+  if (tableName === 'users') {
+    const row = await get(`SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM (
+      SELECT id FROM users UNION ALL SELECT userId AS id FROM deleted_user_accounts
+    ) reservedUsers`);
+    return Number(row?.nextId || row?.nextid || 1);
+  }
   const row = await get(`SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM ${tableName}`);
   return Number(row?.nextId || row?.nextid || 1);
 }
@@ -2401,6 +2412,21 @@ async function initDb() {
   };
   await addUserLoginTimestampColumn('firstLoginAt');
   await addUserLoginTimestampColumn('lastLoginAt');
+  await addUserLoginTimestampColumn('deactivatedAt');
+  await addUserLoginTimestampColumn('deleteAfter');
+  await run(`CREATE TABLE IF NOT EXISTS deleted_user_accounts (
+    userId INTEGER PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    deletedAt TEXT NOT NULL
+  )`);
+  await run(`CREATE TABLE IF NOT EXISTS user_profile_states (
+    employeeId INTEGER PRIMARY KEY,
+    userId INTEGER NOT NULL,
+    deactivatedAt TEXT NOT NULL DEFAULT '',
+    deleteAfter TEXT NOT NULL DEFAULT '',
+    deletedAt TEXT NOT NULL DEFAULT ''
+  )`);
+  await run('CREATE INDEX IF NOT EXISTS idx_user_profile_states_user ON user_profile_states(userId)');
   await run(`CREATE TABLE IF NOT EXISTS password_reset_requests (
     id INTEGER PRIMARY KEY,
     userId INTEGER NOT NULL,
@@ -3335,7 +3361,7 @@ async function initDb() {
   await run(`CREATE TABLE IF NOT EXISTS project_assignments (
     id INTEGER PRIMARY KEY,
     projectId INTEGER NOT NULL,
-    userId INTEGER NOT NULL,
+    userId INTEGER,
     employeeId INTEGER,
     assigneeName TEXT,
     phoneNumber TEXT,
@@ -3348,7 +3374,7 @@ async function initDb() {
     endAt TEXT NOT NULL DEFAULT '',
     comments TEXT NOT NULL DEFAULT '',
     FOREIGN KEY(projectId) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY(employeeId) REFERENCES hr_employees(id) ON DELETE SET NULL
   )`);
   try { await run("ALTER TABLE project_assignments ADD COLUMN endAt TEXT NOT NULL DEFAULT ''"); } catch (e) {}
@@ -3601,31 +3627,21 @@ async function initDb() {
   } catch (e) { console.error('CREATE INDEX error:', e.message); }
 
   const getNextUserId = async () => {
-    const row = await get('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM users');
-    return Number(row?.nextId || 1);
+    return getNextTableId('users');
+  };
+
+  const getBootstrapUser = async username => {
+    return await get('SELECT * FROM users WHERE username = ?', [username])
+      || await get('SELECT userId AS id, deletedAt FROM deleted_user_accounts WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [username]);
   };
 
   const ensureHrEmployeeProfile = async ({ username, fullName, jobTitle, phoneNumber = '', address = '', maritalStatus = '', email = '', createdBy = username }) => {
     const usernameValue = String(username || '').trim();
     if (!usernameValue) return;
 
-    const existing = await get('SELECT * FROM hr_employees WHERE username = ? OR createdBy = ? OR fullName = ? ORDER BY id ASC LIMIT 1', [usernameValue, usernameValue, fullName || usernameValue]);
+    const existing = await get('SELECT id FROM hr_employees WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) ORDER BY id ASC LIMIT 1', [usernameValue]);
     const now = new Date().toISOString();
     if (existing) {
-      await run(
-        "UPDATE hr_employees SET fullName = ?, jobTitle = ?, phoneNumber = ?, address = ?, maritalStatus = ?, email = COALESCE(NULLIF(?, ''), email), createdBy = COALESCE(NULLIF(?, ''), createdBy), updatedAt = ? WHERE id = ?",
-        [
-          String(fullName || usernameValue).trim(),
-          String(jobTitle || '').trim(),
-          String(phoneNumber || '').trim(),
-          String(address || '').trim(),
-          String(maritalStatus || '').trim(),
-          String(email || '').trim(),
-          String(createdBy || usernameValue).trim(),
-          now,
-          Number(existing.id),
-        ]
-      );
       return Number(existing.id);
     }
 
@@ -3650,7 +3666,7 @@ async function initDb() {
   };
 
   // Créer utilisateur admin par défaut
-  const admin = await get('SELECT * FROM users WHERE username = ?', ['admin']);
+  const admin = await getBootstrapUser('admin');
   if (!admin) {
     const hashedPassword = await bcrypt.hash('admin123', 10);
     const nextUserId = await getNextUserId();
@@ -3661,7 +3677,7 @@ async function initDb() {
     console.log('Utilisateur admin créé avec mot de passe admin123');
   }
 
-  const executive = await get('SELECT id FROM users WHERE username = ?', [EXECUTIVE_USERNAME]);
+  const executive = await getBootstrapUser(EXECUTIVE_USERNAME);
   const executiveHashedPassword = await bcrypt.hash(EXECUTIVE_PASSWORD, 10);
   if (!executive) {
     const nextUserId = await getNextUserId();
@@ -3670,7 +3686,7 @@ async function initDb() {
       [nextUserId, EXECUTIVE_USERNAME, executiveHashedPassword, 'dirigeant', new Date().toISOString()]
     );
     console.log(`Utilisateur ${EXECUTIVE_USERNAME} cree avec role dirigeant`);
-  } else {
+  } else if (!executive.deactivatedAt && !executive.deletedAt) {
     await run(
       'UPDATE users SET password = ?, role = ? WHERE username = ?',
       [executiveHashedPassword, 'dirigeant', EXECUTIVE_USERNAME]
@@ -3678,7 +3694,7 @@ async function initDb() {
     console.log(`Utilisateur ${EXECUTIVE_USERNAME} mis a jour avec role dirigeant`);
   }
 
-  const hrDirector = await get('SELECT id FROM users WHERE username = ?', [HR_DIRECTOR_USERNAME]);
+  const hrDirector = await getBootstrapUser(HR_DIRECTOR_USERNAME);
   const hrDirectorHashedPassword = await bcrypt.hash(HR_DIRECTOR_PASSWORD, 10);
   if (!hrDirector) {
     const nextUserId = await getNextUserId();
@@ -3687,7 +3703,7 @@ async function initDb() {
       [nextUserId, HR_DIRECTOR_USERNAME, hrDirectorHashedPassword, 'directeur_rh', new Date().toISOString()]
     );
     console.log(`Utilisateur ${HR_DIRECTOR_USERNAME} cree avec role directeur_rh`);
-  } else {
+  } else if (!hrDirector.deactivatedAt && !hrDirector.deletedAt) {
     await run(
       'UPDATE users SET password = ?, role = ? WHERE username = ?',
       [hrDirectorHashedPassword, 'directeur_rh', HR_DIRECTOR_USERNAME]
@@ -3698,7 +3714,7 @@ async function initDb() {
   // Gestionnaire de parc auto: mêmes droits que admin (maintenance, coûts du transport, maps)
   const PARK_MANAGER_USERNAME = process.env.PARK_MANAGER_USERNAME || 'gestionnaire_parc';
   const PARK_MANAGER_PASSWORD = process.env.PARK_MANAGER_PASSWORD || 'park123';
-  const parkManager = await get('SELECT id FROM users WHERE username = ?', [PARK_MANAGER_USERNAME]);
+  const parkManager = await getBootstrapUser(PARK_MANAGER_USERNAME);
   const parkManagerHashedPassword = await bcrypt.hash(PARK_MANAGER_PASSWORD, 10);
   if (!parkManager) {
     const nextUserId = await getNextUserId();
@@ -3706,13 +3722,13 @@ async function initDb() {
       'INSERT INTO users (id, username, password, role, createdAt) VALUES (?, ?, ?, ?, ?)',
       [nextUserId, PARK_MANAGER_USERNAME, parkManagerHashedPassword, 'admin', new Date().toISOString()]
     );
-  } else {
+  } else if (!parkManager.deactivatedAt && !parkManager.deletedAt) {
     await run('UPDATE users SET role = ? WHERE username = ?', ['admin', PARK_MANAGER_USERNAME]);
   }
 
   await ensureAccessProfileSchema();
   const parkProfile = await get('SELECT id FROM user_access_profiles WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1', [PARK_MANAGER_USERNAME]);
-  if (!parkProfile) {
+  if (!parkProfile && !parkManager?.deletedAt) {
     const nowIso = new Date().toISOString();
     await run(
       `INSERT INTO user_access_profiles
@@ -3731,10 +3747,10 @@ async function initDb() {
   );
 
   // Garantir un compte commis_stock toujours opérationnel (local + Railway)
-  const commis = await get('SELECT id FROM users WHERE username = ?', [COMMIS_STOCK_USERNAME]);
+  const commis = await getBootstrapUser(COMMIS_STOCK_USERNAME);
 
   // Garantir le compte achat toujours opérationnel (local + Railway)
-  const achatUser = await get('SELECT id FROM users WHERE username = ?', [ACHAT_USERNAME]);
+  const achatUser = await getBootstrapUser(ACHAT_USERNAME);
   const achatHashedPassword = await bcrypt.hash(ACHAT_PASSWORD, 10);
   if (!achatUser) {
     const nextUserId = await getNextUserId();
@@ -3743,7 +3759,7 @@ async function initDb() {
       [nextUserId, ACHAT_USERNAME, achatHashedPassword, 'achat', new Date().toISOString()]
     );
     console.log(`Utilisateur ${ACHAT_USERNAME} cree avec role achat`);
-  } else {
+  } else if (!achatUser.deactivatedAt && !achatUser.deletedAt) {
     await run(
       'UPDATE users SET password = ?, role = ? WHERE username = ?',
       [achatHashedPassword, 'achat', ACHAT_USERNAME]
@@ -3758,7 +3774,7 @@ async function initDb() {
       [nextUserId, COMMIS_STOCK_USERNAME, commisHashedPassword, 'commis', new Date().toISOString()]
     );
     console.log(`Utilisateur ${COMMIS_STOCK_USERNAME} créé avec role commis`);
-  } else {
+  } else if (!commis.deactivatedAt && !commis.deletedAt) {
     await run(
       'UPDATE users SET password = ?, role = ? WHERE username = ?',
       [commisHashedPassword, 'commis', COMMIS_STOCK_USERNAME]
@@ -3770,7 +3786,7 @@ async function initDb() {
   const siteChiefUsername = 'chef_chantier_site15';
   const siteChiefRole = 'chef_chantier_site';
   const siteChiefPassword = process.env.CHEF_SITE15_PASSWORD || 'chefsite15@123';
-  const siteChief = await get('SELECT id FROM users WHERE username = ?', [siteChiefUsername]);
+  const siteChief = await getBootstrapUser(siteChiefUsername);
   const siteChiefHashedPassword = await bcrypt.hash(siteChiefPassword, 10);
   if (!siteChief) {
     const nextUserId = await getNextUserId();
@@ -3779,7 +3795,7 @@ async function initDb() {
       [nextUserId, siteChiefUsername, siteChiefHashedPassword, siteChiefRole, new Date().toISOString()]
     );
     console.log(`Utilisateur ${siteChiefUsername} cree avec role ${siteChiefRole}`);
-  } else {
+  } else if (!siteChief.deactivatedAt && !siteChief.deletedAt) {
     await run(
       'UPDATE users SET password = ?, role = ? WHERE username = ?',
       [siteChiefHashedPassword, siteChiefRole, siteChiefUsername]
@@ -3788,7 +3804,7 @@ async function initDb() {
   }
 
   // Garantir le compte contrôle achat (local + Railway)
-  const procurementReviewer = await get('SELECT id FROM users WHERE username = ?', [PROCUREMENT_REVIEWER_USERNAME]);
+  const procurementReviewer = await getBootstrapUser(PROCUREMENT_REVIEWER_USERNAME);
   const procurementReviewerHashedPassword = await bcrypt.hash(PROCUREMENT_REVIEWER_PASSWORD, 10);
   if (!procurementReviewer) {
     const nextUserId = await getNextUserId();
@@ -3797,7 +3813,7 @@ async function initDb() {
       [nextUserId, PROCUREMENT_REVIEWER_USERNAME, procurementReviewerHashedPassword, 'controle_achat', new Date().toISOString()]
     );
     console.log(`Utilisateur ${PROCUREMENT_REVIEWER_USERNAME} cree avec role controle_achat`);
-  } else {
+  } else if (!procurementReviewer.deactivatedAt && !procurementReviewer.deletedAt) {
     await run(
       'UPDATE users SET password = ?, role = ? WHERE username = ?',
       [procurementReviewerHashedPassword, 'controle_achat', PROCUREMENT_REVIEWER_USERNAME]
@@ -3825,7 +3841,7 @@ async function initDb() {
   });
 
   // Garantir le profil KOKAN (gestionnaire stock Songon)
-  const kokan = await get('SELECT id FROM users WHERE username = ?', [KOKAN_USERNAME]);
+  const kokan = await getBootstrapUser(KOKAN_USERNAME);
   const kokanHashedPassword = await bcrypt.hash(KOKAN_PASSWORD, 10);
   if (!kokan) {
     const nextUserId = await getNextUserId();
@@ -3834,7 +3850,7 @@ async function initDb() {
       [nextUserId, KOKAN_USERNAME, kokanHashedPassword, 'gestionnaire_stock_songon', new Date().toISOString()]
     );
     console.log(`Utilisateur ${KOKAN_USERNAME} cree avec role gestionnaire_stock_songon`);
-  } else {
+  } else if (!kokan.deactivatedAt && !kokan.deletedAt) {
     await run(
       'UPDATE users SET password = ?, role = ? WHERE username = ?',
       [kokanHashedPassword, 'gestionnaire_stock_songon', KOKAN_USERNAME]
@@ -3862,14 +3878,6 @@ async function initDb() {
     createdBy: 'admin',
   });
 
-  // Supprimer les profils retires du lien public et de Railway.
-  const removedPublicProfiles = await run(
-    'DELETE FROM users WHERE role = ? OR username IN (?, ?, ?)',
-    ['gestionnaire_stock', GEST_STOCK_USERNAME, 'chef_adzope_site15', 'gest_zone_adzope']
-  );
-  if (Number(removedPublicProfiles?.changes || 0) > 0) {
-    console.log(`Profils publics supprimes: ${Number(removedPublicProfiles.changes || 0)}`);
-  }
 }
 
 // Keep HTTP reachable immediately; DB init runs in background once.
@@ -3994,6 +4002,16 @@ function startGpsRetentionCleanup() {
 
 async function initializeDatabaseOnce() {  try {
     await initDbWithTimeout();
+    await ensureProjectAssignmentRetention(dbClient);
+    await run(`INSERT INTO user_profile_states (employeeId, userId, deactivatedAt, deleteAfter, deletedAt)
+      SELECT he.id, u.id, u.deactivatedAt, u.deleteAfter, ''
+      FROM hr_employees he JOIN users u ON LOWER(TRIM(u.username)) = LOWER(TRIM(he.username))
+      WHERE u.deactivatedAt <> '' ON CONFLICT(employeeId) DO NOTHING`);
+    await purgeExpiredUserAccounts({ all, run });
+    const userRetentionTimer = setInterval(() => {
+      purgeExpiredUserAccounts({ all, run }).catch(error => console.error('[user-retention]', error));
+    }, 60 * 1000);
+    userRetentionTimer.unref();
     isReady = true;
     console.log('Initialisation base de donnees terminee. API ready.');
     startProductionPasswordSync();
@@ -4088,10 +4106,10 @@ function authenticateToken(req, res, next) {
       return res.status(401).json({ error: 'Token invalide' });
     }
     try {
-      const currentUser = await get('SELECT id, username, role, tokenVersion FROM users WHERE id = ?', [Number(user.id)]);
+      const currentUser = await get('SELECT id, username, role, tokenVersion, deactivatedAt FROM users WHERE id = ?', [Number(user.id)]);
       const issuedVersion = Number(user.tokenVersion || 0);
       const currentVersion = Number(currentUser?.tokenVersion || 0);
-      if (!currentUser || issuedVersion !== currentVersion) {
+      if (!currentUser || currentUser.deactivatedAt || issuedVersion !== currentVersion) {
         return res.status(401).json({ error: 'Session expirée' });
       }
       req.user = {
@@ -4870,6 +4888,9 @@ app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   if (!valid) {
     return res.status(401).json({ error: 'Utilisateur ou mot de passe invalide' });
   }
+  if (user.deactivatedAt) {
+    return res.status(403).json({ error: 'Ce profil est désactivé. Contactez un administrateur.' });
+  }
 
   if (decryptStoredPassword(user.passwordEnc) !== password) {
     try { await storeUserPasswordEnc(user.id, password); } catch (_e) {}
@@ -4947,6 +4968,10 @@ app.get('/api/auth/profile-stream', async (req, res) => {
   } catch (error) {
     return res.status(401).json({ error: 'Token invalide' });
   }
+  const currentUser = await get('SELECT deactivatedAt, tokenVersion FROM users WHERE id = ?', [Number(user.id)]);
+  if (!currentUser || currentUser.deactivatedAt || Number(currentUser.tokenVersion || 0) !== Number(user.tokenVersion || 0)) {
+    return res.status(401).json({ error: 'Session expirée' });
+  }
 
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -4999,39 +5024,46 @@ async function ensurePushVapidKeys() {
 }
 
 async function sendPushToUsers(userIds, payload) {
-  if (!pushVapid) return;
+  if (!pushVapid) throw new Error('Notifications push non initialisées');
   const ids = Array.from(new Set((userIds || []).map(Number).filter(id => Number.isInteger(id) && id > 0)));
   if (!ids.length) return;
   const body = JSON.stringify(payload);
+  let deliveryError = null;
+  let delivered = 0;
   for (const userId of ids) {
-    let subscriptions = [];
-    try { subscriptions = await all('SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE userId = ?', [userId]); } catch (_e) { continue; }
+    const subscriptions = await all(`SELECT s.id, s.endpoint, s.p256dh, s.auth FROM push_subscriptions s
+      JOIN users u ON u.id = s.userId WHERE s.userId = ? AND u.deactivatedAt = ''`, [userId]);
     for (const sub of subscriptions || []) {
       try {
         await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, body, { TTL: 86400, urgency: 'high' });
+        delivered += 1;
       } catch (error) {
         if (error?.statusCode === 404 || error?.statusCode === 410) {
-          await run('DELETE FROM push_subscriptions WHERE id = ?', [sub.id]).catch(() => {});
+          await run('DELETE FROM push_subscriptions WHERE id = ?', [sub.id]);
+        } else {
+          console.error('[push] Échec de livraison', { userId, statusCode: error?.statusCode, message: error?.message });
+          deliveryError = error;
         }
       }
     }
   }
+  if (deliveryError) throw deliveryError;
+  return delivered;
 }
 
 async function notifyInternalMailRecipients(senderId, userIds, conversationId, messageId, subject, body) {
   try {
-    const sender = await get(`SELECT u.username, COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS senderName
-      FROM users u LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username)) WHERE u.id = ? LIMIT 1`, [Number(senderId)]);
+    const sender = await getInternalMailUser(senderId);
     const preview = String(body || '').replace(/\s+/g, ' ').trim().slice(0, 140);
     await sendPushToUsers((userIds || []).filter(id => Number(id) !== Number(senderId)), {
-      title: `Nouveau message de ${String(sender?.senderName || 'Utilisateur')}`,
+      title: `Nouveau message de ${String(sender?.fullName || 'Utilisateur')}`,
       message: String(subject || '').trim() || preview || 'Vous avez reçu un message.',
       module: 'internal-mail',
       url: `/messaging.html?conversation=${Number(conversationId)}`,
       tag: `internal-mail:${Number(messageId)}`,
     });
-  } catch (_e) {
-    // Les notifications ne doivent jamais bloquer l'envoi du message.
+  } catch (error) {
+    console.error('[internal-mail] Notification non livrée', { conversationId, messageId, message: error?.message });
   }
 }
 
@@ -5060,6 +5092,22 @@ app.post('/api/push/unsubscribe', authenticateToken, async (req, res) => {
   const endpoint = String(req.body?.endpoint || '').trim();
   if (endpoint) await run('DELETE FROM push_subscriptions WHERE endpoint = ? AND userId = ?', [endpoint, Number(req.user?.id || 0)]);
   return res.json({ subscribed: false });
+});
+
+app.post('/api/push/test', authenticateToken, async (req, res) => {
+  const subscription = await get('SELECT id FROM push_subscriptions WHERE userId = ? LIMIT 1', [Number(req.user.id)]);
+  if (!subscription) return res.status(409).json({ error: 'Activez d’abord les notifications sur cet appareil.' });
+  try {
+    const delivered = await sendPushToUsers([req.user.id], {
+      title: 'Notifications RyanERP activées',
+      message: 'Vous recevrez une alerte pour les nouveaux courriels internes.',
+      module: 'internal-mail', url: '/messaging.html', tag: 'erp-push-test',
+    });
+    if (!delivered) return res.status(409).json({ error: 'L’abonnement a expiré. Réactivez les alertes sur cet appareil.' });
+    return res.json({ sent: true });
+  } catch (error) {
+    return res.status(502).json({ error: 'Le service de notification n’a pas pu livrer le test.' });
+  }
 });
 
 app.post('/api/gps/ingest', async (req, res) => {
@@ -5195,8 +5243,7 @@ async function getInternalMailUser(userId) {
            COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS fullName,
            COALESCE(NULLIF(TRIM(he.jobTitle), ''), u.role) AS department
     FROM users u
-    LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
-      AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(u.username)))
+    ${linkedEmployeeJoin('u', 'he')}
     WHERE u.id = ?
     LIMIT 1
   `, [Number(userId)]);
@@ -5231,8 +5278,8 @@ app.get('/api/internal-mail/users', async (req, res) => {
              COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS fullName,
              COALESCE(NULLIF(TRIM(he.jobTitle), ''), u.role) AS department
       FROM users u
-      LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
-        AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(u.username)))
+      ${linkedEmployeeJoin('u', 'he')}
+      WHERE u.deactivatedAt = ''
       ORDER BY fullName ASC, u.id ASC
     `);
     return res.json((rows || []).map(row => ({
@@ -5283,9 +5330,8 @@ app.get('/api/internal-mail/conversations', async (req, res) => {
       )
       LEFT JOIN internal_mail_recipients r ON r.messageId = m.id AND r.userId = ?
       LEFT JOIN internal_mail_user_organization org ON org.conversationId = c.id AND org.userId = ?
-      LEFT JOIN users su ON su.id = m.senderId
-      LEFT JOIN hr_employees se ON LOWER(TRIM(se.username)) = LOWER(TRIM(su.username))
-        AND se.id = (SELECT MAX(se2.id) FROM hr_employees se2 WHERE LOWER(TRIM(se2.username)) = LOWER(TRIM(su.username)))
+      LEFT JOIN ${INTERNAL_MAIL_IDENTITIES} su ON su.id = m.senderId
+      ${linkedEmployeeJoin('su', 'se')}
       LEFT JOIN projects p ON p.id = c.projectId
       WHERE (
         (? = 'sent' AND (c.createdBy = ? OR m.senderId = ?)) OR
@@ -5328,9 +5374,8 @@ app.get('/api/internal-mail/unread-count', async (req, res) => {
       FROM internal_mail_recipients r
       JOIN internal_mail_messages m ON m.id = r.messageId
       JOIN internal_mail_conversations c ON c.id = r.conversationId
-      LEFT JOIN users su ON su.id = m.senderId
-      LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(su.username))
-        AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(su.username)))
+      LEFT JOIN ${INTERNAL_MAIL_IDENTITIES} su ON su.id = m.senderId
+      ${linkedEmployeeJoin('su', 'he')}
       WHERE r.userId = ? AND r.isRead = 0 AND r.deletedAt = ''
       ORDER BY m.createdAt DESC, r.id DESC LIMIT 10
     `, [userId]);
@@ -5352,9 +5397,8 @@ app.get('/api/internal-mail/conversations/:id', async (req, res) => {
              COALESCE(NULLIF(TRIM(se.fullName), ''), su.username) AS senderName,
              COALESCE(NULLIF(TRIM(se.jobTitle), ''), su.role) AS senderDepartment
       FROM internal_mail_messages m
-      LEFT JOIN users su ON su.id = m.senderId
-      LEFT JOIN hr_employees se ON LOWER(TRIM(se.username)) = LOWER(TRIM(su.username))
-        AND se.id = (SELECT MAX(se2.id) FROM hr_employees se2 WHERE LOWER(TRIM(se2.username)) = LOWER(TRIM(su.username)))
+      LEFT JOIN ${INTERNAL_MAIL_IDENTITIES} su ON su.id = m.senderId
+      ${linkedEmployeeJoin('su', 'se')}
       WHERE m.conversationId = ? ORDER BY m.createdAt ASC, m.id ASC
     `, [conversationId]);
     const hydrated = [];
@@ -5364,9 +5408,8 @@ app.get('/api/internal-mail/conversations/:id', async (req, res) => {
         SELECT u.id, u.username, r.recipientType,
                COALESCE(NULLIF(TRIM(he.fullName), ''), u.username) AS fullName
         FROM internal_mail_recipients r
-        JOIN users u ON u.id = r.userId
-        LEFT JOIN hr_employees he ON LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
-          AND he.id = (SELECT MAX(he2.id) FROM hr_employees he2 WHERE LOWER(TRIM(he2.username)) = LOWER(TRIM(u.username)))
+        JOIN ${INTERNAL_MAIL_IDENTITIES} u ON u.id = r.userId
+        ${linkedEmployeeJoin('u', 'he')}
         JOIN internal_mail_conversations c ON c.id = r.conversationId
         WHERE r.messageId = ? AND (r.recipientType <> 'bcc' OR r.userId = ? OR c.createdBy = ?)
         ORDER BY fullName ASC
@@ -5401,12 +5444,16 @@ app.post('/api/internal-mail/conversations', async (req, res) => {
 
     let finalRecipients = recipients;
     if (payload.sendToAll && (sender.role === 'admin' || sender.role === 'dirigeant')) {
-      const allUsers = await all('SELECT id FROM users WHERE id <> ?', [Number(sender.id)]);
+      const allUsers = await all("SELECT id FROM users WHERE id <> ? AND deactivatedAt = ''", [Number(sender.id)]);
       finalRecipients = normalizeInternalMailList((allUsers || []).map(row => row.id));
     }
     const recipientTypes = new Map(finalRecipients.map(userId => [userId, 'to']));
     for (const userId of ccRecipients) if (!recipientTypes.has(userId)) recipientTypes.set(userId, 'cc');
     for (const userId of bccRecipients) if (!recipientTypes.has(userId)) recipientTypes.set(userId, 'bcc');
+    for (const userId of recipientTypes.keys()) {
+      const recipient = await get("SELECT id FROM users WHERE id = ? AND deactivatedAt = ''", [userId]);
+      if (!recipient) return res.status(400).json({ error: 'Un destinataire est désactivé ou introuvable. Actualisez la liste.' });
+    }
     if (status === 'sent' && !recipientTypes.size) return res.status(400).json({ error: 'Aucun profil destinataire disponible' });
 
     const projectId = Number(payload.projectId || 0) || null;
@@ -5459,6 +5506,12 @@ app.post('/api/internal-mail/conversations/:id/replies', async (req, res) => {
     } else {
       finalRecipients = normalizeInternalMailList(recipients.concat((participants || []).map(row => row.userId))).filter(id => id !== senderId);
     }
+    const activeRecipients = [];
+    for (const userId of finalRecipients) {
+      if (await get("SELECT id FROM users WHERE id = ? AND deactivatedAt = ''", [userId])) activeRecipients.push(userId);
+    }
+    finalRecipients = activeRecipients;
+    if (!finalRecipients.length) return res.status(400).json({ error: 'Aucun destinataire actif dans cette conversation.' });
     const now = new Date().toISOString();
     const messageId = await getNextTableId('internal_mail_messages');
     await run('INSERT INTO internal_mail_messages (id, conversationId, senderId, body, createdAt) VALUES (?, ?, ?, ?, ?)', [messageId, conversationId, senderId, body, now]);
@@ -5849,10 +5902,12 @@ app.post('/api/material-requests/auto-stage', async (req, res) => {
 });
 
 app.get('/api/users', async (req, res) => {
+  await purgeExpiredUserAccounts({ all, run });
   const employees = await all(`
     SELECT id, fullName, username
     FROM hr_employees
     WHERE COALESCE(NULLIF(TRIM(username), ''), '') <> ''
+      AND NOT EXISTS (SELECT 1 FROM deleted_user_accounts d WHERE LOWER(TRIM(d.username)) = LOWER(TRIM(hr_employees.username)))
     ORDER BY id ASC
   `);
 
@@ -5893,9 +5948,17 @@ app.get('/api/users', async (req, res) => {
       COALESCE(u.lastLoginAt, '') AS lastLoginAt,
       COALESCE(u.passwordChangedAt, '') AS passwordChangedAt,
       CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END AS hasUserAccount,
-      CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword
+      CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword,
+      COALESCE(NULLIF(ps.deactivatedAt, ''), u.deactivatedAt, '') AS deactivatedAt,
+      COALESCE(NULLIF(ps.deleteAfter, ''), u.deleteAfter, '') AS deleteAfter,
+      (SELECT COUNT(*) FROM hr_employees siblings
+        LEFT JOIN user_profile_states siblingState ON siblingState.employeeId = siblings.id AND siblingState.userId = u.id
+        WHERE LOWER(TRIM(siblings.username)) = LOWER(TRIM(u.username)) AND COALESCE(siblingState.deletedAt, '') = '') AS linkedProfileCount
     FROM hr_employees he
     LEFT JOIN users u ON LOWER(TRIM(u.username)) = LOWER(TRIM(he.username))
+    LEFT JOIN user_profile_states ps ON ps.employeeId = he.id AND ps.userId = u.id
+    WHERE COALESCE(ps.deletedAt, '') = ''
+      AND NOT EXISTS (SELECT 1 FROM deleted_user_accounts d WHERE LOWER(TRIM(d.username)) = LOWER(TRIM(he.username)))
 
     UNION ALL
 
@@ -5911,12 +5974,13 @@ app.get('/api/users', async (req, res) => {
       COALESCE(u.lastLoginAt, '') AS lastLoginAt,
       COALESCE(u.passwordChangedAt, '') AS passwordChangedAt,
       1 AS hasUserAccount,
-      CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword
+      CASE WHEN COALESCE(u.passwordEnc, '') <> '' THEN 1 ELSE 0 END AS hasStoredPassword,
+      COALESCE(u.deactivatedAt, '') AS deactivatedAt,
+      COALESCE(u.deleteAfter, '') AS deleteAfter,
+      0 AS linkedProfileCount
     FROM users u
     WHERE NOT EXISTS (
-      SELECT 1
-      FROM hr_employees he
-      WHERE LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
+      SELECT 1 FROM hr_employees he WHERE LOWER(TRIM(he.username)) = LOWER(TRIM(u.username))
     )
     ORDER BY username
   `);
@@ -5926,6 +5990,69 @@ app.get('/api/users', async (req, res) => {
 function isAdminUser(req) {
   return String(req.user?.role || '').trim().toLowerCase() === 'admin';
 }
+
+async function changeUserProfileState(req, res, action) {
+  if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
+  const userId = Number(req.params.id);
+  const employeeId = Number(req.body?.employeeId || 0);
+  if (!Number.isInteger(userId) || userId <= 0) return res.status(400).json({ error: 'Compte utilisateur invalide' });
+  if (!Number.isInteger(employeeId) || employeeId < 0) return res.status(400).json({ error: 'Profil employé invalide' });
+  if (action !== 'restore' && userId === Number(req.user.id)) {
+    return res.status(409).json({ error: 'Vous ne pouvez pas désactiver ou supprimer votre propre profil.' });
+  }
+  if (action === 'delete' && req.body?.confirm !== 'DELETE_USER_PERMANENTLY') {
+    return res.status(400).json({ error: 'Confirmation de suppression définitive obligatoire.' });
+  }
+  const user = await get('SELECT id, username, deactivatedAt, deleteAfter FROM users WHERE id = ?', [userId]);
+  if (!user) return res.status(404).json({ error: 'Compte utilisateur introuvable ou définitivement supprimé' });
+  const now = new Date().toISOString();
+  const profiles = await all(`SELECT he.id, COALESCE(ps.deactivatedAt, '') AS deactivatedAt,
+    COALESCE(ps.deleteAfter, '') AS deleteAfter, COALESCE(ps.deletedAt, '') AS deletedAt
+    FROM hr_employees he LEFT JOIN user_profile_states ps ON ps.employeeId = he.id AND ps.userId = ?
+    WHERE LOWER(TRIM(he.username)) = LOWER(TRIM(?))`, [userId, user.username]);
+  const targets = profiles.filter(profile => (!employeeId || Number(profile.id) === employeeId) && !profile.deletedAt);
+  if (employeeId && !targets.length) return res.status(404).json({ error: 'Profil employé introuvable pour ce compte ou définitivement supprimé.' });
+  if (action === 'restore') {
+    const states = targets.length ? targets.map(profile => ({
+      deactivatedAt: profile.deactivatedAt || user.deactivatedAt,
+      deleteAfter: profile.deleteAfter || user.deleteAfter,
+    })) : [user];
+    if (states.some(state => !state.deactivatedAt)) return res.status(409).json({ error: 'Ce profil est déjà actif.' });
+    if (states.some(state => !state.deleteAfter || state.deleteAfter <= now)) {
+      return res.status(410).json({ error: 'Le délai de restauration de 30 jours est expiré.' });
+    }
+  }
+  if (targets.length) {
+    for (const profile of targets) {
+      const state = action === 'delete' ? { deletedAt: now } : action === 'restore' ? {} : {
+        deactivatedAt: profile.deactivatedAt || user.deactivatedAt || now,
+        deleteAfter: profile.deleteAfter || user.deleteAfter || new Date(Date.parse(now) + USER_RESTORE_WINDOW_MS).toISOString(),
+      };
+      await setUserProfileState({ run }, userId, profile.id, state);
+    }
+    const result = await syncUserProfileAccess({ all, run }, user, now);
+    return res.json({ id: userId, employeeId, action, ...result });
+  }
+  if (action === 'delete') {
+    await deleteUserAccount({ all, run }, user, now);
+    return res.json({ id: userId, action, deleted: true });
+  }
+  if (action === 'restore') {
+    await run("UPDATE users SET deactivatedAt = '', deleteAfter = '', tokenVersion = tokenVersion + 1 WHERE id = ?", [userId]);
+    return res.json({ id: userId, action, message: 'Profil réhabilité.' });
+  }
+  const deactivatedAt = user.deactivatedAt || now;
+  const deleteAfter = user.deleteAfter || new Date(Date.parse(now) + USER_RESTORE_WINDOW_MS).toISOString();
+  await run(`UPDATE users SET deactivatedAt = ?, deleteAfter = ?,
+    tokenVersion = tokenVersion + CASE WHEN deactivatedAt = '' THEN 1 ELSE 0 END WHERE id = ?`, [deactivatedAt, deleteAfter, userId]);
+  await run('DELETE FROM push_subscriptions WHERE userId = ?', [userId]);
+  await run('DELETE FROM password_reset_requests WHERE userId = ?', [userId]);
+  return res.json({ id: userId, action, deactivatedAt, deleteAfter });
+}
+
+app.patch('/api/admin/users/:id/deactivate', (req, res) => withUserProfileChanges(() => changeUserProfileState(req, res, 'deactivate')));
+app.patch('/api/admin/users/:id/restore', (req, res) => withUserProfileChanges(() => changeUserProfileState(req, res, 'restore')));
+app.delete('/api/admin/users/:id', (req, res) => withUserProfileChanges(() => changeUserProfileState(req, res, 'delete')));
 
 app.patch('/api/users/reset-login-state/all', async (req, res) => {
   if (!isAdminUser(req)) return res.status(403).json({ error: 'Accès réservé à l’admin' });
@@ -6058,11 +6185,15 @@ app.post('/api/admin/users', async (req, res) => {
 
   const employee = await get('SELECT id, fullName, jobTitle, username FROM hr_employees WHERE id = ?', [employeeId]);
   if (!employee) return res.status(404).json({ error: 'Employé introuvable' });
+  const deletedAccount = await get(`SELECT userId FROM deleted_user_accounts
+    WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))`, [username]);
+  if (deletedAccount) return res.status(409).json({ error: 'Ce profil a été définitivement supprimé. Choisissez un nouvel identifiant pour créer un nouveau compte.' });
 
   const usernameOwner = await get('SELECT id FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [username]);
   const linkedUser = String(employee.username || '').trim()
-    ? await get('SELECT id FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [employee.username])
+    ? await get('SELECT id, deactivatedAt FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?))', [employee.username])
     : null;
+  if (linkedUser?.deactivatedAt) return res.status(409).json({ error: 'Réhabilitez d’abord ce profil depuis le module Utilisateurs.' });
   if (usernameOwner && Number(usernameOwner.id) !== Number(linkedUser?.id || 0)) {
     return res.status(409).json({ error: 'Cet identifiant est déjà utilisé par un autre compte' });
   }
@@ -11395,7 +11526,7 @@ app.post('/api/admin/reconcile-hr-users', async (req, res) => {
         fullName,
         createdBy: String(req.user?.username || 'admin').trim() || 'admin',
       });
-      created.push({ id: employeeId, username: normalizedUsername, initialPassword: account.initialPassword });
+      if (account.created) created.push({ id: employeeId, username: normalizedUsername, initialPassword: account.initialPassword });
     } else {
       updated.push({ id: employeeId, username: normalizedUsername });
     }
@@ -12514,7 +12645,7 @@ app.post('/api/project-assignments', async (req, res) => {
     SELECT pa.*, p.nomProjet, p.nomSite, p.numeroMaison, u.username, COALESCE(pa.assigneeName, u.username) as displayName
     FROM project_assignments pa
     JOIN projects p ON p.id = pa.projectId
-    JOIN users u ON u.id = pa.userId
+    LEFT JOIN users u ON u.id = pa.userId
     WHERE pa.id = ?
   `, [result.lastID]);
 
@@ -12526,7 +12657,7 @@ app.get('/api/project-assignments', async (_req, res) => {
     SELECT pa.*, p.nomProjet, p.nomSite, p.numeroMaison, u.username, COALESCE(pa.assigneeName, u.username) as displayName
     FROM project_assignments pa
     JOIN projects p ON p.id = pa.projectId
-    JOIN users u ON u.id = pa.userId
+    LEFT JOIN users u ON u.id = pa.userId
     ORDER BY pa.assignedAt DESC
   `);
   if (String(_req.user?.role || '').trim() === 'chef_chantier_site') {
@@ -12671,7 +12802,7 @@ app.patch('/api/project-assignments/:id', async (req, res) => {
     SELECT pa.*, p.nomProjet, p.nomSite, p.numeroMaison, u.username, COALESCE(pa.assigneeName, u.username) as displayName
     FROM project_assignments pa
     JOIN projects p ON p.id = pa.projectId
-    JOIN users u ON u.id = pa.userId
+    LEFT JOIN users u ON u.id = pa.userId
     WHERE pa.id = ?
   `, [id]);
 
@@ -13543,7 +13674,7 @@ app.get('/api/admin/access-profiles', async (req, res) => {
     }
     await ensureAccessProfileSchema();
 
-    const users = await all('SELECT id, username, role, createdAt FROM users ORDER BY username ASC');
+    const users = await all("SELECT id, username, role, createdAt FROM users WHERE deactivatedAt = '' ORDER BY username ASC");
     const profiles = await all('SELECT * FROM user_access_profiles ORDER BY username ASC');
     const profileByUsername = new Map((profiles || []).map(row => [String(row?.username || '').trim().toLowerCase(), row]));
 

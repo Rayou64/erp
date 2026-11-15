@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'ryanerp-static-v18';
+const STATIC_CACHE = 'ryanerp-static-v19';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -35,6 +35,10 @@ self.addEventListener('fetch', event => {
   const requestUrl = new URL(request.url);
   if (requestUrl.origin !== self.location.origin) return;
   if (requestUrl.pathname.startsWith('/api/')) return;
+  if (requestUrl.pathname === '/push-notifications.js') {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
@@ -88,6 +92,8 @@ self.addEventListener('push', event => {
     openClients.forEach(client => { try { client.postMessage({ type: 'push-received', module: moduleName }); } catch (_) {} });
     await self.registration.showNotification(title, {
       body,
+      icon: '/assets/icons/icon-192.png',
+      badge: '/assets/icons/favicon-32.png',
       data: {
         url: targetUrl,
         module: moduleName,
@@ -113,7 +119,7 @@ self.addEventListener('notificationclick', event => {
     for (const client of allClients) {
       try {
         const currentUrl = new URL(client.url);
-        if (currentUrl.pathname.endsWith('/erp.html') || currentUrl.pathname === '/' || currentUrl.pathname === '') {
+        if (currentUrl.pathname.endsWith('/erp.html') || currentUrl.pathname.endsWith('/messaging.html') || currentUrl.pathname === '/' || currentUrl.pathname === '') {
           await client.focus();
           if (typeof client.navigate === 'function') {
             await client.navigate(url);

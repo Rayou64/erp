@@ -44,12 +44,8 @@ function toPgPlaceholders(sql) {
 
 function quoteCamelCaseIdentifiers(sql) {
   const source = String(sql);
-  return source.replace(/\b[a-z_]+[A-Z][A-Za-z0-9_]*\b/g, token => {
-    if (token.startsWith('"') && token.endsWith('"')) {
-      return token;
-    }
-    return `"${token}"`;
-  });
+  return source.replace(/("(?:[^"]|"")*"|'(?:[^']|'')*')|\b[a-z_]+[A-Z][A-Za-z0-9_]*\b/g,
+    (token, quoted) => quoted ? token : `"${token}"`);
 }
 
 function createSqliteClient(dbFile) {

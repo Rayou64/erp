@@ -55,12 +55,36 @@ Cette version utilise une base de données SQLite locale et une page de connexio
 - La **Messagerie interne** est accessible dans tous les profils, y compris les comptes restreints et les chauffeurs.
 - Dans **Admin > Dossiers profils**, elle apparaît comme toujours autorisée et ne peut pas être interdite. Les anciennes restrictions sur ce module sont sans effet ; les autres restrictions sont conservées.
 - Chaque compte conserve sa propre boîte de réception et les contrôles d'accès aux conversations restent inchangés.
+- Les expéditeurs, destinataires et alertes affichent le **nom complet de l’employé RH lié**, plutôt que l’identifiant du profil. En présence de doublons RH, une fiche nominative est privilégiée par rapport à une fiche portant simplement le nom du profil ou du poste. Sans nom RH, l’identifiant reste le repli. Le démarrage du serveur ne remplace plus les noms RH existants par les libellés des comptes prédéfinis.
 - Dans l'application de messagerie, les dossiers colorés classent les messages : Rapports d'incidents, Informations générales, Documents projets, Réunions et Administration.
 - Les équipes destinataires RH, Direction, Chantiers et Achats sont présentées séparément des dossiers. Elles restent indisponibles tant que leur gestion et leurs membres ne sont pas raccordés au module **Liste des employés** ; les rôles utilisateurs ne sont pas utilisés comme équipes.
 - Sur téléphone (jusqu'à 780 px), la messagerie reprend la maquette validée : enveloppe unique, retour ERP, recherche arrondie, dossiers colorés défilants, menu latéral, lecture et rédaction plein écran, bouton Nouveau. L'ordinateur conserve sa présentation à trois panneaux ; les deux interfaces utilisent les mêmes API et données réelles.
 - La rédaction conserve À/Cc/Cci, le gras, l'italique, le souligné, les brouillons, les pièces jointes avec retrait et les images. Les limites existantes restent applicables : 600 Ko par fichier, 250 Ko par image intégrée et 900 Ko pour la requête JSON.
 - Le client Android charge le site distant configuré dans [mobile/capacitor.config.json](mobile/capacitor.config.json). Une publication web actualise cette interface sans reconstruire l'APK ; la messagerie s'ouvre dans la WebView courante sur mobile.
 - Vérification ciblée : `node --test scripts/test-internal-mail-access.js scripts/test-messaging-teams.js scripts/test-messaging-mobile.js`.
+
+### Désactivation et suppression des profils
+
+- Dans **Utilisateurs**, le bouton orange **Désactiver** reste dans la colonne **Statut**. Le bouton vert **Réhabiliter** le remplace pendant les 30 jours de récupération. Un administrateur ne peut ni désactiver ni supprimer son propre profil.
+- Le bouton rouge **Supprimer**, dans la colonne **Actions**, efface le profil immédiatement après confirmation explicite, sans délai ni possibilité de réhabilitation. Il est disponible sur les profils actifs et désactivés.
+- Toutes les fiches liées sont affichées, doublons compris : aucune fusion ou suppression automatique des doublons n’est effectuée. Le repère **Compte partagé · fiche RH ...** distingue les lignes utilisant le même identifiant de connexion. Chaque action cible la fiche choisie, pas la première ligne ayant le même identifiant.
+- Le déploiement et le démarrage ne suppriment ni ne désactivent les profils existants, y compris les anciens comptes de gestion de stock. Seule une action administrateur explicite déclenche une désactivation ou une suppression ; l’expiration de 30 jours concerne uniquement les profils déjà désactivés volontairement.
+- Si plusieurs fiches partagent un compte, les autres profils restent inchangés. Le compte demeure accessible tant qu’au moins un profil lié est actif ; la confirmation l’explique. Quand le dernier profil actif est désactivé, l’accès et les sessions sont bloqués, le compte disparaît des destinataires et ses abonnements aux alertes sont supprimés. La suppression du dernier profil lié supprime définitivement le compte.
+- Le filtre **Désactivés — restauration 30 jours** affiche les profils récupérables et leur date de suppression. **Réhabiliter** rétablit l’accès avant l’échéance ; une nouvelle connexion et une réactivation des alertes sont nécessaires.
+- Après exactement 30 jours, la restauration est refusée. La suppression définitive du compte et de ses accès est exécutée au démarrage, à l’ouverture du module Utilisateurs et chaque minute tant que le serveur fonctionne.
+- Les dossiers RH, messages échangés et assignations de projet sont conservés. Une migration conserve les anciennes assignations en détachant leur référence au compte supprimé, au lieu de les effacer en cascade.
+- Des registres techniques conservent les références de fiches et leurs dates de désactivation/suppression, ainsi que l’ancien identifiant de connexion des comptes supprimés, afin de préserver les historiques et d’empêcher les synchronisations RH ou le redémarrage de recréer les profils supprimés. Aucune action du module Utilisateurs n’efface les dossiers RH.
+- Vérification ciblée des actions : `node --test scripts/test-user-lifecycle.js scripts/test-user-profile-controls.js` (doublons affichés et ciblés individuellement, annulation, confirmation obligatoire, suppression immédiate, délai exact, conservation des historiques et redémarrage).
+
+### Alertes courriel sur iPhone et Android
+
+- Ouvrir la messagerie sur l’adresse **HTTPS** de l’ERP, puis toucher **Activer les alertes courriel** et autoriser les notifications. **Tester sur cet appareil** vérifie l’envoi par le serveur.
+- **iPhone / iPad (iOS / iPadOS 16.4 minimum)** : ouvrir l’ERP dans Safari, choisir **Partager > Sur l’écran d’accueil**, puis ouvrir cette icône avant d’activer les alertes.
+- **Android** : utiliser Chrome à jour et, de préférence, installer l’ERP sur l’écran d’accueil. Les alertes Web Push fonctionnent en arrière-plan, sans garder la messagerie ouverte.
+- L’APK Capacitor ne fournit pas de réception Web Push native en arrière-plan : pour ces alertes, utiliser la version web installée depuis Chrome. Une intégration native nécessiterait une configuration FCM distincte.
+- L’activation est propre à chaque appareil. Les réglages du téléphone, le mode Concentration / Ne pas déranger et la connexion réseau peuvent retarder ou bloquer l’affichage.
+- Les clés VAPID sont persistées en base. En production, conserver cette base ou définir une paire stable `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`, ainsi qu’un contact valide dans `VAPID_SUBJECT` (`mailto:...`). Ne jamais publier la clé privée. Les erreurs d’envoi sont journalisées sans annuler le courriel ; les abonnements expirés sont retirés.
+- Vérification ciblée : `node --test scripts/test-user-lifecycle.js scripts/test-mail-notifications.js` (API avec base isolée, restauration et échéance, redémarrage, doublons RH, conservation des assignations, inscription iPhone/Android et événements du service worker). La livraison réelle doit aussi être vérifiée sur chaque téléphone avec le bouton de test après publication HTTPS.
 
 ## Cartes du profil Gestion du parc auto
 
