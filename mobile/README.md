@@ -106,6 +106,20 @@ avec la version ERP et le SHA-256 exact de son APK pour le mécanisme de mise à
 Publier simultanément les scripts web et le serveur compatibles ; le téléchargement
 de l'APK ne configure pas Firebase à la place du serveur.
 
+### Tests de démarrage Android
+
+Depuis `mobile/android`, exécuter :
+
+```powershell
+.\gradlew.bat :app:testSafariReleaseUnitTest --tests com.ryan.erp.MainActivityTest
+```
+
+Le test charge l'activité et ses ressources sur Android 7, 9, 13 et 15 avec
+Robolectric. L'écran de lancement Safari utilise son propre drawable, sans
+charger une icône adaptative dans une balise `bitmap`, ce qui peut provoquer
+une fermeture dès l'ouverture sur les anciennes versions Android.
+Ces tests ne remplacent pas un essai des notifications sur un téléphone réel.
+
 ## Publication Play Store (resume)
 
 1. Creer un compte Google Play Console.
