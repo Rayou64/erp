@@ -16,8 +16,8 @@ android {
         applicationId "com.ryan.erp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 15
-        versionName "2.4"
+        versionCode 16
+        versionName "2.5"
         buildConfigField "boolean", "MESSAGING_ONLY", "false"
         manifestPlaceholders = [appIcon: "@mipmap/ic_launcher", appRoundIcon: "@mipmap/ic_launcher_round"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -34,8 +34,8 @@ android {
             safari {
                 dimension "application"
                 applicationId "com.ryan.portailsafari"
-                versionCode 2
-                versionName "1.1"
+                versionCode 3
+                versionName "1.2"
                 buildConfigField "boolean", "MESSAGING_ONLY", "true"
                 manifestPlaceholders = [appIcon: "@mipmap/ic_safari", appRoundIcon: "@mipmap/ic_safari"]
             }

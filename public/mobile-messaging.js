@@ -1,7 +1,9 @@
 (function () {
   'use strict';
-  const native = window.Capacitor?.isNativePlatform?.() === true;
-  const messagingOnly = native && window.RyanNative?.isMessagingOnly?.() === true;
+  const messagingOnly = window.RyanNative?.isMessagingOnly?.() === true;
+  const native = messagingOnly || window.Capacitor?.isNativePlatform?.() === true
+    || typeof window.RyanNative?.getStatus === 'function';
+  if (messagingOnly) document.documentElement.classList.add('messaging-only-app');
   const pendingKey = 'erp_pending_mail_url';
   if (messagingOnly || new URLSearchParams(location.search).get('mail') === '1') {
     sessionStorage.setItem('erp_mail_entry', '1');

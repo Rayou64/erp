@@ -3,7 +3,7 @@
 Ce dossier contient deux variantes Android (Capacitor) :
 
 - **Ryan ERP** (`com.ryan.erp`) : l'ERP complet, incluant la messagerie avec son logo-raccourci sur l'accueil.
-- **Portail Safari** (`com.ryan.portailsafari`) : une installation facultative avec le logo de la messagerie, ouverte directement sur la boîte de réception après connexion. Elle ne demande pas les permissions GPS et ne lance pas le suivi des véhicules.
+- **Portail Safari** (`com.ryan.portailsafari`) : une installation facultative réservée à la messagerie, ouverte directement sur la boîte de réception après connexion. Aucun bouton Maison ne renvoie à RyanERP. La navigation native autorise uniquement la connexion, la messagerie et ses pièces jointes ; les sites externes s'ouvrent dans le navigateur. Le plugin et le service GPS ne sont pas chargés et aucune permission GPS n'est demandée.
 
 Les variantes et le site utilisent les mêmes comptes, API et messages. Installer Portail Safari n'est jamais nécessaire pour accéder à la messagerie depuis RyanERP.
 
@@ -81,7 +81,12 @@ Les APK sont dans `android/app/build/outputs/apk/safari/release` et
 `android/keystore.properties`, jamais versionné. Sans celui-ci, la sortie release
 est non signée et ne doit pas être distribuée telle quelle.
 
-Dans la messagerie, toucher **Activer les alertes courriel**, puis **Tester sur cet appareil**.
+Android 13 et suivants demandent l'autorisation système au premier lancement.
+Après accord et connexion, les deux APK inscrivent automatiquement cet appareil
+aux alertes du compte courant, sans bandeau ni bouton d'activation dans l'ERP ou la messagerie.
+Le retour dans l'application, une permission modifiée ou le rétablissement du réseau
+relancent la vérification. Les erreurs réelles restent signalées temporairement,
+sans message permanent ; un refus Android ne peut pas être contourné.
 Le canal Android **Messages internes** utilise le son système et la vibration ; ces choix
 restent contrôlés par l'utilisateur (mode silencieux, Ne pas déranger, économie de batterie,
 visibilité du contenu sur l'écran verrouillé).
@@ -90,7 +95,9 @@ locale relaie le même message ; en arrière-plan, Android affiche la notificati
 Un toucher ouvre la conversation, y compris après reconnexion.
 La déconnexion retire l'inscription et les notifications affichées.
 Les anciens APK doivent être mis à jour pour obtenir le plugin natif.
-Un téléphone avec Google Play Services et Internet est nécessaire au test de réception.
+Un téléphone avec Google Play Services et Internet est nécessaire au test de réception :
+envoyer un vrai message depuis un autre compte, puis vérifier l'affichage et la sonnerie
+au premier plan, en arrière-plan et écran verrouillé.
 
 ### Téléchargement direct
 
@@ -111,11 +118,13 @@ de l'APK ne configure pas Firebase à la place du serveur.
 Depuis `mobile/android`, exécuter :
 
 ```powershell
-.\gradlew.bat :app:testSafariReleaseUnitTest --tests com.ryan.erp.MainActivityTest
+.\gradlew.bat :app:testSafariReleaseUnitTest --tests com.ryan.erp.MainActivityTest :app:testErpReleaseUnitTest --tests com.ryan.erp.MainActivityTest
 ```
 
 Le test charge l'activité et ses ressources sur Android 7, 9, 13 et 15 avec
-Robolectric. L'écran de lancement Safari utilise son propre drawable, sans
+Robolectric, vérifie les variantes de navigation et le rappel d'autorisation Android.
+Les tests simulent le fournisseur WebView et son contrôleur de service worker.
+L'écran de lancement Safari utilise son propre drawable, sans
 charger une icône adaptative dans une balise `bitmap`, ce qui peut provoquer
 une fermeture dès l'ouverture sur les anciennes versions Android.
 Ces tests ne remplacent pas un essai des notifications sur un téléphone réel.

@@ -15,12 +15,14 @@ import java.util.ArrayList;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.CapConfig;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 
 public class MainActivity extends BridgeActivity {
     private static final int REQ_BASE = 7001;
     private static final int REQ_BACKGROUND = 7002;
-    private static final int REQ_NOTIFICATIONS = 7003;
+    static final int REQ_NOTIFICATIONS = 7003;
     private static final String LOGIN_URL = "https://ryanerp-hn5zd.ondigitalocean.app/index.html?mobile=1";
+    static final String MAIL_LOGIN_URL = "https://ryanerp-hn5zd.ondigitalocean.app/index.html?mail=1";
     private boolean firstStart = true;
 
     private boolean granted(String permission) {
@@ -28,10 +30,25 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
+    protected void load() {
+        WebView webView = findViewById(com.getcapacitor.android.R.id.webview);
+        if (BuildConfig.MESSAGING_ONLY) {
+            webView.addJavascriptInterface(new MessagingIdentity(), "RyanNative");
+        } else {
+            webView.addJavascriptInterface(new NativeBridge(this), "RyanNative");
+        }
+        super.load();
+        if (BuildConfig.MESSAGING_ONLY) {
+            webView.getSettings().setGeolocationEnabled(false);
+            getBridge().setWebViewClient(new MessagingWebViewClient(getBridge()));
+        }
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         if (BuildConfig.MESSAGING_ONLY) {
             config = new CapConfig.Builder(this)
-                .setServerUrl("https://ryanerp-hn5zd.ondigitalocean.app/index.html?mail=1")
+                .setServerUrl(MAIL_LOGIN_URL)
                 .setAllowNavigation(new String[] { "ryanerp-hn5zd.ondigitalocean.app" })
                 .setBackgroundColor("#060c18")
                 .create();
@@ -39,10 +56,7 @@ public class MainActivity extends BridgeActivity {
             registerPlugin(NativeTrackerPlugin.class);
         }
         super.onCreate(savedInstanceState);
-        if (BuildConfig.MESSAGING_ONLY) {
-            getBridge().getWebView().addJavascriptInterface(new MessagingIdentity(), "RyanNative");
-        } else {
-            getBridge().getWebView().addJavascriptInterface(new NativeBridge(this), "RyanNative");
+        if (!BuildConfig.MESSAGING_ONLY) {
             if (!isMailIntent(getIntent())) showLogin();
             AppUpdateManager.schedule(this);
             AppUpdateManager.promptFromIntent(this, getIntent());
@@ -124,9 +138,14 @@ public class MainActivity extends BridgeActivity {
         getBridge().getWebView().loadUrl(LOGIN_URL);
     }
 
+    private void notifyNotificationPermissionChanged() {
+        if (getBridge() != null) getBridge().triggerWindowJSEvent("erp-native-notification-permission");
+    }
+
     @Override
     public void onResume() {
         super.onResume();
+        notifyNotificationPermissionChanged();
         if (!BuildConfig.MESSAGING_ONLY) AppUpdateManager.resumePendingInstall(this);
     }
 
@@ -157,6 +176,7 @@ public class MainActivity extends BridgeActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQ_NOTIFICATIONS) {
+            notifyNotificationPermissionChanged();
             checkForUpdateAndRequestLocation();
         } else if (requestCode == REQ_BASE) {
             requestBackgroundLocation();

@@ -75,14 +75,14 @@ test('one failed Firebase batch does not prevent attempts to later recipient dev
   assert.equal(errors.length, 1);
 });
 
-function nativeClient({ permission = 'granted', enabled = true, registrationError = false, plugins = true } = {}) {
+function nativeClient({ permission = 'granted', enabled = true, registrationError = false, plugins = true, subscribe = null } = {}) {
   const listeners = new Map();
   const events = [];
   const values = new Map([['erp_token', 'session-user-a']]);
   const push = {
     addListener: async (name, handler) => listeners.set(name, handler),
     checkPermissions: async () => ({ receive: permission }),
-    requestPermissions: async () => { events.push('permission'); return { receive: 'granted' }; },
+    requestPermissions: async () => { events.push('permission'); permission = 'granted'; return { receive: 'granted' }; },
     createChannel: async channel => events.push(channel),
     register: async () => {
       if (registrationError) listeners.get('registrationError')({ error: 'Firebase unavailable' });
@@ -105,12 +105,13 @@ function nativeClient({ permission = 'granted', enabled = true, registrationErro
     },
     console: { error() {} },
     fetch: async (url, options) => {
-      events.push({ url, ...(options.body ? JSON.parse(options.body) : {}) });
+      events.push({ url, auth: options.headers.Authorization, ...(options.body ? JSON.parse(options.body) : {}) });
+      if (url === '/api/push/native/subscribe' && subscribe) await subscribe();
       return { ok: true, json: async () => ({ enabled }) };
     },
   });
   vm.runInContext(fs.readFileSync(path.join(root, 'public', 'native-mail-notifications.js'), 'utf8'), context);
-  return { api: context.window.ERPNativePush, listeners, events, values };
+  return { api: context.window.ERPNativePush, listeners, events, values, setPermission: value => { permission = value; } };
 }
 
 test('native plugin registers the correct app, creates a sound-enabled high-priority channel, and tests this device only', async () => {
@@ -145,6 +146,68 @@ test('foreground native messages appear in device notifications and native taps 
   assert.equal(client.events.filter(event => event === '/messaging.html?conversation=17').length, 2);
 });
 
+test('revoked Android permission and logout stop foreground system notifications', async () => {
+  const client = nativeClient();
+  await client.api.enable();
+  client.setPermission('denied');
+  await client.listeners.get('pushNotificationReceived')({ title: 'Message', body: 'Test' });
+  assert.equal(client.events.some(event => event?.notifications), false);
+  await client.api.unsubscribe();
+  client.setPermission('granted');
+  await client.listeners.get('pushNotificationReceived')({ title: 'Message', body: 'Test' });
+  assert.equal(client.events.some(event => event?.notifications), false);
+});
+
+test('native registration cannot start without an authenticated account', async () => {
+  const client = nativeClient();
+  client.values.delete('erp_token');
+  await assert.rejects(client.api.enable(), /Connectez-vous/);
+  assert.equal(client.events.some(event => event?.url === '/api/push/native/subscribe'), false);
+});
+
+test('a late registration is cancelled and removed with its original account after logout', async () => {
+  let release;
+  let began;
+  const started = new Promise(resolve => { began = resolve; });
+  const client = nativeClient({ subscribe: () => { began(); return new Promise(resolve => { release = resolve; }); } });
+  const operation = client.api.enable();
+  const cancelled = assert.rejects(operation, error => error.code === 'NATIVE_PUSH_CANCELLED');
+  await started;
+  await client.api.unsubscribe();
+  client.values.delete('erp_token');
+  release();
+  await cancelled;
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(client.values.get('erp_native_push_token'), undefined);
+  const cleanup = client.events.find(event => event?.url === '/api/push/native/unsubscribe');
+  assert.equal(cleanup.auth, 'Bearer session-user-a');
+});
+
+test('a replaced registration cannot delete the newer binding for the same account', async () => {
+  let release;
+  let began;
+  let attempts = 0;
+  const started = new Promise(resolve => { began = resolve; });
+  const client = nativeClient({
+    subscribe: async () => {
+      attempts += 1;
+      if (attempts === 1) {
+        began();
+        await new Promise(resolve => { release = resolve; });
+      }
+    },
+  });
+  const previous = client.api.enable();
+  const cancelled = assert.rejects(previous, error => error.code === 'NATIVE_PUSH_CANCELLED');
+  await started;
+  await client.api.enable();
+  release();
+  await cancelled;
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(client.events.some(event => event?.url === '/api/push/native/unsubscribe'), false);
+  assert.equal(client.values.get('erp_native_push_token'), 'a'.repeat(100));
+});
+
 test('native permissions, missing configuration, outdated APK and Firebase errors cannot report success', async () => {
   await assert.rejects(nativeClient({ permission: 'denied' }).api.enable(), /Autorisez/);
   await assert.rejects(nativeClient({ enabled: false }).api.enable(), /configuré/);
@@ -155,15 +218,17 @@ test('native permissions, missing configuration, outdated APK and Firebase error
 function mobileEntry({ native = false, mail = false, search = '', token = '', pending = null } = {}) {
   const session = new Map(pending ? [['erp_pending_mail_url', pending]] : []);
   const navigations = [];
+  const classes = new Set();
   const context = vm.createContext({
     URL, URLSearchParams,
+    document: { documentElement: { classList: { add: name => classes.add(name) } } },
     sessionStorage: { getItem: key => session.get(key), setItem: (key, value) => session.set(key, value), removeItem: key => session.delete(key) },
     localStorage: { getItem: () => token },
     location: { origin: 'https://erp.example', pathname: '/erp.html', search, assign: url => navigations.push(url) },
     window: { Capacitor: { isNativePlatform: () => native }, RyanNative: { isMessagingOnly: () => mail } },
   });
   vm.runInContext(fs.readFileSync(path.join(root, 'public', 'mobile-messaging.js'), 'utf8'), context);
-  return { api: context.window.ERPMobile, session, navigations };
+  return { api: context.window.ERPMobile, session, navigations, classes };
 }
 
 test('Portail Safari and optional web mail login open the same inbox; normal RyanERP entry is unchanged', () => {
@@ -171,6 +236,10 @@ test('Portail Safari and optional web mail login open the same inbox; normal Rya
   const safari = mobileEntry({ native: true, mail: true });
   assert.equal(safari.api.appId, 'com.ryan.portailsafari');
   assert.equal(safari.api.destination(), '/messaging.html');
+  assert.ok(safari.classes.has('messaging-only-app'));
+  assert.equal(mobileEntry({ native: true }).classes.has('messaging-only-app'), false);
+  assert.equal(mobileEntry({ mail: true }).api.messagingOnly, true, 'the native identity is available before Capacitor JavaScript');
+  assert.equal(mobileEntry({ mail: true }).api.native, true);
   assert.equal(mobileEntry({ search: '?mail=1' }).api.destination(), '/messaging.html');
   assert.equal(mobileEntry({ native: true }).api.appId, 'com.ryan.erp');
 });

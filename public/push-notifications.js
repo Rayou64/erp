@@ -2,7 +2,9 @@
   'use strict';
 
   let pending = null;
-  let panel;
+  let suspended = false;
+  let lastNotice = '';
+  let currentStatus = { message: '', enabled: false };
   const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent)
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -19,16 +21,48 @@
   }
 
   function status(message, enabled = false) {
-    if (!panel) return;
-    panel.querySelector('[data-push-status]').textContent = message;
-    panel.querySelector('[data-push-enable]').hidden = enabled;
-    panel.querySelector('[data-push-test]').hidden = !enabled;
+    currentStatus = { message, enabled };
+    if (enabled) lastNotice = '';
+    window.dispatchEvent(new CustomEvent('erp-push-status', { detail: { ...currentStatus } }));
   }
 
-  async function api(url, body) {
+  function feedback(message, type = 'error') {
+    if (lastNotice === message) return;
+    lastNotice = message;
+    const show = () => {
+      if (typeof window.showMessage === 'function') window.showMessage(message, type);
+      else if (typeof window.toast === 'function') window.toast(message);
+      else window.alert(message);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show, { once: true });
+    else show();
+  }
+
+  function failure(error, source) {
+    if (error.code === 'NATIVE_PUSH_CANCELLED') {
+      status('');
+      return false;
+    }
+    console.error(source, error);
+    status(error.message);
+    if (!suspended) feedback('Notifications : ' + error.message);
+    return false;
+  }
+
+  function isCurrent(auth) {
+    return !suspended && auth === localStorage.getItem('erp_token');
+  }
+
+  function complete(auth) {
+    pending = null;
+    const currentAuth = localStorage.getItem('erp_token');
+    if (!suspended && currentAuth && currentAuth !== auth) enable();
+  }
+
+  async function api(url, body, auth = localStorage.getItem('erp_token')) {
     const response = await fetch(url, {
       method: body === undefined ? 'GET' : 'POST',
-      headers: { Authorization: 'Bearer ' + localStorage.getItem('erp_token'), 'Content-Type': 'application/json' },
+      headers: { Authorization: 'Bearer ' + auth, 'Content-Type': 'application/json' },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
     const data = await response.json();
@@ -42,25 +76,39 @@
   }
 
   function enable(options = {}) {
+    if (options.requestPermission) suspended = false;
+    const auth = localStorage.getItem('erp_token');
+    if (suspended || !auth) {
+      status('');
+      return Promise.resolve(false);
+    }
     if (pending) return pending;
     const reason = unavailableReason();
     if (reason) {
       status(reason);
+      if (options.requestPermission) feedback(reason, 'warning');
       return Promise.resolve(false);
     }
     if (window.ERPNativePush) {
-      pending = window.ERPNativePush.enable(options).then(() => {
+      pending = (async () => {
+        const permission = await window.ERPNativePush.checkPermission();
+        if (permission !== 'granted' && !options.requestPermission) {
+          status('Les notifications restent soumises à votre autorisation Android.');
+          if (permission === 'denied') feedback('Autorisez les notifications dans les réglages Android pour recevoir les nouveaux messages.', 'warning');
+          return false;
+        }
+        if (!isCurrent(auth)) return false;
+        await window.ERPNativePush.enable(options);
+        if (!isCurrent(auth)) return false;
         status('Notifications du téléphone activées : son et vibration selon vos réglages Android.', true);
         return true;
-      }).catch(error => {
-        console.error('[native-push]', error);
-        status('Activation impossible : ' + error.message);
-        return false;
-      }).finally(() => { pending = null; });
+      })().catch(error => failure(error, '[native-push]')).finally(() => complete(auth));
       return pending;
     }
     if (Notification.permission === 'denied') {
-      status('Notifications bloquées : autorisez-les dans les réglages du navigateur ou du téléphone, puis réessayez.');
+      const message = 'Notifications bloquées : autorisez-les dans les réglages du navigateur ou du téléphone, puis réessayez.';
+      status(message);
+      if (options.requestPermission) feedback(message, 'warning');
       return Promise.resolve(false);
     }
     // Safari requires the permission request directly inside the user's click.
@@ -70,10 +118,11 @@
     pending = (async () => {
       try {
         if (await permission !== 'granted') {
-          status('Activez les alertes pour recevoir vos courriels même lorsque l’ERP est fermé.');
+          status('Les notifications restent soumises à votre autorisation du navigateur.');
           return false;
         }
-        const key = await api('/api/push/public-key');
+        if (!isCurrent(auth)) return false;
+        const key = await api('/api/push/public-key', undefined, auth);
         if (!key.enabled || !key.publicKey) throw new Error('Les notifications ne sont pas configurées sur le serveur.');
         await navigator.serviceWorker.register('/sw.js', { scope: '/' });
         const registration = await navigator.serviceWorker.ready;
@@ -87,15 +136,20 @@
         if (!subscription) {
           subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: desiredKey });
         }
-        await api('/api/push/subscribe', { subscription });
+        if (!isCurrent(auth)) return false;
+        await api('/api/push/subscribe', { subscription }, auth);
+        if (!isCurrent(auth)) {
+          const currentAuth = localStorage.getItem('erp_token');
+          if (suspended && (!currentAuth || currentAuth === auth)) await subscription.unsubscribe();
+          await api('/api/push/unsubscribe', { endpoint: subscription.endpoint }, auth);
+          return false;
+        }
         status('Alertes courriel activées sur cet appareil.', true);
         return true;
       } catch (error) {
-        console.error('[push]', error);
-        status('Activation impossible : ' + error.message);
-        return false;
+        return failure(error, '[push]');
       } finally {
-        pending = null;
+        complete(auth);
       }
     })();
     return pending;
@@ -106,42 +160,40 @@
       if (window.ERPNativePush) await window.ERPNativePush.test();
       else await api('/api/push/test', {});
       status('Test envoyé. Vérifiez la notification sur votre téléphone.', true);
+      feedback('Test envoyé. Vérifiez la notification sur votre téléphone.', 'success');
+      return true;
     } catch (error) {
-      console.error('[push-test]', error);
-      status(error.message, true);
+      return failure(error, '[push-test]');
     }
   }
 
   async function unsubscribe() {
+    suspended = true;
+    status('');
+    const auth = localStorage.getItem('erp_token');
     if (window.ERPNativePush) return window.ERPNativePush.unsubscribe();
     if (!('serviceWorker' in navigator)) return;
     const registration = await navigator.serviceWorker.getRegistration('/');
     const subscription = await registration?.pushManager?.getSubscription();
     if (subscription) {
-      await api('/api/push/unsubscribe', { endpoint: subscription.endpoint });
+      await api('/api/push/unsubscribe', { endpoint: subscription.endpoint }, auth);
       await subscription.unsubscribe();
     }
   }
 
   function init() {
-    const host = document.querySelector('[data-push-settings-host]');
-    if (host) {
-      panel = document.createElement('section');
-      panel.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;color:#334155;font:13px system-ui;margin:8px 0';
-      panel.setAttribute('aria-label', 'Notifications de courriel');
-      panel.innerHTML = '<span data-push-status role="status" style="flex:1;min-width:180px"></span><button type="button" data-push-enable>Activer les alertes courriel</button><button type="button" data-push-test hidden>Tester sur cet appareil</button>';
-      host.appendChild(panel);
-      panel.querySelector('[data-push-enable]').addEventListener('click', () => enable({ requestPermission: true }));
-      panel.querySelector('[data-push-test]').addEventListener('click', test);
-    }
     enable();
-    window.addEventListener('erp-native-push-error', event => status('Notifications Android : ' + event.detail));
+    window.addEventListener('focus', () => enable());
+    window.addEventListener('online', () => enable());
+    window.addEventListener('erp-native-notification-permission', () => enable());
+    window.addEventListener('storage', event => { if (event.key === 'erp_token') enable(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) enable(); });
+    window.addEventListener('erp-native-push-error', event => failure(new Error(String(event.detail)), '[native-push]'));
     navigator.serviceWorker?.addEventListener('message', event => {
       if (event.data?.type === 'push-received') window.dispatchEvent(new Event('erp-mail-received'));
     });
   }
 
-  window.ERPPush = { enable, test, unsubscribe };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  window.ERPPush = { enable, test, unsubscribe, getStatus: () => ({ ...currentStatus }) };
+  init();
 })();

@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="/mobile-messaging.js"></script>
   <meta name="theme-color" content="#0d2c77">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Ryan ERP">
@@ -24,6 +25,7 @@
     .erp-home-link { width:36px; height:36px; display:grid; flex:none; place-items:center; border:1px solid #e1eaf6; border-radius:8px; background:#fff; color:#41658f; text-decoration:none; transition:background .14s ease,color .14s ease,border-color .14s ease; }
     .erp-home-link:hover,.erp-home-link:focus-visible { border-color:#bcd3f1; background:#edf5ff; color:#1767d8; outline:0; }
     .erp-home-link svg { width:19px; height:19px; }
+    .messaging-only-app .erp-home-link { display:none !important; }
     .search-wrap { flex:1; position:relative; }
     .search-wrap input { width:100%; height:40px; padding:0 15px 0 41px; border:1px solid #d9e5f5; border-radius:10px; background:#f7faff; color:var(--ink); outline:0; }
     .search-wrap input:focus { border-color:#85aaf5; box-shadow:0 0 0 3px #2563eb14; }
@@ -347,7 +349,6 @@
       <section class="list-panel">
         <nav class="mobile-only mobile-folder-strip" id="mobile-folder-strip" aria-label="Dossiers de classement"></nav>
         <div class="list-head">
-          <div data-push-settings-host></div>
           <div class="list-title"><div><h1 id="folder-title">Boîte de réception</h1><p class="mobile-only mobile-list-subtitle">Vos échanges, au même endroit</p></div><button class="refresh" id="refresh-button">Actualiser</button></div>
           <input class="list-search" id="message-search" type="search" placeholder="Rechercher dans vos messages…">
           <div class="tabs"><button class="active" data-filter="all">Tous</button><button data-filter="unread">Non lus</button><button data-filter="groups">Groupes</button><button data-filter="starred">Suivis</button></div>
@@ -390,8 +391,7 @@
     <div class="form-actions"><button type="button" id="save-draft">Enregistrer comme brouillon</button><button class="primary" type="submit">Envoyer</button></div>
   </form><div class="mobile-only mobile-toolbar-host" id="mobile-toolbar-host"></div></section></div>
   <div class="toast" id="toast"></div>
-  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-  <script src="/mobile-messaging.js"></script>
+  <script async src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script src="/native-mail-notifications.js"></script>
   <script>
     const token = localStorage.getItem('erp_token');
@@ -405,6 +405,7 @@
     if (window.ERPMobile.messagingOnly) {
       document.title = 'Portail Safari';
       document.querySelector('.brand > div:last-child').firstChild.textContent = 'Portail Safari';
+      document.querySelector('.erp-home-link').remove();
     }
     $('mail-logout').addEventListener('click', async () => {
       try {

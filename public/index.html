@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <script src="/mobile-messaging.js"></script>
   <meta name="theme-color" content="#060c18" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Ryan ERP" />
@@ -13,6 +14,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     [hidden] { display: none !important; }
     html, body { height: 100%; }
+    .messaging-only-app .hero { display:none; }
+    .messaging-only-app .shell { max-width:480px; margin:0 auto; flex-direction:column; }
 
     :root {
       --accent: #2f7dff;
@@ -595,7 +598,6 @@
     </aside>
   </main>
 
-  <script src="/mobile-messaging.js"></script>
   <script src="/native-mail-notifications.js"></script>
   <script>
     (function () {
@@ -741,10 +743,21 @@
       let statusCheckSequence = 0;
       let statusCheckTimer = null;
 
-      const t = key => (I18N[lang] && I18N[lang][key]) || I18N.fr[key] || key;
+      const mailLabels = {
+        fr: { tagline: 'Messagerie interne', subtitle: 'Accédez à votre messagerie interne', f3: 'Messages et documents' },
+        en: { tagline: 'Internal messaging', subtitle: 'Access your internal inbox', f3: 'Messages and documents' },
+      };
+      const t = key => (window.ERPMobile.messagingOnly && mailLabels[lang][key]) || (I18N[lang] && I18N[lang][key]) || I18N.fr[key] || key;
 
       function applyLang() {
         document.documentElement.lang = lang;
+        if (window.ERPMobile.messagingOnly) {
+          document.title = 'Portail Safari';
+          document.querySelector('.brand-name').textContent = 'Portail Safari';
+          const logo = document.querySelector('.brand-logo img');
+          logo.src = '/assets/Messagerie%20interne.png';
+          logo.alt = 'Portail Safari';
+        }
         langSelect.value = lang;
         document.querySelectorAll('[data-i18n]').forEach(el => {
           el.textContent = t(el.dataset.i18n);

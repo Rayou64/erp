@@ -8,9 +8,6 @@
     <item
         android:width="96dp"
         android:height="96dp"
-        android:gravity="center">
-        <bitmap
-            android:gravity="fill"
-            android:src="@mipmap/ic_launcher" />
-    </item>
+        android:gravity="center"
+        android:drawable="@mipmap/ic_launcher" />
 </layer-list>

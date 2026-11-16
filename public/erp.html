@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <script src="/mobile-messaging.js"></script>
+  <script>
+    if (window.ERPMobile.messagingOnly) window.location.replace(window.ERPMobile.destination());
+  </script>
+  <style>html.messaging-only-app { visibility: hidden; }</style>
   <meta name="theme-color" content="#1d4ed8" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -13285,7 +13290,6 @@
         </div>
 
         <div id="admin-mail" class="module">
-          <div data-push-settings-host></div>
           <div class="page-header">
             <img class="internal-mail-logo" src="/assets/Messagerie%20interne.png" alt="Messagerie interne" />
             <h1>Messagerie interne</h1>
@@ -13759,7 +13763,6 @@
     </div>
   </div>
 
-  <script src="/mobile-messaging.js"></script>
   <script src="/native-mail-notifications.js"></script>
   <script src="/push-notifications.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
@@ -39405,7 +39408,6 @@
   </script>
 </body>
 </html>
-
 
 
 
