@@ -595,10 +595,11 @@
     </aside>
   </main>
 
+  <script src="/mobile-messaging.js"></script>
+  <script src="/native-mail-notifications.js"></script>
   <script>
     (function () {
       const API_BASE = '';
-      const ERP_URL = 'erp.html';
       const LOGIN_KEY = 'ryanerp_web_auth';
       const ERP_TOKEN_KEY = 'erp_token';
       const ERP_USER_KEY = 'erp_username';
@@ -854,6 +855,13 @@
 
       function isAuthValid(auth) {
         if (!auth || !auth.token || !auth.timestamp) return false;
+        try {
+          const claims = JSON.parse(atob(auth.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          if (!Number.isFinite(claims.exp) || claims.exp * 1000 <= Date.now()) return false;
+        } catch (error) {
+          console.warn('Session enregistrée invalide', error);
+          return false;
+        }
         const maxAge = auth.remember ? REMEMBER_SESSION_MS : MAX_SESSION_MS;
         return (Date.now() - Number(auth.timestamp)) < maxAge;
       }
@@ -876,11 +884,11 @@
       }
 
       function redirectToApp() {
-        window.location.replace(ERP_URL);
+        window.location.replace(window.ERPMobile.destination());
       }
 
       const isMobileEntry = new URLSearchParams(window.location.search).get('mobile') === '1';
-      if (isMobileEntry) {
+      if (isMobileEntry && !window.ERPMobile.messagingOnly) {
         clearAuth();
       } else if (localStorage.getItem(ERP_TOKEN_KEY) && isAuthValid(readMobileAuth())) {
         redirectToApp();

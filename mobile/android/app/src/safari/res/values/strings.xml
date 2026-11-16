@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Portail Safari</string>
+    <string name="title_activity_main">Portail Safari</string>
+    <string name="package_name">com.ryan.portailsafari</string>
+    <string name="custom_url_scheme">com.ryan.portailsafari</string>
+</resources>

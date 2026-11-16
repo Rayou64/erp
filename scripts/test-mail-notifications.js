@@ -13,6 +13,7 @@ function pushServer({ subscriptions, send }) {
   const errors = [];
   const context = vm.createContext({
     pushVapid: { publicKey: 'test' },
+    nativePush: { send: async () => 0 },
     all: async (sql, params) => {
       assert.match(sql, /u.deactivatedAt = ''/);
       return subscriptions(params[0]);
@@ -40,6 +41,7 @@ test('new mail notifies every recipient device using the linked employee name, e
     assert.equal(delivery.payload.title, 'Nouveau message de Employé de validation');
     assert.equal(delivery.payload.url, '/messaging.html?conversation=12');
     assert.equal(delivery.payload.tag, 'internal-mail:34');
+    assert.equal(delivery.payload.message, 'Courriel de validation\nTexte');
     assert.equal(delivery.options.TTL, 86400);
     assert.equal(delivery.options.urgency, 'high');
   }

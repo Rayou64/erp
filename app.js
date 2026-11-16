@@ -23,6 +23,7 @@ const archiver = require('archiver');
 const { spawn } = require('child_process');
 const { createDbClient } = require('./db/client');
 const { normalizeHrUsernameCandidate, ensureHrEmployeeUserAccount } = require('./lib/hr-user-account');
+const { createNativePush, validNativeSubscription } = require('./lib/native-push');
 const {
   USER_RESTORE_WINDOW_MS, linkedEmployeeJoin, INTERNAL_MAIL_IDENTITIES, ensureProjectAssignmentRetention,
   withUserProfileChanges, setUserProfileState, deleteUserAccount, syncUserProfileAccess, purgeExpiredUserAccounts,
@@ -2450,6 +2451,14 @@ async function initDb() {
     createdAt TEXT NOT NULL
   )`);
   await run('CREATE TABLE IF NOT EXISTS push_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
+  await run(`CREATE TABLE IF NOT EXISTS native_push_subscriptions (
+    token TEXT PRIMARY KEY,
+    userId INTEGER NOT NULL,
+    appId TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+  await run('CREATE INDEX IF NOT EXISTS idx_native_push_user ON native_push_subscriptions (userId)');
   await ensurePushVapidKeys();
 
   await run(`CREATE TABLE IF NOT EXISTS internal_mail_conversations (
@@ -5002,6 +5011,7 @@ app.get('/api/auth/profile-stream', async (req, res) => {
 });
 
 let pushVapid = null;
+const nativePush = createNativePush({ all, run });
 
 async function ensurePushVapidKeys() {
   let publicKey = String(process.env.VAPID_PUBLIC_KEY || '').trim();
@@ -5047,6 +5057,12 @@ async function sendPushToUsers(userIds, payload) {
       }
     }
   }
+  try {
+    delivered += await nativePush.send(ids, payload);
+  } catch (error) {
+    console.error('[native-push] Échec de livraison', { code: error?.code, message: error?.message });
+    deliveryError = error;
+  }
   if (deliveryError) throw deliveryError;
   return delivered;
 }
@@ -5057,7 +5073,7 @@ async function notifyInternalMailRecipients(senderId, userIds, conversationId, m
     const preview = String(body || '').replace(/\s+/g, ' ').trim().slice(0, 140);
     await sendPushToUsers((userIds || []).filter(id => Number(id) !== Number(senderId)), {
       title: `Nouveau message de ${String(sender?.fullName || 'Utilisateur')}`,
-      message: String(subject || '').trim() || preview || 'Vous avez reçu un message.',
+      message: [String(subject || '').trim(), preview].filter(Boolean).join('\n') || 'Vous avez reçu un message.',
       module: 'internal-mail',
       url: `/messaging.html?conversation=${Number(conversationId)}`,
       tag: `internal-mail:${Number(messageId)}`,
@@ -5069,6 +5085,45 @@ async function notifyInternalMailRecipients(senderId, userIds, conversationId, m
 
 app.get('/api/push/public-key', authenticateToken, async (_req, res) => {
   res.json({ publicKey: pushVapid?.publicKey || '', enabled: Boolean(pushVapid) });
+});
+
+app.get('/api/push/native/status', authenticateToken, (_req, res) => {
+  res.json({ enabled: nativePush.enabled });
+});
+
+app.post('/api/push/native/subscribe', authenticateToken, async (req, res) => {
+  const { token, appId } = req.body || {};
+  if (!validNativeSubscription(token, appId)) return res.status(400).json({ error: 'Abonnement Android invalide.' });
+  if (!nativePush.enabled) return res.status(503).json({ error: 'Firebase Cloud Messaging non configuré sur le serveur.' });
+  await run(`INSERT INTO native_push_subscriptions (token, userId, appId, updatedAt) VALUES (?, ?, ?, ?)
+    ON CONFLICT(token) DO UPDATE SET userId = excluded.userId, appId = excluded.appId, updatedAt = excluded.updatedAt`,
+  [token, Number(req.user.id), appId, new Date().toISOString()]);
+  res.json({ subscribed: true });
+});
+
+app.post('/api/push/native/unsubscribe', authenticateToken, async (req, res) => {
+  const { token, appId } = req.body || {};
+  if (!validNativeSubscription(token, appId)) return res.status(400).json({ error: 'Abonnement Android invalide.' });
+  await run('DELETE FROM native_push_subscriptions WHERE token = ? AND userId = ?', [token, Number(req.user.id)]);
+  res.json({ subscribed: false });
+});
+
+app.post('/api/push/native/test', authenticateToken, async (req, res) => {
+  const { token, appId } = req.body || {};
+  if (!validNativeSubscription(token, appId)) return res.status(400).json({ error: 'Abonnement Android invalide.' });
+  if (!nativePush.enabled) return res.status(503).json({ error: 'Firebase Cloud Messaging non configuré sur le serveur.' });
+  try {
+    const delivered = await nativePush.send([req.user.id], {
+      title: 'Portail Safari — notifications activées',
+      message: 'Les nouveaux messages apparaîtront dans les notifications de votre téléphone.',
+      url: '/messaging.html', tag: 'native-mail-test',
+    }, token);
+    if (!delivered) return res.status(409).json({ error: 'Réactivez les notifications sur cet appareil.' });
+    res.json({ sent: true });
+  } catch (error) {
+    console.error('[native-push] Test impossible', { code: error?.code, message: error?.message });
+    res.status(502).json({ error: 'Le service Android n’a pas pu livrer le test.' });
+  }
 });
 
 app.post('/api/push/subscribe', authenticateToken, async (req, res) => {
@@ -6046,6 +6101,7 @@ async function changeUserProfileState(req, res, action) {
   await run(`UPDATE users SET deactivatedAt = ?, deleteAfter = ?,
     tokenVersion = tokenVersion + CASE WHEN deactivatedAt = '' THEN 1 ELSE 0 END WHERE id = ?`, [deactivatedAt, deleteAfter, userId]);
   await run('DELETE FROM push_subscriptions WHERE userId = ?', [userId]);
+  await run('DELETE FROM native_push_subscriptions WHERE userId = ?', [userId]);
   await run('DELETE FROM password_reset_requests WHERE userId = ?', [userId]);
   return res.json({ id: userId, action, deactivatedAt, deleteAfter });
 }

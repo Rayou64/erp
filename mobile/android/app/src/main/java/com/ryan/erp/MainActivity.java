@@ -13,6 +13,8 @@ import androidx.core.content.ContextCompat;
 import android.content.pm.PackageManager;
 import java.util.ArrayList;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.CapConfig;
+import android.webkit.JavascriptInterface;
 
 public class MainActivity extends BridgeActivity {
     private static final int REQ_BASE = 7001;
@@ -27,13 +29,36 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(NativeTrackerPlugin.class);
+        if (BuildConfig.MESSAGING_ONLY) {
+            config = new CapConfig.Builder(this)
+                .setServerUrl("https://ryanerp-hn5zd.ondigitalocean.app/index.html?mail=1")
+                .setAllowNavigation(new String[] { "ryanerp-hn5zd.ondigitalocean.app" })
+                .setBackgroundColor("#060c18")
+                .create();
+        } else {
+            registerPlugin(NativeTrackerPlugin.class);
+        }
         super.onCreate(savedInstanceState);
-        getBridge().getWebView().addJavascriptInterface(new NativeBridge(this), "RyanNative");
-        showLogin();
-        AppUpdateManager.schedule(this);
-        AppUpdateManager.promptFromIntent(this, getIntent());
+        if (BuildConfig.MESSAGING_ONLY) {
+            getBridge().getWebView().addJavascriptInterface(new MessagingIdentity(), "RyanNative");
+        } else {
+            getBridge().getWebView().addJavascriptInterface(new NativeBridge(this), "RyanNative");
+            if (!isMailIntent(getIntent())) showLogin();
+            AppUpdateManager.schedule(this);
+            AppUpdateManager.promptFromIntent(this, getIntent());
+        }
         requestNotificationPermission();
+    }
+
+    public static final class MessagingIdentity {
+        @JavascriptInterface
+        public boolean isMessagingOnly() {
+            return true;
+        }
+    }
+
+    private boolean isMailIntent(Intent intent) {
+        return intent != null && intent.hasExtra("google.message_id");
     }
 
     private void requestNotificationPermission() {
@@ -49,6 +74,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void checkForUpdateAndRequestLocation() {
+        if (BuildConfig.MESSAGING_ONLY) return;
         AppUpdateManager.checkForUpdate(this, null);
         requestLocationPermissions();
     }
@@ -76,6 +102,7 @@ public class MainActivity extends BridgeActivity {
             firstStart = false;
             return;
         }
+        if (BuildConfig.MESSAGING_ONLY || isMailIntent(getIntent())) return;
         showLogin();
         if (Build.VERSION.SDK_INT < 33 || granted(Manifest.permission.POST_NOTIFICATIONS)) {
             AppUpdateManager.checkForUpdate(this, null);
@@ -86,8 +113,10 @@ public class MainActivity extends BridgeActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        showLogin();
-        AppUpdateManager.promptFromIntent(this, intent);
+        if (!BuildConfig.MESSAGING_ONLY) {
+            if (!isMailIntent(intent)) showLogin();
+            AppUpdateManager.promptFromIntent(this, intent);
+        }
     }
 
     private void showLogin() {
@@ -98,7 +127,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onResume() {
         super.onResume();
-        AppUpdateManager.resumePendingInstall(this);
+        if (!BuildConfig.MESSAGING_ONLY) AppUpdateManager.resumePendingInstall(this);
     }
 
     // Android demande la localisation « Toujours » dans une demande séparée, après la localisation normale.

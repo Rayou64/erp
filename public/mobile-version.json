@@ -1,7 +1,7 @@
 {
-  "versionCode": 14,
-  "versionName": "2.3",
+  "versionCode": 15,
+  "versionName": "2.4",
   "apkUrl": "https://ryanerp-hn5zd.ondigitalocean.app/app-release.apk",
-  "sha256": "dfd8721a47ab909c05e9ee33fd54737c7b03876b2f21e7e5102193b6798fe49e",
-  "releaseNotes": "Correction des notifications : la vérification démarre après l'autorisation Android et se relance à chaque retour dans l'application."
+  "sha256": "df40a5e7803fd5538aacfa7d620f02ce750010d9b60fbfa2f4ffd9d3575f7567",
+  "releaseNotes": "Notifications des messages internes sur votre appareil Android et accès direct à la messagerie depuis l'accueil. Les alertes nécessitent l'activation dans la messagerie et la configuration Firebase du serveur."
 }

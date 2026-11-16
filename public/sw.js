@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'ryanerp-static-v19';
+const STATIC_CACHE = 'ryanerp-static-v20';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -35,7 +35,7 @@ self.addEventListener('fetch', event => {
   const requestUrl = new URL(request.url);
   if (requestUrl.origin !== self.location.origin) return;
   if (requestUrl.pathname.startsWith('/api/')) return;
-  if (requestUrl.pathname === '/push-notifications.js') {
+  if (['/push-notifications.js', '/mobile-messaging.js', '/native-mail-notifications.js'].includes(requestUrl.pathname)) {
     event.respondWith(fetch(request));
     return;
   }

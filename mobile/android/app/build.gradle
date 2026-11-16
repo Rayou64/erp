@@ -8,18 +8,37 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.ryan.erp"
+    buildFeatures {
+        buildConfig true
+    }
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.ryan.erp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 14
-        versionName "2.3"
+        versionCode 15
+        versionName "2.4"
+        buildConfigField "boolean", "MESSAGING_ONLY", "false"
+        manifestPlaceholders = [appIcon: "@mipmap/ic_launcher", appRoundIcon: "@mipmap/ic_launcher_round"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+        flavorDimensions += "application"
+        productFlavors {
+            erp {
+                dimension "application"
+            }
+            safari {
+                dimension "application"
+                applicationId "com.ryan.portailsafari"
+                versionCode 1
+                versionName "1.0"
+                buildConfigField "boolean", "MESSAGING_ONLY", "true"
+                manifestPlaceholders = [appIcon: "@mipmap/ic_safari", appRoundIcon: "@mipmap/ic_safari"]
+            }
         }
     }
     signingConfigs {
@@ -67,11 +86,4 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
-}
+apply plugin: 'com.google.gms.google-services'

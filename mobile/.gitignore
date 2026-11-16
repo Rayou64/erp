@@ -6,3 +6,5 @@ android/app/*.keystore
 android/app/build/
 android/build/
 *.log
+**/google-services.json
+**/*service-account*.json

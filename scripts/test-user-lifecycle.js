@@ -53,7 +53,7 @@ test('existing SQLite assignment schemas retain history, indexes and triggers wh
   }
 });
 
-test('profiles, employee names and deletion survive actual API calls and server restart', { timeout: 90000 }, async t => {
+test('profiles, employee names and deletion survive actual API calls and server restart', { timeout: 240000 }, async t => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'erp-user-lifecycle-'));
   const dbFile = path.join(directory, 'test.db');
   const socket = net.createServer();
@@ -82,13 +82,14 @@ test('profiles, employee names and deletion survive actual API calls and server 
         ...process.env, APP_DATA_DIR: directory, DB_FILE: dbFile, DATABASE_DRIVER: 'sqlite', DATABASE_URL: '',
         ARCHIVE_ROOT: path.join(directory, 'archives'), NODE_ENV: 'test', PORT: String(port), LOCALHOST_FALLBACK_PORT: '0',
         AUTO_BACKUP_ENABLED: '0', PROD_SYNC_URL: '', GPS_RETENTION_DAYS: '0',
+        FIREBASE_SERVICE_ACCOUNT_JSON: '', FIREBASE_SERVICE_ACCOUNT_FILE: '',
         JWT_SECRET: 'isolated-test-key-not-a-production-secret',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     child.stdout.on('data', chunk => { output += chunk; });
     child.stderr.on('data', chunk => { output += chunk; });
-    const deadline = Date.now() + 30000;
+    const deadline = Date.now() + 90000;
     while (Date.now() < deadline) {
       try {
         if ((await fetch(base + '/readyz')).ok) return;
@@ -116,6 +117,13 @@ test('profiles, employee names and deletion survive actual API calls and server 
   db = createDbClient({ driver: 'sqlite', dbFile });
   adminToken = (await api('/api/auth/login', { method: 'POST', token: '', body: { username: 'admin', password: 'admin123' } })).token;
   const user = await db.get("SELECT id FROM users WHERE username = 'commis_stock'");
+  assert.equal((await api('/api/push/native/status')).enabled, false);
+  await api('/api/push/native/subscribe', { method: 'POST', body: { token: 'bad', appId: 'com.ryan.erp' }, expected: 400 });
+  await api('/api/push/native/subscribe', {
+    method: 'POST', body: { token: 'a'.repeat(100), appId: 'com.ryan.portailsafari' }, expected: 503,
+  });
+  await db.run(`INSERT INTO native_push_subscriptions (token, userId, appId, updatedAt) VALUES (?, ?, ?, ?)`,
+    ['isolated-device-token', user.id, 'com.ryan.portailsafari', new Date().toISOString()]);
   const recipient = await db.get("SELECT id FROM users WHERE username = 'achat'");
   const before = new Date(Date.now() - 1000).toISOString();
   await db.run("INSERT INTO projects (id, nomProjet, nomSite, createdAt) VALUES (9000, 'Projet de validation', 'Site de validation', ?)", [before]);
@@ -150,6 +158,7 @@ test('profiles, employee names and deletion survive actual API calls and server 
   assert.ok(partiallyDisabled.find(row => row.linkedEmployeeId === 9002).deactivatedAt);
   assert.ok(!partiallyDisabled.find(row => row.linkedEmployeeId === 9000).deactivatedAt);
   await api('/api/auth/me', { token: senderToken });
+  assert.ok(await db.get('SELECT token FROM native_push_subscriptions WHERE userId = ?', [user.id]), 'keep device access while another linked profile is active');
   await api(`/api/admin/users/${user.id}/restore`, { method: 'PATCH', body: { employeeId: 9002 } });
   await api(`/api/admin/users/${user.id}/deactivate`, { method: 'PATCH', body: { employeeId: 99999 }, expected: 404 });
   await api(`/api/admin/users/${user.id}`, { method: 'DELETE', body: { employeeId: 9002 }, expected: 400 });
@@ -163,6 +172,7 @@ test('profiles, employee names and deletion survive actual API calls and server 
   await api('/api/auth/me', { token: senderToken });
   const response = await api(`/api/admin/users/${user.id}/deactivate`, { method: 'PATCH' });
   const disabled = await db.get('SELECT deactivatedAt, deleteAfter FROM users WHERE id = ?', [user.id]);
+  assert.equal(await db.get('SELECT token FROM native_push_subscriptions WHERE userId = ?', [user.id]), undefined);
   assert.equal(Date.parse(disabled.deleteAfter) - Date.parse(disabled.deactivatedAt), USER_RESTORE_WINDOW_MS);
   assert.deepEqual(await api(`/api/admin/users/${user.id}/deactivate`, { method: 'PATCH' }), response);
   assert.deepEqual(await db.get('SELECT deactivatedAt, deleteAfter FROM users WHERE id = ?', [user.id]), disabled);

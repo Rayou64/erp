@@ -9,7 +9,8 @@
 
   function unavailableReason() {
     if (!window.isSecureContext) return 'Les alertes sur téléphone nécessitent une adresse HTTPS.';
-    if (window.Capacitor?.isNativePlatform?.()) return 'Pour les alertes en arrière-plan, ouvrez le site ERP dans Chrome et installez-le sur l’écran d’accueil.';
+    if (window.ERPNativePush) return '';
+    if (window.Capacitor?.isNativePlatform?.() && !window.ERPNativePush) return 'Mettez à jour votre APK pour activer les notifications Android.';
     if (isIos && !standalone) return 'Sur iPhone : Safari > Partager > Sur l’écran d’accueil. Ouvrez ensuite cette icône pour activer les alertes (iOS 16.4 ou plus récent).';
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
       return 'Ce navigateur ne prend pas en charge les alertes. Utilisez Safari sur iPhone ou Chrome sur Android à jour.';
@@ -46,6 +47,17 @@
     if (reason) {
       status(reason);
       return Promise.resolve(false);
+    }
+    if (window.ERPNativePush) {
+      pending = window.ERPNativePush.enable(options).then(() => {
+        status('Notifications du téléphone activées : son et vibration selon vos réglages Android.', true);
+        return true;
+      }).catch(error => {
+        console.error('[native-push]', error);
+        status('Activation impossible : ' + error.message);
+        return false;
+      }).finally(() => { pending = null; });
+      return pending;
     }
     if (Notification.permission === 'denied') {
       status('Notifications bloquées : autorisez-les dans les réglages du navigateur ou du téléphone, puis réessayez.');
@@ -91,7 +103,8 @@
 
   async function test() {
     try {
-      await api('/api/push/test', {});
+      if (window.ERPNativePush) await window.ERPNativePush.test();
+      else await api('/api/push/test', {});
       status('Test envoyé. Vérifiez la notification sur votre téléphone.', true);
     } catch (error) {
       console.error('[push-test]', error);
@@ -100,6 +113,7 @@
   }
 
   async function unsubscribe() {
+    if (window.ERPNativePush) return window.ERPNativePush.unsubscribe();
     if (!('serviceWorker' in navigator)) return;
     const registration = await navigator.serviceWorker.getRegistration('/');
     const subscription = await registration?.pushManager?.getSubscription();
@@ -121,6 +135,7 @@
       panel.querySelector('[data-push-test]').addEventListener('click', test);
     }
     enable();
+    window.addEventListener('erp-native-push-error', event => status('Notifications Android : ' + event.detail));
     navigator.serviceWorker?.addEventListener('message', event => {
       if (event.data?.type === 'push-received') window.dispatchEvent(new Event('erp-mail-received'));
     });
