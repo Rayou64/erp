@@ -24,6 +24,18 @@ function render(view, filter = '') {
         { id: 2, username: 'test_rh', fullName: 'Test RH', department: 'RH', role: 'employe_standard' },
       ],
       projects: [{ id: 3, name: 'Projet test', site: 'Site test' }],
+      recipientTeamIds: [10],
+      teamId: 10,
+      teams: [
+        { id: 10, name: 'RH', isMember: true, recipientCount: 1, members: [
+          { employeeId: 20, fullName: 'Test RH', userId: 2 },
+          { employeeId: 21, fullName: 'Sans compte', userId: null },
+        ] },
+        { id: 11, name: 'Achats', isMember: false, recipientCount: 1, members: [
+          { employeeId: 22, fullName: 'Test Achats', userId: 3 },
+        ] },
+        { id: 12, name: 'Vide', isMember: false, recipientCount: 0, members: [] },
+      ],
     },
     document: {
       querySelector: selector => selector.includes('data-recipient-options') ? host : { value: filter },
@@ -37,28 +49,32 @@ function render(view, filter = '') {
     recentRecipientIds: () => [2],
     $: () => ({ checked: false }),
   });
-  vm.runInContext(extract('    const mailTeams =', "    $('mail-teams').innerHTML"), context);
+  vm.runInContext(extract('    const mailTeamIcon =', '    function renderSelectedTeams('), context);
   vm.runInContext(extract('    function renderRecipientOptions(', '    function openRecipientPicker('), context);
   context.renderRecipientOptions('to');
-  return host.innerHTML;
+  return view === 'sidebar' ? context.mailTeamMarkup() : host.innerHTML;
 }
 
-test('pending recipient teams are distinct from folders and cannot select guessed role members', () => {
+test('configured teams can be selected and their actual employee members are displayed', () => {
   const markup = render('teams');
-  assert.equal((markup.match(/class="team-placeholder" disabled/g) || []).length, 4);
-  for (const name of ['RH', 'Direction', 'Chantiers', 'Achats']) {
-    assert.ok(markup.includes(`<strong>${name}</strong>`), name);
-  }
-  assert.match(markup, /Envoi collectif indisponible/);
-  assert.match(markup, /Liste des employés/);
-  assert.doesNotMatch(markup, /data-recipient-toggle|data-recipient-id|data-recipient-all|data-category/);
+  assert.match(markup, /data-recipient-team="10"/);
+  assert.match(markup, /data-recipient-team="11"/);
+  assert.match(markup, /Voir les membres/);
+  assert.match(markup, /Test RH/);
+  assert.match(markup, /Sans compte/);
+  assert.match(markup, /Compte actif à lier/);
+  assert.match(markup, /data-recipient-team="12" disabled/);
+  assert.doesNotMatch(markup, /À configurer|data-recipient-all|data-category/);
 });
 
-test('team search uses team names rather than individual roles or departments', () => {
-  assert.equal((render('teams', 'rh').match(/class="team-placeholder" disabled/g) || []).length, 1);
+test('team navigation is membership-scoped even for an administrator; address-book search does not guess groups from roles', () => {
+  const sidebar = render('sidebar');
+  assert.match(sidebar, /data-mail-team="10"/);
+  assert.doesNotMatch(sidebar, /data-mail-team="11"|data-mail-team="12"/);
+  assert.equal((render('teams', 'rh').match(/data-recipient-team=/g) || []).length, 1);
   const markup = render('teams', 'employe_standard');
   assert.match(markup, /Aucune équipe correspondant à la recherche/);
-  assert.doesNotMatch(markup, /data-recipient-toggle|team-placeholder/);
+  assert.doesNotMatch(markup, /data-recipient-team=/);
 });
 
 test('individuals, departments, recent recipients and associated projects remain available', () => {

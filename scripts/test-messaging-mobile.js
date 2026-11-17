@@ -22,9 +22,58 @@ test('attachment previews provide correctly scoped removal for new messages and 
 test('production size limits and the real composer API remain in use', () => {
   assert.match(html, /file.size>600000/);
   assert.match(html, /file.size>250000/);
-  assert.match(html, /api\('\/api\/internal-mail\/conversations',\{method:'POST'/);
   assert.match(html, /mobile-toolbar-host/);
   assert.match(html, /send.setAttribute\('form', 'composer-form'\)/);
+});
+
+test('long recipient headers collapse without a second full recipient block', () => {
+  const start = html.indexOf('    function compactRecipients(');
+  const end = html.indexOf('    const recipientSelectId', start);
+  const context = vm.createContext({ esc: value => String(value).replace(/</g, '&lt;') });
+  vm.runInContext(html.slice(start, end), context);
+  const recipients = Array.from({ length: 20 }, (_, index) => ({ fullName: 'Personne ' + (index + 1), recipientType: 'to' }));
+  const markup = context.compactRecipients(recipients);
+  const summary = markup.match(/<summary>([\s\S]*?)<\/summary>/)[1];
+  assert.match(summary, /Personne 1, Personne 2/);
+  assert.doesNotMatch(summary, /Personne 3/);
+  assert.match(markup, /18 autre\(s\) · Voir plus/);
+  assert.match(markup, /Voir moins/);
+  assert.equal((markup.match(/<dd>/g) || []).length, 1);
+  assert.doesNotMatch(context.compactRecipients(recipients.slice(0, 2)), /<details/);
+  assert.match(context.compactRecipients([{ fullName: '<Copie>', recipientType: 'cc' }]), /&lt;Copie>/);
+  const mixed = context.compactRecipients([{ fullName: 'Copie', recipientType: 'cc' }, { fullName: 'Principal', recipientType: 'to' }]);
+  assert.match(mixed, /À : Principal<\/span>/);
+  assert.doesNotMatch(mixed.match(/<summary>([\s\S]*?)<\/summary>/)[1], /À : Copie/);
+});
+
+test('overlapping autosaves create once and update the same draft with the newest content', async () => {
+  let release;
+  const firstResponse = new Promise(resolve => { release = resolve; });
+  const calls = [];
+  const composer = { open: true, id: 0, version: 1, savedVersion: 0, pendingFiles: 0, saving: null, timer: null };
+  const context = vm.createContext({
+    composer, clearTimeout() {}, hasComposerContent: () => true, cacheComposer() {}, draftStatus() {},
+    composerPayload: status => ({ status, body: 'Version ' + composer.version }),
+    $: () => ({ hidden: true }),
+    api: (url, options) => {
+      calls.push({ url, method: options.method, body: JSON.parse(options.body) });
+      return calls.length === 1 ? firstResponse : Promise.resolve({ id: 42, updatedAt: 'revision-2' });
+    },
+  });
+  const start = html.indexOf('    async function flushComposer(');
+  const end = html.indexOf('    async function openComposer(', start);
+  vm.runInContext(html.slice(start, end), context);
+  const first = context.flushComposer();
+  composer.version = 2;
+  const second = context.flushComposer();
+  release({ id: 42, updatedAt: 'revision-1' });
+  await Promise.all([first, second]);
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].url, '/api/internal-mail/conversations');
+  assert.equal(calls[1].method, 'PUT');
+  assert.equal(calls[1].url, '/api/internal-mail/conversations/42/draft');
+  assert.equal(calls[1].body.body, 'Version 2');
+  assert.equal(composer.savedVersion, 2);
 });
 
 for (const messagingOnly of [false, true]) {

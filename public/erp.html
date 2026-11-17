@@ -673,6 +673,20 @@
       align-items: stretch;
     }
 
+    .hr-team-tabs { display:flex; gap:8px; margin:0 0 18px; flex-wrap:wrap; }
+    .hr-team-tabs button[aria-selected="true"] { background:#2563eb; color:#fff; border-color:#2563eb; }
+    #hr-team-panel[hidden],.hr-team-tabs[hidden],#hr-employee-register-card[hidden] { display:none; }
+    .hr-team-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr)); gap:18px; }
+    .hr-team-chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+    .hr-team-chip { display:inline-flex; max-width:100%; overflow-wrap:anywhere; padding:4px 9px; border:1px solid #c8dbff; border-radius:999px; background:#eaf2ff; color:#2563eb; font-size:11px; font-weight:700; }
+    .hr-team-members { display:grid; gap:7px; margin-top:12px; }
+    .hr-team-member-options { max-height:330px; overflow:auto; border:1px solid #dbe7fb; border-radius:12px; padding:8px 12px; }
+    .hr-team-member-option { display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px solid #edf2fb; font-size:13px; }
+    .hr-team-member-option[hidden] { display:none; }
+    .hr-team-member-option input { margin-top:4px; accent-color:#2563eb; }
+    .hr-team-member-option small { display:block; color:#64748b; margin-top:3px; }
+    #hr-team-modal .modal-card { width:min(600px,95vw); max-height:90dvh; overflow:auto; }
+
     .hr-employee-kanban-column {
       --hr-accent: #2563eb;
       --hr-accent-soft: #eaf2ff;
@@ -9790,7 +9804,19 @@
             <span class="hr-employee-toolbar-label">Ajouter un employé</span>
           </div>
 
-          <div class="card">
+          <div class="hr-team-tabs" id="hr-team-tabs" role="tablist" aria-label="Gestion des employés" hidden>
+            <button type="button" class="button button-small" id="hr-team-tab-employees" role="tab" aria-selected="true" aria-controls="hr-employee-register-card" onclick="setHrTeamView('employees')">Employés</button>
+            <button type="button" class="button button-small" id="hr-team-tab-teams" role="tab" aria-selected="false" aria-controls="hr-team-panel" onclick="setHrTeamView('teams')">Équipes</button>
+          </div>
+          <div class="card" id="hr-team-panel" hidden>
+            <div class="hr-employee-team-header">
+              <h3 style="margin:0;">Équipes</h3>
+              <button type="button" class="button button-small button-primary" onclick="openHrTeamForm()">+ Créer une équipe</button>
+            </div>
+            <p style="font-size:12px;color:#64748b;margin:10px 0 18px;">Les membres retrouvent automatiquement leur équipe et tout son historique dans la messagerie RyanERP et Portail Safari.</p>
+            <div class="hr-team-grid" id="hr-team-list"></div>
+          </div>
+          <div class="card" id="hr-employee-register-card">
             <div class="hr-employee-team-header">
               <h3 id="hr-employee-team-title" style="margin: 0;">Équipe</h3>
               <button type="button" id="hr-employee-import-btn" class="button button-small button-secondary">Importer</button>
@@ -9801,6 +9827,19 @@
             </div>
             <input type="file" id="hr-employee-import-input" accept=".csv,.json,text/csv,application/json" style="display:none;" />
             <div id="hr-employees-list-body" class="hr-employee-dossiers"></div>
+          </div>
+
+          <div id="hr-team-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="hr-team-modal-title">
+            <div class="modal-card">
+              <h3 id="hr-team-modal-title">Créer une équipe</h3>
+              <form id="hr-team-form">
+                <div class="form-group"><label for="hr-team-name">Nom de l’équipe *</label><input id="hr-team-name" required maxlength="80" placeholder="Ex. RH, Direction, Chantier Nord"></div>
+                <div class="form-group"><label for="hr-team-member-search">Membres</label><input id="hr-team-member-search" type="search" placeholder="Rechercher un employé ou un poste"></div>
+                <div class="hr-team-member-options" id="hr-team-member-options"></div>
+                <p style="font-size:12px;color:#64748b;margin-top:12px;">Un employé peut appartenir à plusieurs équipes. Chaque membre accède à tout l’historique de son équipe, même antérieur à son arrivée. Les membres sans compte actif lié ne reçoivent pas les courriels.</p>
+                <div class="modal-actions"><button type="button" class="button button-secondary" onclick="closeHrTeamForm()">Annuler</button><button type="submit" class="button button-primary">Enregistrer</button></div>
+              </form>
+            </div>
           </div>
 
           <div id="hr-employee-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="hr-employee-modal-title">
@@ -25144,7 +25183,8 @@
                     <div>
                       <h4 class="hr-employee-card-title">${profileMode ? escapeHtml(employee.fullName || '-') : `Dossier: ${escapeHtml(employee.fullName || '-')}`}</h4>
                       <div class="hr-employee-card-created">Créé le ${escapeHtml(formatDateWithSameDayTime(employee.createdAt))}</div>
-                      ${profileMode ? '' : `<span class="hr-employee-card-role">${escapeHtml(employee.jobTitle || 'Sans poste')}</span>`}
+                      ${profileMode ? '' : `<span class="hr-employee-card-role">${escapeHtml(employee.jobTitle || 'Sans poste')}</span>
+                        <div class="hr-team-chips">${hrTeamsCache.filter(team => team.employeeIds.includes(employeeId)).map(team => `<span class="hr-team-chip">${escapeHtml(team.name)}</span>`).join('')}</div>`}
                     </div>
                     ${profileMode ? '' : `
                       <details class="actions-menu">
@@ -25626,6 +25666,106 @@
       setHrEmployeeFormOpen(true);
     }
 
+    let hrTeamsCache = [];
+    let hrTeamEditingId = null;
+
+    function canManageHrTeams() {
+      return (isAdmin() || isHrDirector()) && !isHrPersonalProfileMode();
+    }
+
+    function setHrTeamView(view) {
+      const teams = view === 'teams' && canManageHrTeams();
+      document.getElementById('hr-team-panel').hidden = !teams;
+      document.getElementById('hr-employee-register-card').hidden = teams;
+      document.getElementById('hr-team-tab-employees').setAttribute('aria-selected', String(!teams));
+      document.getElementById('hr-team-tab-teams').setAttribute('aria-selected', String(teams));
+    }
+
+    function renderHrTeams() {
+      const host = document.getElementById('hr-team-list');
+      host.innerHTML = hrTeamsCache.length ? hrTeamsCache.map(team => `
+        <article class="hr-employee-dossier-card">
+          <div class="hr-employee-card-head"><h4 class="hr-employee-card-title">${escapeHtml(team.name)}</h4><button type="button" class="button button-small button-secondary" onclick="openHrTeamForm(${Number(team.id)})">Modifier</button></div>
+          <details><summary style="cursor:pointer;font-size:12px;color:#5d6f93;">${team.members.length} membre(s) · ${team.recipientCount} destinataire(s) · Voir les membres</summary>
+            <div class="hr-team-members">${team.members.map(member => `<div><strong>${escapeHtml(member.fullName)}</strong><small style="display:block;color:${member.userId ? '#64748b' : '#97620b'};">${escapeHtml(member.jobTitle || 'Poste non renseigné')} · ${member.userId ? 'Compte lié' : 'Compte actif à lier'}</small></div>`).join('') || '<p>Aucun membre.</p>'}</div>
+          </details>
+        </article>`).join('') : '<p style="color:#64748b;">Aucune équipe configurée. Créez une équipe et choisissez ses membres.</p>';
+    }
+
+    async function loadHrTeams() {
+      try {
+        hrTeamsCache = await fetchJson('/api/hr/teams');
+        renderHrTeams();
+        renderHrEmployeesList();
+      } catch (error) {
+        document.getElementById('hr-team-list').textContent = 'Chargement des équipes impossible : ' + error.message;
+        showMessage('Chargement des équipes impossible : ' + error.message, 'error');
+        throw error;
+      }
+    }
+
+    function openHrTeamForm(id = null) {
+      if (!canManageHrTeams()) { showMessage('Gestion des équipes réservée à l’administrateur et au directeur RH.', 'error'); return; }
+      const team = id === null ? null : hrTeamsCache.find(item => Number(item.id) === Number(id));
+      if (id !== null && !team) { showMessage('Équipe introuvable. Actualisez la liste.', 'error'); return; }
+      hrTeamEditingId = team ? Number(team.id) : null;
+      document.getElementById('hr-team-modal-title').textContent = team ? 'Modifier l’équipe' : 'Créer une équipe';
+      document.getElementById('hr-team-name').value = team ? team.name : '';
+      document.getElementById('hr-team-member-search').value = '';
+      document.getElementById('hr-team-member-options').innerHTML = hrEmployeesCache.map(employee => {
+        const profile = hrUserProfilesCache.find(item => Number(item.linkedEmployeeId) === Number(employee.id))
+          || hrUserProfilesCache.find(item => String(item.username || '').toLowerCase() === String(employee.username || '').toLowerCase());
+        const linked = profile && !profile.deactivatedAt;
+        return `<label class="hr-team-member-option" data-hr-team-search="${escapeHtml(normalizeText(`${employee.fullName} ${employee.jobTitle}`))}"><input type="checkbox" value="${Number(employee.id)}" ${team?.employeeIds.includes(Number(employee.id)) ? 'checked' : ''}><span><strong>${escapeHtml(employee.fullName)}</strong><small>${escapeHtml(employee.jobTitle || 'Poste non renseigné')} · ${linked ? 'Compte lié' : 'Compte actif à lier'}</small></span></label>`;
+      }).join('');
+      document.getElementById('hr-team-modal').classList.add('open');
+      document.getElementById('hr-team-name').focus();
+    }
+
+    function closeHrTeamForm() {
+      document.getElementById('hr-team-modal').classList.remove('open');
+      hrTeamEditingId = null;
+    }
+
+    document.getElementById('hr-team-member-search').addEventListener('input', event => {
+      const query = normalizeText(event.target.value);
+      document.querySelectorAll('[data-hr-team-search]').forEach(option => { option.hidden = !option.dataset.hrTeamSearch.includes(query); });
+    });
+    document.getElementById('hr-team-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!canManageHrTeams()) { showMessage('Gestion des équipes non autorisée.', 'error'); return; }
+      const submit = event.currentTarget.querySelector('[type="submit"]');
+      submit.disabled = true;
+      try {
+        const payload = {
+          name: document.getElementById('hr-team-name').value.trim(),
+          employeeIds: [...document.querySelectorAll('#hr-team-member-options input:checked')].map(input => Number(input.value)),
+        };
+        await fetchJson(hrTeamEditingId === null ? '/api/hr/teams' : '/api/hr/teams/' + hrTeamEditingId, {
+          method: hrTeamEditingId === null ? 'POST' : 'PATCH', body: JSON.stringify(payload),
+        });
+        closeHrTeamForm();
+        await loadHrTeams();
+        showMessage('Équipe enregistrée. Ses membres et son historique sont disponibles dans la messagerie.', 'success');
+      } catch (error) {
+        showMessage('Enregistrement ou actualisation de l’équipe impossible : ' + error.message, 'error');
+      } finally {
+        submit.disabled = false;
+      }
+    });
+    document.getElementById('hr-team-modal').addEventListener('click', event => {
+      if (event.target === event.currentTarget) closeHrTeamForm();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && document.getElementById('hr-team-modal').classList.contains('open')) closeHrTeamForm();
+      const tab = event.target.closest('#hr-team-tabs [role="tab"]');
+      if (tab && ['ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        event.preventDefault();
+        const target = document.getElementById(tab.id === 'hr-team-tab-employees' ? 'hr-team-tab-teams' : 'hr-team-tab-employees');
+        target.click(); target.focus();
+      }
+    });
+
     async function loadHrEmployeesModule() {
       hrEmployeesCache = await fetchJson('/api/hr/employees').catch(() => []);
       if (isHrDirector() || isAdmin()) {
@@ -25642,6 +25782,9 @@
         hrEmployeeDocumentsCache[employeeId] = Array.isArray(docs) ? docs : [];
       }));
       const profileMode = isHrPersonalProfileMode();
+      document.getElementById('hr-team-tabs').hidden = !canManageHrTeams();
+      setHrTeamView('employees');
+      closeHrTeamForm();
       const pageTitle = document.getElementById('hr-employees-page-title');
       const pageSubtitle = document.getElementById('hr-employees-page-subtitle');
       const teamTitle = document.getElementById('hr-employee-team-title');
@@ -25671,7 +25814,7 @@
           : 'Gérez les ressources humaines (poste, nom et téléphone)';
       }
       if (teamTitle) {
-        teamTitle.textContent = profileMode ? 'Profil' : 'Équipe';
+        teamTitle.textContent = profileMode ? 'Profil' : 'Dossiers des employés';
       }
       if (hrEmployeeSearchInput && hrEmployeeSearchInput.value !== hrEmployeeSearchTerm) {
         hrEmployeeSearchInput.value = hrEmployeeSearchTerm;
@@ -25680,6 +25823,8 @@
       setHrEmployeeFormOpen(false);
       renderHrEmployeesList();
       populateHrEmployeeSelects();
+      if (canManageHrTeams()) await loadHrTeams();
+      else hrTeamsCache = [];
       
       // Note: profileMode is already declared earlier in this function at line 10651
       if (profileMode) {

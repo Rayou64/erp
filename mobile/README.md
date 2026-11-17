@@ -47,6 +47,21 @@ Le fond de lancement et celui de la WebView utilisent le bleu nuit RyanERP.
 La messagerie utilise la même page et les mêmes styles dans les deux APK.
 Portail Safari conserve la palette claire de référence, sans recoloration automatique
 par le thème sombre Android ; seuls le nom et le lien de retour ERP diffèrent.
+Le chargement des messages ne dépend pas de ce lien : pour le même compte, les deux
+applications affichent les mêmes boîtes, droits, équipes et conversations.
+Les modifications d'interface, d'équipes, de brouillons et de corbeille sont publiées
+sur le serveur sans nouvelle APK ni boutique d'applications. L'actualisation des listes
+ne recharge pas l'éditeur pendant la rédaction.
+
+Les équipes sont gérées dans **Liste des employés**, uniquement par Admin et le directeur RH.
+La messagerie affiche celles du compte connecté ; chaque membre a accès à tout leur
+historique, même antérieur à son arrivée, mais pas aux échanges privés des autres membres.
+Le sélecteur **À > Équipes** affiche les membres et les comptes non joignables.
+Les brouillons sont enregistrés sur le serveur et se reprennent dans les deux applications.
+En cas d'erreur, l'éditeur reste ouvert et une copie non synchronisée est conservée dans
+la session de cette WebView pour récupération après rechargement.
+La corbeille est propre au compte et permet de restaurer un message sans retirer celui
+des autres participants.
 
 Ryan ERP demande d'abord l'autorisation Android d'afficher les notifications, puis
 vérifie `mobile-version.json`. Elle effectue aussi une nouvelle vérification à chaque
@@ -55,6 +70,10 @@ Lorsqu'une version plus récente est disponible, Android affiche une notificatio
 « Mise à jour RyanERP disponible ». L'action « Mettre à jour » télécharge l'APK depuis
 le serveur, vérifie son empreinte SHA-256 et son identifiant d'application, puis ouvre
 l'installateur Android.
+Les changements natifs restent des mises à jour Android : ils nécessitent toujours
+un nouveau paquet signé et, sur un téléphone ordinaire, la confirmation de l'installation.
+Une publication web ne remplace pas ces composants et aucune installation silencieuse
+ni distribution Google Play n'est utilisée.
 
 Dans Android Studio:
 

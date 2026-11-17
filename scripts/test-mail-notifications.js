@@ -326,6 +326,26 @@ test('restoring the network retries native activation automatically', async () =
   assert.equal(browser.notices.length, 1, 'successful automatic recovery does not display an activation message');
 });
 
+test('mailbox mobile styles update from the network even when an older style is cached', async () => {
+  const listeners = {};
+  const fresh = { version: 'current-styles' };
+  let cacheReads = 0;
+  const context = vm.createContext({
+    self: { location: { origin: 'https://erp.example.test' }, addEventListener: (name, handler) => { listeners[name] = handler; } },
+    caches: { match: async () => { cacheReads++; return { version: 'old-styles' }; } },
+    fetch: async () => fresh,
+    URL,
+  });
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'public', 'sw.js'), 'utf8'), context);
+  let response;
+  listeners.fetch({
+    request: { method: 'GET', url: 'https://erp.example.test/messaging-mobile.css?v=2' },
+    respondWith: promise => { response = promise; },
+  });
+  assert.equal(await response, fresh);
+  assert.equal(cacheReads, 0);
+});
+
 test('service worker displays and opens actual mail notifications with or without an existing window', async () => {
   const listeners = {};
   const shown = [];

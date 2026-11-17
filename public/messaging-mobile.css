@@ -58,6 +58,7 @@
   .tabs [data-filter="groups"] { display:none; }
   .mobile-section-label { order:3; display:block; flex:none; padding:5px 20px 7px; color:#7b8ba1; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
   .messages { order:4; flex:1; min-height:0; max-height:none; overflow-y:auto; padding-bottom:110px; }
+  #pending-draft-recovery { order:3; flex:none; }
   .message-row { grid-template-columns:42px minmax(0,1fr) 44px; gap:12px; border:0; padding:13px 17px; }
   .message-row.unread { padding-left:17px; border-left:0; background:#fff; }
   .row-avatar { width:40px; height:40px; font-size:13px; }

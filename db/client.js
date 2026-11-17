@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { AsyncLocalStorage } = require('node:async_hooks');
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -119,13 +120,43 @@ function createSqliteClient(dbFile) {
     });
   }
 
-  return {
+  const transactionContext = new AsyncLocalStorage();
+  let pending = Promise.resolve();
+  async function exclusive(operation) {
+    if (transactionContext.getStore()) return operation();
+    const previous = pending;
+    let release;
+    pending = new Promise(resolve => { release = resolve; });
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+    }
+  }
+  const client = {
     driver: 'sqlite',
-    run,
-    get,
-    all,
-    close,
+    run: (...args) => exclusive(() => run(...args)),
+    get: (...args) => exclusive(() => get(...args)),
+    all: (...args) => exclusive(() => all(...args)),
+    close: () => exclusive(close),
+    transaction: operation => exclusive(() => transactionContext.run(true, async () => {
+      await run('BEGIN IMMEDIATE');
+      try {
+        const result = await operation(client);
+        await run('COMMIT');
+        return result;
+      } catch (error) {
+        try {
+          await run('ROLLBACK');
+        } catch (rollbackError) {
+          throw new AggregateError([error, rollbackError], 'SQLite transaction and rollback failed');
+        }
+        throw error;
+      }
+    })),
   };
+  return client;
 }
 
 function createPostgresClient(databaseUrl) {
@@ -224,12 +255,41 @@ function createPostgresClient(databaseUrl) {
     await pool.end();
   }
 
+  async function transaction(operation) {
+    const connection = await pool.connect();
+    const query = (sql, params = []) => connection.query(toPgPlaceholders(quoteCamelCaseIdentifiers(sql)), params);
+    try {
+      await connection.query('BEGIN');
+      const result = await operation({
+        driver: 'postgres',
+        run: async (sql, params) => {
+          const response = await query(sql, params);
+          return { lastID: response.rows[0]?.id ?? null, changes: response.rowCount, rowCount: response.rowCount };
+        },
+        get: async (sql, params) => (await query(sql, params)).rows[0],
+        all: async (sql, params) => (await query(sql, params)).rows,
+      });
+      await connection.query('COMMIT');
+      return result;
+    } catch (error) {
+      try {
+        await connection.query('ROLLBACK');
+      } catch (rollbackError) {
+        throw new AggregateError([error, rollbackError], 'PostgreSQL transaction and rollback failed');
+      }
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
   return {
     driver: 'postgres',
     run,
     get,
     all,
     close,
+    transaction,
   };
 }
 
