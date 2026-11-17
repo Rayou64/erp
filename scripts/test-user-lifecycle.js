@@ -113,6 +113,12 @@ test('profiles, employee names and deletion survive actual API calls and server 
     return result;
   }
 
+  db = createDbClient({ driver: 'sqlite', dbFile });
+  await db.run(`CREATE TABLE native_push_subscriptions (
+    token TEXT PRIMARY KEY, userId INTEGER NOT NULL, appId TEXT NOT NULL, updatedAt TEXT NOT NULL
+  )`);
+  await db.close();
+  db = null;
   await start();
   db = createDbClient({ driver: 'sqlite', dbFile });
   adminToken = (await api('/api/auth/login', { method: 'POST', token: '', body: { username: 'admin', password: 'admin123' } })).token;
@@ -120,10 +126,14 @@ test('profiles, employee names and deletion survive actual API calls and server 
   assert.equal((await api('/api/push/native/status')).enabled, false);
   await api('/api/push/native/subscribe', { method: 'POST', body: { token: 'bad', appId: 'com.ryan.erp' }, expected: 400 });
   await api('/api/push/native/subscribe', {
+    method: 'POST', body: { token: 'a'.repeat(100), appId: 'com.ryan.erp', notificationVersion: 99 }, expected: 400,
+  });
+  await api('/api/push/native/subscribe', {
     method: 'POST', body: { token: 'a'.repeat(100), appId: 'com.ryan.portailsafari' }, expected: 503,
   });
   await db.run(`INSERT INTO native_push_subscriptions (token, userId, appId, updatedAt) VALUES (?, ?, ?, ?)`,
     ['isolated-device-token', user.id, 'com.ryan.portailsafari', new Date().toISOString()]);
+  assert.equal((await db.get('SELECT notificationVersion FROM native_push_subscriptions WHERE token = ?', ['isolated-device-token'])).notificationVersion, 0);
   const recipient = await db.get("SELECT id FROM users WHERE username = 'achat'");
   const before = new Date(Date.now() - 1000).toISOString();
   await db.run("INSERT INTO projects (id, nomProjet, nomSite, createdAt) VALUES (9000, 'Projet de validation', 'Site de validation', ?)", [before]);

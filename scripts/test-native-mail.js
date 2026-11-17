@@ -75,7 +75,7 @@ test('one failed Firebase batch does not prevent attempts to later recipient dev
   assert.equal(errors.length, 1);
 });
 
-function nativeClient({ permission = 'granted', enabled = true, registrationError = false, plugins = true, subscribe = null } = {}) {
+function nativeClient({ permission = 'granted', enabled = true, registrationError = false, plugins = true, subscribe = null, styled = false } = {}) {
   const listeners = new Map();
   const events = [];
   const values = new Map([['erp_token', 'session-user-a']]);
@@ -100,14 +100,17 @@ function nativeClient({ permission = 'granted', enabled = true, registrationErro
     localStorage: { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) },
     window: {
       ERPMobile: { native: true, appId: 'com.ryan.portailsafari', openNotification: url => events.push(url) },
-      Capacitor: { Plugins: plugins ? { PushNotifications: push, LocalNotifications: local } : {} },
+      Capacitor: { Plugins: plugins ? { PushNotifications: push, LocalNotifications: local, ...(styled ? { NativeMail: {
+        setAccount: async account => events.push({ account: account.userId }),
+        clearAccount: async () => events.push('clear-native-account'),
+      } } : {}) } : {} },
       dispatchEvent: () => {},
     },
     console: { error() {} },
     fetch: async (url, options) => {
       events.push({ url, auth: options.headers.Authorization, ...(options.body ? JSON.parse(options.body) : {}) });
       if (url === '/api/push/native/subscribe' && subscribe) await subscribe();
-      return { ok: true, json: async () => ({ enabled }) };
+      return { ok: true, json: async () => ({ enabled, userId: 12 }) };
     },
   });
   vm.runInContext(fs.readFileSync(path.join(root, 'public', 'native-mail-notifications.js'), 'utf8'), context);
@@ -144,6 +147,50 @@ test('foreground native messages appear in device notifications and native taps 
   client.listeners.get('pushNotificationActionPerformed')({ notification: { data: { url: '/messaging.html?conversation=17' } } });
   client.listeners.get('localNotificationActionPerformed')({ notification: { extra: notification.extra } });
   assert.equal(client.events.filter(event => event === '/messaging.html?conversation=17').length, 2);
+});
+
+test('new APKs opt into styled native delivery without duplicating foreground notifications and clear native state on logout', async () => {
+  const client = nativeClient({ styled: true });
+  await client.api.enable();
+  assert.equal(client.events.find(event => event?.url === '/api/push/native/subscribe').notificationVersion, 1);
+  assert.equal(client.events.find(event => event?.account).account, 12);
+  await client.listeners.get('pushNotificationReceived')({
+    data: { mailStyle: '1', url: '/messaging.html?conversation=17' },
+  });
+  assert.equal(client.events.some(event => event?.notifications), false);
+  await client.api.unsubscribe();
+  assert.ok(client.events.indexOf('clear-native-account') < client.events.findIndex(event => event?.url === '/api/push/native/unsubscribe'));
+});
+
+test('styled delivery is account-scoped and legacy APKs keep background notification payloads', async () => {
+  const messages = [];
+  const push = createNativePush({
+    all: async () => [
+      { token: 'erp-old', userId: 12, notificationVersion: 0 },
+      { token: 'erp-new', userId: 12, notificationVersion: 1 },
+      { token: 'safari-new', userId: 12, notificationVersion: 1 },
+      { token: 'other-user', userId: 19, notificationVersion: 1 },
+    ],
+    run: async () => {},
+    messaging: { sendEachForMulticast: async message => {
+      messages.push(message);
+      return { responses: message.tokens.map(() => ({ success: true })) };
+    } },
+  });
+  assert.equal(await push.send([12, 19], {
+    title: 'Nouveau message de Employé', message: 'Réunion\nBonjour', senderName: 'Employé',
+    subject: 'Réunion', preview: 'Bonjour', url: '/messaging.html?conversation=8',
+  }), 4);
+  assert.deepEqual(messages[0].tokens, ['erp-old']);
+  assert.ok(messages[0].notification);
+  assert.deepEqual(messages[1].tokens, ['erp-new', 'safari-new']);
+  assert.equal(messages[1].notification, undefined);
+  assert.equal(messages[1].android.notification, undefined);
+  assert.equal(messages[1].data.mailStyle, '1');
+  assert.equal(messages[1].data.userId, '12');
+  assert.equal(messages[1].data.subject, 'Réunion');
+  assert.equal(messages[1].data.preview, 'Bonjour');
+  assert.equal(messages[2].data.userId, '19');
 });
 
 test('revoked Android permission and logout stop foreground system notifications', async () => {
@@ -215,7 +262,7 @@ test('native permissions, missing configuration, outdated APK and Firebase error
   await assert.rejects(nativeClient({ plugins: false }).api.enable(), /Mettez à jour/);
 });
 
-function mobileEntry({ native = false, mail = false, search = '', token = '', pending = null } = {}) {
+function mobileEntry({ native = false, mail = false, search = '', token = '', pending = null, pathname = '/erp.html' } = {}) {
   const session = new Map(pending ? [['erp_pending_mail_url', pending]] : []);
   const navigations = [];
   const classes = new Set();
@@ -224,7 +271,7 @@ function mobileEntry({ native = false, mail = false, search = '', token = '', pe
     document: { documentElement: { classList: { add: name => classes.add(name) } } },
     sessionStorage: { getItem: key => session.get(key), setItem: (key, value) => session.set(key, value), removeItem: key => session.delete(key) },
     localStorage: { getItem: () => token },
-    location: { origin: 'https://erp.example', pathname: '/erp.html', search, assign: url => navigations.push(url) },
+    location: { origin: 'https://erp.example', pathname, search, assign: url => navigations.push(url) },
     window: { Capacitor: { isNativePlatform: () => native }, RyanNative: { isMessagingOnly: () => mail } },
   });
   vm.runInContext(fs.readFileSync(path.join(root, 'public', 'mobile-messaging.js'), 'utf8'), context);
@@ -256,6 +303,28 @@ test('notification conversation survives login, unsafe URLs are rejected, and si
   assert.throws(() => signedIn.api.openNotification('/messaging.html?conversation=javascript:alert(1)'), /invalide/);
   signedIn.api.clearPending();
   assert.equal(signedIn.api.destination(), '/erp.html');
+});
+
+test('cold native notification launch preserves its conversation through the required login', () => {
+  const client = mobileEntry({ native: true, mail: true, pathname: '/index.html', search: '?mail=1&mobile=1&conversation=42' });
+  assert.equal(client.api.destination(), '/messaging.html?conversation=42');
+  assert.throws(() => mobileEntry({ native: true, pathname: '/index.html', search: '?conversation=invalid' }), /invalide/);
+});
+
+test('Safari cold launch clears remembered authentication while a normal login return reuses its valid session', () => {
+  const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+  const source = html.slice(html.indexOf('const isMobileEntry ='), html.indexOf('const rememberedUser ='));
+  for (const cold of [true, false]) {
+    const events = [];
+    vm.runInNewContext(source, {
+      URLSearchParams, ERP_TOKEN_KEY: 'erp_token',
+      window: { location: { search: cold ? '?mail=1&mobile=1' : '?mail=1' }, ERPMobile: { messagingOnly: true } },
+      localStorage: { getItem: () => 'valid-session' },
+      readMobileAuth: () => ({}), isAuthValid: () => true,
+      clearAuth: () => events.push('clear'), redirectToApp: () => events.push('redirect'),
+    });
+    assert.deepEqual(events, [cold ? 'clear' : 'redirect']);
+  }
 });
 
 test('RyanERP home links directly to the existing mailbox, without installing Portail Safari or entering Admin', () => {

@@ -901,7 +901,7 @@
       }
 
       const isMobileEntry = new URLSearchParams(window.location.search).get('mobile') === '1';
-      if (isMobileEntry && !window.ERPMobile.messagingOnly) {
+      if (isMobileEntry) {
         clearAuth();
       } else if (localStorage.getItem(ERP_TOKEN_KEY) && isAuthValid(readMobileAuth())) {
         redirectToApp();

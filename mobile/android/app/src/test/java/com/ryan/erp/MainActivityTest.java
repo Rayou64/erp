@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -117,6 +118,42 @@ public class MainActivityTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertTrue(Shadows.shadowOf(view).getLastEvaluatedJavascript().contains("erp-native-notification-permission"));
         }
+    }
+
+    @Test
+    @Config(sdk = {24, 35})
+    public void coldLaunchRequiresLoginButResumeAndNotificationDoNotRestartLogin() {
+        Intent coldNotification = new Intent(RuntimeEnvironment.getApplication(), MainActivity.class)
+            .putExtra(MailNotifications.EXTRA_URL, "/messaging.html?conversation=42");
+        try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class, coldNotification).setup()) {
+            MainActivity activity = controller.get();
+            WebView view = activity.getBridge().getWebView();
+            String login = Shadows.shadowOf(view).getLastLoadedUrl();
+            assertTrue(login.contains("mobile=1"));
+            assertTrue(login.contains("conversation=42"));
+            String inbox = "https://ryanerp-hn5zd.ondigitalocean.app/messaging.html";
+            view.loadUrl(inbox);
+            controller.pause().stop().start().resume();
+            assertEquals(inbox, Shadows.shadowOf(view).getLastLoadedUrl());
+            activity.onNewIntent(new Intent(activity, MainActivity.class));
+            assertEquals(inbox, Shadows.shadowOf(view).getLastLoadedUrl());
+            activity.onNewIntent(new Intent(activity, MainActivity.class)
+                .putExtra(MailNotifications.EXTRA_URL, "/messaging.html?conversation=17"));
+            assertEquals(inbox + "?conversation=17", Shadows.shadowOf(view).getLastLoadedUrl());
+        }
+    }
+
+    @Test
+    @Config(sdk = {35}, qualifiers = "night")
+    public void safariPreservesTheMailLightPaletteEvenWithAndroidDarkMode() {
+        org.junit.Assume.assumeTrue(BuildConfig.MESSAGING_ONLY);
+        android.content.res.Resources.Theme theme = RuntimeEnvironment.getApplication().getResources().newTheme();
+        theme.applyStyle(R.style.AppTheme_NoActionBar, true);
+        android.util.TypedValue value = new android.util.TypedValue();
+        assertTrue(theme.resolveAttribute(android.R.attr.isLightTheme, value, true));
+        assertTrue(value.data != 0);
+        assertTrue(theme.resolveAttribute(android.R.attr.forceDarkAllowed, value, true));
+        assertEquals(0, value.data);
     }
 
     private static WebResourceRequest request(String url) {

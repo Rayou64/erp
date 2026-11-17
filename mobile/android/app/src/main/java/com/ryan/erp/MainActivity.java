@@ -23,7 +23,6 @@ public class MainActivity extends BridgeActivity {
     static final int REQ_NOTIFICATIONS = 7003;
     private static final String LOGIN_URL = "https://ryanerp-hn5zd.ondigitalocean.app/index.html?mobile=1";
     static final String MAIL_LOGIN_URL = "https://ryanerp-hn5zd.ondigitalocean.app/index.html?mail=1";
-    private boolean firstStart = true;
 
     private boolean granted(String permission) {
         return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
@@ -46,6 +45,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(NativeMailPlugin.class);
         if (BuildConfig.MESSAGING_ONLY) {
             config = new CapConfig.Builder(this)
                 .setServerUrl(MAIL_LOGIN_URL)
@@ -56,8 +56,8 @@ public class MainActivity extends BridgeActivity {
             registerPlugin(NativeTrackerPlugin.class);
         }
         super.onCreate(savedInstanceState);
+        if (savedInstanceState == null) showLogin();
         if (!BuildConfig.MESSAGING_ONLY) {
-            if (!isMailIntent(getIntent())) showLogin();
             AppUpdateManager.schedule(this);
             AppUpdateManager.promptFromIntent(this, getIntent());
         }
@@ -69,10 +69,6 @@ public class MainActivity extends BridgeActivity {
         public boolean isMessagingOnly() {
             return true;
         }
-    }
-
-    private boolean isMailIntent(Intent intent) {
-        return intent != null && intent.hasExtra("google.message_id");
     }
 
     private void requestNotificationPermission() {
@@ -112,12 +108,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onStart() {
         super.onStart();
-        if (firstStart) {
-            firstStart = false;
-            return;
-        }
-        if (BuildConfig.MESSAGING_ONLY || isMailIntent(getIntent())) return;
-        showLogin();
+        if (BuildConfig.MESSAGING_ONLY) return;
         if (Build.VERSION.SDK_INT < 33 || granted(Manifest.permission.POST_NOTIFICATIONS)) {
             AppUpdateManager.checkForUpdate(this, null);
         }
@@ -127,15 +118,24 @@ public class MainActivity extends BridgeActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        String path = MailNotifications.mailPath(intent.getStringExtra(MailNotifications.EXTRA_URL));
+        if (path != null && getBridge() != null) {
+            getBridge().getWebView().loadUrl("https://ryanerp-hn5zd.ondigitalocean.app" + path);
+        }
         if (!BuildConfig.MESSAGING_ONLY) {
-            if (!isMailIntent(intent)) showLogin();
             AppUpdateManager.promptFromIntent(this, intent);
         }
     }
 
     private void showLogin() {
         if (getBridge() == null || getBridge().getWebView() == null) return;
-        getBridge().getWebView().loadUrl(LOGIN_URL);
+        String url = BuildConfig.MESSAGING_ONLY ? MAIL_LOGIN_URL + "&mobile=1" : LOGIN_URL;
+        String path = MailNotifications.mailPath(getIntent().getStringExtra(MailNotifications.EXTRA_URL));
+        if (path != null) {
+            String conversation = Uri.parse(path).getQueryParameter("conversation");
+            url += "&mail=1" + (conversation == null ? "" : "&conversation=" + conversation);
+        }
+        getBridge().getWebView().loadUrl(url);
     }
 
     private void notifyNotificationPermissionChanged() {

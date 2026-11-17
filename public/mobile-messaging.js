@@ -5,6 +5,10 @@
     || typeof window.RyanNative?.getStatus === 'function';
   if (messagingOnly) document.documentElement.classList.add('messaging-only-app');
   const pendingKey = 'erp_pending_mail_url';
+  const entryConversation = new URLSearchParams(location.search).get('conversation');
+  if (native && location.pathname === '/index.html' && entryConversation !== null) {
+    sessionStorage.setItem(pendingKey, mailUrl('/messaging.html?conversation=' + entryConversation));
+  }
   if (messagingOnly || new URLSearchParams(location.search).get('mail') === '1') {
     sessionStorage.setItem('erp_mail_entry', '1');
   }

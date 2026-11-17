@@ -2456,9 +2456,13 @@ async function initDb() {
     userId INTEGER NOT NULL,
     appId TEXT NOT NULL,
     updatedAt TEXT NOT NULL,
+    notificationVersion INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE
   )`);
   await run('CREATE INDEX IF NOT EXISTS idx_native_push_user ON native_push_subscriptions (userId)');
+  if (!(await getTableColumns('native_push_subscriptions')).has('notificationVersion')) {
+    await run('ALTER TABLE native_push_subscriptions ADD COLUMN notificationVersion INTEGER NOT NULL DEFAULT 0');
+  }
   await ensurePushVapidKeys();
 
   await run(`CREATE TABLE IF NOT EXISTS internal_mail_conversations (
@@ -5073,6 +5077,9 @@ async function notifyInternalMailRecipients(senderId, userIds, conversationId, m
     const preview = String(body || '').replace(/\s+/g, ' ').trim().slice(0, 140);
     await sendPushToUsers((userIds || []).filter(id => Number(id) !== Number(senderId)), {
       title: `Nouveau message de ${String(sender?.fullName || 'Utilisateur')}`,
+      senderName: String(sender?.fullName || 'Utilisateur'),
+      subject: String(subject || '').trim(),
+      preview,
       message: [String(subject || '').trim(), preview].filter(Boolean).join('\n') || 'Vous avez reçu un message.',
       module: 'internal-mail',
       url: `/messaging.html?conversation=${Number(conversationId)}`,
@@ -5092,13 +5099,15 @@ app.get('/api/push/native/status', authenticateToken, (_req, res) => {
 });
 
 app.post('/api/push/native/subscribe', authenticateToken, async (req, res) => {
-  const { token, appId } = req.body || {};
+  const { token, appId, notificationVersion = 0 } = req.body || {};
   if (!validNativeSubscription(token, appId)) return res.status(400).json({ error: 'Abonnement Android invalide.' });
+  if (notificationVersion !== 0 && notificationVersion !== 1) return res.status(400).json({ error: 'Version de notification Android invalide.' });
   if (!nativePush.enabled) return res.status(503).json({ error: 'Firebase Cloud Messaging non configuré sur le serveur.' });
-  await run(`INSERT INTO native_push_subscriptions (token, userId, appId, updatedAt) VALUES (?, ?, ?, ?)
-    ON CONFLICT(token) DO UPDATE SET userId = excluded.userId, appId = excluded.appId, updatedAt = excluded.updatedAt`,
-  [token, Number(req.user.id), appId, new Date().toISOString()]);
-  res.json({ subscribed: true });
+  await run(`INSERT INTO native_push_subscriptions (token, userId, appId, updatedAt, notificationVersion) VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(token) DO UPDATE SET userId = excluded.userId, appId = excluded.appId,
+      updatedAt = excluded.updatedAt, notificationVersion = excluded.notificationVersion`,
+  [token, Number(req.user.id), appId, new Date().toISOString(), notificationVersion]);
+  res.json({ subscribed: true, userId: Number(req.user.id) });
 });
 
 app.post('/api/push/native/unsubscribe', authenticateToken, async (req, res) => {

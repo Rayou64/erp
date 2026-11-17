@@ -3,6 +3,7 @@
   if (!window.ERPMobile?.native) return;
   const push = window.Capacitor?.Plugins?.PushNotifications;
   const local = window.Capacitor?.Plugins?.LocalNotifications;
+  const styled = window.Capacitor?.Plugins?.NativeMail;
   const appId = window.ERPMobile.appId;
   const tokenKey = 'erp_native_push_token';
   const channelId = 'internal_mail';
@@ -53,12 +54,14 @@
         const reject = rejectRegistration;
         try {
           if (!auth || auth !== localStorage.getItem('erp_token')) return;
-          await api('/api/push/native/subscribe', { token: value, appId }, auth);
+          const subscription = await api('/api/push/native/subscribe', { token: value, appId, notificationVersion: styled ? 1 : 0 }, auth);
           if (auth !== registrationAuth || auth !== localStorage.getItem('erp_token')) {
             await api('/api/push/native/unsubscribe', { token: value, appId }, auth);
             throw cancelled();
           }
           if (revision !== registrationRevision) throw cancelled();
+          if (styled) await styled.setAccount({ userId: subscription.userId });
+          if (revision !== registrationRevision || auth !== localStorage.getItem('erp_token')) throw cancelled();
           localStorage.setItem(tokenKey, value);
           boundAuth = auth;
           resolve?.(true);
@@ -88,6 +91,7 @@
         try {
           if (!boundAuth || boundAuth !== localStorage.getItem('erp_token')) return;
           window.dispatchEvent(new Event('erp-mail-received'));
+          if (notification.data?.mailStyle === '1') return;
           if ((await push.checkPermissions()).receive !== 'granted') return;
           await local.schedule({ notifications: [{
             id: Math.floor(Date.now() % 2147483647),
@@ -156,6 +160,7 @@
     registrationAuth = '';
     boundAuth = '';
     cancelRegistration();
+    if (styled) await styled.clearAccount();
     const token = localStorage.getItem(tokenKey);
     if (token) await api('/api/push/native/unsubscribe', { token, appId });
     if (push) await push.unregister();

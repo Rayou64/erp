@@ -1,7 +1,7 @@
 {
-  "versionCode": 16,
-  "versionName": "2.5",
+  "versionCode": 17,
+  "versionName": "2.6",
   "apkUrl": "https://ryanerp-hn5zd.ondigitalocean.app/app-release.apk",
-  "sha256": "dfd444c46bfc06f84a6f149afc64490f3250cfac532e984202b3bb2f67d10fee",
-  "releaseNotes": "Inscription automatique aux notifications après connexion et autorisation Android, sans bandeau d'activation. Vérification au retour dans l'application et après rétablissement du réseau. Corrections du démarrage et accès direct à la messagerie depuis l'accueil."
+  "sha256": "7895b15593e15700810cc208742e293bb7a1c6e0025cd54561bd6760718eef46",
+  "releaseNotes": "Notifications enrichies avec avatar et messages regroupés par conversation. Priorité à Portail Safari lorsqu'il est installé sur le même téléphone. Connexion au lancement sans reconnexion au simple retour dans l'application."
 }

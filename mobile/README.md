@@ -38,11 +38,15 @@ Depuis ce dossier (`mobile/`):
 ## Build APK/AAB
 
 Capacitor utilise le site HTTPS publié sur le serveur RyanERP.
-Ryan ERP conserve son parcours de connexion au démarrage/retour.
-Portail Safari réutilise sa session valide (expiration serveur inchangée, six heures)
-et ouvre directement la messagerie ; une session expirée demande une nouvelle connexion.
+Ryan ERP et Portail Safari demandent une connexion au démarrage à froid.
+Le retour depuis une autre application, une demande de permission ou une notification
+ne redemande pas la connexion tant que l'application est encore ouverte et la session valide
+(expiration serveur inchangée, six heures).
 Une notification conserve la conversation cible pendant cette connexion.
 Le fond de lancement et celui de la WebView utilisent le bleu nuit RyanERP.
+La messagerie utilise la même page et les mêmes styles dans les deux APK.
+Portail Safari conserve la palette claire de référence, sans recoloration automatique
+par le thème sombre Android ; seuls le nom et le lien de retour ERP diffèrent.
 
 Ryan ERP demande d'abord l'autorisation Android d'afficher les notifications, puis
 vérifie `mobile-version.json`. Elle effectue aussi une nouvelle vérification à chaque
@@ -90,8 +94,15 @@ sans message permanent ; un refus Android ne peut pas être contourné.
 Le canal Android **Messages internes** utilise le son système et la vibration ; ces choix
 restent contrôlés par l'utilisateur (mode silencieux, Ne pas déranger, économie de batterie,
 visibilité du contenu sur l'écran verrouillé).
-Le message affiche le nom de l'employé, l'objet et l'aperçu. Au premier plan, une notification
-locale relaie le même message ; en arrière-plan, Android affiche la notification FCM.
+Les nouvelles APK affichent les messages avec le style de conversation Android :
+avatar à initiales, nom de l'employé, objet et aperçu, historique regroupé par conversation.
+Le même affichage natif fonctionne au premier plan et en arrière-plan, sans seconde
+notification locale. Les anciennes APK conservent leur livraison FCM existante.
+Sur un même téléphone, RyanERP n'affiche pas d'alerte courriel si Portail Safari est
+installé et activé dans Android. Il recommence automatiquement après désinstallation.
+Ouvrir Portail Safari au moins une fois, s'y connecter avec le compte attendu et autoriser
+ses notifications est donc nécessaire pour y recevoir les messages. Si ses notifications
+sont refusées, RyanERP ne contourne pas ce choix. Les autres appareils ne sont pas affectés.
 Un toucher ouvre la conversation, y compris après reconnexion.
 La déconnexion retire l'inscription et les notifications affichées.
 Les anciens APK doivent être mis à jour pour obtenir le plugin natif.
@@ -118,11 +129,14 @@ de l'APK ne configure pas Firebase à la place du serveur.
 Depuis `mobile/android`, exécuter :
 
 ```powershell
-.\gradlew.bat :app:testSafariReleaseUnitTest --tests com.ryan.erp.MainActivityTest :app:testErpReleaseUnitTest --tests com.ryan.erp.MainActivityTest
+.\gradlew.bat :app:testSafariReleaseUnitTest :app:testErpReleaseUnitTest
 ```
 
 Le test charge l'activité et ses ressources sur Android 7, 9, 13 et 15 avec
 Robolectric, vérifie les variantes de navigation et le rappel d'autorisation Android.
+Il vérifie aussi la connexion à froid sans reconnexion au retour, le regroupement
+des notifications, les liens de conversation, la déconnexion et la priorité à Safari
+sur le téléphone où il est installé.
 Les tests simulent le fournisseur WebView et son contrôleur de service worker.
 L'écran de lancement Safari utilise son propre drawable, sans
 charger une icône adaptative dans une balise `bitmap`, ce qui peut provoquer

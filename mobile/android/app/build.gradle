@@ -16,8 +16,8 @@ android {
         applicationId "com.ryan.erp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
-        versionName "2.5"
+        versionCode 17
+        versionName "2.6"
         buildConfigField "boolean", "MESSAGING_ONLY", "false"
         manifestPlaceholders = [appIcon: "@mipmap/ic_launcher", appRoundIcon: "@mipmap/ic_launcher_round"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -34,8 +34,8 @@ android {
             safari {
                 dimension "application"
                 applicationId "com.ryan.portailsafari"
-                versionCode 3
-                versionName "1.2"
+                versionCode 4
+                versionName "1.3"
                 buildConfigField "boolean", "MESSAGING_ONLY", "true"
                 manifestPlaceholders = [appIcon: "@mipmap/ic_safari", appRoundIcon: "@mipmap/ic_safari"]
             }
@@ -84,6 +84,7 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    implementation "com.google.firebase:firebase-messaging:25.0.1"
     testImplementation "junit:junit:$junitVersion"
     testImplementation "org.robolectric:robolectric:4.18"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
