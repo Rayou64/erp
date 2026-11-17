@@ -5317,14 +5317,14 @@ async function getInternalMailAccess(conversationId, userId) {
   return get(`
     SELECT c.*
     FROM internal_mail_conversations c
-    WHERE c.id = ? AND (
+    WHERE c.id = ? AND (c.status <> 'draft' OR c.createdBy = ?) AND (
       c.createdBy = ? OR EXISTS (
         SELECT 1 FROM internal_mail_recipients r
         WHERE r.conversationId = c.id AND r.userId = ?
       )
     )
     LIMIT 1
-  `, [Number(conversationId), Number(userId), Number(userId)]);
+  `, [Number(conversationId), Number(userId), Number(userId), Number(userId)]);
 }
 
 async function getInternalMailRecipients(conversationId, messageId, excludeUserId = 0) {
@@ -5374,7 +5374,7 @@ app.get('/api/internal-mail/conversations', async (req, res) => {
     const category = String(req.query.category || '').trim().toLowerCase();
     const query = String(req.query.q || '').trim().toLowerCase();
     const baseRows = await all(`
-      SELECT c.id, c.subject, c.category, c.priority, c.status, c.projectId, c.updatedAt,
+      SELECT c.id, c.subject, c.category, c.priority, c.status, c.projectId, c.updatedAt, c.createdBy,
              m.id AS messageId, m.body, m.senderId, m.createdAt,
              su.username AS senderUsername,
              COALESCE(NULLIF(TRIM(se.fullName), ''), su.username) AS senderName,
@@ -5409,9 +5409,10 @@ app.get('/api/internal-mail/conversations', async (req, res) => {
 
     const rows = (baseRows || []).filter(row => {
       const deleted = String(row.deletedAt || '').trim();
+      if (row.status === 'draft' && (Number(row.createdBy) !== currentUserId || !['drafts', 'trash'].includes(folder))) return false;
       if (category && row.category !== category && row.userFolder !== category) return false;
       if (folder === 'trash') return Boolean(deleted);
-      if (folder === 'drafts') return row.status === 'draft';
+      if (folder === 'drafts') return row.status === 'draft' && !deleted;
       if (folder === 'starred') return Number(row.isStarred) === 1;
       if (folder === 'important') return Number(row.isImportant) === 1;
       if (folder === 'unread') return Number(row.isRead) === 0;
@@ -5430,7 +5431,9 @@ app.get('/api/internal-mail/conversations', async (req, res) => {
 app.get('/api/internal-mail/unread-count', async (req, res) => {
   try {
     const userId = Number(req.user?.id || 0);
-    const row = await get(`SELECT COUNT(*) AS count FROM internal_mail_recipients WHERE userId = ? AND isRead = 0 AND deletedAt = ''`, [userId]);
+    const row = await get(`SELECT COUNT(*) AS count FROM internal_mail_recipients r
+      JOIN internal_mail_conversations c ON c.id = r.conversationId
+      WHERE r.userId = ? AND r.isRead = 0 AND r.deletedAt = '' AND c.status = 'sent'`, [userId]);
     const items = await all(`
       SELECT r.messageId, r.conversationId, c.subject, m.body, m.createdAt,
              su.username AS senderUsername,
@@ -5440,7 +5443,7 @@ app.get('/api/internal-mail/unread-count', async (req, res) => {
       JOIN internal_mail_conversations c ON c.id = r.conversationId
       LEFT JOIN ${INTERNAL_MAIL_IDENTITIES} su ON su.id = m.senderId
       ${linkedEmployeeJoin('su', 'he')}
-      WHERE r.userId = ? AND r.isRead = 0 AND r.deletedAt = ''
+      WHERE r.userId = ? AND r.isRead = 0 AND r.deletedAt = '' AND c.status = 'sent'
       ORDER BY m.createdAt DESC, r.id DESC LIMIT 10
     `, [userId]);
     return res.json({ count: Number(row?.count || 0), items: (items || []).map(item => ({ messageId: Number(item.messageId), conversationId: Number(item.conversationId), subject: String(item.subject || ''), body: String(item.body || ''), createdAt: String(item.createdAt || ''), senderUsername: String(item.senderUsername || ''), senderName: String(item.senderName || item.senderUsername || 'Utilisateur') })) });
@@ -5535,7 +5538,6 @@ app.post('/api/internal-mail/conversations', async (req, res) => {
     ]);
     await run('INSERT INTO internal_mail_messages (id, conversationId, senderId, body, createdAt) VALUES (?, ?, ?, ?, ?)', [messageId, conversationId, Number(sender.id), body, now]);
     for (const [userId, recipientType] of recipientTypes) {
-      if (userId === Number(sender.id)) continue;
       await run('INSERT INTO internal_mail_recipients (id, conversationId, messageId, userId, recipientType, isRead, isStarred, isImportant, deletedAt) VALUES (?, ?, ?, ?, ?, 0, 0, 0, ?)', [await getNextTableId('internal_mail_recipients'), conversationId, messageId, userId, recipientType, '']);
     }
     for (const attachment of attachments) {
@@ -5635,8 +5637,11 @@ app.patch('/api/internal-mail/conversations/:id', async (req, res) => {
 app.get('/api/internal-mail/attachments/:id/download', async (req, res) => {
   try {
     const attachmentId = Number(req.params.id);
-    const row = await get(`SELECT a.* FROM internal_mail_attachments a JOIN internal_mail_messages m ON m.id = a.messageId JOIN internal_mail_conversations c ON c.id = m.conversationId WHERE a.id = ? AND (c.createdBy = ? OR EXISTS (SELECT 1 FROM internal_mail_recipients r WHERE r.conversationId = c.id AND r.userId = ?))`, [attachmentId, Number(req.user?.id || 0), Number(req.user?.id || 0)]);
-    if (!row) return res.status(404).json({ error: 'Pièce jointe introuvable' });
+    const row = await get(`SELECT a.*, m.conversationId FROM internal_mail_attachments a
+      JOIN internal_mail_messages m ON m.id = a.messageId WHERE a.id = ?`, [attachmentId]);
+    if (!row || !(await getInternalMailAccess(row.conversationId, req.user?.id))) {
+      return res.status(404).json({ error: 'Pièce jointe introuvable' });
+    }
     res.setHeader('Content-Type', String(row.mimeType || 'application/octet-stream'));
     res.setHeader('Content-Disposition', `attachment; filename="${String(row.fileName || 'document').replace(/["\\\r\n]/g, '_')}"`);
     return res.send(Buffer.from(String(row.contentBase64 || ''), 'base64'));

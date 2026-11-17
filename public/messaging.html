@@ -586,7 +586,7 @@
       const homeLabel = document.createElement('span');
       homeLabel.className = 'mobile-only';
       homeLabel.textContent = 'ERP';
-      document.querySelector('.erp-home-link').append(homeLabel);
+      document.querySelector('.erp-home-link')?.append(homeLabel);
       const send = document.createElement('button');
       send.type = 'submit';
       send.className = 'mobile-only mobile-send';
