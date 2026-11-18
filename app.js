@@ -25,6 +25,7 @@ const { createDbClient } = require('./db/client');
 const { normalizeHrUsernameCandidate, ensureHrEmployeeUserAccount } = require('./lib/hr-user-account');
 const { createNativePush, validNativeSubscription } = require('./lib/native-push');
 const { createInternalMail } = require('./lib/internal-mail');
+const { createImplementationLogbook } = require('./lib/implementation-logbook');
 const {
   USER_RESTORE_WINDOW_MS, linkedEmployeeJoin, ensureProjectAssignmentRetention,
   withUserProfileChanges, setUserProfileState, deleteUserAccount, syncUserProfileAccess, purgeExpiredUserAccounts,
@@ -663,6 +664,11 @@ const dbClient = createDbClient({
 const { run, get, all } = dbClient;
 const DB_DRIVER = dbClient.driver;
 const internalMail = createInternalMail({ db: dbClient, getTableColumns, notify: notifyInternalMailRecipients });
+const implementationLogbook = createImplementationLogbook({
+  db: dbClient,
+  enabled: NODE_ENV === 'production' && process.env.IMPLEMENTATION_LOGBOOK_ENABLED !== '0',
+  publicOrigin: 'https://ryanerp-hn5zd.ondigitalocean.app',
+});
 
 if (DB_DRIVER === 'postgres') {
   console.log('Mode base de donnees: PostgreSQL');
@@ -4018,6 +4024,7 @@ function startGpsRetentionCleanup() {
 
 async function initializeDatabaseOnce() {  try {
     await initDbWithTimeout();
+    await implementationLogbook.initialize();
     await ensureProjectAssignmentRetention(dbClient);
     await run(`INSERT INTO user_profile_states (employeeId, userId, deactivatedAt, deleteAfter, deletedAt)
       SELECT he.id, u.id, u.deactivatedAt, u.deleteAfter, ''
@@ -4972,7 +4979,7 @@ async function buildAuthProfilePayload(user) {
 }
 
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
-  res.json(await buildAuthProfilePayload(req.user));
+  res.json({ ...await buildAuthProfilePayload(req.user), localLogbookEnabled: implementationLogbook.canAccess(req) });
 });
 
 app.get('/api/auth/profile-stream', async (req, res) => {
@@ -5301,6 +5308,7 @@ app.post('/api/gps/stop', async (req, res) => {
 });
 
 app.use('/api', authenticateToken, authorizeRoleAccess);
+app.use('/api/admin/implementation-logbook', implementationLogbook.router);
 
 async function getInternalMailUser(userId) {
   return internalMail.getUser(userId);

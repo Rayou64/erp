@@ -8099,6 +8099,7 @@
           <div class="menu-item" data-module="database">🗂️ Base de donnée</div>
           <div class="menu-item" data-module="guide-erp">📘 Guide ERP</div>
           <div class="menu-item" data-module="access-profiles">🗃️ Dossiers profils</div>
+          <div class="menu-item" data-module="implementation-logbook" style="display:none;">📓 Carnet de bord</div>
           <div class="menu-item" data-module="admin-mail">✉️ Messagerie interne</div>
           <div class="menu-item" data-module="trash">🗑️ Corbeille</div>
           <div class="menu-item" data-module="users">🔑 Utilisateurs</div>
@@ -13328,6 +13329,10 @@
           </div>
         </div>
 
+        <div id="implementation-logbook" class="module">
+          <iframe id="implementation-logbook-frame" title="Carnet de bord" style="display:block;width:100%;height:calc(100vh - 170px);min-height:850px;border:0;border-radius:16px;background:#f3f6f7;"></iframe>
+        </div>
+
         <div id="admin-mail" class="module">
           <div class="page-header">
             <img class="internal-mail-logo" src="/assets/Messagerie%20interne.png" alt="Messagerie interne" />
@@ -13877,6 +13882,7 @@
     let selectedProjectCreationFolderKey = '';
     let selectedProjectCatalogId = null;
     let currentUserRole = null;
+    let localLogbookEnabled = false;
     let currentUserUsername = null;
     let currentUserScope = null;
     let currentUserAccessProfile = null;
@@ -14121,7 +14127,7 @@
     const EXECUTIVE_ALLOWED_MODULES = new Set(['dashboard', 'projects', 'project-progress', 'journal-chantier', 'inventory', 'purchase-orders', 'purchase-orders-tracking', 'sortie-autorisations', 'material-catalog', 'expenses', 'revenues', 'reports', 'maps', 'hr-employee-search', 'guide-erp']);
       const ACHAT_ALLOWED_MODULES = new Set(['projects', 'purchase-orders', 'purchase-orders-tracking', 'sortie-autorisations', 'inventory', 'database', 'trash', 'hr-employee-search', 'guide-erp']);
     const RESTRICTED_DEFAULT_ALLOWED_MODULES = new Set(['hr-employees', 'hr-employee-search', 'hr-attendance', 'hr-calendar', 'hr-leave', 'guide-erp']);
-    const ADMIN_ONLY_MODULES = new Set(['access-profiles']);
+    const ADMIN_ONLY_MODULES = new Set(['access-profiles', 'implementation-logbook']);
     const ACCESS_PROFILE_MODULE_OPTIONS = [
       'dashboard', 'projects', 'project-progress', 'journal-chantier', 'materials', 'inventory', 'purchase-orders', 'purchase-orders-tracking', 'stock-management', 'sortie-autorisations',
       'material-catalog', 'material-requests-tracking', 'parc-auto', 'vehicles', 'maps', 'expenses', 'revenues', 'reports', 'database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'assignments', 'hr-employees',
@@ -14178,7 +14184,7 @@
       const catalog = [];
       document.querySelectorAll('.menu-item[data-module]').forEach(item => {
         const key = String(item.dataset.module || '').trim().toLowerCase();
-        if (!key || seen.has(key)) return;
+        if (key === 'implementation-logbook' || !key || seen.has(key)) return;
         seen.add(key);
         catalog.push({ key, label: String(item.textContent || '').replace(/\s+/g, ' ').trim() || getAccessProfileModuleLabel(key) });
       });
@@ -16989,6 +16995,8 @@
         ADMIN_ONLY_MODULES.forEach(moduleKey => allowed.delete(moduleKey));
       }
 
+      if (localLogbookEnabled && isAdmin()) allowed.add('implementation-logbook');
+      else allowed.delete('implementation-logbook');
       allowed.add('admin-mail');
       return allowed;
     }
@@ -17033,6 +17041,8 @@
     }
 
     function applyRoleAccess() {
+      const logbookItem = document.querySelector('.menu-item[data-module="implementation-logbook"]');
+      if (logbookItem) logbookItem.style.display = localLogbookEnabled && isAdmin() ? '' : 'none';
       if (!isRestrictedRole()) return;
       const allowed = getAllowedModules();
 
@@ -26593,6 +26603,10 @@
       if (moduleName === 'access-profiles') {
         loadAccessProfilesModule();
       }
+      if (moduleName === 'implementation-logbook' && localLogbookEnabled && isAdmin()) {
+        const frame = document.getElementById('implementation-logbook-frame');
+        if (!frame.getAttribute('src')) frame.src = '/implementation-logbook.html';
+      }
       if (moduleName === 'hr-employee-search') {
         loadHrEmployeeSearchModule();
       }
@@ -26643,6 +26657,7 @@
         database: ['Admin', 'Base de donnée'],
         'guide-erp': ['Admin', 'Guide ERP'],
         'access-profiles': ['Admin', 'Dossiers profils'],
+        'implementation-logbook': ['Admin', 'Carnet de bord'],
         'admin-mail': ['Communication', 'Messagerie interne'],
         trash: ['Admin', 'Corbeille'],
         'audit-log': ['Admin', 'Historique'],
@@ -33284,6 +33299,7 @@
         const user = await fetchJson('/api/auth/me');
         currentUserUsername = user.username || null;
         currentUserRole = user.role || null;
+        localLogbookEnabled = user.localLogbookEnabled === true;
         currentUserScope = user.scope || null;
         currentUserAccessProfile = user.accessProfile || null;
         if (isHrDirector()) {
@@ -36684,7 +36700,7 @@
         tone: 'admin',
         description: 'Users, parametres, historique',
         subtitle: 'Administration, comptes et parametrage du systeme.',
-        modules: ['database', 'guide-erp', 'access-profiles', 'admin-mail', 'trash', 'users', 'settings', 'audit-log'],
+        modules: ['database', 'guide-erp', 'access-profiles', 'implementation-logbook', 'admin-mail', 'trash', 'users', 'settings', 'audit-log'],
       },
     ];
 
@@ -36791,6 +36807,7 @@
         if (!me) return false;
         currentUserUsername = me.username || currentUserUsername;
         currentUserRole = me.role || currentUserRole;
+        localLogbookEnabled = me.localLogbookEnabled === true;
         currentUserAccessProfile = me.accessProfile || null;
         return true;
       } catch (_) {

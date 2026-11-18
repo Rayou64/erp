@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+  <title>Carnet de bord — RyanERP</title>
+  <link rel="stylesheet" href="/implementation-logbook.css">
+  <script src="/implementation-logbook.js" defer></script>
+</head>
+<body>
+  <main>
+    <header class="heading">
+      <div><p class="eyebrow">Préparation et publication des versions</p><h1>Carnet de bord</h1><p class="subtitle">Prépare les changements de chaque étape en local, puis publie la version validée vers le site et l'application RyanERP.</p></div>
+      <span class="local-pill" id="environment-label">● Chargement de l'environnement</span>
+    </header>
+    <p id="loading" role="status">Chargement du carnet…</p>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <div id="workspace" class="workspace" hidden>
+      <aside>
+        <section class="panel folders" aria-label="Dossiers d'implémentation">
+          <h2>Dossiers d'implémentation</h2>
+          <div id="folders"></div>
+          <p class="folder-tip"><strong>Un dossier par étape</strong>Indique l'étape à chaque demande. Les modifications de modules et de profils sont consignées dans le dossier correspondant.</p>
+        </section>
+        <div class="production-note" id="environment-note"></div>
+      </aside>
+      <section class="stage" aria-labelledby="stage-title">
+        <div class="panel">
+          <div class="stage-header">
+            <div><p class="eyebrow" id="stage-number"></p><h2 id="stage-title"></h2><p class="stage-meta"><span class="status" id="stage-status">Local — non déployé</span><span id="stage-date"></span></p></div>
+            <div class="deploy-block"><button type="button" class="primary" id="open-deployment"></button><small id="deployment-hint"></small></div>
+          </div>
+          <p class="destination"><strong>Destination :</strong> DigitalOcean · Site et application RyanERP</p>
+          <div class="deployment-progress" id="deployment-progress" role="status" hidden></div>
+          <div class="metrics" aria-label="Résumé de l'étape">
+            <div><strong id="metric-total">0</strong><span>fiches enregistrées</span></div>
+            <div><strong id="metric-modules">0</strong><span>fiches de modules</span></div>
+            <div><strong id="metric-profiles">0</strong><span>fiches de profils</span></div>
+            <div><strong id="metric-verified">0</strong><span>fiches vérifiées</span></div>
+          </div>
+        </div>
+        <section class="panel specifications" aria-labelledby="specifications-title">
+          <div class="section-heading"><div><h2 id="specifications-title">Spécifications de l'étape</h2><p>Les fiches décrivent les changements ; elles ne modifient pas elles-mêmes les profils ou les modules.</p></div><div class="actions"><button type="button" class="secondary" id="refresh">Actualiser</button><button type="button" class="primary" id="new-entry">+ Nouvelle fiche</button></div></div>
+          <div class="filter-row">
+            <div class="filters" role="group" aria-label="Filtrer les fiches"><button type="button" data-filter="all" aria-pressed="true">Tous</button><button type="button" data-filter="module" aria-pressed="false">Modules</button><button type="button" data-filter="profile" aria-pressed="false">Profils</button></div>
+            <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Rechercher une fiche…" aria-label="Rechercher une fiche"></label>
+          </div>
+          <div class="changes-grid"><div id="entries" class="entry-list" aria-label="Fiches de changement"></div><article id="detail" class="detail" aria-label="Spécification sélectionnée" aria-live="polite"></article></div>
+        </section>
+        <div class="panel workflow"><div><strong>1. Préparer en local</strong>Changements de modules et de profils</div><span aria-hidden="true">→</span><div><strong>2. Valider la version de l'étape</strong>Contenu et périmètre exacts</div><span aria-hidden="true">→</span><div><strong>3. Déployer depuis ce dossier</strong><span id="workflow-confirmation"></span></div></div>
+        <p class="page-foot" id="publication-note"></p>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="entry-dialog" aria-labelledby="entry-dialog-title">
+    <form id="entry-form">
+      <header class="modal-head"><div><p class="eyebrow" id="entry-stage"></p><h2 id="entry-dialog-title">Nouvelle fiche</h2></div><button type="button" class="close" id="close-entry" aria-label="Fermer la fiche">×</button></header>
+      <div class="modal-body">
+        <p class="form-help">Précise les changements réels et leur portée. Pour un élément inchangé, indique « Aucun changement ».</p>
+        <div id="entry-error" class="notice error" role="alert" hidden></div>
+        <div class="form-grid">
+          <label>Type<select name="kind" required><option value="module">Module</option><option value="profile">Profil</option></select></label>
+          <label>Nom du module ou du profil<input name="title" maxlength="160" required></label>
+          <label class="wide">Résumé du changement<input name="summary" maxlength="400" required></label>
+          <label>Avant<textarea name="beforeText" rows="3" maxlength="4000" required></textarea></label>
+          <label>Après, en local<textarea name="afterText" rows="3" maxlength="4000" required></textarea></label>
+          <label>Profils concernés<textarea name="profiles" rows="2" maxlength="1500" required></textarea></label>
+          <label>Modules concernés<textarea name="modules" rows="2" maxlength="1500" required></textarea></label>
+          <label>Droits et restrictions<textarea name="rights" rows="3" maxlength="4000" required></textarea></label>
+          <label>Visibilité, menus et écrans<textarea name="visibility" rows="3" maxlength="4000" required></textarea></label>
+          <label class="wide">Vérifications prévues ou effectuées<textarea name="validation" rows="3" maxlength="4000"></textarea></label>
+          <label>État des vérifications<select name="validationStatus" required><option value="pending">À vérifier</option><option value="verified">Vérifications effectuées</option></select></label>
+          <label>Demande d'origine / référence<textarea name="source" rows="2" maxlength="1000"></textarea></label>
+        </div>
+        <p class="form-help">L'étape est fixée par le dossier ouvert. Vérifier une fiche ne signifie jamais « déployer ».</p>
+      </div>
+      <footer class="modal-footer"><button type="button" class="secondary" id="cancel-entry">Annuler</button><button type="submit" class="primary" id="save-entry">Enregistrer</button></footer>
+    </form>
+  </dialog>
+
+  <dialog id="deployment-dialog" aria-labelledby="deployment-title" aria-describedby="deployment-warning">
+    <form id="deployment-form">
+      <header class="modal-head"><div><p class="eyebrow">Localhost → DigitalOcean</p><h2 id="deployment-title">Déployer la première étape</h2></div><button type="button" class="close" id="close-deployment" aria-label="Fermer la confirmation">×</button></header>
+      <div class="modal-body">
+        <p id="deployment-warning" class="locked"></p>
+        <ul id="deployment-blockers" class="blockers"></ul>
+        <p class="form-help" id="deployment-scope"></p>
+        <label class="code-label" for="deployment-code" id="deployment-code-label"></label>
+        <input id="deployment-code" class="code-input" type="text" autocomplete="off" spellcheck="false" aria-describedby="code-feedback" placeholder="······">
+        <p id="code-feedback" class="code-feedback" aria-live="polite"></p>
+        <label class="checkbox"><input type="checkbox" id="scope-confirm"><span id="scope-confirm-label"></span></label>
+        <div id="deployment-error" class="notice error" role="alert" hidden></div>
+        <p class="form-help">Le code confirme le périmètre ; il ne remplace pas l'authentification administrateur. Les outils Git et DigitalOcean déjà authentifiés sur le poste sont utilisés ; aucun secret n'est demandé dans ce formulaire.</p>
+      </div>
+      <footer class="modal-footer"><button type="button" class="secondary" id="cancel-deployment">Annuler</button><button type="submit" class="primary" id="confirm-deployment" disabled>Déployer</button></footer>
+    </form>
+  </dialog>
+</body>
+</html>

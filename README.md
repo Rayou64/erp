@@ -271,3 +271,11 @@ Activation couche PostgreSQL (phase progressive):
 - `DATABASE_URL=postgres://...`
 
 L application utilise maintenant une couche d acces unifiee (`run/get/all`) compatible SQLite et PostgreSQL.
+
+
+## Carnet de bord - livraison préalable CHADA0
+
+- Admin > Carnet de bord est disponible en ligne pour les administrateurs authentifiés.
+- Seul le localhost peut lancer une publication, après clic et confirmation CHADA0.
+- Cette livraison ajoute uniquement le Carnet et ses tables ; aucune base locale ni modification RH de l'étape 1 n'est importée.
+- La publication CHADA1 reste verrouillée. IMPLEMENTATION_LOGBOOK_ENABLED=0 désactive le module en production.
